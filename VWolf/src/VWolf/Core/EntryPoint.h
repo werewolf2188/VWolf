@@ -5,7 +5,7 @@
 extern VWolf::Application* getApplication();
 
 #define VWOLF_MAIN_APP(App) \
-extern VWolf::Application* getApplication() {\
+VWolf::Application* getApplication() {\
 	return new App(); \
 }
 

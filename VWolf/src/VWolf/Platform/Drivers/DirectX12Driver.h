@@ -7,5 +7,7 @@ namespace VWolf {
 	public:
 		virtual void Initialize() override;
 		virtual void Shutdown() override;
+	private:
+		void* handle;
 	};
 }

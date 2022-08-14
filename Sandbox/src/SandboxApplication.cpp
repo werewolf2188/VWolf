@@ -5,7 +5,7 @@
 
 class SandboxApplication : public VWolf::Application {
 public:
-	SandboxApplication(): Application(VWolf::DriverType::OpenGL) { }
+	SandboxApplication(): Application(VWolf::DriverType::DirectX12) { }
 
 	virtual void Run() override {
 		std::cout << "Hello World!" << std::endl;
