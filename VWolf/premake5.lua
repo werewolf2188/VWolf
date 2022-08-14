@@ -26,26 +26,26 @@ project "VWolf"
    includedirs
    {
       "src",
-	--    "%{IncludeDir.GLFW}",
-	--    "%{IncludeDir.Glad}",
+      "%{IncludeDir.GLFW}",
+	  "%{IncludeDir.Glad}",
 	--    "%{IncludeDir.ImGui}",
    }
 
-   -- links 
-   -- { 
-   --    "GLFW",
-	--   "Glad",
+	links 
+	{ 
+      "GLFW",
+	  "Glad",
 	--   "ImGui",
-	--   "opengl32.lib"
-   -- }
+	  "opengl32.lib"
+	}
 
    filter "system:windows"
       systemversion "latest"
 
-	--   defines
-	--   {
-   --       "GLFW_INCLUDE_NONE"
-	--   }
+   defines
+   {
+      "GLFW_INCLUDE_NONE"
+   }
 
    filter "configurations:Debug"
       defines { "DEBUG" }

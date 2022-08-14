@@ -17,16 +17,16 @@ workspace "VWolf"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
--- IncludeDir = {}
--- IncludeDir["GLFW"] = "vendor/GLFW/include"
--- IncludeDir["Glad"] = "vendor/Glad/include"
+IncludeDir = {}
+IncludeDir["GLFW"] = "%{wks.location}/VWolf/vendor/GLFW/include"
+IncludeDir["Glad"] = "%{wks.location}/VWolf/vendor/Glad/include"
 -- IncludeDir["ImGui"] = "vendor/imgui"
 
--- group "Dependencies"
--- 	include "vendor/GLFW"
--- 	include "vendor/Glad"
+group "Dependencies"
+   include "VWolf/vendor/GLFW"
+   include "VWolf/vendor/Glad"
 -- 	include "vendor/imgui"
--- group ""
+group ""
 
 include "VWolf"
 include "Sandbox"
