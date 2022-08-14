@@ -7,9 +7,20 @@
 // TODO: Remove this later
 const wchar_t* CLASS_NAME = L"My window";
 
+// TODO: Move this in case of needing it.
+const wchar_t* GetWC(const char* c)
+{
+    const size_t cSize = strlen(c) + 1;
+    wchar_t* wc = new wchar_t[cSize];
+    mbstowcs(wc, c, cSize);
+
+    return wc;
+}
+
 namespace VWolf {
-	WinWindow::WinWindow(void* handle): hInstance(handle)
+	WinWindow::WinWindow(void* handle, InitConfiguration config): hInstance(handle)
 	{
+        this->config = config;
         WNDCLASS wndClass = {};
         wndClass.lpszClassName = CLASS_NAME;
         wndClass.hInstance = (HINSTANCE)hInstance;
@@ -34,16 +45,16 @@ namespace VWolf {
         GetWindowRect(hDesktop, &desktop);
 
         RECT rect;
-        rect.left = (desktop.right / 2) - (width / 2);
-        rect.top = (desktop.bottom / 2) - (height / 2);
-        rect.right = rect.left + width;
-        rect.bottom = rect.top + height;
+        rect.left = (desktop.right / 2) - (config.width / 2);
+        rect.top = (desktop.bottom / 2) - (config.height / 2);
+        rect.right = rect.left + config.width;
+        rect.bottom = rect.top + config.height;
 
         AdjustWindowRect(&rect, style, false);
         hwnd = CreateWindowEx(
             0,
             CLASS_NAME,
-            L"Title",
+            GetWC(config.title),
             style,
             rect.left,
             rect.top,
@@ -58,7 +69,6 @@ namespace VWolf {
         bool running = true;
         while (running) {
             if (!ProcessMessages()) {
-                std::cout << "Closing window!" << std::endl;
                 running = false;
             }
             Sleep(10); //<- Why?

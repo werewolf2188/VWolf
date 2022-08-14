@@ -6,7 +6,7 @@
 namespace VWolf {
 	class Driver {
 	public:
-		virtual void Initialize() = 0;
+		virtual void Initialize(InitConfiguration config) = 0;
 		virtual void Shutdown() = 0;
 		Window* GetWindow() { return window; };
 

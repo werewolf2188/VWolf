@@ -11,7 +11,7 @@ namespace VWolf {
 		virtual void Run();
 	protected: 
 		Application() = delete;
-		Application(DriverType type);
+		Application(DriverType type, InitConfiguration config);
 	private:
 		Driver* driver;
 	};

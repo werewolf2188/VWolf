@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Base.h"
+
 namespace VWolf {
 	class Window {
 	public:

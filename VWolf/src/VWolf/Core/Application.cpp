@@ -4,9 +4,9 @@
 #include "Application.h"
 
 namespace VWolf {
-	Application::Application(DriverType type) : driver(Driver::GetDriver(type))
+	Application::Application(DriverType type, InitConfiguration config) : driver(Driver::GetDriver(type))
 	{
-		driver->Initialize();
+		driver->Initialize(config);
 	}
 
 	Application::~Application()

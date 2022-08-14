@@ -11,7 +11,7 @@
 #define GL_PROFILE GLFW_OPENGL_CORE_PROFILE
 
 namespace VWolf {
-	void OpenGLDriver::Initialize()
+	void OpenGLDriver::Initialize(InitConfiguration config)
 	{
 		glfwInit();
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, GL_MAJOR_VERSION);
@@ -19,7 +19,7 @@ namespace VWolf {
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GL_PROFILE);
 		//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-		window = new GLFWWindow();
+		window = new GLFWWindow(config);
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
 			std::cout << "Failed to initialize GLAD" << std::endl;

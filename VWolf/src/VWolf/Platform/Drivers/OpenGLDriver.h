@@ -5,7 +5,7 @@
 namespace VWolf { 
 	class OpenGLDriver : public Driver {
 	public:
-		virtual void Initialize() override;
+		virtual void Initialize(InitConfiguration config) override;
 		virtual void Shutdown() override;
 	};
 }

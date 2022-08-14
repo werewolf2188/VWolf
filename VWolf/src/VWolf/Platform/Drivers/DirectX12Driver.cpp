@@ -7,10 +7,10 @@
 #include "VWolf/Platform/Windows/WinWindow.h"
 
 namespace VWolf {
-	void DirectX12Driver::Initialize()
+	void DirectX12Driver::Initialize(InitConfiguration config)
 	{
 		handle = GetModuleHandle(nullptr);
-		window = new WinWindow(handle);
+		window = new WinWindow(handle, config);
 		window->Initialize();
 	}
 
