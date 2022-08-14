@@ -5,18 +5,11 @@
 
 class SandboxApplication : public VWolf::Application {
 public:
-	SandboxApplication(): Application(VWolf::DriverType::OpenGL) { 
-	}
-
-	~SandboxApplication() {
-
-	}
+	SandboxApplication(): Application(VWolf::DriverType::OpenGL) { }
 
 	virtual void Run() override {
 		std::cout << "Hello World!" << std::endl;
 	}
 };
 
-extern VWolf::Application* getApplication() {
-	return new SandboxApplication();
-}
+VWOLF_MAIN_APP(SandboxApplication)

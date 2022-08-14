@@ -7,6 +7,7 @@ class Driver;
 namespace VWolf {
 	class Application {
 	public:
+		~Application();
 		virtual void Run();
 	protected: 
 		Application() = delete;
