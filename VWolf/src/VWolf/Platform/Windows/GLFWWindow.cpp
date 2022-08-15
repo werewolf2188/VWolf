@@ -28,9 +28,10 @@ namespace VWolf {
 		// TODO: Move
 		glViewport(0, 0, config.width, config.height);
 
-		// TODO: Initialize UI
+		// TODO: Initialize UI		
+	}
 
-		// TODO: Move
+	void GLFWWindow::Run() {
 		while (!glfwWindowShouldClose(m_window))
 		{
 			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

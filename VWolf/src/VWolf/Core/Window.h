@@ -7,6 +7,7 @@ namespace VWolf {
 	public:
 		virtual ~Window() {};
 		virtual void Initialize() = 0;
+		virtual void Run() = 0;
 	protected:
 		Window() {};
 	};

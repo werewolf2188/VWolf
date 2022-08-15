@@ -1,11 +1,8 @@
 #include "vwpch.h"
 #ifdef VW_PLATFORM_WINDOWS
-
-#include <Windows.h>
 #include "WinWindow.h"
 
-// TODO: Remove this later
-const wchar_t* CLASS_NAME = L"My window";
+const wchar_t* CLASS_NAME = L"VWOLF_MAIN_WINDOW";
 
 // TODO: Move this in case of needing it.
 const wchar_t* GetWC(const char* c)
@@ -18,15 +15,45 @@ const wchar_t* GetWC(const char* c)
 }
 
 namespace VWolf {
+    namespace Private {
+        LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+        {
+            WinWindow* pThis;
+            if (uMsg == WM_CREATE)
+            {
+                CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
+                pThis = reinterpret_cast<WinWindow*>(pCreate->lpCreateParams);
+                SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)pThis);
+            }
+            else
+            {
+                pThis = (WinWindow*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            }
+
+            if (pThis)
+            {
+                return pThis->HandleMessage(uMsg, wParam, lParam);
+            }
+            else
+            {
+                return DefWindowProc(hwnd, uMsg, wParam, lParam);
+            }
+            return TRUE;
+        }
+    }
+
 	WinWindow::WinWindow(void* handle, InitConfiguration config): hInstance(handle)
 	{
         this->config = config;
         WNDCLASS wndClass = {};
+        wndClass.style = CS_HREDRAW | CS_VREDRAW;
         wndClass.lpszClassName = CLASS_NAME;
         wndClass.hInstance = (HINSTANCE)hInstance;
         wndClass.hIcon = LoadIcon(NULL, IDI_WINLOGO);
         wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wndClass.lpfnWndProc = WinWindow::WindowProc;
+        wndClass.lpfnWndProc = Private::WindowProc;
+        wndClass.cbClsExtra = 0;
+        wndClass.cbWndExtra = 0;
 
         RegisterClass(&wndClass);
 	}
@@ -38,7 +65,7 @@ namespace VWolf {
 
 	void WinWindow::Initialize()
 	{
-        DWORD style = WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU;
+        DWORD style = WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_MAXIMIZEBOX;
 
         RECT desktop;
         const HWND hDesktop = GetDesktopWindow();
@@ -63,9 +90,12 @@ namespace VWolf {
             nullptr,
             nullptr,
             (HINSTANCE)hInstance,
-            nullptr);
+            this);
         ShowWindow((HWND)hwnd, SW_SHOW);
+        UpdateWindow((HWND)hwnd);        
+	}
 
+    void WinWindow::Run() {
         bool running = true;
         while (running) {
             if (!ProcessMessages()) {
@@ -73,30 +103,30 @@ namespace VWolf {
             }
             Sleep(10); //<- Why?
         }
-	}
+    }
 
-    LRESULT CALLBACK WinWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    LRESULT WinWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         switch (uMsg) {
         case WM_CLOSE:
-            DestroyWindow(hwnd);
+            DestroyWindow((HWND)hwnd);
             break;
         case WM_PAINT:
         {
             PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
+            HDC hdc = BeginPaint((HWND)hwnd, &ps);
 
             // All painting occurs here, between BeginPaint and EndPaint.
 
             FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_DESKTOP + 1));
 
-            EndPaint(hwnd, &ps);
+            EndPaint((HWND)hwnd, &ps);
         }
         return 0;
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
         }
-        return DefWindowProc(hwnd, uMsg, wParam, lParam);
+        return DefWindowProc((HWND)hwnd, uMsg, wParam, lParam);
     }
 
     bool WinWindow::ProcessMessages() {
