@@ -42,6 +42,11 @@ project "VWolf"
    filter "system:windows"
       systemversion "latest"
 
+   includedirs
+   {
+      "vendor/d3dx12"
+   }
+
    defines
    {
       "GLFW_INCLUDE_NONE"
