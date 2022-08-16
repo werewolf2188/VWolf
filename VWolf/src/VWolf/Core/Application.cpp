@@ -15,7 +15,10 @@ namespace VWolf {
 	}
 
 	void Application::Run() {
-		
-	}
-	
+		// TODO: Replace by events
+		while (!driver->GetWindow()->ShouldClose()) {
+			// TODO: Replace by graphics context
+			driver->GetWindow()->Clear();
+		}
+	}	
 }

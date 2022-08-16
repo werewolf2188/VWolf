@@ -8,7 +8,7 @@ namespace VWolf {
 	class Application {
 	public:
 		~Application();
-		virtual void Run();
+		void Run();
 	protected: 
 		Application() = delete;
 		Application(DriverType type, InitConfiguration config);

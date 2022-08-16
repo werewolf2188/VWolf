@@ -31,7 +31,19 @@ namespace VWolf {
 		// TODO: Initialize UI		
 	}
 
-	void GLFWWindow::Run() {
+	bool GLFWWindow::ShouldClose() {
+		return glfwWindowShouldClose(m_window);
+	}
+
+	void GLFWWindow::Clear() {
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glViewport(0, 0, config.width, config.height);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glfwSwapBuffers(m_window);
+		glfwPollEvents();
+	}
+
+	/*void GLFWWindow::Run() {
 		while (!glfwWindowShouldClose(m_window))
 		{
 			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -40,5 +52,5 @@ namespace VWolf {
 			glfwSwapBuffers(m_window);
 			glfwPollEvents();
 		}
-	}
+	}*/
 }

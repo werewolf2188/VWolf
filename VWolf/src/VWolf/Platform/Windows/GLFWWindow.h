@@ -10,7 +10,9 @@ namespace VWolf {
 		GLFWWindow(InitConfiguration config);
 		virtual ~GLFWWindow() override;
 		virtual void Initialize() override;
-		virtual void Run() override;
+		//TODO: Remove
+		virtual bool ShouldClose() override;
+		virtual void Clear() override;
 	private:
 		GLFWwindow* m_window;
 		InitConfiguration config;

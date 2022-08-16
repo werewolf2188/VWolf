@@ -11,6 +11,7 @@ namespace VWolf {
 		virtual void Shutdown() override;
 	private:
 		void* handle;
+	protected:
 		DirectX12Context* context;
 	};
 }

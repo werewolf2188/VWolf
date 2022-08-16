@@ -26,7 +26,6 @@ namespace VWolf {
 			glfwTerminate();
 		}
 		window->Initialize();
-		window->Run();
 	}
 
 	void OpenGLDriver::Shutdown()

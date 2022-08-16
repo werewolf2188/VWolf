@@ -95,33 +95,29 @@ namespace VWolf {
         UpdateWindow((HWND)hwnd);        
 	}
 
-    void WinWindow::Run() {
-        bool running = true;
-        while (running) {
-            if (!ProcessMessages()) {
-                running = false;
-            }
-            Sleep(10); //<- Why?
-        }
+    bool WinWindow::ShouldClose() {
+        return !ProcessMessages();
     }
+
+    void WinWindow::Clear() {
+        clearFunc();
+    }
+
+    //void WinWindow::Run() {
+    //    bool running = true;
+    //    while (running) {
+    //        if (!ProcessMessages()) {
+    //            running = false;
+    //        }
+    //        Sleep(10); //<- Why?
+    //    }
+    //}
 
     LRESULT WinWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         switch (uMsg) {
         case WM_CLOSE:
             DestroyWindow((HWND)hwnd);
             break;
-        case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint((HWND)hwnd, &ps);
-
-            // All painting occurs here, between BeginPaint and EndPaint.
-
-            FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_DESKTOP + 1));
-
-            EndPaint((HWND)hwnd, &ps);
-        }
-        return 0;
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
