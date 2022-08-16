@@ -13,18 +13,11 @@ project "Sandbox"
       "src/**.h", 
 	  "src/**.cpp"
    }
-   --removefiles { "vendor/imgui/**" }
-  
-   defines
-   {
-      "_CRT_SECURE_NO_WARNINGS"
-   }
 
    includedirs
    {
-      "src",
 	  "%{wks.location}/VWolf/src",
-	--    "%{wks.location}/VWolf/vendor",
+	  "%{wks.location}/VWolf/vendor",
 	--    "%{IncludeDir.GLFW}",
 	--    "%{IncludeDir.Glad}",
 	--    "%{IncludeDir.ImGui}",
@@ -32,20 +25,11 @@ project "Sandbox"
 
    links 
    {
-      "VWolf"   
-    --   "GLFW",
-	--   "Glad",
-	--   "ImGui",
-	--   "opengl32.lib"
+      "VWolf"
    }
 
    filter "system:windows"
       systemversion "latest"
-
-	--   defines
-	--   {
-   --       "GLFW_INCLUDE_NONE"
-	--   }
 
    filter "configurations:Debug"
       defines { "DEBUG" }
