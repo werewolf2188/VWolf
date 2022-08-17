@@ -23,6 +23,11 @@ project "Sandbox"
 	--    "%{IncludeDir.ImGui}",
    }
 
+   libdirs 
+   {
+       "%{LibDir.boost}"
+   }
+
    links 
    {
       "VWolf"
