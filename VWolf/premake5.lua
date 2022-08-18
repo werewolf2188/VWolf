@@ -28,7 +28,13 @@ project "VWolf"
       "src",
       "%{IncludeDir.GLFW}",
 	  "%{IncludeDir.Glad}",
+      "%{IncludeDir.boost}",
 	--    "%{IncludeDir.ImGui}",
+   }
+
+   libdirs 
+   {
+       "%{LibDir.boost}"
    }
 
 	links 
