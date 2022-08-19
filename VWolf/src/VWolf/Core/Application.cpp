@@ -9,6 +9,7 @@ namespace VWolf {
 	Application::Application(DriverType type, InitConfiguration config) : driver(Driver::GetDriver(type))
 	{
 		VWOLF_CORE_INFO("Initializing core application");
+		VWOLF_CORE_DEBUG("Starting with driver: %s", DriverName(type));
 		driver->Initialize(config);
 	}
 

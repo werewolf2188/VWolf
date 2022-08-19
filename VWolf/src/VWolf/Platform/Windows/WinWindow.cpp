@@ -42,7 +42,7 @@ namespace VWolf {
         }
     }
 
-	WinWindow::WinWindow(void* handle, InitConfiguration config): hInstance(handle)
+	WinWindow::WinWindow(HINSTANCE__* handle, InitConfiguration config): hInstance(handle)
 	{
         this->config = config;
         WNDCLASS wndClass = {};
@@ -65,7 +65,7 @@ namespace VWolf {
 
 	void WinWindow::Initialize()
 	{
-        DWORD style = WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_MAXIMIZEBOX;
+        DWORD style = WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_MAXIMIZEBOX | WS_OVERLAPPEDWINDOW;
 
         RECT desktop;
         const HWND hDesktop = GetDesktopWindow();
@@ -91,8 +91,8 @@ namespace VWolf {
             nullptr,
             (HINSTANCE)hInstance,
             this);
-        ShowWindow((HWND)hwnd, SW_SHOW);
-        UpdateWindow((HWND)hwnd);        
+        ShowWindow(hwnd, SW_SHOW);
+        UpdateWindow(hwnd);        
 	}
 
     bool WinWindow::ShouldClose() {
@@ -116,13 +116,13 @@ namespace VWolf {
     LRESULT WinWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         switch (uMsg) {
         case WM_CLOSE:
-            DestroyWindow((HWND)hwnd);
+            DestroyWindow(hwnd);
             break;
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
         }
-        return DefWindowProc((HWND)hwnd, uMsg, wParam, lParam);
+        return DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
 
     bool WinWindow::ProcessMessages() {
