@@ -6,10 +6,11 @@
 #include "VWolf/Platform/Windows/WinWindow.h"
 
 namespace VWolf {
-	void DirectX12Driver::Initialize(InitConfiguration config)
+	void DirectX12Driver::Initialize(InitConfiguration config, WindowEventCallback& callback)
 	{
 		handle = GetModuleHandle(nullptr);
-		window = new WinWindow(handle, config);
+		this->callback = &callback;
+		window = new WinWindow(handle, config, *this);
 		window->Initialize();		
 
 		dx12InitializeDefaultContext(context, config.width, config.height, ((WinWindow*)window)->GetHWND())
@@ -37,19 +38,27 @@ namespace VWolf {
 			// Indicate a state transition on the resource usage.
 			dx12ResourceBarrierTransitionForCurrentBackBuffer(context, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 			
-			dx12ExecuteCommands(this->context);
-			dx12SwapBuffers(this->context);
-			// Wait until frame commands are complete.  This waiting is inefficient and is
-			// done for simplicity.  Later we will show how to organize our rendering code
-			// so we do not have to wait per frame.
-			dx12Flush(this->context);
+			dx12ExecuteCommands(this->context);			
 		};
+	}
+
+	void DirectX12Driver::OnUpdate() {
+		window->OnUpdate();
+		dx12SwapBuffers(this->context);
+		// Wait until frame commands are complete.  This waiting is inefficient and is
+		// done for simplicity.  Later we will show how to organize our rendering code
+		// so we do not have to wait per frame.
+		dx12Flush(this->context);
 	}
 
 	void DirectX12Driver::Shutdown()
 	{
 		delete context;
 		delete window;
+	}
+
+	void DirectX12Driver::OnEvent(Event& evt) {
+		callback->OnEvent(evt);
 	}
 }
 #endif

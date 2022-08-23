@@ -19,6 +19,7 @@
 
 // BOOST
 #include <boost/core/null_deleter.hpp>
+#include <boost/lexical_cast.hpp>
 
 // BOOST LOG
 #include <boost/log/core.hpp>
@@ -38,6 +39,7 @@
 
 #ifdef VW_PLATFORM_WINDOWS
 #include <Windows.h>
+#include <windowsx.h>
 #include <wrl.h>
 #include <dxgi1_4.h>
 #include <d3d12.h>

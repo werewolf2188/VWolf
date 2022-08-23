@@ -7,13 +7,16 @@ struct DirectX12Context;
 struct HINSTANCE__;
 
 namespace VWolf {
-	class DirectX12Driver : public Driver {
+	class DirectX12Driver : public Driver, public WindowEventCallback {
 	public:
-		virtual void Initialize(InitConfiguration config) override;
+		virtual void Initialize(InitConfiguration config, WindowEventCallback& callback) override;
 		virtual void Shutdown() override;
+		virtual void OnUpdate() override;
+		virtual void OnEvent(Event& evt) override;
 	private:
 		HINSTANCE__* handle;
+		WindowEventCallback* callback;
 	protected:
-		DirectX12Context* context;
+		DirectX12Context* context;		
 	};
 }
