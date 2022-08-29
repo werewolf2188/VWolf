@@ -14,6 +14,7 @@ namespace VWolf {
 	public:
 		~Application();
 		void Run();
+		Window* GetWindow();
 		virtual void OnEvent(Event& evt) override;
 	protected: 
 		Application() = delete;

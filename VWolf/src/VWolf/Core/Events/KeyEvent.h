@@ -73,4 +73,10 @@ namespace VWolf {
 	private:
 		std::string m_KeyCode;
 	};
+
+	class KeyHandler
+	{
+	public:
+		virtual bool IsKeyPressed(KeyCode key) = 0;
+	};
 }

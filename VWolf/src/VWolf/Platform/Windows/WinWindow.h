@@ -1,5 +1,7 @@
 #pragma once
 #include "VWolf/Core/Window.h"
+#include "VWolf/Core/Events/MouseEvent.h"
+#include "VWolf/Core/Events/KeyEvent.h"
 
 struct HWND__;
 struct HINSTANCE__;
@@ -9,12 +11,15 @@ namespace VWolf {
 	enum class KeyMods;
 	enum class KeyState;
 
-	class WinWindow : public Window {
+	class WinWindow : public Window, public MouseHandler, public KeyHandler {
 	public: // Inherits
 		WinWindow(HINSTANCE__* handle, InitConfiguration config, WindowEventCallback& callback);
 		virtual ~WinWindow() override;
 		virtual void Initialize() override;
 		virtual void OnUpdate() override;
+		virtual bool IsMouseButtonPressed(MouseCode button) override;
+		virtual std::pair<float, float> GetMousePosition() override;
+		virtual bool IsKeyPressed(KeyCode key) override;
 		//TODO: Remove
 		virtual void Clear() override;
 	public: 

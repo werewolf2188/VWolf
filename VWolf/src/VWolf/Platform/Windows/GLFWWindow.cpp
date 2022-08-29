@@ -2,15 +2,23 @@
 #include "GLFWWindow.h"
 
 #include "VWolf/Core/Events/ApplicationEvent.h"
-#include "VWolf/Core/Events/MouseEvent.h"
-#include "VWolf/Core/Events/KeyEvent.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 namespace VWolf {
 	static KeyCode GetKeyCodeFrom(int key);
+	static int GetKeyFrom(KeyCode key);
 	static KeyMods GetKeyModsFrom(int mods);
+
+	int GetMouseFrom(MouseCode button) {
+		switch (button) {
+		case MouseCode::Left: return 0;
+		case MouseCode::Right: return 1;
+		case MouseCode::Middle: return 2;
+		}
+		return -1;
+	}
 
 	MouseCode GetMouseCode(int button) {
 		switch (button) {
@@ -21,11 +29,11 @@ namespace VWolf {
 		return MouseCode::Unknown;
 	}
 
-	GLFWWindow::GLFWWindow(InitConfiguration config, WindowEventCallback& callback): Window(), callback(callback)
+	GLFWWindow::GLFWWindow(InitConfiguration config, WindowEventCallback& callback) : Window(), callback(callback)
 	{
 		this->width = config.width;
 		this->height = config.height;
-		
+
 		m_window = glfwCreateWindow(width, height, config.title, NULL, NULL);
 		if (m_window == NULL)
 		{
@@ -48,35 +56,35 @@ namespace VWolf {
 			WindowCloseEvent evt;
 			data.GetCallback().OnEvent(evt);
 #endif
-		});
+			});
 
 		glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height)
-		{
-			GLFWWindow& data = *(GLFWWindow*)glfwGetWindowUserPointer(window);
-			data.SetWidth(width);
-			data.SetHeight(height);
+			{
+				GLFWWindow& data = *(GLFWWindow*)glfwGetWindowUserPointer(window);
+				data.SetWidth(width);
+				data.SetHeight(height);
 #if VWOLF_USE_EVENT_QUEUE
-			WindowResizeEvent* evt = new WindowResizeEvent(width, height);
-			EventQueue::defaultQueue->Queue(evt);
-			data.GetCallback().OnEvent(*evt);
+				WindowResizeEvent* evt = new WindowResizeEvent(width, height);
+				EventQueue::defaultQueue->Queue(evt);
+				data.GetCallback().OnEvent(*evt);
 #else
-			WindowResizeEvent evt(width, height);
-			data.GetCallback().OnEvent(evt);
+				WindowResizeEvent evt(width, height);
+				data.GetCallback().OnEvent(evt);
 #endif
-		});
+			});
 
 		glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xPos, double yPos)
-		{
-			GLFWWindow& data = *(GLFWWindow*)glfwGetWindowUserPointer(window);
+			{
+				GLFWWindow& data = *(GLFWWindow*)glfwGetWindowUserPointer(window);
 #if VWOLF_USE_EVENT_QUEUE
-			MouseMovedEvent* evt = new MouseMovedEvent(xPos, yPos);
-			EventQueue::defaultQueue->Queue(evt);
-			data.GetCallback().OnEvent(*evt);
+				MouseMovedEvent* evt = new MouseMovedEvent(xPos, yPos);
+				EventQueue::defaultQueue->Queue(evt);
+				data.GetCallback().OnEvent(*evt);
 #else
-			MouseMovedEvent evt(xPos, yPos);
-			data.GetCallback().OnEvent(evt);
+				MouseMovedEvent evt(xPos, yPos);
+				data.GetCallback().OnEvent(evt);
 #endif
-		});
+			});
 
 		glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xOffset, double yOffset) {
 			GLFWWindow& data = *(GLFWWindow*)glfwGetWindowUserPointer(window);
@@ -88,13 +96,13 @@ namespace VWolf {
 			MouseScrolledEvent evt(xOffset, yOffset);
 			data.GetCallback().OnEvent(evt);
 #endif
-		});
+			});
 
 		glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods)
-		{
-			GLFWWindow& data = *(GLFWWindow*)glfwGetWindowUserPointer(window);
+			{
+				GLFWWindow& data = *(GLFWWindow*)glfwGetWindowUserPointer(window);
 
-			switch (action) {
+				switch (action) {
 				case GLFW_PRESS:
 				{
 #if VWOLF_USE_EVENT_QUEUE
@@ -119,56 +127,56 @@ namespace VWolf {
 #endif				
 				}
 				break;
-			}
-		});
+				}
+			});
 
 		glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
-		{
-			GLFWWindow& data = *(GLFWWindow*)glfwGetWindowUserPointer(window);
-
-			switch (action)
 			{
-			case GLFW_PRESS:
+				GLFWWindow& data = *(GLFWWindow*)glfwGetWindowUserPointer(window);
+
+				switch (action)
 				{
-	#if VWOLF_USE_EVENT_QUEUE
+				case GLFW_PRESS:
+				{
+#if VWOLF_USE_EVENT_QUEUE
 					KeyPressedEvent* evt = new KeyPressedEvent(GetKeyCodeFrom(key), GetKeyModsFrom(mods), 0);
 					EventQueue::defaultQueue->Queue(evt);
 					data.GetCallback().OnEvent(*evt);
-	#else
+#else
 					KeyPressedEvent evt(GetKeyCodeFrom(key), GetKeyModsFrom(mods), 0);
 					data.GetCallback().OnEvent(evt);
-	#endif
+#endif
 					break;
 				}
-			case GLFW_RELEASE:
+				case GLFW_RELEASE:
 				{
-	#if VWOLF_USE_EVENT_QUEUE
+#if VWOLF_USE_EVENT_QUEUE
 					KeyReleasedEvent* evt = new KeyReleasedEvent(GetKeyCodeFrom(key), GetKeyModsFrom(mods));
 					EventQueue::defaultQueue->Queue(evt);
 					data.GetCallback().OnEvent(*evt);
-	#else
+#else
 					KeyReleasedEvent evt(GetKeyCodeFrom(key), GetKeyModsFrom(mods));
 					data.GetCallback().OnEvent(evt);
-	#endif
+#endif
 					break;
 				}
-			case GLFW_REPEAT:
+				case GLFW_REPEAT:
 				{
-	#if VWOLF_USE_EVENT_QUEUE
+#if VWOLF_USE_EVENT_QUEUE
 					KeyPressedEvent* evt = new KeyPressedEvent(GetKeyCodeFrom(key), GetKeyModsFrom(mods), true);
 					EventQueue::defaultQueue->Queue(evt);
 					data.GetCallback().OnEvent(*evt);
-	#else
+#else
 					KeyPressedEvent evt(GetKeyCodeFrom(key), GetKeyModsFrom(mods), true);
 					data.GetCallback().OnEvent(evt);
-	#endif
+#endif
 					break;
 				}
-			}
-		});
+				}
+			});
 
 		glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int keycode)
-		{
+			{
 				GLFWWindow& data = *(GLFWWindow*)glfwGetWindowUserPointer(window);
 #if VWOLF_USE_EVENT_QUEUE
 				KeyTypedEvent* evt = new KeyTypedEvent(boost::lexical_cast<std::string>(static_cast<unsigned char>(keycode)));
@@ -180,7 +188,7 @@ namespace VWolf {
 				KeyTypedEvent evt(boost::lexical_cast<std::string>(static_cast<unsigned char>(keycode)));
 				data.GetCallback().OnEvent(evt);
 #endif
-		});
+			});
 	}
 
 	GLFWWindow::~GLFWWindow()
@@ -198,11 +206,159 @@ namespace VWolf {
 	void GLFWWindow::Clear() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glViewport(0, 0, width, height);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void GLFWWindow::OnUpdate() {
-		glfwPollEvents();		
+		glfwPollEvents();
+	}
+
+	bool GLFWWindow::IsMouseButtonPressed(MouseCode button) {
+		return glfwGetMouseButton(m_window, GetMouseFrom(button)) == GLFW_PRESS;
+	}
+
+	std::pair<float, float> GLFWWindow::GetMousePosition() {
+		double xpos, ypos;
+		glfwGetCursorPos(m_window, &xpos, &ypos);
+		return std::make_pair<float, float>((float)xpos, (float)ypos);
+	}
+
+	bool GLFWWindow::IsKeyPressed(KeyCode key) {
+		return glfwGetKey(m_window, GetKeyFrom(key)) == GLFW_PRESS;
+	}
+
+	static int GetKeyFrom(KeyCode key) {
+		switch (key) {
+		case KeyCode::Space: return GLFW_KEY_SPACE;
+		case KeyCode::Apostrophe: GLFW_KEY_APOSTROPHE;
+		case KeyCode::Comma: return GLFW_KEY_COMMA;
+		case KeyCode::Minus: GLFW_KEY_MINUS;
+		case KeyCode::Period: return GLFW_KEY_PERIOD;
+		case KeyCode::Slash: return GLFW_KEY_SLASH;
+
+		case KeyCode::D0: return GLFW_KEY_0;
+		case KeyCode::D1: return GLFW_KEY_1;
+		case KeyCode::D2: return GLFW_KEY_2;
+		case KeyCode::D3: return GLFW_KEY_3;
+		case KeyCode::D4: return GLFW_KEY_4;
+		case KeyCode::D5: return GLFW_KEY_5;
+		case KeyCode::D6: return GLFW_KEY_6;
+		case KeyCode::D7: return GLFW_KEY_7;
+		case KeyCode::D8: return GLFW_KEY_8;
+		case KeyCode::D9: return GLFW_KEY_9 ;
+
+		case  KeyCode::Semicolon: return GLFW_KEY_SEMICOLON;
+		case KeyCode::Equal: return GLFW_KEY_EQUAL ;
+
+		case KeyCode::A: return GLFW_KEY_A;
+		case KeyCode::B: return GLFW_KEY_B;
+		case KeyCode::C: return GLFW_KEY_C;
+		case KeyCode::D: return GLFW_KEY_D;
+		case KeyCode::E: return GLFW_KEY_E;
+		case KeyCode::F: return GLFW_KEY_F;
+		case KeyCode::G: return GLFW_KEY_G;
+		case KeyCode::H: return GLFW_KEY_H;
+		case KeyCode::I: return GLFW_KEY_I;
+		case KeyCode::J: return GLFW_KEY_J;
+		case KeyCode::K: return GLFW_KEY_K;
+		case KeyCode::L: return GLFW_KEY_L;
+		case KeyCode::M: return GLFW_KEY_M;
+		case KeyCode::N: return GLFW_KEY_N;
+		case KeyCode::O: return GLFW_KEY_O;
+		case KeyCode::P: return GLFW_KEY_P;
+		case KeyCode::Q: return GLFW_KEY_Q;
+		case KeyCode::R: return GLFW_KEY_R;
+		case KeyCode::S: return GLFW_KEY_S;
+		case KeyCode::T: return GLFW_KEY_T;
+		case KeyCode::U: return GLFW_KEY_U;
+		case KeyCode::V: return GLFW_KEY_V;
+		case KeyCode::W: return GLFW_KEY_W;
+		case KeyCode::X: return GLFW_KEY_X;
+		case KeyCode::Y: return GLFW_KEY_Y;
+		case KeyCode::Z: return GLFW_KEY_Z;
+
+		case KeyCode::LeftBracket: return GLFW_KEY_LEFT_BRACKET;
+		case KeyCode::Backslash: return GLFW_KEY_BACKSLASH;
+		case KeyCode::RightBracket: return GLFW_KEY_RIGHT_BRACKET;
+		case KeyCode::GraveAccent: return GLFW_KEY_GRAVE_ACCENT;
+		case KeyCode::World1: return GLFW_KEY_WORLD_1;
+		case KeyCode::World2: return GLFW_KEY_WORLD_2;
+
+		case KeyCode::Escape: return GLFW_KEY_ESCAPE;
+		case KeyCode::Enter:return GLFW_KEY_ENTER;
+		case KeyCode::Tab: return GLFW_KEY_TAB;
+		case KeyCode::Backspace: return GLFW_KEY_BACKSPACE;
+		case KeyCode::Insert: return GLFW_KEY_INSERT;
+		case KeyCode::Delete: return GLFW_KEY_DELETE;
+		case KeyCode::Right: return GLFW_KEY_RIGHT;
+		case KeyCode::Left: return GLFW_KEY_LEFT;
+		case KeyCode::Down: return GLFW_KEY_DOWN;
+		case KeyCode::Up: return GLFW_KEY_UP;
+		case KeyCode::PageUp: return GLFW_KEY_PAGE_UP;
+		case KeyCode::PageDown: return GLFW_KEY_PAGE_DOWN;
+		case KeyCode::Home: return GLFW_KEY_HOME;
+		case KeyCode::End: return GLFW_KEY_END;
+		case KeyCode::CapsLock: return GLFW_KEY_END;
+		case KeyCode::ScrollLock: return GLFW_KEY_SCROLL_LOCK;
+		case KeyCode::NumLock: return GLFW_KEY_NUM_LOCK;
+		case KeyCode::PrintScreen: return GLFW_KEY_PRINT_SCREEN;
+		case KeyCode::Pause: return GLFW_KEY_PAUSE;
+
+		case KeyCode::F1: return GLFW_KEY_F1;
+		case KeyCode::F2: return GLFW_KEY_F2;
+		case KeyCode::F3: return GLFW_KEY_F3;
+		case KeyCode::F4: return GLFW_KEY_F4;
+		case KeyCode::F5: return GLFW_KEY_F5;
+		case KeyCode::F6: return GLFW_KEY_F6;
+		case KeyCode::F7: return GLFW_KEY_F7;
+		case KeyCode::F8: return GLFW_KEY_F8;
+		case KeyCode::F9: return GLFW_KEY_F9;
+		case KeyCode::F10: return GLFW_KEY_F10;
+		case KeyCode::F11: return GLFW_KEY_F11;
+		case KeyCode::F12: return GLFW_KEY_F12;
+		case KeyCode::F13: return GLFW_KEY_F13;
+		case KeyCode::F14: return GLFW_KEY_F14;
+		case KeyCode::F15: return GLFW_KEY_F15;
+		case KeyCode::F16: return GLFW_KEY_F16;
+		case KeyCode::F17: return GLFW_KEY_F17;
+		case KeyCode::F18: return GLFW_KEY_F18;
+		case KeyCode::F19: return GLFW_KEY_F19;
+		case KeyCode::F20: return GLFW_KEY_F20;
+		case KeyCode::F21: return GLFW_KEY_F21;
+		case KeyCode::F22: return GLFW_KEY_F22;
+		case KeyCode::F23: return GLFW_KEY_F23;
+		case KeyCode::F24: return GLFW_KEY_F24;
+		case KeyCode::F25: return GLFW_KEY_F25;
+
+		case KeyCode::KP0: return GLFW_KEY_KP_0;
+		case KeyCode::KP1: return GLFW_KEY_KP_1;
+		case KeyCode::KP2: return GLFW_KEY_KP_2;
+		case KeyCode::KP3: return GLFW_KEY_KP_3;
+		case KeyCode::KP4: return GLFW_KEY_KP_4;
+		case KeyCode::KP5: return GLFW_KEY_KP_5;
+		case KeyCode::KP6: return GLFW_KEY_KP_6;
+		case KeyCode::KP7: return GLFW_KEY_KP_7;
+		case KeyCode::KP8: return GLFW_KEY_KP_8;
+		case KeyCode::KP9: return GLFW_KEY_KP_9;
+		case KeyCode::KPDecimal: return GLFW_KEY_KP_DECIMAL;
+		case KeyCode::KPDivide: return GLFW_KEY_KP_DIVIDE;
+		case KeyCode::KPMultiply: return GLFW_KEY_KP_MULTIPLY;
+		case KeyCode::KPSubtract: return GLFW_KEY_KP_SUBTRACT;
+		case KeyCode::KPAdd: return GLFW_KEY_KP_ADD;
+		case KeyCode::KPEnter: return GLFW_KEY_KP_ENTER;
+		case KeyCode::KPEqual: return GLFW_KEY_KP_EQUAL;
+
+		case KeyCode::LeftShift: return GLFW_KEY_LEFT_SHIFT;
+		case KeyCode::LeftControl: return GLFW_KEY_LEFT_CONTROL;
+		case KeyCode::LeftAlt: return GLFW_KEY_LEFT_ALT;
+		case KeyCode::LeftSuper: return GLFW_KEY_LEFT_SUPER;
+		case KeyCode::RightShift: return GLFW_KEY_RIGHT_SHIFT;
+		case KeyCode::RightControl: return GLFW_KEY_RIGHT_CONTROL;
+		case KeyCode::RightAlt: return GLFW_KEY_RIGHT_ALT;
+		case KeyCode::RightSuper: return GLFW_KEY_RIGHT_SUPER;
+		case KeyCode::Menu: return GLFW_KEY_MENU;
+		}
+		return -1;
 	}
 
 	static KeyCode GetKeyCodeFrom(int key) {

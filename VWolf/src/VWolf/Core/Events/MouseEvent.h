@@ -95,4 +95,11 @@ namespace VWolf {
 		EVENT_CLASS_TYPE(MouseButtonReleased)
 	};
 
+	class MouseHandler
+	{
+	public:
+		virtual bool IsMouseButtonPressed(MouseCode button) = 0;
+		virtual std::pair<float, float> GetMousePosition() = 0;
+	};
+
 }

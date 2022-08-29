@@ -1,8 +1,6 @@
 #include "vwpch.h"
 
 #include "VWolf/Core/Events/ApplicationEvent.h"
-#include "VWolf/Core/Events/MouseEvent.h"
-#include "VWolf/Core/Events/KeyEvent.h"
 
 #ifdef VW_PLATFORM_WINDOWS
 #include "WinWindow.h"
@@ -25,7 +23,9 @@ namespace VWolf {
     };
     static KeyMods GetKeyMods();
     static KeyCode GetKeyCodeFrom(int scancode);
+    static int GetKeyFrom(KeyCode key);
     static KeyState codes[351];
+    static KeyState mouse[3];
     static WCHAR highSurrogate;
 
     namespace Private {
@@ -58,6 +58,7 @@ namespace VWolf {
 	WinWindow::WinWindow(HINSTANCE__* handle, InitConfiguration config, WindowEventCallback& callback): hInstance(handle), callback(callback)
 	{
         memset(codes, (int)KeyState::RELEASE, 351);
+        memset(mouse, (int)KeyState::RELEASE, 3);        
         this->width = config.width;
         this->height = config.height;
         this->title = config.title;
@@ -346,6 +347,7 @@ namespace VWolf {
     }
 
     void WinWindow::FireMouseDown(int button) {
+        mouse[button] = KeyState::PRESS;
 #if VWOLF_USE_EVENT_QUEUE
         MouseButtonPressedEvent* evt = new MouseButtonPressedEvent(static_cast<MouseCode>(button));
         EventQueue::defaultQueue->Queue(evt);
@@ -357,6 +359,7 @@ namespace VWolf {
     }
 
     void WinWindow::FireMouseUp(int button) {
+        mouse[button] = KeyState::RELEASE;
 #if VWOLF_USE_EVENT_QUEUE
         MouseButtonReleasedEvent* evt = new MouseButtonReleasedEvent(static_cast<MouseCode>(button));
         EventQueue::defaultQueue->Queue(evt);
@@ -425,12 +428,173 @@ namespace VWolf {
         ProcessMessages();
     }
 
+    bool WinWindow::IsMouseButtonPressed(MouseCode button) {
+        return mouse[static_cast<int>(button)] == KeyState::PRESS;
+    }
+
+    std::pair<float, float> WinWindow::GetMousePosition() {
+        RECT area;
+        POINT pos;
+        auto zero = std::make_pair<float, float>(0.0f, 0.0f);
+
+        if (!GetCursorPos(&pos))
+            return zero;
+
+        if (!ScreenToClient(hwnd, &pos))
+            return zero;
+       
+        long x = std::clamp((int)pos.x, 0, width);
+        long y = std::clamp((int)pos.y, 0, height);
+
+        return std::make_pair<float, float>((float)x, (float)y);
+    }
+
+    bool WinWindow::IsKeyPressed(KeyCode key) {
+        int keyNum = GetKeyFrom(key);
+        if (keyNum == -1) return false;
+        return GetKeyState(keyNum) & 0x8000;
+    }
+
     void WinWindow::ProcessMessages() {
         MSG msg = {};
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
+    }
+
+    static int GetKeyFrom(KeyCode key) {
+        switch (key) {
+        case KeyCode::Space: return VK_SPACE;
+        case KeyCode::Apostrophe: '\'';
+        case KeyCode::Comma: return VK_OEM_COMMA;
+        case KeyCode::Minus: VK_OEM_MINUS;
+        case KeyCode::Period: return VK_OEM_PERIOD;
+        case KeyCode::Slash: return VK_DIVIDE;
+
+        case KeyCode::D0: return 0x30;
+        case KeyCode::D1: return 0x31;
+        case KeyCode::D2: return 0x32;
+        case KeyCode::D3: return 0x33;
+        case KeyCode::D4: return 0x34;
+        case KeyCode::D5: return 0x35;
+        case KeyCode::D6: return 0x36;
+        case KeyCode::D7: return 0x37;
+        case KeyCode::D8: return 0x38;
+        case KeyCode::D9: return 0x39;
+
+        case  KeyCode::Semicolon: return ';';
+        case KeyCode::Equal: return '=';
+
+        case KeyCode::A: return 0x41;
+        case KeyCode::B: return 0x42;
+        case KeyCode::C: return 0x43;
+        case KeyCode::D: return 0x44;
+        case KeyCode::E: return 0x45;
+        case KeyCode::F: return 0x46;
+        case KeyCode::G: return 0x47;
+        case KeyCode::H: return 0x48;
+        case KeyCode::I: return 0x49;
+        case KeyCode::J: return 0x4A;
+        case KeyCode::K: return 0x4B;
+        case KeyCode::L: return 0x4C;
+        case KeyCode::M: return 0x4D;
+        case KeyCode::N: return 0x4E;
+        case KeyCode::O: return 0x4F;
+        case KeyCode::P: return 0x50;
+        case KeyCode::Q: return 0x51;
+        case KeyCode::R: return 0x52;
+        case KeyCode::S: return 0x53;
+        case KeyCode::T: return 0x54;
+        case KeyCode::U: return 0x55;
+        case KeyCode::V: return 0x56;
+        case KeyCode::W: return 0x57;
+        case KeyCode::X: return 0x58;
+        case KeyCode::Y: return 0x59;
+        case KeyCode::Z: return 0x5A;
+
+        case KeyCode::LeftBracket: return '[';
+        case KeyCode::Backslash: return '\\';
+        case KeyCode::RightBracket: return ']';
+        case KeyCode::GraveAccent: return '`';
+        /*case KeyCode::World1: return VK_WORLD_1;
+        case KeyCode::World2: return VK_WORLD_2;*/
+
+        case KeyCode::Escape: return VK_ESCAPE;
+        case KeyCode::Enter:return VK_RETURN;
+        case KeyCode::Tab: return VK_TAB;
+        case KeyCode::Backspace: return VK_BACK;
+        case KeyCode::Insert: return VK_INSERT;
+        case KeyCode::Delete: return VK_DELETE;
+        case KeyCode::Right: return VK_RIGHT;
+        case KeyCode::Left: return VK_LEFT;
+        case KeyCode::Down: return VK_DOWN;
+        case KeyCode::Up: return VK_UP;
+        case KeyCode::PageUp: return VK_PRIOR;
+        case KeyCode::PageDown: return VK_NEXT;
+        case KeyCode::Home: return VK_HOME;
+        case KeyCode::End: return VK_END;
+        case KeyCode::CapsLock: return VK_END;
+        case KeyCode::ScrollLock: return VK_SCROLL;
+        case KeyCode::NumLock: return VK_NUMLOCK;
+        case KeyCode::PrintScreen: return VK_SNAPSHOT;
+        case KeyCode::Pause: return VK_PAUSE;
+
+        case KeyCode::F1: return VK_F1;
+        case KeyCode::F2: return VK_F2;
+        case KeyCode::F3: return VK_F3;
+        case KeyCode::F4: return VK_F4;
+        case KeyCode::F5: return VK_F5;
+        case KeyCode::F6: return VK_F6;
+        case KeyCode::F7: return VK_F7;
+        case KeyCode::F8: return VK_F8;
+        case KeyCode::F9: return VK_F9;
+        case KeyCode::F10: return VK_F10;
+        case KeyCode::F11: return VK_F11;
+        case KeyCode::F12: return VK_F12;
+        case KeyCode::F13: return VK_F13;
+        case KeyCode::F14: return VK_F14;
+        case KeyCode::F15: return VK_F15;
+        case KeyCode::F16: return VK_F16;
+        case KeyCode::F17: return VK_F17;
+        case KeyCode::F18: return VK_F18;
+        case KeyCode::F19: return VK_F19;
+        case KeyCode::F20: return VK_F20;
+        case KeyCode::F21: return VK_F21;
+        case KeyCode::F22: return VK_F22;
+        case KeyCode::F23: return VK_F23;
+        case KeyCode::F24: return VK_F24;
+        // case KeyCode::F25: return VK_F25;
+
+        case KeyCode::KP0: return VK_NUMPAD0;
+        case KeyCode::KP1: return VK_NUMPAD1;
+        case KeyCode::KP2: return VK_NUMPAD2;
+        case KeyCode::KP3: return VK_NUMPAD3;
+        case KeyCode::KP4: return VK_NUMPAD4;
+        case KeyCode::KP5: return VK_NUMPAD5;
+        case KeyCode::KP6: return VK_NUMPAD6;
+        case KeyCode::KP7: return VK_NUMPAD7;
+        case KeyCode::KP8: return VK_NUMPAD8;
+        case KeyCode::KP9: return VK_NUMPAD9;
+        case KeyCode::KPDecimal: return VK_DECIMAL;
+        case KeyCode::KPDivide: return VK_DIVIDE;
+        case KeyCode::KPMultiply: return VK_MULTIPLY;
+        case KeyCode::KPSubtract: return VK_SUBTRACT;
+        case KeyCode::KPAdd: return VK_ADD;
+        case KeyCode::KPEnter: return VK_RETURN;
+        case KeyCode::KPEqual: return '=';
+
+        case KeyCode::LeftShift: return VK_LSHIFT;
+        case KeyCode::LeftControl: return VK_LCONTROL;
+        case KeyCode::LeftAlt: return VK_LMENU; //??
+        case KeyCode::LeftSuper: return VK_LWIN;
+        case KeyCode::RightShift: return VK_RSHIFT;
+        case KeyCode::RightControl: return VK_RCONTROL;
+        case KeyCode::RightAlt: return VK_RMENU; // ??
+        case KeyCode::RightSuper: return VK_RWIN;
+        case KeyCode::Menu: return VK_MENU;
+        }
+        return -1;
     }
 
     static KeyCode GetKeyCodeFrom(int scancode) {
