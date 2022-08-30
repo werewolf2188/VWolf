@@ -5,3 +5,9 @@
 #include "VWolf/Core/Application.h"
 #include "VWolf/Core/Window.h"
 #include "VWolf/Core/Log.h"
+#include "VWolf/Core/Input.h"
+
+#include "VWolf/Core/Events/Event.h"
+#include "VWolf/Core/Events/ApplicationEvent.h"
+#include "VWolf/Core/Events/MouseEvent.h"
+#include "VWolf/Core/Events/KeyEvent.h"
