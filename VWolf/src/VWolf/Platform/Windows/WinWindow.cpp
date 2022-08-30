@@ -62,6 +62,7 @@ namespace VWolf {
         this->width = config.width;
         this->height = config.height;
         this->title = config.title;
+        this->maximize = config.maximize;
         WNDCLASS wndClass = {};
         wndClass.style = CS_HREDRAW | CS_VREDRAW;
         wndClass.lpszClassName = CLASS_NAME;
@@ -108,7 +109,7 @@ namespace VWolf {
             nullptr,
             (HINSTANCE)hInstance,
             this);
-        ShowWindow(hwnd, SW_SHOW);
+        ShowWindow(hwnd, maximize ? SW_SHOWMAXIMIZED: SW_SHOW);
         UpdateWindow(hwnd);        
 	}
 
@@ -442,7 +443,7 @@ namespace VWolf {
 
         if (!ScreenToClient(hwnd, &pos))
             return zero;
-       
+        // Not sure if clamping is the right way to go
         long x = std::clamp((int)pos.x, 0, width);
         long y = std::clamp((int)pos.y, 0, height);
 

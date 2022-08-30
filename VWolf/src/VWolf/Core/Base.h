@@ -8,6 +8,7 @@ namespace VWolf {
 		int width;
 		int height;
 		const char* title;
+		bool maximize = false;
 	};
 
 	enum class DriverType {

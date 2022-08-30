@@ -42,6 +42,11 @@ namespace VWolf {
 			GetCallback().OnEvent(evt);
 			glfwTerminate();
 		}
+		const GLFWvidmode& mode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
+		int w = mode.width, h = mode.height;
+		glfwSetWindowPos(m_window, (w / 2) - (width / 2), (h / 2) - (height / 2));
+		if (config.maximize)
+			glfwMaximizeWindow(m_window);
 		glfwMakeContextCurrent(m_window);
 		glfwSetWindowUserPointer(m_window, this);
 
@@ -220,6 +225,9 @@ namespace VWolf {
 	std::pair<float, float> GLFWWindow::GetMousePosition() {
 		double xpos, ypos;
 		glfwGetCursorPos(m_window, &xpos, &ypos);
+		// Not sure if clamping is the right way to go
+		xpos = std::clamp((int)xpos, 0, width);
+		ypos = std::clamp((int)ypos, 0, height);
 		return std::make_pair<float, float>((float)xpos, (float)ypos);
 	}
 
