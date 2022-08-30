@@ -3,10 +3,8 @@
 
 #if VWOLF_USE_EVENT_QUEUE
 #include <map>
-#include <unordered_set>
 #include <functional>
 #include <vector>
-#include <utility>
 #endif
 
 #include <string>
@@ -62,37 +60,27 @@ virtual const char* GetName() const override { return #type; }
 
 #if VWOLF_USE_EVENT_QUEUE
 	// WIP
-	// Events right now will use the dispatch function to avoid dealing with
-	// memory issues. Once all events are done and they are tested thoroughly,
-	// then the queue will be tested. 
-	// Dont want to have to instantiate things in the heap.
+	/*
+	* For now the dispatcher function will do since there's an issue with the window resize event
+	* using the queue. Also, the queue is still working in the same thread. It will cool 
+	* to make it work in a separate thread to allow the main thread to rest.
+	* Probably hide the implementation in the unit of compilation (file)
+	*/
 	class EventQueue {
 
 	public:
-		void Dispatch() {
-			for (auto evt : events) {
-				for (auto& [key, value] : functions) {
-					if (key == evt->GetEventType()) {
-						for (auto& function : value) {
-							evt->Handled |= function(evt);
-						}
-					}
-				}
-			}
-			events.clear();
-		}
-
-		void Queue(Event* evt) {
-			events.push_back(evt);
-		}
+		void Dispatch();
+		void Queue(Event* evt);
+		void Subscribe(EventType type, std::function<bool(Event*)> function);
 
 		template <typename T>
 		void Subscribe(std::function<bool(T&)> function) {
-			auto& vector = functions[T::GetStaticType()];
-			vector.push_back([function](Event* e) {
+			EventType type = T::GetStaticType();
+			auto functionWrapper = [function](Event* e) {
 				T* evt = static_cast<T*>(e);
 				return function(*evt);
-			});
+			};	
+			Subscribe(type, functionWrapper);
 		}
 	public:
 		static EventQueue* defaultQueue;
@@ -100,7 +88,5 @@ virtual const char* GetName() const override { return #type; }
 		std::vector<Event*> events;
 		std::map<EventType, std::vector<std::function<bool(Event*)>>> functions;
 	};
-
-	inline EventQueue* EventQueue::defaultQueue = new EventQueue();
 #endif
 }

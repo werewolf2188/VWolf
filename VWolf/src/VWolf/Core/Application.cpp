@@ -36,12 +36,13 @@ namespace VWolf {
 			// TODO: Replace by graphics context			
 			driver->GetWindow()->Clear();
 			driver->OnUpdate();
-			if (Input::IsKeyPressed(KeyCode::A)) {
+			// TODO: Remove once its documented.
+			/*if (Input::IsKeyPressed(KeyCode::A)) {
 				VWOLF_CORE_DEBUG("A was pressed");
 			}
 			if (Input::IsMouseButtonPressed(MouseCode::Left)) {
 				VWOLF_CORE_DEBUG("Left mouse button was pressed");
-			}
+			}*/
 			// VWOLF_CORE_DEBUG("Mouse position x: %0.2f, y: %0.2f", Input::GetMouseX(), Input::GetMouseY());
 #if VWOLF_USE_EVENT_QUEUE
 			EventQueue::defaultQueue->Dispatch();
