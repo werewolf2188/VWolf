@@ -37,7 +37,7 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/support/date_time.hpp>
 
-#ifdef VW_PLATFORM_WINDOWS
+#ifdef VWOLF_PLATFORM_WINDOWS
 #include <Windows.h>
 #include <windowsx.h>
 #include <wrl.h>

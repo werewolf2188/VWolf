@@ -4,7 +4,7 @@
 	/* Windows x64/x86 */
 	#ifdef _WIN64
 		/* Windows x64  */
-		#define VW_PLATFORM_WINDOWS
+		#define VWOLF_PLATFORM_WINDOWS
 	#else
 		/* Windows x86 */
 		#error "x86 Builds are not supported!"
@@ -18,10 +18,10 @@
 	#if TARGET_IPHONE_SIMULATOR == 1
 		#error "IOS simulator is not supported!"
 	#elif TARGET_OS_IPHONE == 1
-		#define HZ_PLATFORM_IOS
+		#define VWOLF_PLATFORM_IOS
 		#error "IOS is not supported!"
 	#elif TARGET_OS_MAC == 1
-		#define VW_PLATFORM_MACOS
+		#define VWOLF_PLATFORM_MACOS
 		#error "MacOS is not supported!"
 	#else
 		#error "Unknown Apple platform!"
@@ -30,10 +30,10 @@
  * since android is based on the linux kernel
  * it has __linux__ defined */
 #elif defined(__ANDROID__)
-	#define VW_PLATFORM_ANDROID
+	#define VWOLF_PLATFORM_ANDROID
 	#error "Android is not supported!"
 #elif defined(__linux__)
-	#define VW_PLATFORM_LINUX
+	#define VWOLF_PLATFORM_LINUX
 	#error "Linux is not supported!"
 #else
 	/* Unknown compiler/platform */

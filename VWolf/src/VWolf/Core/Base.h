@@ -1,8 +1,29 @@
 #pragma once
 
+#include "PlatformDetection.h"
+
+#include <memory>
+
 namespace VWolf {
 
 #define VWOLF_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
+
+#ifdef DEBUG
+	#if defined(VWOLF_PLATFORM_WINDOWS)
+		#define VWOLF_DEBUGBREAK() __debugbreak()
+	#elif defined(VWOLF_PLATFORM_LINUX)
+		#include <signal.h>
+		#define VWOLF_DEBUGBREAK() raise(SIGTRAP)
+	#else
+		#error "Platform doesn't support debugbreak yet!"
+	#endif
+	#define VWOLF_ENABLE_ASSERTS
+#else
+	#define VWOLF_DEBUGBREAK()
+#endif
+
+#define VWOLF_EXPAND_MACRO(x) x
+#define VWOLF_STRINGIFY_MACRO(x) #x
 
 	struct InitConfiguration {
 		int width;
@@ -12,7 +33,7 @@ namespace VWolf {
 	};
 
 	enum class DriverType {
-#ifdef VW_PLATFORM_WINDOWS
+#ifdef VWOLF_PLATFORM_WINDOWS
 		DirectX12,
 #endif
 		OpenGL
@@ -20,11 +41,29 @@ namespace VWolf {
 
 	inline const char* DriverName(DriverType type) {
 		switch (type) {
-#ifdef VW_PLATFORM_WINDOWS
+#ifdef VWOLF_PLATFORM_WINDOWS
 		case DriverType::DirectX12: return "DirectX 12";
 #endif
 		case DriverType::OpenGL: return "OpenGL";
 		}
 		return "";
 	}
+
+	template<typename T>
+	using Scope = std::unique_ptr<T>;
+	template<typename T, typename ... Args>
+	constexpr Scope<T> CreateScope(Args&& ... args)
+	{
+		return std::make_unique<T>(std::forward<Args>(args)...);
+	}
+
+	template<typename T>
+	using Ref = std::shared_ptr<T>;
+	template<typename T, typename ... Args>
+	constexpr Ref<T> CreateRef(Args&& ... args)
+	{
+		return std::make_shared<T>(std::forward<Args>(args)...);
+	}
 }
+
+#include "Assert.h"

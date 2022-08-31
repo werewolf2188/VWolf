@@ -14,7 +14,7 @@ namespace VWolf {
 	public:
 		~Application();
 		void Run();
-		Window* GetWindow();
+		Ref<Window> GetWindow();
 		virtual void OnEvent(Event& evt) override;
 	protected: 
 		Application() = delete;
@@ -24,7 +24,7 @@ namespace VWolf {
 		bool OnWindowResize(WindowResizeEvent& e);
 	private:
 		static Application* m_application;
-		Driver* driver;
+		Scope<Driver> driver;
 		bool m_running = false;
 		bool m_minimized = false;
 	};

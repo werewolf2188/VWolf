@@ -10,11 +10,11 @@
 namespace VWolf {
 
 	MouseHandler* GetMouseHandler() {
-		return dynamic_cast<MouseHandler*>(Application::GetApplication()->GetWindow());
+		return dynamic_cast<MouseHandler*>(Application::GetApplication()->GetWindow().get());
 	}
 
 	KeyHandler* GetKeyHandler() {
-		return dynamic_cast<KeyHandler*>(Application::GetApplication()->GetWindow());
+		return dynamic_cast<KeyHandler*>(Application::GetApplication()->GetWindow().get());
 	}
 
 	bool Input::IsKeyPressed(KeyCode key) {

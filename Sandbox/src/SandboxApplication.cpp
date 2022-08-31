@@ -6,6 +6,9 @@
 class SandboxApplication : public VWolf::Application {
 public:
 	SandboxApplication(): Application(VWolf::DriverType::DirectX12, { 800, 600, "VWolf Sandbox" } ) { 
+		VWOLF_CLIENT_ASSERT(GetWindow()->GetWidth() > 0);
+		VWOLF_CLIENT_ASSERT(GetWindow()->GetHeight() > 0);
+
 		VWOLF_CLIENT_INFO("Initializing VWolf Sandbox");
 #if VWOLF_USE_EVENT_QUEUE
 		VWolf::EventQueue::defaultQueue->Subscribe<VWolf::MouseMovedEvent>(VWOLF_BIND_EVENT_FN(SandboxApplication::OnMouseMoveEvent));
