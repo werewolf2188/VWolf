@@ -1,6 +1,6 @@
 #include "vwpch.h"
 
-#ifdef VW_PLATFORM_WINDOWS
+#ifdef VWOLF_PLATFORM_WINDOWS
 #include "DirectX12Driver.h"
 
 #include "VWolf/Platform/Windows/WinWindow.h"
@@ -10,15 +10,15 @@ namespace VWolf {
 	{
 		handle = GetModuleHandle(nullptr);
 		this->callback = &callback;
-		window = new WinWindow(handle, config, *this);
+		window = CreateRef<WinWindow>(handle, config, *this);
 		window->Initialize();		
 
-		dx12InitializeDefaultContext(context, config.width, config.height, ((WinWindow*)window)->GetHWND())
+		dx12InitializeDefaultContext(context, config.width, config.height, ((WinWindow*)window.get())->GetHWND())
 
 		// Same for resize
 		dx12ResizeBuffers(context, config.width, config.height);
 
-		((WinWindow*)window)->clearFunc = [this]() {
+		((WinWindow*)window.get())->clearFunc = [this]() {
 			
 			dx12ResetCommandListAllocator(this->context);
 			dx12ResetCommandList(this->context);
@@ -54,7 +54,6 @@ namespace VWolf {
 	void DirectX12Driver::Shutdown()
 	{
 		delete context;
-		delete window;
 	}
 
 	void DirectX12Driver::OnEvent(Event& evt) {

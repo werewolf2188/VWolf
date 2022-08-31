@@ -20,7 +20,7 @@ namespace VWolf {
 		glfwWindowHint(GLFW_OPENGL_PROFILE, OPENGL_PROFILE);
 		//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-		window = new GLFWWindow(config, callback);
+		window = CreateRef<GLFWWindow>(config, callback);
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
 			std::cout << "Failed to initialize GLAD" << std::endl;
@@ -31,13 +31,12 @@ namespace VWolf {
 
 	void OpenGLDriver::Shutdown()
 	{
-		delete window;
 		glfwTerminate();
 	}
 
 	void OpenGLDriver::OnUpdate() {
 		window->OnUpdate();
-		glfwSwapBuffers(((GLFWWindow*)window)->GetContainerWindow());
+		glfwSwapBuffers(((GLFWWindow*)window.get())->GetContainerWindow());
 	}
 
 	void OpenGLDriver::OnEvent(Event& evt) {

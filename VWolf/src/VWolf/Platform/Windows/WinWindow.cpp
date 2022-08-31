@@ -2,7 +2,7 @@
 
 #include "VWolf/Core/Events/ApplicationEvent.h"
 
-#ifdef VW_PLATFORM_WINDOWS
+#ifdef VWOLF_PLATFORM_WINDOWS
 #include "WinWindow.h"
 
 const wchar_t* CLASS_NAME = L"VWOLF_MAIN_WINDOW";

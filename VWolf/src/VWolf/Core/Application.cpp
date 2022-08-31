@@ -11,6 +11,9 @@ namespace VWolf {
 
 	Application::Application(DriverType type, InitConfiguration config) : driver(Driver::GetDriver(type))
 	{
+		VWOLF_CORE_ASSERT(config.width > 0);
+		VWOLF_CORE_ASSERT(config.height > 0);
+
 		m_application = this;
 		VWOLF_CORE_INFO("Initializing core application");
 		VWOLF_CORE_DEBUG("Starting with driver: %s", DriverName(type));
@@ -50,7 +53,7 @@ namespace VWolf {
 		}
 	}
 
-	Window* Application::GetWindow() {
+	Ref<Window>Application::GetWindow() {
 		return driver->GetWindow();
 	}
 
