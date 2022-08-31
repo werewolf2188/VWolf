@@ -37,6 +37,7 @@ namespace VWolf {
 		HWND__* hwnd = nullptr;
 		HINSTANCE__* hInstance = nullptr;
 		const char* title;
+		bool maximize = false;
 		WindowEventCallback& callback;
 	};
 }
