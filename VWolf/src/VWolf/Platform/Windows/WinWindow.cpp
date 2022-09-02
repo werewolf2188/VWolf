@@ -5,6 +5,9 @@
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "WinWindow.h"
 
+#include "VWolf/Core/UI/UIManager.h"
+#include "VWolf/Platform/UI/DirectX12UIManager.h"
+
 const wchar_t* CLASS_NAME = L"VWOLF_MAIN_WINDOW";
 
 // TODO: Move this in case of needing it.
@@ -118,6 +121,11 @@ namespace VWolf {
     }
 
     LRESULT WinWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
+        if (UIManager::GetDefault()) {
+            if (((DirectX12UIManager*)UIManager::GetDefault().get())->HandleMessage(uMsg, wParam, lParam))
+                return true;
+        }
+
         switch (uMsg) {
         case WM_CLOSE: 
             {

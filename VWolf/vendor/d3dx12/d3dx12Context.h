@@ -42,6 +42,7 @@ struct DirectX12Context {
 
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSrvHeap;
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[2];
 	Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilBuffer;
@@ -197,6 +198,7 @@ dx12InitializeCommandObjects(context); \
 dx12CreateSwapChain(context, width, height, hwnd, SwapChainBufferCount); \
 dx12InitializeDescriptorHeap(context->md3dDevice, context->mRtvHeap, SwapChainBufferCount, D3D12_DESCRIPTOR_HEAP_TYPE_RTV); \
 dx12InitializeDescriptorHeap(context->md3dDevice, context->mDsvHeap, 1, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);\
+dx12InitializeDescriptorHeap(context->md3dDevice, context->mSrvHeap, 1, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);\
 
 inline void dx12Flush(DirectX12Context* context) {
 	// Advance the fence value to mark commands up to this fence point.

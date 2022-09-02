@@ -1,8 +1,12 @@
 #include "vwpch.h"
 
+#include <imgui.h>
+
 #include "Driver.h"
 #include "Application.h"
 #include "Input.h"
+
+#include "UI/UIManager.h"
 
 #include "Log.h"
 
@@ -33,11 +37,20 @@ namespace VWolf {
 	}
 
 	void Application::Run() {
+		UIManager::GetDefault().get()->Initialize();
+
 		VWOLF_CORE_INFO("Running core application");
 		m_running = true;
+		bool show_demo_window = true;
 		while (m_running) {
 			// TODO: Replace by graphics context			
 			driver->GetWindow()->Clear();
+
+			UIManager::GetDefault().get()->NewFrame();
+			ImGui::NewFrame();
+			ImGui::ShowDemoWindow(&show_demo_window);
+			UIManager::GetDefault().get()->Render();
+
 			driver->OnUpdate();
 			// TODO: Remove once its documented.
 			/*if (Input::IsKeyPressed(KeyCode::A)) {
@@ -51,6 +64,7 @@ namespace VWolf {
 			EventQueue::defaultQueue->Dispatch();
 #endif
 		}
+		UIManager::GetDefault().get()->Terminate();
 	}
 
 	Ref<Window>Application::GetWindow() {

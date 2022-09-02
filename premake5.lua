@@ -24,7 +24,7 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "%{wks.location}/VWolf/vendor/GLFW/include"
 IncludeDir["Glad"] = "%{wks.location}/VWolf/vendor/Glad/include"
 IncludeDir["boost"] = "%{programfiles}/boost/%{boostversion}"
--- IncludeDir["ImGui"] = "vendor/imgui"
+IncludeDir["ImGui"] = "%{wks.location}/VWolf/vendor/imgui"
 
 LibDir = {}
 LibDir["boost"] = "%{programfiles}/boost/%{boostversion}/stage/lib"
@@ -32,7 +32,7 @@ LibDir["boost"] = "%{programfiles}/boost/%{boostversion}/stage/lib"
 group "Dependencies"
    include "VWolf/vendor/GLFW"
    include "VWolf/vendor/Glad"
--- 	include "vendor/imgui"
+   include "VWolf/vendor/imgui"
 group ""
 
 include "VWolf"
