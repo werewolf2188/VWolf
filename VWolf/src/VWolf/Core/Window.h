@@ -13,8 +13,6 @@ namespace VWolf {
 		virtual ~Window() {};
 		virtual void Initialize() = 0;
 		virtual void OnUpdate() = 0;
-		// TODO: Remove
-		virtual void Clear() = 0;
 
 		inline int GetWidth() { return width;  }
 		inline int GetHeight() { return height; }

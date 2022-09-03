@@ -16,8 +16,6 @@ namespace VWolf {
 		virtual bool IsMouseButtonPressed(MouseCode button) override;
 		virtual std::pair<float, float> GetMousePosition() override;
 		virtual bool IsKeyPressed(KeyCode key) override;
-		//TODO: Remove
-		virtual void Clear() override;
 	public:
 		inline WindowEventCallback& GetCallback() { return callback; }
 		inline GLFWwindow* GetContainerWindow() { return m_window; }

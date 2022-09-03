@@ -14,3 +14,16 @@
 #include "VWolf/Core/Events/KeyEvent.h"
 
 #include "VWolf/Core/UI/UIManager.h"
+
+#include "VWolf/Core/Render/Renderer.h"
+#include "VWolf/Core/Render/PerspectiveCamera.h"
+#include "VWolf/Core/Render/Shader.h"
+#include "VWolf/Core/Render/Buffer.h"
+#include "VWolf/Core/Render/BufferGroup.h"
+#include "VWolf/Core/Render/UniformBuffer.h"
+
+#include "VWolf/Core/Math/Vectors.h"
+#include "VWolf/Core/Math/Matrices.h"
+#include "VWolf/Core/Math/Math.h"
+
+#include "VWolf/Core/Utils/File.h"

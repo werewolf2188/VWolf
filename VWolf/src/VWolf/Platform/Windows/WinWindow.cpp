@@ -116,10 +116,6 @@ namespace VWolf {
         UpdateWindow(hwnd);        
 	}
 
-    void WinWindow::Clear() {
-        clearFunc();
-    }
-
     LRESULT WinWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         if (UIManager::GetDefault()) {
             if (((DirectX12UIManager*)UIManager::GetDefault().get())->HandleMessage(uMsg, wParam, lParam))

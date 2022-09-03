@@ -14,7 +14,9 @@ project "VWolf"
 
    files { 
       "src/**.h", 
-	  "src/**.cpp"
+	  "src/**.cpp",
+      "vendor/glm/glm/**.hpp",
+	  "vendor/glm/glm/**.inl",
    }
    removefiles { "vendor/imgui/**" }
   
@@ -30,6 +32,7 @@ project "VWolf"
 	  "%{IncludeDir.Glad}",
       "%{IncludeDir.boost}",
 	  "%{IncludeDir.ImGui}",
+      "%{IncludeDir.glm}",
    }
 
    libdirs 
@@ -53,7 +56,7 @@ project "VWolf"
 
    includedirs
    {
-      "vendor/d3dx12"
+      "vendor/d3dx12",
    }
 
    defines

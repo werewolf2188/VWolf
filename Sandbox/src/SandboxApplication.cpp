@@ -1,13 +1,29 @@
 #include <iostream>
 
+#include <imgui/imgui.h>
+
 #include "VWolf.h"
 #include "VWolf/Core/EntryPoint.h"
 
+#define DRIVER_TYPE VWolf::DriverType::DirectX12
+
 class SandboxApplication : public VWolf::Application {
+private:
+	VWolf::PerspectiveCamera camera;
+	VWolf::Ref<VWolf::BufferGroup> group;
+	VWolf::Ref<VWolf::Shader> colorShader;
+	VWolf::DriverType driverType = DRIVER_TYPE;
+	VWolf::MatrixFloat4x4 projection;
+	VWolf::Ref<VWolf::UniformBuffer> m_uniformBuffer = nullptr;
 public:
-	SandboxApplication(): Application(VWolf::DriverType::DirectX12, { 800, 600, "VWolf Sandbox" } ) { 
+	SandboxApplication(): Application(DRIVER_TYPE, { 1280, 720, "VWolf Sandbox" } ) {
+		camera = VWolf::PerspectiveCamera(90.0f, 1.778f, 0.1f, 1000.0f);
 		VWOLF_CLIENT_ASSERT(GetWindow()->GetWidth() > 0);
 		VWOLF_CLIENT_ASSERT(GetWindow()->GetHeight() > 0);
+
+		/*VWOLF_CLIENT_DEBUG(VWolf::File::OpenTextFile("src/shaders/glsl/FlatColor.vert.glsl").c_str());
+		VWOLF_CLIENT_DEBUG(VWolf::File::OpenTextFile("src/shaders/glsl/FlatColor.frag.glsl").c_str());
+		VWOLF_CLIENT_DEBUG(VWolf::File::OpenTextFile("src/shaders/hlsl/color.hlsl").c_str());*/
 
 		VWOLF_CLIENT_INFO("Initializing VWolf Sandbox");
 #if VWOLF_USE_EVENT_QUEUE
@@ -18,11 +34,77 @@ public:
 		VWolf::EventQueue::defaultQueue->Subscribe<VWolf::KeyPressedEvent>(VWOLF_BIND_EVENT_FN(SandboxApplication::OnKeyPressedEvent));
 		VWolf::EventQueue::defaultQueue->Subscribe<VWolf::KeyReleasedEvent>(VWOLF_BIND_EVENT_FN(SandboxApplication::OnKeyReleasedEvent));
 		VWolf::EventQueue::defaultQueue->Subscribe<VWolf::KeyTypedEvent>(VWOLF_BIND_EVENT_FN(SandboxApplication::OnKeyTypedEvent));
+		VWolf::EventQueue::defaultQueue->Subscribe<VWolf::WindowResizeEvent>(VWOLF_BIND_EVENT_FN(SandboxApplication::OnWindowResize));
 #endif
+
+		std::stringstream ss;
+		ss << "src/shaders/";
+
+		if (driverType == VWolf::DriverType::DirectX12) {
+			ss << "hlsl/color";
+		}
+		else if (driverType == VWolf::DriverType::OpenGL) {
+			ss << "glsl/FlatColor";
+		}
+
+		// Create
+		group = VWolf::BufferGroup::Create();
+
+		float vertices[8 * 7] = {
+		-0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f,
+		-0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f,
+		+0.5f, +0.5f, -0.5f, 0.0f, 0.0f, 0.1f, 1.0f,
+		+0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, +0.5f, 1.0f, 1.0f, 0.0f, 1.0f,
+		-0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
+		+0.5f, +0.5f, +0.5f, 0.8f, 0.0f, 1.0f, 1.0f,
+		+0.5f, -0.5f, +0.5f, 1.0f, 1.0f, 1.0f, 1.0f
+		};
+
+		VWolf::Ref<VWolf::VertexBuffer> vertexBuffer = VWolf::VertexBuffer::Create(vertices, sizeof(vertices));
+		VWolf::BufferLayout layout = {
+		{ VWolf::ShaderDataType::Float3, "a_Position" },
+		{ VWolf::ShaderDataType::Float4, "a_Color" }
+		};
+		vertexBuffer->SetLayout(layout);
+		group->AddVertexBuffer(vertexBuffer);
+		uint32_t indices[36] = {
+			// front face
+			2, 1, 0,
+			3, 2, 0,
+
+			// back face
+			5, 6, 4,
+			6, 7, 4,
+
+			// left face
+			1, 5, 4,
+			0, 1, 4,
+
+			// right face
+			6, 2, 3,
+			7, 6, 3,
+
+			// top face
+			6, 5, 1,
+			2, 6, 1,
+
+			// bottom face
+			3, 0, 4,
+			7, 3, 4
+		};
+		VWolf::Ref<VWolf::IndexBuffer> indexBuffer = VWolf::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
+		group->SetIndexBuffer(indexBuffer);
+		colorShader = VWolf::Shader::Create(ss.str(), layout);
+		m_uniformBuffer = VWolf::UniformBuffer::Create(colorShader, "Camera", sizeof(VWolf::MatrixFloat4x4), 0);
+	}
+
+	~SandboxApplication() {
 	}
 
 	void OnEvent(VWolf::Event& evt) {		
 		VWolf::Application::OnEvent(evt);
+		camera.OnEvent(evt);
 #if !VWOLF_USE_EVENT_QUEUE
 		VWolf::Dispatch<VWolf::MouseMovedEvent>(evt, VWOLF_BIND_EVENT_FN(SandboxApplication::OnMouseMoveEvent));
 		VWolf::Dispatch<VWolf::MouseScrolledEvent>(evt, VWOLF_BIND_EVENT_FN(SandboxApplication::OnMouseScrolledEvent));
@@ -31,6 +113,7 @@ public:
 		VWolf::Dispatch<VWolf::KeyPressedEvent>(evt, VWOLF_BIND_EVENT_FN(SandboxApplication::OnKeyPressedEvent));
 		VWolf::Dispatch<VWolf::KeyReleasedEvent>(evt, VWOLF_BIND_EVENT_FN(SandboxApplication::OnKeyReleasedEvent));
 		VWolf::Dispatch<VWolf::KeyTypedEvent>(evt, VWOLF_BIND_EVENT_FN(SandboxApplication::OnKeyTypedEvent));
+		VWolf::Dispatch<VWolf::WindowResizeEvent>(evt, VWOLF_BIND_EVENT_FN(SandboxApplication::OnWindowResize));
 #endif
 	}
 
@@ -65,6 +148,33 @@ public:
 
 	bool OnKeyTypedEvent(VWolf::KeyTypedEvent& evt) {
 		// VWOLF_CLIENT_DEBUG(evt.ToString());
+		return true;
+	}
+
+	void OnUpdate() {
+		camera.OnUpdate();
+		projection = camera.GetProjection();
+		VWolf::Renderer::Begin(camera, colorShader);
+		VWolf::Renderer::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
+		VWolf::Renderer::Clear();
+		colorShader->Bind();
+		m_uniformBuffer->SetData(&projection, sizeof(VWolf::MatrixFloat4x4), 0);
+		colorShader->SetMat4("u_Transform", VWolf::MatrixFloat4x4::Identity());
+		VWolf::Renderer::Submit(group, VWolf::MatrixFloat4x4::Identity());
+		VWolf::Renderer::End();
+		// TODO: Remove once its documented.
+		//VWOLF_CLIENT_DEBUG("Mouse position x: %0.2f, y: %0.2f", VWolf::Input::GetMouseX(), VWolf::Input::GetMouseY());
+	}
+	void OnUIUpate() {
+		// TODO: I should make a small window, just to make sure I didn't break anything
+		static bool show_demo_window = true;
+		ImGui::NewFrame();
+		if (show_demo_window)
+			ImGui::ShowDemoWindow(&show_demo_window);
+	}
+
+	bool OnWindowResize(VWolf::WindowResizeEvent& e) {
+		camera.SetViewportSize(e.GetWidth(), e.GetHeight());
 		return true;
 	}
 };
