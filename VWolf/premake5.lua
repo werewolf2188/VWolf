@@ -16,7 +16,7 @@ project "VWolf"
       "src/**.h", 
 	  "src/**.cpp"
    }
-   --removefiles { "vendor/imgui/**" }
+   removefiles { "vendor/imgui/**" }
   
    defines
    {
@@ -29,7 +29,7 @@ project "VWolf"
       "%{IncludeDir.GLFW}",
 	  "%{IncludeDir.Glad}",
       "%{IncludeDir.boost}",
-	--    "%{IncludeDir.ImGui}",
+	  "%{IncludeDir.ImGui}",
    }
 
    libdirs 
@@ -41,9 +41,12 @@ project "VWolf"
 	{ 
       "GLFW",
 	  "Glad",
-	--   "ImGui",
+	  "ImGui",
 	  "opengl32.lib"
 	}
+   
+   filter { 'files:src/VWolf/Platform/UI/backends/**.cpp' }
+      flags { 'NoPCH' }
 
    filter "system:windows"
       systemversion "latest"

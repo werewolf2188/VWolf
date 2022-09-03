@@ -3,6 +3,9 @@
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "DirectX12Driver.h"
 
+#include "VWolf/Core/UI/UIManager.h"
+
+#include "VWolf/Platform/UI/DirectX12UIManager.h"
 #include "VWolf/Platform/Windows/WinWindow.h"
 
 namespace VWolf {
@@ -17,6 +20,8 @@ namespace VWolf {
 
 		// Same for resize
 		dx12ResizeBuffers(context, config.width, config.height);
+
+		UIManager::SetDefault(CreateRef<DirectX12UIManager>(((WinWindow*)window.get())->GetHWND(), context));
 
 		((WinWindow*)window.get())->clearFunc = [this]() {
 			

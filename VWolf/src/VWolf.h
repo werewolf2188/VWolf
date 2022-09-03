@@ -12,3 +12,5 @@
 #include "VWolf/Core/Events/ApplicationEvent.h"
 #include "VWolf/Core/Events/MouseEvent.h"
 #include "VWolf/Core/Events/KeyEvent.h"
+
+#include "VWolf/Core/UI/UIManager.h"

@@ -5,6 +5,9 @@
 #include <GLFW/glfw3.h>
 
 #include "VWolf/Platform/Windows/GLFWWindow.h"
+#include "VWolf/Core/UI/UIManager.h"
+
+#include "VWolf/Platform/UI/OpenGLUIManager.h"
 
 #define OPENGL_MAJOR_VERSION 4
 #define OPENGL_MINOR_VERSION 6
@@ -21,6 +24,7 @@ namespace VWolf {
 		//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 		window = CreateRef<GLFWWindow>(config, callback);
+		UIManager::SetDefault(CreateRef<OpenGLUIManager>(((GLFWWindow*)window.get())->GetContainerWindow()));
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
 			std::cout << "Failed to initialize GLAD" << std::endl;
