@@ -13,8 +13,18 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace VWolf {
+	struct UIContext {
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSrvHeap;
+	};
+
 	DirectX12UIManager::DirectX12UIManager(HWND__* window, DirectX12Context* context) : m_window(window), context(context)
 	{
+		m_uiContext = new UIContext();
+		dx12InitializeDescriptorHeap(context->md3dDevice, m_uiContext->mSrvHeap, 1, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+	}
+	DirectX12UIManager::~DirectX12UIManager()
+	{
+		delete m_uiContext;
 	}
 	void DirectX12UIManager::Initialize()
 	{
@@ -29,9 +39,9 @@ namespace VWolf {
 		// Setup Platform/Renderer backends
 		ImGui_ImplWin32_Init(m_window);
 		ImGui_ImplDX12_Init(context->md3dDevice.Get(), NUM_FRAMES_IN_FLIGHT,
-			DXGI_FORMAT_R8G8B8A8_UNORM, context->mSrvHeap.Get(),
-			context->mSrvHeap.Get()->GetCPUDescriptorHandleForHeapStart(),
-			context->mSrvHeap.Get()->GetGPUDescriptorHandleForHeapStart());
+			DXGI_FORMAT_R8G8B8A8_UNORM, m_uiContext->mSrvHeap.Get(),
+			m_uiContext->mSrvHeap.Get()->GetCPUDescriptorHandleForHeapStart(),
+			m_uiContext->mSrvHeap.Get()->GetGPUDescriptorHandleForHeapStart());
 	}
 	void DirectX12UIManager::Terminate()
 	{
@@ -46,15 +56,11 @@ namespace VWolf {
 
 		// Indicate a state transition on the resource usage.
 		dx12ResourceBarrierTransitionForCurrentBackBuffer(context, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-		// Clear the back buffer and depth buffer.
-		dx12ClearRenderTargetView(context, DirectX::Colors::Green);
-		dx12ClearDepthStencilView(context);
 		
 		// Specify the buffers we are going to render to.
 		dx12SetRenderTarget(context);
 
-		context->mCommandList->SetDescriptorHeaps(1, context->mSrvHeap.GetAddressOf());
+		dx12SetDescriptorHeaps(context, m_uiContext->mSrvHeap);
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context->mCommandList.Get());
 
 		// Indicate a state transition on the resource usage.
@@ -66,6 +72,9 @@ namespace VWolf {
 	{
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
+	}
+	bool DirectX12UIManager::OnEvent(Event& evt) {
+		return false;
 	}
 
 	LRESULT DirectX12UIManager::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {

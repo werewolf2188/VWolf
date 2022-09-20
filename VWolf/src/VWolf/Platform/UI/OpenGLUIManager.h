@@ -13,6 +13,7 @@ namespace VWolf {
 		virtual void Terminate() override;
 		virtual void Render() override;
 		virtual void NewFrame() override;
+		virtual bool OnEvent(Event& evt) override;
 	private: 
 		GLFWwindow* m_window;
 	};

@@ -13,6 +13,12 @@
     HRESULT hr__ = (x); \
     if(FAILED(hr__)) { std::cout << "DirectX 12 Error: File" << __FILE__ << ". Line: " << __LINE__ << std::endl; return; } \
 }
+
+#define ThrowIfFailedWithReturnValue(x, y) \
+{ \
+    HRESULT hr__ = (x); \
+    if(FAILED(hr__)) { std::cout << "DirectX 12 Error: File" << __FILE__ << ". Line: " << __LINE__ << std::endl; return y; } \
+}
 #endif
 
 #define SwapChainBufferCount 2
@@ -42,7 +48,6 @@ struct DirectX12Context {
 
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSrvHeap;
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[2];
 	Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilBuffer;
@@ -198,7 +203,6 @@ dx12InitializeCommandObjects(context); \
 dx12CreateSwapChain(context, width, height, hwnd, SwapChainBufferCount); \
 dx12InitializeDescriptorHeap(context->md3dDevice, context->mRtvHeap, SwapChainBufferCount, D3D12_DESCRIPTOR_HEAP_TYPE_RTV); \
 dx12InitializeDescriptorHeap(context->md3dDevice, context->mDsvHeap, 1, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);\
-dx12InitializeDescriptorHeap(context->md3dDevice, context->mSrvHeap, 1, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);\
 
 inline void dx12Flush(DirectX12Context* context) {
 	// Advance the fence value to mark commands up to this fence point.
@@ -285,10 +289,10 @@ inline void dx12CreateDepthStencilView(DirectX12Context* context) {
 	context->md3dDevice->CreateDepthStencilView(context->mDepthStencilBuffer.Get(), &dsvDesc, dx12GetDepthStencilView(context));
 }
 
-inline void dx12ResetCommandList(DirectX12Context* context) {
+inline void dx12ResetCommandList(DirectX12Context* context, Microsoft::WRL::ComPtr<ID3D12PipelineState> pso = nullptr) {
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 			// Reusing the command list reuses memory.
-	ThrowIfFailed(context->mCommandList->Reset(context->mDirectCmdListAlloc.Get(), nullptr));
+	ThrowIfFailed(context->mCommandList->Reset(context->mDirectCmdListAlloc.Get(), (bool)pso ? pso.Get(): nullptr));
 }
 
 inline void dx12ResetCommandListAllocator(DirectX12Context* context) {			
@@ -336,6 +340,10 @@ inline void dx12SetCommandListClientArea(DirectX12Context* context) {
 
 inline ID3D12Resource* dx12GetCurrentBackBuffer(DirectX12Context* context) {
 	return context->mSwapChainBuffer[context->mCurrBackBuffer].Get();
+}
+
+inline void dx12SetDescriptorHeaps(DirectX12Context* context, Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dHeap) {
+	context->mCommandList->SetDescriptorHeaps(1, dHeap.GetAddressOf());
 }
 
 #endif // #if defined( __cplusplus )

@@ -5,12 +5,15 @@
 #include "VWolf/Core/PlatformDetection.h"
 
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <utility>
 #include <algorithm>
 #include <functional>
 
 #include <string>
+#include <codecvt>
+#include <locale>
 #include <sstream>
 #include <array>
 #include <vector>
@@ -38,18 +41,19 @@
 #include <boost/log/support/date_time.hpp>
 
 #ifdef VWOLF_PLATFORM_WINDOWS
+#define NOMINMAX 1
 #include <Windows.h>
 #include <windowsx.h>
 #include <wrl.h>
 #include <dxgi1_4.h>
 #include <d3d12.h>
-#include <DirectXMath.h>
+//#include <DirectXMath.h>
 #include <DirectXColors.h>
 #include <d3dx12.h>
 #include <d3dx12Context.h>
 #include <d3dx12Commands.h>
-//#include <D3Dcompiler.h>
-//#include <DirectXPackedVector.h>
+#include <D3Dcompiler.h>
+#include <DirectXPackedVector.h>
 //#include <DirectXCollision.h>
 
 #pragma comment(lib,"d3dcompiler.lib")

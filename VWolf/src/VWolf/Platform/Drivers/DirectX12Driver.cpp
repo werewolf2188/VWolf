@@ -8,6 +8,12 @@
 #include "VWolf/Platform/UI/DirectX12UIManager.h"
 #include "VWolf/Platform/Windows/WinWindow.h"
 
+#include "VWolf/Platform/Render/DirectX12RenderAPI.h"
+#include "VWolf/Core/Render/Renderer.h"
+
+#include "VWolf/Core/Math/Math.h"
+#include "VWolf/Platform/Math/GLMMath.h"
+
 namespace VWolf {
 	void DirectX12Driver::Initialize(InitConfiguration config, WindowEventCallback& callback)
 	{
@@ -22,29 +28,8 @@ namespace VWolf {
 		dx12ResizeBuffers(context, config.width, config.height);
 
 		UIManager::SetDefault(CreateRef<DirectX12UIManager>(((WinWindow*)window.get())->GetHWND(), context));
-
-		((WinWindow*)window.get())->clearFunc = [this]() {
-			
-			dx12ResetCommandListAllocator(this->context);
-			dx12ResetCommandList(this->context);
-
-			dx12SetCommandListClientArea(this->context);
-
-			// Indicate a state transition on the resource usage.
-			dx12ResourceBarrierTransitionForCurrentBackBuffer(context, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-			// Clear the back buffer and depth buffer.
-			dx12ClearRenderTargetView(this->context, DirectX::Colors::Green);
-			dx12ClearDepthStencilView(this->context);
-
-			// Specify the buffers we are going to render to.
-			dx12SetRenderTarget(this->context);
-
-			// Indicate a state transition on the resource usage.
-			dx12ResourceBarrierTransitionForCurrentBackBuffer(context, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-			
-			dx12ExecuteCommands(this->context);			
-		};
+		Renderer::SetRenderAPI(CreateScope<DirectX12RenderAPI>(((WinWindow*)window.get())->GetHWND(), context));
+		Math::SetInstance(CreateRef<GLMMath>());
 	}
 
 	void DirectX12Driver::OnUpdate() {

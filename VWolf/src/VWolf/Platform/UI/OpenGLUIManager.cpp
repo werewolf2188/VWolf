@@ -41,4 +41,7 @@ namespace VWolf {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 	}
+	bool OpenGLUIManager::OnEvent(Event& evt) {
+		return false;
+	}
 }

@@ -20,13 +20,9 @@ namespace VWolf {
 		virtual bool IsMouseButtonPressed(MouseCode button) override;
 		virtual std::pair<float, float> GetMousePosition() override;
 		virtual bool IsKeyPressed(KeyCode key) override;
-		//TODO: Remove
-		virtual void Clear() override;
 	public: 
 		LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
-		HWND__* GetHWND() { return hwnd; };		
-		// TODO: Remove
-		std::function<void()> clearFunc;
+		HWND__* GetHWND() { return hwnd; };
 	private:
 		void ProcessMessages();
 		void FireMouseDown(int button);

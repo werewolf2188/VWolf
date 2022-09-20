@@ -205,13 +205,6 @@ namespace VWolf {
 	{
 		// TODO: Move
 		glViewport(0, 0, width, height);
-		// TODO: Initialize UI		
-	}
-
-	void GLFWWindow::Clear() {
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glViewport(0, 0, width, height);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void GLFWWindow::OnUpdate() {
