@@ -9,6 +9,8 @@
 #include "UI/UIManager.h"
 #include "Render/Renderer.h"
 
+#include "Time.h"
+
 #include "Log.h"
 
 namespace VWolf {
@@ -44,6 +46,7 @@ namespace VWolf {
 		m_running = true;
 		
 		while (m_running) {	
+			Time::Tick();
 			if (!m_minimized) {
 				OnUpdate();
 				UIManager::GetDefault()->NewFrame();

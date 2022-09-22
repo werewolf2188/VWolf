@@ -51,7 +51,7 @@ namespace VWolf {
 		VWOLF_CORE_ASSERT(m_cbContext->mUploadBuffer);
 		VWOLF_CORE_ASSERT(m_cbContext->mMappedData);
 
-		UINT objCBByteSize = CalcConstantBufferByteSize(size);
+		/*UINT objCBByteSize = CalcConstantBufferByteSize(size);
 		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = m_cbContext->mUploadBuffer.Get()->GetGPUVirtualAddress();
 		int boxCBufIndex = 0;
 		cbAddress += boxCBufIndex * objCBByteSize;
@@ -64,7 +64,7 @@ namespace VWolf {
 
 		context->md3dDevice->CreateConstantBufferView(
 			&cbvDesc,
-			m_cbContext->mSrvHeap->GetCPUDescriptorHandleForHeapStart());
+			m_cbContext->mSrvHeap->GetCPUDescriptorHandleForHeapStart());*/
 	}
 	DirectX12ConstantBuffer::~DirectX12ConstantBuffer()
 	{
@@ -77,7 +77,10 @@ namespace VWolf {
 	void DirectX12ConstantBuffer::SetData(const void* data, uint32_t size, uint32_t offset)
 	{
 		memcpy(&m_cbContext->mMappedData[offset * CalcConstantBufferByteSize(size)], data, size);
-		dx12SetDescriptorHeaps(m_context, m_cbContext->mSrvHeap);
-		m_context->mCommandList->SetGraphicsRootDescriptorTable(0, m_cbContext->mSrvHeap->GetGPUDescriptorHandleForHeapStart());
+		// Attach root descriptor directly to the command list
+		m_context->mCommandList->SetGraphicsRootConstantBufferView(0, m_cbContext->mUploadBuffer.Get()->GetGPUVirtualAddress());
+		// Attach descriptor table via descriptor heap
+		/*dx12SetDescriptorHeaps(m_context, m_cbContext->mSrvHeap);
+		m_context->mCommandList->SetGraphicsRootDescriptorTable(0, m_cbContext->mSrvHeap->GetGPUDescriptorHandleForHeapStart());*/
 	}
 }

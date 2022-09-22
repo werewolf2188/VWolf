@@ -7,6 +7,7 @@
 #include "VWolf/Core/Log.h"
 #include "VWolf/Core/Input.h"
 #include "VWolf/Core/Assert.h"
+#include "VWolf/Core/Time.h"
 
 #include "VWolf/Core/Events/Event.h"
 #include "VWolf/Core/Events/ApplicationEvent.h"
