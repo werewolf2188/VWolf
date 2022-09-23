@@ -166,15 +166,31 @@ public:
 		//VWOLF_CLIENT_DEBUG("Mouse position x: %0.2f, y: %0.2f", VWolf::Input::GetMouseX(), VWolf::Input::GetMouseY());
 	}
 	void OnUIUpate() {
-		// TODO: I should make a small window, just to make sure I didn't break anything
 		static bool show_demo_window = true;
+		static bool show_debug_window_1 = true;
+		static bool show_debug_window_2 = true;
 		ImGui::NewFrame();
 		if (show_demo_window)
 			ImGui::ShowDemoWindow(&show_demo_window);
+
+		if (show_debug_window_1) {
+			ImGui::Begin("Debug values", &show_debug_window_1);
+			ImGui::LabelText("Delta Time", "%0.3f", VWolf::Time::GetDeltaTime());
+			ImGui::LabelText("Total Time", "%0.3f", VWolf::Time::GetTotalTime());
+			ImGui::End();
+		}
+		
+		if (show_debug_window_2) {
+			ImGui::Begin("Debug values 2", &show_debug_window_2);
+			ImGui::LabelText("Total Frames", "%0.0f", VWolf::Time::GetTotalFrames());
+			ImGui::LabelText("FPS", "%0.3f", VWolf::Time::GetFramesPerSecond());
+			ImGui::End();
+		}
 	}
 
 	bool OnWindowResize(VWolf::WindowResizeEvent& e) {
-		camera.SetViewportSize(e.GetWidth(), e.GetHeight());
+		if (e.GetWidth() != 0 && e.GetHeight() == 0)
+			camera.SetViewportSize(e.GetWidth(), e.GetHeight());
 		return true;
 	}
 };

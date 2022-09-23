@@ -15,6 +15,8 @@
 #include "VWolf/Core/Math/Math.h"
 #include "VWolf/Platform/Math/GLMMath.h"
 
+#include "VWolf/Core/Time.h"
+
 #define OPENGL_MAJOR_VERSION 4
 #define OPENGL_MINOR_VERSION 6
 #define OPENGL_PROFILE GLFW_OPENGL_CORE_PROFILE
@@ -45,6 +47,14 @@ namespace VWolf {
 
 		VWOLF_CORE_ASSERT(false, "Unknown severity level!");
 	}
+	//
+
+	class GLFWTime : public Time {
+	protected:
+		virtual float GetTime() override {
+			return glfwGetTime();
+		}
+	};
 
 	void OpenGLDriver::Initialize(InitConfiguration config, WindowEventCallback& callback)
 	{
@@ -59,6 +69,7 @@ namespace VWolf {
 		window = CreateRef<GLFWWindow>(config, callback);
 		UIManager::SetDefault(CreateRef<OpenGLUIManager>(((GLFWWindow*)window.get())->GetContainerWindow()));
 		Renderer::SetRenderAPI(CreateScope<OpenGLRenderAPI>(((GLFWWindow*)window.get())->GetContainerWindow()));
+		Time::SetTimeImplementation(CreateRef<GLFWTime>());
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
 			std::cout << "Failed to initialize GLAD" << std::endl;

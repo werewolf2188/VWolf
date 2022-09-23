@@ -14,7 +14,37 @@
 #include "VWolf/Core/Math/Math.h"
 #include "VWolf/Platform/Math/GLMMath.h"
 
+#include "VWolf/Core/Time.h"
+
 namespace VWolf {
+
+	class WindowsTime : public Time {
+	public:
+		WindowsTime() {
+			QueryPerformanceFrequency((LARGE_INTEGER*)&m_frequency);
+			m_offset = Private_QueryTime();
+			
+		}
+	protected:
+		virtual float GetTime() override {
+			return Private_GetTime();
+		};
+	private:
+		double Private_GetTime() {
+			 return (double)(Private_QueryTime() - m_offset) /
+				 m_frequency;
+		}
+
+		uint64_t Private_QueryTime() {
+			uint64_t value;
+			QueryPerformanceCounter((LARGE_INTEGER*)&value);
+			return value;
+		}
+	private:
+		uint64_t m_frequency = 0;
+		uint64_t m_offset = 0;
+	};
+
 	void DirectX12Driver::Initialize(InitConfiguration config, WindowEventCallback& callback)
 	{
 		handle = GetModuleHandle(nullptr);
@@ -30,6 +60,7 @@ namespace VWolf {
 		UIManager::SetDefault(CreateRef<DirectX12UIManager>(((WinWindow*)window.get())->GetHWND(), context));
 		Renderer::SetRenderAPI(CreateScope<DirectX12RenderAPI>(((WinWindow*)window.get())->GetHWND(), context));
 		Math::SetInstance(CreateRef<GLMMath>());
+		Time::SetTimeImplementation(CreateRef<WindowsTime>());
 	}
 
 	void DirectX12Driver::OnUpdate() {
