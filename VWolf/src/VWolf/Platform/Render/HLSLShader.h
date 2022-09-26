@@ -35,6 +35,6 @@ namespace VWolf {
 	private:
 		HWND__* m_window;
 		DirectX12Context* m_context;
-		ShaderContext* m_shaderContext;
+		Ref<ShaderContext> m_shaderContext;
 	};
 }

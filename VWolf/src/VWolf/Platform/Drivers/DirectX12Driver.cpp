@@ -52,24 +52,24 @@ namespace VWolf {
 		window = CreateRef<WinWindow>(handle, config, *this);
 		window->Initialize();		
 
-		dx12InitializeDefaultContext(context, config.width, config.height, ((WinWindow*)window.get())->GetHWND())
+		dx12InitializeDefaultContext(context, config.width, config.height, (HWND__*)window->GetNativeWindow())
 
 		// Same for resize
 		dx12ResizeBuffers(context, config.width, config.height);
 
-		UIManager::SetDefault(CreateRef<DirectX12UIManager>(((WinWindow*)window.get())->GetHWND(), context));
-		Renderer::SetRenderAPI(CreateScope<DirectX12RenderAPI>(((WinWindow*)window.get())->GetHWND(), context));
+		UIManager::SetDefault(CreateRef<DirectX12UIManager>((HWND__*)window->GetNativeWindow(), context));
+		Renderer::SetRenderAPI(CreateScope<DirectX12RenderAPI>((HWND__*)window->GetNativeWindow(), context));
 		Math::SetInstance(CreateRef<GLMMath>());
 		Time::SetTimeImplementation(CreateRef<WindowsTime>());
 	}
 
 	void DirectX12Driver::OnUpdate() {
 		window->OnUpdate();
-		dx12SwapBuffers(this->context);
+		dx12SwapBuffers(context);
 		// Wait until frame commands are complete.  This waiting is inefficient and is
 		// done for simplicity.  Later we will show how to organize our rendering code
 		// so we do not have to wait per frame.
-		dx12Flush(this->context);
+		dx12Flush(context);
 	}
 
 	void DirectX12Driver::Shutdown()

@@ -19,7 +19,7 @@ namespace VWolf {
 			return m_lastFrame;
 		}
 
-		static float GetTotalFrames() {
+		static long long GetTotalFrames() {
 			return m_frameCount;
 		}
 

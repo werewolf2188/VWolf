@@ -46,7 +46,7 @@ namespace VWolf {
 #endif
 		case DriverType::OpenGL: return "OpenGL";
 		}
-		return "";
+		return "Null Driver. Please use a driver already implemented.";
 	}
 
 	template<typename T>

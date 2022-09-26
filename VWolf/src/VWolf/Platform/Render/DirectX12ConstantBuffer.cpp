@@ -36,7 +36,7 @@ namespace VWolf {
 	DirectX12ConstantBuffer::DirectX12ConstantBuffer(HWND__* window, DirectX12Context* context, Ref<Shader> shader, const std::string name, uint32_t size, uint32_t binding) :
 		m_window(window), m_context(context), UniformBuffer(shader, name, size, binding)
 	{
-		m_cbContext = new ConstantBufferContext();
+		m_cbContext = CreateScope<ConstantBufferContext>();
 		ThrowIfFailed(context->md3dDevice->CreateCommittedResource(
 			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 			D3D12_HEAP_FLAG_NONE,
@@ -72,7 +72,6 @@ namespace VWolf {
 			m_cbContext->mUploadBuffer->Unmap(0, nullptr);
 
 		m_cbContext->mMappedData = nullptr;
-		delete m_cbContext;
 	}
 	void DirectX12ConstantBuffer::SetData(const void* data, uint32_t size, uint32_t offset)
 	{

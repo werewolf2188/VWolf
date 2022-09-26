@@ -7,12 +7,14 @@
 namespace VWolf {
 	OpenGLVertexBuffer::OpenGLVertexBuffer(GLFWwindow* window, uint32_t size): m_window(window), VertexBuffer(size)
 	{
+		VWOLF_CORE_ASSERT(size);
 		glCreateBuffers(1, &vertexBufferId);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
 		glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 	}
 	OpenGLVertexBuffer::OpenGLVertexBuffer(GLFWwindow* window, float* vertices, uint32_t size) : m_window(window), VertexBuffer(vertices, size)
 	{
+		VWOLF_CORE_ASSERT(size);
 		glCreateBuffers(1, &vertexBufferId);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
 		glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
@@ -44,6 +46,7 @@ namespace VWolf {
 	}
 	OpenGLIndexBuffer::OpenGLIndexBuffer(GLFWwindow* window, uint32_t* indices, uint32_t count): m_window(window), IndexBuffer(indices, count)
 	{
+		VWOLF_CORE_ASSERT(count);
 		glCreateBuffers(1, &indexBufferId);
 
 		// GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO

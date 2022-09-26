@@ -20,28 +20,28 @@
 namespace VWolf {
 	OpenGLRenderAPI::OpenGLRenderAPI(GLFWwindow* window): m_window(window)
 	{
-		Shader::SetDefaultCreateMethod([window](const std::string& name, BufferLayout layout) {
-			return CreateRef<GLSLShader>(name, layout, window);
+		Shader::SetDefaultCreateMethod([this](const std::string& name, BufferLayout layout) {
+			return CreateRef<GLSLShader>(name, layout, m_window);
 		});
 
-		VertexBuffer::SetDefaultCreateSizeMethod([window](uint32_t size) {
-			return CreateRef<OpenGLVertexBuffer>(window, size);
+		VertexBuffer::SetDefaultCreateSizeMethod([this](uint32_t size) {
+			return CreateRef<OpenGLVertexBuffer>(m_window, size);
 		});
 
-		VertexBuffer::SetDefaultCreateDataAndSizeMethod([window](float* vertices, uint32_t size) {
-			return CreateRef<OpenGLVertexBuffer>(window, vertices, size);
+		VertexBuffer::SetDefaultCreateDataAndSizeMethod([this](float* vertices, uint32_t size) {
+			return CreateRef<OpenGLVertexBuffer>(m_window, vertices, size);
 		});
 
-		IndexBuffer::SetDefaultCreateMethod([window](uint32_t* indices, uint32_t count) {
-			return CreateRef<OpenGLIndexBuffer>(window, indices, count);
+		IndexBuffer::SetDefaultCreateMethod([this](uint32_t* indices, uint32_t count) {
+			return CreateRef<OpenGLIndexBuffer>(m_window, indices, count);
 		});
 
-		BufferGroup::SetDefaultCreateMethod([window]() {
-			return CreateRef<OpenGLVertexArray>(window);
+		BufferGroup::SetDefaultCreateMethod([this]() {
+			return CreateRef<OpenGLVertexArray>(m_window);
 		});
 
-		UniformBuffer::SetDefaultCreateMethod([window](Ref<Shader> shader, const std::string name, uint32_t size, uint32_t binding) {
-			return CreateRef<OpenGLUniformBuffer>(window, shader, name, size, binding);
+		UniformBuffer::SetDefaultCreateMethod([this](Ref<Shader> shader, const std::string name, uint32_t size, uint32_t binding) {
+			return CreateRef<OpenGLUniformBuffer>(m_window, shader, name, size, binding);
 		});
 	}
 	void OpenGLRenderAPI::Begin(Camera& camera, Ref<Shader> shader)

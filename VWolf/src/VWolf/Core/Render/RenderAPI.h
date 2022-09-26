@@ -1,5 +1,7 @@
 #pragma once
 
+#include "VWolf/Core/Base.h"
+
 #include "VWolf/Core/Math/Vectors.h"
 
 #include "Camera.h"

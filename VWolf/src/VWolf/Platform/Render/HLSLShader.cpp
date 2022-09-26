@@ -36,7 +36,7 @@ namespace VWolf {
 		const D3D_SHADER_MACRO* defines,
 		const std::string& entrypoint,
 		const std::string& target,
-		ShaderContext* shaderContext)
+		Ref<ShaderContext> shaderContext)
 	{
 		UINT compileFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)  
@@ -65,7 +65,7 @@ namespace VWolf {
 		
 	}
 
-	void BuildRootSignature(DirectX12Context *context, ShaderContext* shaderContext)
+	void BuildRootSignature(DirectX12Context *context, Ref<ShaderContext> shaderContext)
 	{
 		// Shader programs typically require resources as input (constant buffers,
 		// textures, samplers).  The root signature defines the resources the shader
@@ -108,7 +108,7 @@ namespace VWolf {
 		shaderContext->mRootSignature = mRootSignature;
 	}
 
-	void BuildPSO(DirectX12Context* context, ShaderContext* shaderContext, BufferLayout layout)
+	void BuildPSO(DirectX12Context* context, Ref<ShaderContext> shaderContext, BufferLayout layout)
 	{
 		// TODO: This should improve to add matrices
 		std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
@@ -146,7 +146,7 @@ namespace VWolf {
 
 	HLSLShader::HLSLShader(const std::string& name, BufferLayout layout, HWND__* window, DirectX12Context* context) : Shader(name, layout), m_window(window), m_context(context)
 	{
-		m_shaderContext = new ShaderContext();
+		m_shaderContext = CreateRef<ShaderContext>();
 		BuildRootSignature(m_context, m_shaderContext);
 		VWOLF_CORE_ASSERT(m_shaderContext->mRootSignature);
 		std::wstring str_turned_to_wstr = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filepath);
@@ -160,7 +160,6 @@ namespace VWolf {
 	}
 	HLSLShader::~HLSLShader()
 	{
-		delete m_shaderContext;
 	}
 	void HLSLShader::Bind() const
 	{

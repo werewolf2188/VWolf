@@ -18,6 +18,9 @@ private:
 public:
 	SandboxApplication(): Application(DRIVER_TYPE, { 1280, 720, "VWolf Sandbox" } ) {
 		camera = VWolf::PerspectiveCamera(90.0f, 1.778f, 0.1f, 1000.0f);
+		for (auto cmd : VWolf::CommandLineArguments::GetArguments()) {
+			VWOLF_CLIENT_DEBUG(cmd.c_str());
+		}
 		VWOLF_CLIENT_ASSERT(GetWindow()->GetWidth() > 0);
 		VWOLF_CLIENT_ASSERT(GetWindow()->GetHeight() > 0);
 
