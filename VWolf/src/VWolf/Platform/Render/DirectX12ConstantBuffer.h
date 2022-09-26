@@ -19,6 +19,6 @@ namespace VWolf {
 	private:
 		HWND__* m_window = nullptr;
 		DirectX12Context* m_context = nullptr;
-		ConstantBufferContext* m_cbContext = nullptr;
+		Scope<ConstantBufferContext> m_cbContext = nullptr;
 	};
 }

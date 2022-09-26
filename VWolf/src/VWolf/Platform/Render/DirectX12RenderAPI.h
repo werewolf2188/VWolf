@@ -20,6 +20,6 @@ namespace VWolf {
 		virtual void DrawIndexed(const Ref<BufferGroup>& group, uint32_t indexCount) override;
 	public:
 		HWND__* m_window;
-		DirectX12Context* context;
+		DirectX12Context* m_context;
 	};
 }

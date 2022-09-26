@@ -30,7 +30,7 @@ namespace VWolf {
 	private:
 		HWND__* m_window = nullptr;
 		DirectX12Context* m_context = nullptr;
-		VertexContext* m_vContext = nullptr;
+		Scope<VertexContext> m_vContext = nullptr;
 		BufferLayout m_layout;
 	};
 
@@ -51,6 +51,6 @@ namespace VWolf {
 	private:
 		HWND__* m_window = nullptr;
 		DirectX12Context* m_context = nullptr;
-		IndexContext* m_iContext = nullptr;
+		Scope<IndexContext> m_iContext = nullptr;
 	};
 }

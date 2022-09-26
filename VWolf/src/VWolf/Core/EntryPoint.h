@@ -9,9 +9,11 @@ VWolf::Application* getApplication() {\
 	return new App(); \
 }
 
-int main(int args, const char* argv) {
+int main(int args, const char** argv) {
 
-	VWolf::Application* app = getApplication();
+	VWolf::CommandLineArguments::SetArguments(args, argv);
+
+	VWolf::Application* app = getApplication();	
 
 	app->Run();
 

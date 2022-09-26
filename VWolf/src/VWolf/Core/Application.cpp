@@ -14,6 +14,22 @@
 #include "Log.h"
 
 namespace VWolf {
+	std::vector<std::string> CommandLineArguments::GetArguments()
+	{
+		return m_arguments;
+	}
+	void CommandLineArguments::SetArguments(int args, const char** argv)
+	{
+		if (m_initialized) return;
+		for (int i = 0; i < args; i++)
+			m_arguments.push_back(argv[i]);
+		m_initialized = true;
+	}
+
+	std::vector<std::string> CommandLineArguments::m_arguments;
+
+	bool CommandLineArguments::m_initialized = false;
+
 	Application* Application::m_application = nullptr;
 
 	Application::Application(DriverType type, InitConfiguration config) : m_type(type), driver(Driver::GetDriver(type))
@@ -64,6 +80,11 @@ namespace VWolf {
 
 	Ref<Window>Application::GetWindow() {
 		return driver->GetWindow();
+	}
+
+	std::vector<std::string> Application::GetArguments()
+	{
+		return CommandLineArguments::GetArguments();
 	}
 
 	void Application::OnEvent(Event& evt) {		

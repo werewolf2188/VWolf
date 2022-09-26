@@ -8,16 +8,27 @@
 class Driver;
 
 namespace VWolf {
+	class CommandLineArguments {
+	public:
+		static std::vector<std::string> GetArguments();
+		static void SetArguments(int args, const char** argv);
+	private:
+		static std::vector<std::string> m_arguments;
+		static bool m_initialized;
+	};
+
 	class Application: public WindowEventCallback {
 	public:
 		static Application* GetApplication() { return m_application; };
 	public:
 		virtual ~Application();
-		void Run();
-		Ref<Window> GetWindow();
 		virtual void OnEvent(Event& evt) override;
 		virtual void OnUpdate() = 0;
 		virtual void OnUIUpate() = 0;
+	public:
+		void Run();
+		Ref<Window> GetWindow();
+		std::vector<std::string> GetArguments();
 	protected: 
 		Application() = delete;
 		Application(DriverType type, InitConfiguration config);	

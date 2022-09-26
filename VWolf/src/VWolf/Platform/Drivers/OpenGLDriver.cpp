@@ -67,8 +67,8 @@ namespace VWolf {
 		//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 		window = CreateRef<GLFWWindow>(config, callback);
-		UIManager::SetDefault(CreateRef<OpenGLUIManager>(((GLFWWindow*)window.get())->GetContainerWindow()));
-		Renderer::SetRenderAPI(CreateScope<OpenGLRenderAPI>(((GLFWWindow*)window.get())->GetContainerWindow()));
+		UIManager::SetDefault(CreateRef<OpenGLUIManager>((GLFWwindow*)window->GetNativeWindow()));
+		Renderer::SetRenderAPI(CreateScope<OpenGLRenderAPI>((GLFWwindow *)window->GetNativeWindow()));
 		Time::SetTimeImplementation(CreateRef<GLFWTime>());
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
@@ -101,7 +101,7 @@ namespace VWolf {
 
 	void OpenGLDriver::OnUpdate() {
 		window->OnUpdate();
-		glfwSwapBuffers(((GLFWWindow*)window.get())->GetContainerWindow());
+		glfwSwapBuffers((GLFWwindow*)window->GetNativeWindow());
 	}
 
 	void OpenGLDriver::OnEvent(Event& evt) {
