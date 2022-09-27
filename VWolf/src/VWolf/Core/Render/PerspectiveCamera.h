@@ -5,8 +5,7 @@
 #include "VWolf/Core/Events/Event.h"
 #include "VWolf/Core/Events/MouseEvent.h"
 
-#include "VWolf/Core/Math/Matrices.h"
-#include "VWolf/Core/Math/Vectors.h"
+#include "VWolf/Core/Math/Math.h"
 
 namespace VWolf {
 	class PerspectiveCamera : public Camera
@@ -60,7 +59,7 @@ namespace VWolf {
 
 		Vector2Float m_InitialMousePosition = { 0.0f, 0.0f };
 
-		float m_Distance = 50.0f; // For now
+		float m_Distance = 10.0f;
 		float m_Pitch = 0.0f, m_Yaw = 0.0f;
 
 		float m_ViewportWidth = 1280.0f, m_ViewportHeight = 720.0f;

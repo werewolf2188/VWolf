@@ -11,9 +11,6 @@
 #include "VWolf/Platform/Render/DirectX12RenderAPI.h"
 #include "VWolf/Core/Render/Renderer.h"
 
-#include "VWolf/Core/Math/Math.h"
-#include "VWolf/Platform/Math/GLMMath.h"
-
 #include "VWolf/Core/Time.h"
 
 namespace VWolf {
@@ -59,7 +56,6 @@ namespace VWolf {
 
 		UIManager::SetDefault(CreateRef<DirectX12UIManager>((HWND__*)window->GetNativeWindow(), context));
 		Renderer::SetRenderAPI(CreateScope<DirectX12RenderAPI>((HWND__*)window->GetNativeWindow(), context));
-		Math::SetInstance(CreateRef<GLMMath>());
 		Time::SetTimeImplementation(CreateRef<WindowsTime>());
 	}
 

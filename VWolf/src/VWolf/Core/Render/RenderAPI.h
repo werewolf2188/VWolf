@@ -2,7 +2,7 @@
 
 #include "VWolf/Core/Base.h"
 
-#include "VWolf/Core/Math/Vectors.h"
+#include "VWolf/Core/Math/Math.h"
 
 #include "Camera.h"
 #include "Shader.h"

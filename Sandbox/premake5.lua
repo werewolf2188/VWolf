@@ -18,6 +18,7 @@ project "Sandbox"
    {
 	  "%{wks.location}/VWolf/src",
 	  "%{wks.location}/VWolf/vendor",
+      "%{IncludeDir.glm}",
 	--    "%{IncludeDir.GLFW}",
 	--    "%{IncludeDir.Glad}",
 	--    "%{IncludeDir.ImGui}",

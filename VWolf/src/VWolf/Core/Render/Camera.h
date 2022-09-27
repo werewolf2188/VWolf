@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VWolf/Core/Math/Matrices.h"
+#include "VWolf/Core/Math/Math.h"
 
 namespace VWolf {
 	class Camera
@@ -14,6 +14,6 @@ namespace VWolf {
 
 		virtual const MatrixFloat4x4& GetProjection() const { return m_Projection; }
 	protected:
-		MatrixFloat4x4 m_Projection = MatrixFloat4x4::Identity();
+		MatrixFloat4x4 m_Projection = MatrixFloat4x4(1.0);
 	};
 }
