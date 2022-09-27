@@ -12,9 +12,6 @@
 #include "VWolf/Platform/Render/OpenGLRenderAPI.h"
 #include "VWolf/Core/Render/Renderer.h"
 
-#include "VWolf/Core/Math/Math.h"
-#include "VWolf/Platform/Math/GLMMath.h"
-
 #include "VWolf/Core/Time.h"
 
 #define OPENGL_MAJOR_VERSION 4
@@ -91,7 +88,6 @@ namespace VWolf {
 
 		glEnable(GL_DEPTH_TEST);
 		//
-		Math::SetInstance(CreateRef<GLMMath>());
 	}
 
 	void OpenGLDriver::Shutdown()

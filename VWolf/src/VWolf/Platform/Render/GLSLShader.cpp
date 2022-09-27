@@ -3,8 +3,6 @@
 
 #include "VWolf/Core/Utils/File.h"
 
-#include "VWolf/Platform/Utils/GLMConversions.h"
-
 #include <glm/gtc/type_ptr.hpp>
 
 #include <glad/glad.h>
@@ -102,12 +100,12 @@ namespace VWolf {
 	void GLSLShader::SetMat3(const std::string& name, const MatrixFloat3x3& value)
 	{
 		GLint location = glGetUniformLocation(programId, name.c_str());
-		glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(toGLMMatrix3x3(value)));
+		glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
 	}
 	void GLSLShader::SetMat4(const std::string& name, const MatrixFloat4x4& value)
 	{
 		GLint location = glGetUniformLocation(programId, name.c_str());
-		glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(toGLMMatrix4x4(value)));
+		glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 	}
 	const std::string& GLSLShader::GetName() const
 	{

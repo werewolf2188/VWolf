@@ -23,8 +23,6 @@
 #include "VWolf/Core/Render/BufferGroup.h"
 #include "VWolf/Core/Render/UniformBuffer.h"
 
-#include "VWolf/Core/Math/Vectors.h"
-#include "VWolf/Core/Math/Matrices.h"
 #include "VWolf/Core/Math/Math.h"
 
 #include "VWolf/Core/Utils/File.h"

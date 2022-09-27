@@ -10,7 +10,7 @@
 namespace VWolf {
 	PerspectiveCamera::PerspectiveCamera(float fov, float aspectRatio, float nearClip, float farClip)
 		: m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip), 
-		Camera(Math::GetInstance()->Perspective(Math::GetInstance()->Radians(fov), aspectRatio, nearClip, farClip))
+		Camera(perspective(radians(fov), aspectRatio, nearClip, farClip))
 	{
 		UpdateView();
 	}
@@ -18,7 +18,7 @@ namespace VWolf {
 	void PerspectiveCamera::UpdateProjection()
 	{
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
-		m_Projection = Math::GetInstance()->Perspective(Math::GetInstance()->Radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
+		m_Projection = perspective(radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
 	}
 
 	void PerspectiveCamera::UpdateView()
@@ -27,8 +27,8 @@ namespace VWolf {
 		m_Position = CalculatePosition();
 
 		auto orientation = GetOrientation();
-		m_ViewMatrix = Math::GetInstance()->Translate(MatrixFloat4x4(1.0f), m_Position) * Math::GetInstance()->ToMat4(orientation);
-		m_ViewMatrix = Math::GetInstance()->Inverse(m_ViewMatrix);
+		m_ViewMatrix = translate(MatrixFloat4x4(1.0f), m_Position) * toMat4(orientation);
+		m_ViewMatrix = inverse(m_ViewMatrix);
 	}
 
 	std::pair<float, float> PerspectiveCamera::PanSpeed() const
@@ -124,20 +124,20 @@ namespace VWolf {
 
 	Vector3Float PerspectiveCamera::GetUpDirection() const
 	{
-		return Math::GetInstance()->Rotate(GetOrientation(), { 0.0f, 1.0f, 0.0f });
+		return rotate(GetOrientation(), { 0.0f, 1.0f, 0.0f });
 	}
 
 	Vector3Float PerspectiveCamera::GetRightDirection() const
 	{
-		return Math::GetInstance()->Rotate(GetOrientation(), { 1.0f, 0.0f, 0.0f });
+		return rotate(GetOrientation(), { 1.0f, 0.0f, 0.0f });
 	}
 
 	Vector3Float PerspectiveCamera::GetForwardDirection() const
 	{
-		return Math::GetInstance()->Rotate(GetOrientation(), { 0.0f, 0.0f, -1.0f });
+		return rotate(GetOrientation(), { 0.0f, 0.0f, -1.0f });
 	}
 
 	Quat PerspectiveCamera::GetOrientation() const {
-		return Math::GetInstance()->ToQuat({ -m_Pitch, -m_Yaw, 0.0f });
+		return Quat({ -m_Pitch, -m_Yaw, 0.0f });
 	}
 }

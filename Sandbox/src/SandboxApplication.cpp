@@ -17,7 +17,7 @@ private:
 	VWolf::Ref<VWolf::UniformBuffer> m_uniformBuffer = nullptr;
 public:
 	SandboxApplication(): Application(DRIVER_TYPE, { 1280, 720, "VWolf Sandbox" } ) {
-		camera = VWolf::PerspectiveCamera(90.0f, 1.778f, 0.1f, 1000.0f);
+		camera = VWolf::PerspectiveCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 		for (auto cmd : VWolf::CommandLineArguments::GetArguments()) {
 			VWOLF_CLIENT_DEBUG(cmd.c_str());
 		}
@@ -162,8 +162,8 @@ public:
 		VWolf::Renderer::Clear();
 		colorShader->Bind();
 		m_uniformBuffer->SetData(&projection, sizeof(VWolf::MatrixFloat4x4), 0);
-		colorShader->SetMat4("u_Transform", VWolf::MatrixFloat4x4::Identity());
-		VWolf::Renderer::Submit(group, VWolf::MatrixFloat4x4::Identity());
+		colorShader->SetMat4("u_Transform", VWolf::MatrixFloat4x4(1.0));
+		VWolf::Renderer::Submit(group, VWolf::MatrixFloat4x4(1.0));
 		VWolf::Renderer::End();
 		// TODO: Remove once its documented.
 		//VWOLF_CLIENT_DEBUG("Mouse position x: %0.2f, y: %0.2f", VWolf::Input::GetMouseX(), VWolf::Input::GetMouseY());
@@ -185,7 +185,7 @@ public:
 		
 		if (show_debug_window_2) {
 			ImGui::Begin("Debug values 2", &show_debug_window_2);
-			ImGui::LabelText("Total Frames", "%0.0f", VWolf::Time::GetTotalFrames());
+			ImGui::LabelText("Total Frames", "%d", VWolf::Time::GetTotalFrames());
 			ImGui::LabelText("FPS", "%0.3f", VWolf::Time::GetFramesPerSecond());
 			ImGui::End();
 		}
