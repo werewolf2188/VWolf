@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VWolf/Core/Render/Shader.h"
+#ifdef VWOLF_PLATFORM_WINDOWS
 
 struct HWND__;
 struct HINSTANCE__;
@@ -38,3 +39,4 @@ namespace VWolf {
 		Ref<ShaderContext> m_shaderContext;
 	};
 }
+#endif

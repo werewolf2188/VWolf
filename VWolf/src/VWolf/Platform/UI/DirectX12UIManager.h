@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef VWOLF_PLATFORM_WINDOWS
 #include "VWolf/Core/UI/UIManager.h"
 
 struct HWND__;
@@ -28,3 +29,4 @@ namespace VWolf {
 		UIContext* m_uiContext;
 	};
 }
+#endif
