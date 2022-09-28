@@ -15,7 +15,8 @@ namespace VWolf {
 		#include <signal.h>
 		#define VWOLF_DEBUGBREAK() raise(SIGTRAP)
 	#else
-		#error "Platform doesn't support debugbreak yet!"
+		//#error "Platform doesn't support debugbreak yet!" // TODO: Not sure if I want to cause a compiling error
+		#define VWOLF_DEBUGBREAK()
 	#endif
 	#define VWOLF_ENABLE_ASSERTS
 #else

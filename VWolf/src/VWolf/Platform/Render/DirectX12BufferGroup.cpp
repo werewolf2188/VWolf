@@ -1,4 +1,5 @@
 #include "vwpch.h"
+#ifdef VWOLF_PLATFORM_WINDOWS
 #include "DirectX12BufferGroup.h"
 
 #include "DirectX12Buffer.h"
@@ -37,3 +38,4 @@ namespace VWolf {
 		return m_indexBuffer;
 	}
 }
+#endif

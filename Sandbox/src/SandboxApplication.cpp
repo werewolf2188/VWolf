@@ -42,13 +42,16 @@ public:
 
 		std::stringstream ss;
 		ss << "src/shaders/";
-
+#ifdef VWOLF_PLATFORM_WINDOWS
 		if (driverType == VWolf::DriverType::DirectX12) {
 			ss << "hlsl/color";
 		}
 		else if (driverType == VWolf::DriverType::OpenGL) {
 			ss << "glsl/FlatColor";
 		}
+#else 
+		ss << "glsl/FlatColor";
+#endif
 
 		// Create
 		group = VWolf::BufferGroup::Create();

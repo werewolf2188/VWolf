@@ -1,4 +1,5 @@
 #include "vwpch.h"
+#ifdef VWOLF_PLATFORM_WINDOWS
 #include "DirectX12ConstantBuffer.h"
 
 namespace VWolf {
@@ -83,3 +84,4 @@ namespace VWolf {
 		m_context->mCommandList->SetGraphicsRootDescriptorTable(0, m_cbContext->mSrvHeap->GetGPUDescriptorHandleForHeapStart());*/
 	}
 }
+#endif

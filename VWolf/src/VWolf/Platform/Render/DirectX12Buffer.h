@@ -2,6 +2,8 @@
 
 #include "VWolf/Core/Render/Buffer.h"
 
+#ifdef VWOLF_PLATFORM_WINDOWS
+
 struct HWND__;
 struct HINSTANCE__;
 
@@ -54,3 +56,4 @@ namespace VWolf {
 		Scope<IndexContext> m_iContext = nullptr;
 	};
 }
+#endif

@@ -1,4 +1,5 @@
 #include "vwpch.h"
+#ifdef VWOLF_PLATFORM_WINDOWS
 #include "DirectX12Buffer.h"
 
 namespace VWolf {
@@ -174,3 +175,4 @@ namespace VWolf {
 		return ibv;
 	}
 }
+#endif

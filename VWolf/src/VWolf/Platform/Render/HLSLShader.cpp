@@ -1,4 +1,5 @@
 #include "vwpch.h"
+#ifdef VWOLF_PLATFORM_WINDOWS
 #include "HLSLShader.h"
 
 namespace VWolf {
@@ -201,3 +202,4 @@ namespace VWolf {
 		return m_shaderContext->mPSO;
 	}
 }
+#endif
