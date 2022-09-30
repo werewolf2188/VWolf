@@ -40,6 +40,7 @@
 //  2018-06-08: DirectX12: Use draw_data->DisplayPos and draw_data->DisplaySize to setup projection matrix and clipping rectangle (to ease support for future multi-viewport).
 //  2018-02-22: Merged into master with all Win32 code synchronized to other examples.
 
+#ifdef VWOLF_PLATFORM_WINDOWS
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 
@@ -1072,3 +1073,5 @@ void ImGui_ImplDX12_ShutdownPlatformInterface()
 {
     ImGui::DestroyPlatformWindows();
 }
+
+#endif

@@ -41,17 +41,35 @@ namespace VWolf {
 }
 
 #ifdef VWOLF_CORE
+#ifdef VWOLF_PLATFORM_WINDOWS
 #define VWOLF_CORE_TRACE(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::trace, text, __VA_ARGS__)
 #define VWOLF_CORE_DEBUG(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::debug, text, __VA_ARGS__)
 #define VWOLF_CORE_INFO(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::info, text, __VA_ARGS__)
 #define VWOLF_CORE_WARNING(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::warning, text, __VA_ARGS__)
 #define VWOLF_CORE_ERROR(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::error, text, __VA_ARGS__)
 #define VWOLF_CORE_FATAL(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::fatal, text, __VA_ARGS__)
+#else
+#define VWOLF_CORE_TRACE(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::trace, text, ##__VA_ARGS__)
+#define VWOLF_CORE_DEBUG(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::debug, text, ##__VA_ARGS__)
+#define VWOLF_CORE_INFO(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::info, text, ##__VA_ARGS__)
+#define VWOLF_CORE_WARNING(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::warning, text, ##__VA_ARGS__)
+#define VWOLF_CORE_ERROR(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::error, text, ##__VA_ARGS__)
+#define VWOLF_CORE_FATAL(text, ...) ::VWolf::Log::coreLog.Write(::VWolf::Log::LogSeverity::fatal, text, ##__VA_ARGS__)
+#endif
 #endif
 
+#ifdef VWOLF_PLATFORM_WINDOWS
 #define VWOLF_CLIENT_TRACE(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::trace, text, __VA_ARGS__)
 #define VWOLF_CLIENT_DEBUG(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::debug, text, __VA_ARGS__)
 #define VWOLF_CLIENT_INFO(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::info, text, __VA_ARGS__)
 #define VWOLF_CLIENT_WARNING(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::warning, text, __VA_ARGS__)
 #define VWOLF_CLIENT_ERROR(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::error, text, __VA_ARGS__)
 #define VWOLF_CLIENT_FATAL(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::fatal, text, __VA_ARGS__)
+#else
+#define VWOLF_CLIENT_TRACE(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::trace, text, ##__VA_ARGS__)
+#define VWOLF_CLIENT_DEBUG(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::debug, text, ##__VA_ARGS__)
+#define VWOLF_CLIENT_INFO(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::info, text, ##__VA_ARGS__)
+#define VWOLF_CLIENT_WARNING(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::warning, text, ##__VA_ARGS__)
+#define VWOLF_CLIENT_ERROR(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::error, text, ##__VA_ARGS__)
+#define VWOLF_CLIENT_FATAL(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::fatal, text, ##__VA_ARGS__)
+#endif

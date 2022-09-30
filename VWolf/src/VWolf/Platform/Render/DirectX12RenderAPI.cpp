@@ -1,5 +1,7 @@
 #include "vwpch.h"
 
+#ifdef VWOLF_PLATFORM_WINDOWS
+
 #include "DirectX12RenderAPI.h"
 #include "VWolf/Core/Render/Shader.h"
 #include "HLSLShader.h"
@@ -12,9 +14,6 @@
 
 #include "VWolf/Core/Render/UniformBuffer.h"
 #include "DirectX12ConstantBuffer.h"
-
-
-#ifdef VWOLF_PLATFORM_WINDOWS
 
 namespace VWolf {
 	DirectX12RenderAPI::DirectX12RenderAPI(HWND__* window, DirectX12Context* context): m_window(window), m_context(context)

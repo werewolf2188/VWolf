@@ -13,6 +13,7 @@
 // If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
 // Read online: https://github.com/ocornut/imgui/tree/master/docs
 
+#ifdef VWOLF_PLATFORM_WINDOWS
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #ifndef WIN32_LEAN_AND_MEAN
@@ -1194,3 +1195,4 @@ void ImGui_ImplWin32_EnableAlphaCompositing(void* hwnd)
 }
 
 //---------------------------------------------------------------------------------------------------------
+#endif

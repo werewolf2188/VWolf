@@ -17,6 +17,14 @@ project "Glad"
     {
         "include"
     }
+
+    filter "system:macosx"
+        systemversion "latest"
+
+    sysincludedirs
+    {
+        "include"
+    }
     
     filter "system:windows"
         systemversion "latest"

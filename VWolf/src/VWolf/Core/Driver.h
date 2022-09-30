@@ -6,6 +6,7 @@
 namespace VWolf {
 	class Driver {
 	public:
+        virtual ~Driver() {};
 		virtual void Initialize(InitConfiguration config, WindowEventCallback& callback) = 0;
 		virtual void Shutdown() = 0;
 		virtual void OnUpdate() = 0;
