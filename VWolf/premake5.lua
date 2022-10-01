@@ -64,6 +64,28 @@ project "VWolf"
       "GLFW_INCLUDE_NONE"
    }
 
+   filter "system:macosx"
+   systemversion "latest"
+
+   pchheader "src/vwpch.h"
+   pchsource "src/vwpch.cpp"
+
+    sysincludedirs
+    {
+	"src",
+        "%{IncludeDir.boost}",
+        "%{IncludeDir.GLFW}",
+	"%{IncludeDir.Glad}",
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.ImGui}",
+    }
+
+   defines
+   {
+      "GLFW_INCLUDE_NONE"
+   }
+
+
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"

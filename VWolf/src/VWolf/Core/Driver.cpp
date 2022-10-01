@@ -9,6 +9,8 @@
 
 namespace VWolf {
 	class NullDriver : public Driver {
+    public:
+        virtual ~NullDriver() override {};
 		virtual void Initialize(InitConfiguration config, WindowEventCallback& callback) override {};
 		virtual void Shutdown() override {};
 		virtual void OnUpdate() override {};

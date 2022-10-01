@@ -34,6 +34,18 @@ project "Sandbox"
       "VWolf"
    }
 
+   filter "system:macosx"
+   systemversion "latest"
+
+    sysincludedirs
+    {
+	"%{wks.location}/VWolf/src",
+	 "%{wks.location}/VWolf/vendor",
+         "%{IncludeDir.glm}",
+    }
+
+   links { "Cocoa.framework", "CoreVideo.framework", "IOKit.framework", "OpenGL.framework" }
+
    filter "system:windows"
       systemversion "latest"
 

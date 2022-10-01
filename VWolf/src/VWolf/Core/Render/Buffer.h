@@ -1,6 +1,9 @@
 #pragma once
 #include "VWolf/Core/Base.h"
 #include <functional>
+#ifdef VWOLF_PLATFORM_MACOS
+#include <vector>
+#endif
 
 namespace VWolf {
 	enum class ShaderDataType

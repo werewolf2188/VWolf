@@ -5,7 +5,7 @@
 #include "VWolf.h"
 #include "VWolf/Core/EntryPoint.h"
 
-#define DRIVER_TYPE VWolf::DriverType::DirectX12
+#define DRIVER_TYPE VWolf::DriverType::OpenGL
 
 class SandboxApplication : public VWolf::Application {
 private:
@@ -53,6 +53,7 @@ public:
 		ss << "glsl/FlatColor";
 #endif
 
+#ifndef VWOLF_PLATFORM_MACOS
 		// Create
 		group = VWolf::BufferGroup::Create();
 
@@ -103,6 +104,7 @@ public:
 		group->SetIndexBuffer(indexBuffer);
 		colorShader = VWolf::Shader::Create(ss.str(), layout);
 		m_uniformBuffer = VWolf::UniformBuffer::Create(colorShader, "Camera", sizeof(VWolf::MatrixFloat4x4), 0);
+#endif
 	}
 
 	~SandboxApplication() {
@@ -163,10 +165,12 @@ public:
 		VWolf::Renderer::Begin(camera, colorShader);
 		VWolf::Renderer::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
 		VWolf::Renderer::Clear();
+#ifndef VWOLF_PLATFORM_MACOS
 		colorShader->Bind();
 		m_uniformBuffer->SetData(&projection, sizeof(VWolf::MatrixFloat4x4), 0);
 		colorShader->SetMat4("u_Transform", VWolf::MatrixFloat4x4(1.0));
 		VWolf::Renderer::Submit(group, VWolf::MatrixFloat4x4(1.0));
+#endif
 		VWolf::Renderer::End();
 		// TODO: Remove once its documented.
 		//VWOLF_CLIENT_DEBUG("Mouse position x: %0.2f, y: %0.2f", VWolf::Input::GetMouseX(), VWolf::Input::GetMouseY());
