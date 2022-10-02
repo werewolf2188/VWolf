@@ -29,7 +29,7 @@ namespace VWolf {
 
 	OpenGLVertexArray::OpenGLVertexArray(GLFWwindow* window): m_window(window)
 	{
-		glCreateVertexArrays(1, &vertexArrayId);
+		glGenVertexArrays(1, &vertexArrayId);
 	}
 	OpenGLVertexArray::~OpenGLVertexArray()
 	{

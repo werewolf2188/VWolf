@@ -11,11 +11,13 @@ namespace VWolf {
 	{
 		GLuint programId = dynamic_cast<GLSLShader*>(shader.get())->GetProgramID();
 		unsigned int uniformBlock = glGetUniformBlockIndex(programId, name.c_str());
-		glUniformBlockBinding(programId, uniformBlock, 0);
+		glUniformBlockBinding(programId, uniformBlock, binding);
 
-		glCreateBuffers(1, &uniformBufferId);
-		glNamedBufferData(uniformBufferId, size, nullptr, GL_DYNAMIC_DRAW); // TODO: investigate usage hint
-		glBindBufferBase(GL_UNIFORM_BUFFER, binding, uniformBufferId);
+		glGenBuffers(1, &uniformBufferId);
+        glBindBuffer(GL_UNIFORM_BUFFER, uniformBufferId);
+		glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_STATIC_DRAW); // TODO: investigate usage hint
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        glBindBufferBase(GL_UNIFORM_BUFFER, binding, uniformBufferId);
 	}
 	OpenGLUniformBuffer::~OpenGLUniformBuffer()
 	{
@@ -23,6 +25,8 @@ namespace VWolf {
 	}
 	void OpenGLUniformBuffer::SetData(const void* data, uint32_t size, uint32_t offset)
 	{
-		glNamedBufferSubData(uniformBufferId, offset, size, data);
+        glBindBuffer(GL_UNIFORM_BUFFER, uniformBufferId);
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 }

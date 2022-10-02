@@ -15,11 +15,7 @@
 #include "VWolf/Core/Time.h"
 
 #define OPENGL_MAJOR_VERSION 4
-#ifdef VWOLF_PLATFORM_MACOS
 #define OPENGL_MINOR_VERSION 1
-#else
-#define OPENGL_MINOR_VERSION 6
-#endif
 #define OPENGL_PROFILE GLFW_OPENGL_CORE_PROFILE
 
 namespace VWolf {
@@ -80,11 +76,11 @@ namespace VWolf {
 #ifdef DEBUG
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-#ifndef VWOLF_PLATFORM_MACOS
-		glDebugMessageCallback(OpenGLMessageCallback, nullptr);
+        if (OPENGL_MINOR_VERSION > 5) {
+            glDebugMessageCallback(OpenGLMessageCallback, nullptr);
 
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
-#endif
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+        }
 #endif
 		// These should be settings
 		glEnable(GL_BLEND);
