@@ -73,3 +73,27 @@ namespace VWolf {
 #define VWOLF_CLIENT_ERROR(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::error, text, ##__VA_ARGS__)
 #define VWOLF_CLIENT_FATAL(text, ...) ::VWolf::Log::clientLog.Write(::VWolf::Log::LogSeverity::fatal, text, ##__VA_ARGS__)
 #endif
+
+#ifdef DEBUG
+#define VWOLF_DUMP_ARRAY(array, count) \
+std::stringstream ss;\
+ss << #array << ": "; \
+for (int i = 0; i < count; i++) \
+ss << *(array + i) << ", "; \
+ss << std::endl;\
+VWOLF_CORE_DEBUG(ss.str().c_str())
+
+#define VWOLF_DUMP_TYPED_ARRAY(array, size, type) \
+std::stringstream ss;\
+ss << #array << ": "; \
+for (int i = 0; i < size / sizeof(type); i++) \
+ss << *(array + i) << ", "; \
+ss << std::endl;\
+VWOLF_CORE_DEBUG(ss.str().c_str())
+
+#else
+
+#define VWOLF_DUMP_ARRAY(array, count)
+#define VWOLF_DUMP_TYPED_ARRAY(array, size, type)
+
+#endif
