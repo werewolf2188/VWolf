@@ -12,6 +12,10 @@
 #define TOP 1
 #define BOTTOM -1
 
+#ifdef VWOLF_PLATFORM_WINDOWS
+# define M_PI           3.14159265358979323846  /* pi */
+#endif
+
 namespace VWolf {
     std::vector<float> MeshData::GetVertices() {
         std::vector<float> vertices;
