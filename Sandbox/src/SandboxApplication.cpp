@@ -15,6 +15,7 @@ private:
 	VWolf::DriverType driverType = DRIVER_TYPE;
 	VWolf::MatrixFloat4x4 projection;
 	VWolf::Ref<VWolf::UniformBuffer> m_uniformBuffer = nullptr;
+    VWolf::MeshData shape;
 public:
 	SandboxApplication(): Application(DRIVER_TYPE, { 1280, 720, "VWolf Sandbox" } ) {
 		camera = VWolf::PerspectiveCamera(30.0f, 1.778f, 0.1f, 1000.0f);
@@ -55,51 +56,21 @@ public:
 #endif
 		// Create
 		group = VWolf::BufferGroup::Create();
+//        shape = VWolf::ShapeHelper::CreateBox(1, 1, 1, 0);
+//        shape = VWolf::ShapeHelper::CreateSphere(2, 32, 32);
+//        shape = VWolf::ShapeHelper::CreateGeosphere(1, 4);
+        shape = VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8);
+//        shape = VWolf::ShapeHelper::CreateGrid(2, 2, 16, 16);
+//        shape = VWolf::ShapeHelper::CreateQuad(-1, 1, 2, 2, 0);
 
-		float vertices[8 * 7] = {
-		-0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f,
-		-0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f,
-		+0.5f, +0.5f, -0.5f, 0.0f, 0.0f, 0.1f, 1.0f,
-		+0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f,
-		-0.5f, -0.5f, +0.5f, 1.0f, 1.0f, 0.0f, 1.0f,
-		-0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
-		+0.5f, +0.5f, +0.5f, 0.8f, 0.0f, 1.0f, 1.0f,
-		+0.5f, -0.5f, +0.5f, 1.0f, 1.0f, 1.0f, 1.0f
-		};
-
-		VWolf::Ref<VWolf::VertexBuffer> vertexBuffer = VWolf::VertexBuffer::Create(vertices, sizeof(vertices));
+		VWolf::Ref<VWolf::VertexBuffer> vertexBuffer = VWolf::VertexBuffer::Create(shape.GetVertices().data(), shape.GetVertices().size() * sizeof(float));
 		VWolf::BufferLayout layout = {
 		{ VWolf::ShaderDataType::Float3, "a_Position" },
 		{ VWolf::ShaderDataType::Float4, "a_Color" }
 		};
 		vertexBuffer->SetLayout(layout);
 		group->AddVertexBuffer(vertexBuffer);
-		uint32_t indices[36] = {
-			// front face
-			2, 1, 0,
-			3, 2, 0,
-
-			// back face
-			5, 6, 4,
-			6, 7, 4,
-
-			// left face
-			1, 5, 4,
-			0, 1, 4,
-
-			// right face
-			6, 2, 3,
-			7, 6, 3,
-
-			// top face
-			6, 5, 1,
-			2, 6, 1,
-
-			// bottom face
-			3, 0, 4,
-			7, 3, 4
-		};
-		VWolf::Ref<VWolf::IndexBuffer> indexBuffer = VWolf::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
+		VWolf::Ref<VWolf::IndexBuffer> indexBuffer = VWolf::IndexBuffer::Create(shape.indices.data(), shape.indices.size());
 		group->SetIndexBuffer(indexBuffer);
 		colorShader = VWolf::Shader::Create(ss.str(), layout);
 		m_uniformBuffer = VWolf::UniformBuffer::Create(colorShader, "Camera", sizeof(VWolf::MatrixFloat4x4), 0);
@@ -188,14 +159,14 @@ public:
 		
 		if (show_debug_window_2) {
 			ImGui::Begin("Debug values 2", &show_debug_window_2);
-			ImGui::LabelText("Total Frames", "%d", VWolf::Time::GetTotalFrames());
+			ImGui::LabelText("Total Frames", "%lld", VWolf::Time::GetTotalFrames());
 			ImGui::LabelText("FPS", "%0.3f", VWolf::Time::GetFramesPerSecond());
 			ImGui::End();
 		}
 	}
 
 	bool OnWindowResize(VWolf::WindowResizeEvent& e) {
-		if (e.GetWidth() != 0 && e.GetHeight() == 0)
+		if (e.GetWidth() != 0 && e.GetHeight() != 0)
 			camera.SetViewportSize(e.GetWidth(), e.GetHeight());
 		return true;
 	}

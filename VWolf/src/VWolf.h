@@ -9,6 +9,8 @@
 #include "VWolf/Core/Assert.h"
 #include "VWolf/Core/Time.h"
 
+#include "VWolf/Core/Debug/ShapeHelper.h"
+
 #include "VWolf/Core/Events/Event.h"
 #include "VWolf/Core/Events/ApplicationEvent.h"
 #include "VWolf/Core/Events/MouseEvent.h"
