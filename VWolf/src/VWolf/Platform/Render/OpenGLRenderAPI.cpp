@@ -20,8 +20,13 @@
 namespace VWolf {
 	OpenGLRenderAPI::OpenGLRenderAPI(GLFWwindow* window): m_window(window)
 	{
-		Shader::SetDefaultCreateMethod([this](const std::string& name, BufferLayout layout) {
-			return CreateRef<GLSLShader>(name, layout, m_window);
+		Shader::SetDefaultCreateMethod([this](const char* name,
+                                              ShaderSource vertexShader,
+                                              BufferLayout layout,
+                                              std::initializer_list<ShaderSource> otherShaders,
+                                              std::initializer_list<ShaderParameter> parameters,
+                                              ShaderConfiguration configuration) {
+			return CreateRef<GLSLShader>(m_window, name, vertexShader, layout, otherShaders, parameters, configuration);
 		});
 
 		VertexBuffer::SetDefaultCreateSizeMethod([this](uint32_t size) {

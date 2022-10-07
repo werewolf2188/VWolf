@@ -7,7 +7,9 @@ layout(std140) uniform Camera
 {
 	mat4 u_ViewProjection;
 };
-uniform mat4 u_Transform;
+layout(std140) uniform Object {
+    mat4 u_Transform;
+};
 
 out vec3 v_Position;
 out vec4 v_Color;

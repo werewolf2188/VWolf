@@ -3,6 +3,7 @@
 #include "VWolf/Core/Base.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
 #define GLM_ENABLE_EXPERIMENTAL
@@ -44,7 +45,6 @@ namespace VWolf {
 
 	inline std::ostream& operator<<(std::ostream& os, const MatrixFloat3x3& v)
 	{
-		os << "Matrix 4x4: \n";
 		os << "Matrix 3x3: \n";
 		os << "[aa:" << v[0][0] << ", ab:" << v[0][1] << ", ac:" << v[0][2] << "] \n";
 		os << "[ba:" << v[1][0] << ", bb:" << v[1][1] << ", bc:" << v[1][2] << "] \n";

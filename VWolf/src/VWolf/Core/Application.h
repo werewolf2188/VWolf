@@ -24,7 +24,8 @@ namespace VWolf {
 		virtual ~Application();
 		virtual void OnEvent(Event& evt) override;
 		virtual void OnUpdate() = 0;
-		virtual void OnUIUpate() = 0;
+        virtual void OnDraw() = 0;
+		virtual void OnGUI() = 0;
 	public:
 		void Run();
 		Ref<Window> GetWindow();
