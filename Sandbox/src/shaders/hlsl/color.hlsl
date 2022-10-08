@@ -1,6 +1,11 @@
-cbuffer cbPerObject : register(b0)
+cbuffer cbPerCamera : register(b0)
 {
 	float4x4 u_ViewProjection;
+};
+
+cbuffer cbPerObject : register(b1)
+{
+	float4x4 u_Transform;
 };
 
 struct VertexIn
@@ -35,7 +40,8 @@ VertexOut VS(VertexIn vin)
 	//vout.Color = co;
 
 	// Transform to homogeneous clip space.
-	vout.PosH = mul(u_ViewProjection, float4(vin.PosL, 1.0f));
+	vout.PosH = mul(u_Transform, float4(vin.PosL, 1.0f));
+	vout.PosH = mul(u_ViewProjection, vout.PosH);
 
 	// Just pass vertex color into the pixel shader.	
 	vout.Color = vin.Color;

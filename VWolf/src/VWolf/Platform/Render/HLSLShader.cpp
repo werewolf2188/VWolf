@@ -4,12 +4,36 @@
 
 namespace VWolf {
 
+	struct ConstantBufferContext
+	{
+		Microsoft::WRL::ComPtr<ID3D12Resource> mUploadBuffer;
+		BYTE* mMappedData = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSrvHeap;
+		int binding;
+	};
+
 	struct ShaderContext {
-		Microsoft::WRL::ComPtr<ID3DBlob> mvsByteCode = nullptr;
-		Microsoft::WRL::ComPtr<ID3DBlob> mpsByteCode = nullptr;
+		std::map<ShaderType, Microsoft::WRL::ComPtr<ID3DBlob>> shaderBlobs;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> mPSO = nullptr;
+		std::map<std::string, Ref<ConstantBufferContext>> constantBuffers;
 	};
+
+	static UINT CalcConstantBufferByteSize(UINT byteSize)
+	{
+		// Constant buffers must be a multiple of the minimum hardware
+		// allocation size (usually 256 bytes).  So round up to nearest
+		// multiple of 256.  We do this by adding 255 and then masking off
+		// the lower 2 bytes which store all bits < 256.
+		// Example: Suppose byteSize = 300.
+		// (300 + 255) & ~255
+		// 555 & ~255
+		// 0x022B & ~0x00ff
+		// 0x022B & 0xff00
+		// 0x0200
+		// 512
+		return (byteSize + 255) & ~255;
+	}
 
 	static DXGI_FORMAT ShaderDataTypeToDirectXBaseType(ShaderDataType type)
 	{
@@ -32,13 +56,26 @@ namespace VWolf {
 		return DXGI_FORMAT_UNKNOWN;
 	}
 
+	std::string ShaderTypeEquivalent(ShaderType type) {
+		switch (type) {
+		case ShaderType::Vertex: return "vs_5_0";
+		case ShaderType::Fragment: return "ps_5_0";
+		case ShaderType::Pre_Tesselator: return "hs_5_0";
+		case ShaderType::Post_Tesselator: return "ds_5_0";
+		case ShaderType::Geometry: return "gs_5_0";
+		case ShaderType::Compute: return "cs_5_0";
+		}
+	}
+
 	void CompileShader(
-		const std::wstring& filename,
+		const ShaderSource shader,
 		const D3D_SHADER_MACRO* defines,
 		const std::string& entrypoint,
 		const std::string& target,
 		Ref<ShaderContext> shaderContext)
 	{
+		VWOLF_CORE_ASSERT(shader.sourceType == ShaderSourceType::File, "HLSL does not allow shader source different than files");
+		std::wstring filename = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(shader.shader);
 		UINT compileFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)  
 		compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
@@ -52,21 +89,18 @@ namespace VWolf {
 		hr = D3DCompileFromFile(filename.c_str(), defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 			entrypoint.c_str(), target.c_str(), compileFlags, 0, &byteCode, &errors);
 
-		if (errors != nullptr)
+		if (errors != nullptr) {
 			VWOLF_CORE_ERROR((char*)errors->GetBufferPointer());
-
+			VWOLF_CORE_ASSERT(errors == nullptr, "Shader produce an error");
+		}
+			
 		ThrowIfFailed(hr);
 
-		if (target == "vs_5_0") {
-			shaderContext->mvsByteCode = byteCode;
-		}
-		else if (target == "ps_5_0") {
-			shaderContext->mpsByteCode = byteCode;
-		}
+		shaderContext->shaderBlobs.insert(std::pair<ShaderType, Microsoft::WRL::ComPtr<ID3DBlob>>(shader.type, byteCode));
 		
 	}
 
-	void BuildRootSignature(DirectX12Context *context, Ref<ShaderContext> shaderContext)
+	void BuildRootSignature(DirectX12Context *context, Ref<ShaderContext> shaderContext, std::vector<ShaderParameter> parameters)
 	{
 		// Shader programs typically require resources as input (constant buffers,
 		// textures, samplers).  The root signature defines the resources the shader
@@ -75,17 +109,18 @@ namespace VWolf {
 		// thought of as defining the function signature.  
 
 		// Root parameter can be a table, root descriptor or root constants.
-		CD3DX12_ROOT_PARAMETER slotRootParameter[1];
+		std::vector<CD3DX12_ROOT_PARAMETER> slotRootParameter(parameters.size());
 
 		// Create a single descriptor table of CBVs.
-		CD3DX12_DESCRIPTOR_RANGE cbvTable;
-		cbvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
+		//CD3DX12_DESCRIPTOR_RANGE cbvTable;
+		//cbvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
 		//slotRootParameter[0].InitAsDescriptorTable(1, &cbvTable);
 		// Instead, create a root descriptor
-		slotRootParameter[0].InitAsConstantBufferView(0);
+		for (int i = 0; i < parameters.size(); i++)
+			slotRootParameter[i].InitAsConstantBufferView(parameters[i].binding);
 
 		// A root signature is an array of root parameters.
-		CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, slotRootParameter, 0, nullptr,
+		CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(parameters.size(), slotRootParameter.data(), 0, nullptr,
 			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 		// create a root signature with a single slot which points to a descriptor range consisting of a single constant buffer
@@ -122,16 +157,53 @@ namespace VWolf {
 		ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 		psoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
 		psoDesc.pRootSignature = shaderContext->mRootSignature.Get();
-		psoDesc.VS =
-		{
-			reinterpret_cast<BYTE*>(shaderContext->mvsByteCode->GetBufferPointer()),
-			shaderContext->mvsByteCode->GetBufferSize()
-		};
-		psoDesc.PS =
-		{
-			reinterpret_cast<BYTE*>(shaderContext->mpsByteCode->GetBufferPointer()),
-			shaderContext->mpsByteCode->GetBufferSize()
-		};
+
+		for (auto [type, blob] : shaderContext->shaderBlobs) {
+			switch (type) {
+			case ShaderType::Vertex:
+				psoDesc.VS =
+				{
+					reinterpret_cast<BYTE*>(blob->GetBufferPointer()),
+					blob->GetBufferSize()
+				};
+				break;
+			case ShaderType::Fragment:
+				psoDesc.PS =
+				{
+					reinterpret_cast<BYTE*>(blob->GetBufferPointer()),
+					blob->GetBufferSize()
+				};
+				break;
+			case ShaderType::Pre_Tesselator: 
+				psoDesc.HS =
+				{
+					reinterpret_cast<BYTE*>(blob->GetBufferPointer()),
+					blob->GetBufferSize()
+				};
+				break;
+			case ShaderType::Post_Tesselator: 
+				psoDesc.DS =
+				{
+					reinterpret_cast<BYTE*>(blob->GetBufferPointer()),
+					blob->GetBufferSize()
+				};
+				break;
+			case ShaderType::Geometry: 
+				psoDesc.GS =
+				{
+					reinterpret_cast<BYTE*>(blob->GetBufferPointer()),
+					blob->GetBufferSize()
+				};
+				break;
+			case ShaderType::Compute: 
+				/*psoDesc.CS =
+				{
+					reinterpret_cast<BYTE*>(blob->GetBufferPointer()),
+					blob->GetBufferSize()
+				};*/
+				break;
+			}
+		}
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 		psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
@@ -145,19 +217,78 @@ namespace VWolf {
 		ThrowIfFailed(context->md3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&shaderContext->mPSO)));
 	}
 
-	HLSLShader::HLSLShader(const std::string& name, BufferLayout layout, HWND__* window, DirectX12Context* context) : Shader(name, layout), m_window(window), m_context(context)
+	HLSLShader::HLSLShader(HWND__* window, 
+		DirectX12Context* context,
+		const char* name,
+		ShaderSource vertexShader,
+		BufferLayout layout,
+		std::initializer_list<ShaderSource> otherShaders,
+		std::initializer_list<ShaderParameter> parameters,
+		ShaderConfiguration configuration) : 
+		Shader(name, 
+			vertexShader, 
+			layout, 
+			otherShaders, 
+			parameters, 
+			configuration), 
+		m_window(window), m_context(context)
 	{
 		m_shaderContext = CreateRef<ShaderContext>();
-		BuildRootSignature(m_context, m_shaderContext);
+		BuildRootSignature(m_context, m_shaderContext, m_parameters);
 		VWOLF_CORE_ASSERT(m_shaderContext->mRootSignature);
-		std::wstring str_turned_to_wstr = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filepath);
-		std::wstring file = str_turned_to_wstr + L".hlsl";
-		CompileShader(file, nullptr, "VS", "vs_5_0", m_shaderContext);
-		VWOLF_CORE_ASSERT(m_shaderContext->mvsByteCode);
-		CompileShader(file, nullptr, "PS", "ps_5_0", m_shaderContext);
-		VWOLF_CORE_ASSERT(m_shaderContext->mpsByteCode);
+	
+		VWOLF_CORE_ASSERT(vertexShader.type == ShaderType::Vertex, "The first shader should be a vertex shader");
+		bool hasFragmentShader = false;
+		for (ShaderSource source : m_otherShaders) {
+			hasFragmentShader = source.type == ShaderType::Fragment;
+			if (hasFragmentShader) break;
+		}
+		VWOLF_CORE_ASSERT(hasFragmentShader, "There should be at least one fragment shader");
+		CompileShader(vertexShader, nullptr, vertexShader.mainFunction, ShaderTypeEquivalent(vertexShader.type), m_shaderContext);
+		for (ShaderSource source : m_otherShaders)
+			CompileShader(source, nullptr, source.mainFunction, ShaderTypeEquivalent(source.type), m_shaderContext);
+		VWOLF_CORE_ASSERT(m_shaderContext->shaderBlobs.size() == (m_otherShaders.size() + 1), "One of the shaders didn't compile");
+
 		BuildPSO(m_context, m_shaderContext, layout);
 		VWOLF_CORE_ASSERT(m_shaderContext->mPSO);
+
+		// TODO: Build constant buffers
+		// Constant Buffers
+		for (ShaderParameter param : m_parameters) {
+			Ref<ConstantBufferContext> cb = CreateRef< ConstantBufferContext>();
+			cb->binding = param.binding;
+			ThrowIfFailed(context->md3dDevice->CreateCommittedResource(
+				&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+				D3D12_HEAP_FLAG_NONE,
+				&CD3DX12_RESOURCE_DESC::Buffer(CalcConstantBufferByteSize(param.size) * 1),
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(&cb->mUploadBuffer)));
+
+			ThrowIfFailed(cb->mUploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&cb->mMappedData)));
+			//ZeroMemory(m_cbContext->mMappedData, CalcConstantBufferByteSize(size) * 1);
+			VWOLF_CORE_ASSERT(cb->mUploadBuffer);
+			VWOLF_CORE_ASSERT(cb->mMappedData);
+
+			// This is if I want to go back to descriptor table
+			/*UINT objCBByteSize = CalcConstantBufferByteSize(param.size);
+		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = cb->mUploadBuffer.Get()->GetGPUVirtualAddress();
+		int boxCBufIndex = 0;
+		cbAddress += boxCBufIndex * objCBByteSize;
+
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+		cbvDesc.BufferLocation = cbAddress;
+		cbvDesc.SizeInBytes = CalcConstantBufferByteSize(param.size);
+
+		dx12InitializeDescriptorHeap(context->md3dDevice, cb->mSrvHeap, 1, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+
+		context->md3dDevice->CreateConstantBufferView(
+			&cbvDesc,
+			cb->mSrvHeap->GetCPUDescriptorHandleForHeapStart());*/
+
+			m_shaderContext->constantBuffers.insert(std::pair<std::string, Ref<ConstantBufferContext>>(param.name, cb));
+		}
+		
 	}
 	HLSLShader::~HLSLShader()
 	{
@@ -169,33 +300,21 @@ namespace VWolf {
 	void HLSLShader::Unbind() const
 	{
 	}
-	void HLSLShader::SetInt(const std::string& name, int value)
-	{
+
+
+	void HLSLShader::SetData(const void* data, const char* name, uint32_t size, uint32_t offset) {
+		Ref<ConstantBufferContext> cb = m_shaderContext->constantBuffers[name];
+		memcpy(&cb->mMappedData[offset * CalcConstantBufferByteSize(size)], data, size);
+		// Attach root descriptor directly to the command list
+		m_context->mCommandList->SetGraphicsRootConstantBufferView(cb->binding, cb->mUploadBuffer.Get()->GetGPUVirtualAddress());
+		// Attach descriptor table via descriptor heap
+		/*dx12SetDescriptorHeaps(m_context, m_cbContext->mSrvHeap);
+		m_context->mCommandList->SetGraphicsRootDescriptorTable(0, m_cbContext->mSrvHeap->GetGPUDescriptorHandleForHeapStart());*/
 	}
-	void HLSLShader::SetIntArray(const std::string& name, int* values, uint32_t count)
+	
+	const char* HLSLShader::GetName() const
 	{
-	}
-	void HLSLShader::SetFloat(const std::string& name, float value)
-	{
-	}
-	void HLSLShader::SetFloat2(const std::string& name, const Vector2Float& value)
-	{
-	}
-	void HLSLShader::SetFloat3(const std::string& name, const Vector3Float& value)
-	{
-	}
-	void HLSLShader::SetFloat4(const std::string& name, const Vector4Float& value)
-	{
-	}
-	void HLSLShader::SetMat3(const std::string& name, const MatrixFloat3x3& value)
-	{
-	}
-	void HLSLShader::SetMat4(const std::string& name, const MatrixFloat4x4& value)
-	{
-	}
-	const std::string& HLSLShader::GetName() const
-	{
-		return filepath;
+		return m_name;
 	}
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> HLSLShader::GetPipeline()
 	{

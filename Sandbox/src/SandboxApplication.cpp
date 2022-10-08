@@ -5,7 +5,7 @@
 #include "VWolf.h"
 #include "VWolf/Core/EntryPoint.h"
 
-#define DRIVER_TYPE VWolf::DriverType::OpenGL
+#define DRIVER_TYPE VWolf::DriverType::DirectX12
 
 class SandboxApplication : public VWolf::Application {
 private:
@@ -14,7 +14,6 @@ private:
 	VWolf::Ref<VWolf::Shader> colorShader;
 	VWolf::DriverType driverType = DRIVER_TYPE;
 	VWolf::MatrixFloat4x4 projection;
-	VWolf::Ref<VWolf::UniformBuffer> m_uniformBuffer = nullptr;
     VWolf::MeshData shape;
     VWolf::MatrixFloat4x4 transform;
     VWolf::Vector3Float position;
@@ -52,14 +51,14 @@ public:
         std::string vertexShaderFunction;
         std::string fragmentShaderFunction;
 		if (driverType == VWolf::DriverType::DirectX12) {
-            vertexShaderFile = "hlsl/color.hlsl";
-            fragmentShaderFile = "hlsl/color.hlsl";
+            vertexShaderFile = "src/shaders/hlsl/color.hlsl";
+            fragmentShaderFile = "src/shaders/hlsl/color.hlsl";
             vertexShaderFunction = "VS";
             fragmentShaderFunction = "PS";
 		}
 		else if (driverType == VWolf::DriverType::OpenGL) {
-            vertexShaderFile = "glsl/FlatColor.vert.glsl";
-            fragmentShaderFile = "glsl/FlatColor.frag.glsl";
+            vertexShaderFile = "src/shaders/glsl/FlatColor.vert.glsl";
+            fragmentShaderFile = "src/shaders/glsl/FlatColor.frag.glsl";
             vertexShaderFunction = "main";
             fragmentShaderFunction = "main";
 		}

@@ -99,20 +99,19 @@ namespace VWolf {
 		}
 
         // Uniform blocks
-        GLuint uniformBufferId;
-        glGenBuffers(m_parameters.size(), &uniformBufferId);
-        GLuint* ptr = &uniformBufferId;
+        GLuint* uniformBuffers = new GLuint[m_parameters.size()]; //(GLuint*)malloc(m_parameters.size() * sizeof(GLuint));
+        glGenBuffers(m_parameters.size(), uniformBuffers);
         int index = 0;
 
         for (ShaderParameter param: m_parameters) {
             unsigned int uniformBlock = glGetUniformBlockIndex(programId, param.name);
             glUniformBlockBinding(programId, uniformBlock, param.binding);
     
-            glBindBuffer(GL_UNIFORM_BUFFER, *(ptr + index));
+            glBindBuffer(GL_UNIFORM_BUFFER, *(uniformBuffers + index));
             glBufferData(GL_UNIFORM_BUFFER, param.size, nullptr, GL_STATIC_DRAW); // TODO: investigate usage hint
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
-            glBindBufferBase(GL_UNIFORM_BUFFER, param.binding, *(ptr + index));
-            m_uniformBuffers.insert(std::pair<const char*, int>(param.name, *(ptr + index)));
+            glBindBufferBase(GL_UNIFORM_BUFFER, param.binding, *(uniformBuffers + index));
+            m_uniformBuffers.insert(std::pair<const char*, int>(param.name, *(uniformBuffers + index)));
             index++;
         }
         

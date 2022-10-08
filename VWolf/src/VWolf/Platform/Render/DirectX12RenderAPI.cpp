@@ -12,14 +12,16 @@
 #include "VWolf/Core/Render/BufferGroup.h"
 #include "DirectX12BufferGroup.h"
 
-#include "VWolf/Core/Render/UniformBuffer.h"
-#include "DirectX12ConstantBuffer.h"
-
 namespace VWolf {
 	DirectX12RenderAPI::DirectX12RenderAPI(HWND__* window, DirectX12Context* context): m_window(window), m_context(context)
 	{
-		Shader::SetDefaultCreateMethod([this](const std::string& name, BufferLayout layout) {
-			return CreateRef<HLSLShader>(name, layout, m_window, m_context);
+		Shader::SetDefaultCreateMethod([this](const char* name,
+			ShaderSource vertexShader,
+			BufferLayout layout,
+			std::initializer_list<ShaderSource> otherShaders,
+			std::initializer_list<ShaderParameter> parameters,
+			ShaderConfiguration configuration) {
+			return CreateRef<HLSLShader>(m_window, m_context, name, vertexShader, layout, otherShaders, parameters, configuration);
 		});
 
 		VertexBuffer::SetDefaultCreateSizeMethod([this](uint32_t size) {
@@ -36,10 +38,6 @@ namespace VWolf {
 
 		BufferGroup::SetDefaultCreateMethod([this]() {
 			return CreateRef<DirectX12BufferGroup>(m_window, m_context);
-		});
-
-		UniformBuffer::SetDefaultCreateMethod([this](Ref<Shader> shader, const std::string name, uint32_t size, uint32_t binding) {
-			return CreateRef<DirectX12ConstantBuffer>(m_window, m_context, shader, name, size, binding);
 		});
 	}
 	void DirectX12RenderAPI::Begin(Camera& camera, Ref<Shader> shader)
