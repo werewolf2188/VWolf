@@ -5,7 +5,11 @@
 #include "VWolf.h"
 #include "VWolf/Core/EntryPoint.h"
 
+#ifdef VWOLF_PLATFORM_WINDOWS
 #define DRIVER_TYPE VWolf::DriverType::DirectX12
+#else
+#define DRIVER_TYPE VWolf::DriverType::OpenGL
+#endif
 
 class SandboxApplication : public VWolf::Application {
 private:
