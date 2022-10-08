@@ -65,8 +65,9 @@ namespace VWolf {
 			Time::Tick();
 			if (!m_minimized) {
 				OnUpdate();
+                OnDraw();
 				UIManager::GetDefault()->NewFrame();
-				OnUIUpate();
+                OnGUI();
 				UIManager::GetDefault()->Render();
 			}			
 

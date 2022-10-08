@@ -11,17 +11,19 @@
 #include "VWolf/Core/Render/BufferGroup.h"
 #include "OpenGLVertexArray.h"
 
-#include "VWolf/Core/Render/UniformBuffer.h"
-#include "OpenGLUniformBuffer.h"
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 namespace VWolf {
 	OpenGLRenderAPI::OpenGLRenderAPI(GLFWwindow* window): m_window(window)
 	{
-		Shader::SetDefaultCreateMethod([this](const std::string& name, BufferLayout layout) {
-			return CreateRef<GLSLShader>(name, layout, m_window);
+		Shader::SetDefaultCreateMethod([this](const char* name,
+                                              ShaderSource vertexShader,
+                                              BufferLayout layout,
+                                              std::initializer_list<ShaderSource> otherShaders,
+                                              std::initializer_list<ShaderParameter> parameters,
+                                              ShaderConfiguration configuration) {
+			return CreateRef<GLSLShader>(m_window, name, vertexShader, layout, otherShaders, parameters, configuration);
 		});
 
 		VertexBuffer::SetDefaultCreateSizeMethod([this](uint32_t size) {
@@ -38,10 +40,6 @@ namespace VWolf {
 
 		BufferGroup::SetDefaultCreateMethod([this]() {
 			return CreateRef<OpenGLVertexArray>(m_window);
-		});
-
-		UniformBuffer::SetDefaultCreateMethod([this](Ref<Shader> shader, const std::string name, uint32_t size, uint32_t binding) {
-			return CreateRef<OpenGLUniformBuffer>(m_window, shader, name, size, binding);
 		});
 	}
 	void OpenGLRenderAPI::Begin(Camera& camera, Ref<Shader> shader)

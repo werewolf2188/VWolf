@@ -5,7 +5,11 @@
 #include "VWolf.h"
 #include "VWolf/Core/EntryPoint.h"
 
+#ifdef VWOLF_PLATFORM_WINDOWS
+#define DRIVER_TYPE VWolf::DriverType::DirectX12
+#else
 #define DRIVER_TYPE VWolf::DriverType::OpenGL
+#endif
 
 class SandboxApplication : public VWolf::Application {
 private:
@@ -14,11 +18,15 @@ private:
 	VWolf::Ref<VWolf::Shader> colorShader;
 	VWolf::DriverType driverType = DRIVER_TYPE;
 	VWolf::MatrixFloat4x4 projection;
-	VWolf::Ref<VWolf::UniformBuffer> m_uniformBuffer = nullptr;
     VWolf::MeshData shape;
+    VWolf::MatrixFloat4x4 transform;
+    VWolf::Vector3Float position;
+    VWolf::Vector3Float scale;
 public:
 	SandboxApplication(): Application(DRIVER_TYPE, { 1280, 720, "VWolf Sandbox" } ) {
 		camera = VWolf::PerspectiveCamera(30.0f, 1.778f, 0.1f, 1000.0f);
+        position = VWolf::Vector3Float(0.0f);
+        scale = VWolf::Vector3Float(1.0f);
 		for (auto cmd : VWolf::CommandLineArguments::GetArguments()) {
 			VWOLF_CLIENT_DEBUG(cmd.c_str());
 		}
@@ -41,18 +49,28 @@ public:
 		VWolf::EventQueue::defaultQueue->Subscribe<VWolf::WindowResizeEvent>(VWOLF_BIND_EVENT_FN(SandboxApplication::OnWindowResize));
 #endif
 
-		std::stringstream ss;
 #ifdef VWOLF_PLATFORM_WINDOWS
-        ss << "src/shaders/";
+        std::string vertexShaderFile;
+        std::string fragmentShaderFile;
+        std::string vertexShaderFunction;
+        std::string fragmentShaderFunction;
 		if (driverType == VWolf::DriverType::DirectX12) {
-			ss << "hlsl/color";
+            vertexShaderFile = "src/shaders/hlsl/color.hlsl";
+            fragmentShaderFile = "src/shaders/hlsl/color.hlsl";
+            vertexShaderFunction = "VS";
+            fragmentShaderFunction = "PS";
 		}
 		else if (driverType == VWolf::DriverType::OpenGL) {
-			ss << "glsl/FlatColor";
+            vertexShaderFile = "src/shaders/glsl/FlatColor.vert.glsl";
+            fragmentShaderFile = "src/shaders/glsl/FlatColor.frag.glsl";
+            vertexShaderFunction = "main";
+            fragmentShaderFunction = "main";
 		}
 #else
-        ss << "../../../Sandbox/src/shaders/";
-		ss << "glsl/FlatColor";
+        std::string vertexShaderFile = "../../../Sandbox/src/shaders/glsl/FlatColor.vert.glsl";
+        std::string fragmentShaderFile = "../../../Sandbox/src/shaders/glsl/FlatColor.frag.glsl";
+        std::string vertexShaderFunction = "main";
+        std::string fragmentShaderFunction = "main";
 #endif
 		// Create
 		group = VWolf::BufferGroup::Create();
@@ -72,14 +90,23 @@ public:
 		group->AddVertexBuffer(vertexBuffer);
 		VWolf::Ref<VWolf::IndexBuffer> indexBuffer = VWolf::IndexBuffer::Create(shape.indices.data(), shape.indices.size());
 		group->SetIndexBuffer(indexBuffer);
-		colorShader = VWolf::Shader::Create(ss.str(), layout);
-		m_uniformBuffer = VWolf::UniformBuffer::Create(colorShader, "Camera", sizeof(VWolf::MatrixFloat4x4), 0);
+        
+		colorShader = VWolf::Shader::Create("flat color",
+                                            { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, vertexShaderFile.c_str(), vertexShaderFunction.c_str() },
+                                            layout,
+                                            { { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, fragmentShaderFile.c_str(), fragmentShaderFunction.c_str() } },
+                                            {
+            { "Camera", VWolf::ShaderParameterType::In, 0, sizeof(VWolf::MatrixFloat4x4) },
+            { "Object", VWolf::ShaderParameterType::In, 1, sizeof(VWolf::MatrixFloat4x4) }
+        },
+                                            {});
+//		m_uniformBuffer = VWolf::UniformBuffer::Create(colorShader, "Camera", sizeof(VWolf::MatrixFloat4x4), 0);
 	}
 
 	~SandboxApplication() {
 	}
 
-	void OnEvent(VWolf::Event& evt) {		
+	void OnEvent(VWolf::Event& evt) override {		
 		VWolf::Application::OnEvent(evt);
 		camera.OnEvent(evt);
 #if !VWOLF_USE_EVENT_QUEUE
@@ -128,21 +155,26 @@ public:
 		return true;
 	}
 
-	void OnUpdate() {
-		camera.OnUpdate();
+    void OnUpdate() override {
+        camera.OnUpdate();
+        transform = VWolf::scale(VWolf::translate(VWolf::MatrixFloat4x4(1.0f), position), scale);
+    }
+
+	void OnDraw() override {
 		projection = camera.GetProjection();
 		VWolf::Renderer::Begin(camera, colorShader);
 		VWolf::Renderer::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
 		VWolf::Renderer::Clear();
 		colorShader->Bind();
-		m_uniformBuffer->SetData(&projection, sizeof(VWolf::MatrixFloat4x4), 0);
-		colorShader->SetMat4("u_Transform", VWolf::MatrixFloat4x4(1.0));
+//		m_uniformBuffer->SetData(&projection, sizeof(VWolf::MatrixFloat4x4), 0);
+        colorShader->SetData(&projection, "Camera", sizeof(VWolf::MatrixFloat4x4), 0);
+		colorShader->SetData(&transform, "Object", sizeof(VWolf::MatrixFloat4x4), 0);
 		VWolf::Renderer::Submit(group, VWolf::MatrixFloat4x4(1.0));
 		VWolf::Renderer::End();
 		// TODO: Remove once its documented.
 		//VWOLF_CLIENT_DEBUG("Mouse position x: %0.2f, y: %0.2f", VWolf::Input::GetMouseX(), VWolf::Input::GetMouseY());
 	}
-	void OnUIUpate() {
+	void OnGUI() override {
 		static bool show_demo_window = true;
 		static bool show_debug_window_1 = true;
 		static bool show_debug_window_2 = true;
@@ -163,6 +195,11 @@ public:
 			ImGui::LabelText("FPS", "%0.3f", VWolf::Time::GetFramesPerSecond());
 			ImGui::End();
 		}
+        
+        ImGui::Begin("Shape");
+        ImGui::DragFloat3("Position", VWolf::value_ptr(position));
+        ImGui::DragFloat3("Scale", VWolf::value_ptr(scale));
+        ImGui::End();
 	}
 
 	bool OnWindowResize(VWolf::WindowResizeEvent& e) {

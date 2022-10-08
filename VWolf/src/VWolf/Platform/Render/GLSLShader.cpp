@@ -8,55 +8,120 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#define MESSAGE_LENGTH 512
+
 namespace VWolf {
 
-	GLuint CompileShader(const char* shaderText, int shaderType) {
-		GLuint shader = glCreateShader(shaderType);
-		glShaderSource(shader, 1, &shaderText, NULL);
-		glCompileShader(shader);
+    GLuint ShaderTypeEquivalent(ShaderType type) {
+        switch (type) {
+            case ShaderType::Vertex: return GL_VERTEX_SHADER;
+            case ShaderType::Fragment: return GL_FRAGMENT_SHADER;
+            case ShaderType::Pre_Tesselator: return GL_TESS_CONTROL_SHADER;
+            case ShaderType::Post_Tesselator: return GL_TESS_EVALUATION_SHADER;
+            case ShaderType::Geometry: return GL_GEOMETRY_SHADER;
+            case ShaderType::Compute: return GL_COMPUTE_SHADER;
+        }
+    }
 
-		GLint success;
-		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			GLchar infoLog[512];
-			glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-			VWOLF_CORE_DEBUG(infoLog);
-			return 0;
-		}
-		return shader;
-	}
+    GLuint CompileShader(const char* shaderText, int shaderType) {
+        GLuint shader = glCreateShader(shaderType);
+        glShaderSource(shader, 1, &shaderText, NULL);
+        glCompileShader(shader);
 
-	GLSLShader::GLSLShader(const std::string& name, BufferLayout layout, GLFWwindow* window): Shader(name, layout), m_window(window)
-	{		
-		auto vertexShaderFile = File::OpenTextFile((filepath + ".vert.glsl").c_str());
-		auto fragmentShaderFile = File::OpenTextFile((filepath + ".frag.glsl").c_str());
+        GLint success;
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+        if (!success) {
+            GLchar infoLog[MESSAGE_LENGTH];
+            glGetShaderInfoLog(shader, MESSAGE_LENGTH, nullptr, infoLog);
+            VWOLF_CORE_DEBUG(infoLog);
+            VWOLF_CORE_ASSERT(success, "Something happened");
+            return 0;
+        }
+        return shader;
+    }
 
-		auto vertexShader_text = vertexShaderFile.c_str();
-		auto fragmentShader_text = fragmentShaderFile.c_str();
-		/*VWOLF_CORE_DEBUG(vertexShader_text);
-		VWOLF_CORE_DEBUG(fragmentShader_text);*/
-		
-		GLuint vertex_shader = CompileShader(vertexShader_text, GL_VERTEX_SHADER);
-		VWOLF_CORE_ASSERT(vertex_shader, "Vertex Shader didn't compile");
-		GLuint fragment_shader = CompileShader(fragmentShader_text, GL_FRAGMENT_SHADER);
-		VWOLF_CORE_ASSERT(fragment_shader, "Fragment Shader didn't compile");
+    GLuint CompileShader(ShaderSource source) {
+        std::string shaderCode;
+        switch (source.sourceType) {
+            case ShaderSourceType::File:
+                shaderCode = File::OpenTextFile(source.shader);
+                break;
+            case ShaderSourceType::Text:
+                shaderCode = source.shader;
+                break;
+            case ShaderSourceType::Binary:
+                VWOLF_CORE_ASSERT(false, "Shaders cannot be binary at the moment");
+                break;
+        }
+        GLuint shaderId = CompileShader(shaderCode.c_str(), ShaderTypeEquivalent(source.type));
+        VWOLF_CORE_ASSERT(shaderId, "Shader didn't compile");
+        return shaderId;
+    }
+
+	GLSLShader::GLSLShader(GLFWwindow* window,
+                           const char* name,
+                           ShaderSource vertexShader,
+                           BufferLayout layout,
+                           std::initializer_list<ShaderSource> otherShaders,
+                           std::initializer_list<ShaderParameter> parameters,
+                           ShaderConfiguration configuration): m_window(window), Shader(name,
+                                                                                        vertexShader,
+                                                                                        layout,
+                                                                                        otherShaders,
+                                                                                        parameters,
+                                                                                        configuration)
+
+	{
+        VWOLF_CORE_ASSERT(vertexShader.type == ShaderType::Vertex, "The first shader should be a vertex shader");
+        bool hasFragmentShader = false;
+        for(ShaderSource source: m_otherShaders) {
+            hasFragmentShader = source.type == ShaderType::Fragment;
+            if (hasFragmentShader) break;
+        }
+        VWOLF_CORE_ASSERT(hasFragmentShader, "There should be at least one fragment shader");
+        std::vector<GLuint> shaders(m_otherShaders.size() + 1);
+        shaders.push_back(CompileShader(vertexShader));
+        for(ShaderSource source: m_otherShaders)
+            shaders.push_back(CompileShader(source));
 
 		programId = glCreateProgram();
-		glAttachShader(programId, vertex_shader);
-		glAttachShader(programId, fragment_shader);
+        for(GLuint shader: shaders)
+            glAttachShader(programId, shader);
 		glLinkProgram(programId);
 
 		GLint success;
 		glGetProgramiv(programId, GL_LINK_STATUS, &success);
 		if (!success) {
-			GLchar infoLog[512];
-			glGetProgramInfoLog(programId, 512, nullptr, infoLog);
+			GLchar infoLog[MESSAGE_LENGTH];
+			glGetProgramInfoLog(programId, MESSAGE_LENGTH, nullptr, infoLog);
 			VWOLF_CORE_DEBUG(infoLog);
 			VWOLF_CORE_ASSERT(false, infoLog);
 		}
+
+        // Uniform blocks
+        GLuint* uniformBuffers = new GLuint[m_parameters.size()]; //(GLuint*)malloc(m_parameters.size() * sizeof(GLuint));
+        glGenBuffers(m_parameters.size(), uniformBuffers);
+        int index = 0;
+
+        for (ShaderParameter param: m_parameters) {
+            unsigned int uniformBlock = glGetUniformBlockIndex(programId, param.name);
+            glUniformBlockBinding(programId, uniformBlock, param.binding);
+    
+            glBindBuffer(GL_UNIFORM_BUFFER, *(uniformBuffers + index));
+            glBufferData(GL_UNIFORM_BUFFER, param.size, nullptr, GL_STATIC_DRAW); // TODO: investigate usage hint
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+            glBindBufferBase(GL_UNIFORM_BUFFER, param.binding, *(uniformBuffers + index));
+            m_uniformBuffers.insert(std::pair<const char*, int>(param.name, *(uniformBuffers + index)));
+            index++;
+        }
+        
 	}
 	GLSLShader::~GLSLShader()
 	{
+        for (ShaderParameter param: m_parameters) {
+            GLuint uniformBufferId = m_uniformBuffers[param.name];
+            glDeleteBuffers(1, &uniformBufferId);
+        }
 		glDeleteProgram(programId);
 	}
 	void GLSLShader::Bind() const
@@ -67,48 +132,15 @@ namespace VWolf {
 	{
 		glUseProgram(0);
 	}
-	void GLSLShader::SetInt(const std::string& name, int value)
+	const char* GLSLShader::GetName() const
 	{
-		GLint location = glGetUniformLocation(programId, name.c_str());
-		glUniform1i(location, value);
+		return this->m_name;
 	}
-	void GLSLShader::SetIntArray(const std::string& name, int* values, uint32_t count)
-	{
-		GLint location = glGetUniformLocation(programId, name.c_str());
-		glUniform1iv(location, count, values);
-	}
-	void GLSLShader::SetFloat(const std::string& name, float value)
-	{
-		GLint location = glGetUniformLocation(programId, name.c_str());
-		glUniform1f(location, value);
-	}
-	void GLSLShader::SetFloat2(const std::string& name, const Vector2Float& value)
-	{
-		GLint location = glGetUniformLocation(programId, name.c_str());
-		glUniform2f(location, value.x, value.y);
-	}
-	void GLSLShader::SetFloat3(const std::string& name, const Vector3Float& value)
-	{
-		GLint location = glGetUniformLocation(programId, name.c_str());
-		glUniform3f(location, value.x, value.y, value.z);
-	}
-	void GLSLShader::SetFloat4(const std::string& name, const Vector4Float& value)
-	{
-		GLint location = glGetUniformLocation(programId, name.c_str());
-		glUniform4f(location, value.x, value.y, value.z, value.w);
-	}
-	void GLSLShader::SetMat3(const std::string& name, const MatrixFloat3x3& value)
-	{
-		GLint location = glGetUniformLocation(programId, name.c_str());
-		glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
-	}
-	void GLSLShader::SetMat4(const std::string& name, const MatrixFloat4x4& value)
-	{
-		GLint location = glGetUniformLocation(programId, name.c_str());
-		glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
-	}
-	const std::string& GLSLShader::GetName() const
-	{
-		return this->filepath;
-	}
+
+    void GLSLShader::SetData(const void* data, const char* name, uint32_t size, uint32_t offset) {
+        GLuint uniformBufferId = m_uniformBuffers[name];
+        glBindBuffer(GL_UNIFORM_BUFFER, uniformBufferId);
+        glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    }
 }

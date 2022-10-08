@@ -23,7 +23,6 @@
 #include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Core/Render/Buffer.h"
 #include "VWolf/Core/Render/BufferGroup.h"
-#include "VWolf/Core/Render/UniformBuffer.h"
 
 #include "VWolf/Core/Math/Math.h"
 
