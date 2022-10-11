@@ -32,6 +32,7 @@ namespace VWolf {
     public:
         static void Begin(Ref<Camera> camera);
         static void ClearColor(Color color);
+        static void Clear();
         static void SetShader(const char* shaderName);
         static void DrawMesh(MeshData meshData, MatrixFloat4x4 transform);
         static void End();
@@ -45,6 +46,8 @@ namespace VWolf {
         Color backgroundColor;
         std::string shaderName;
         std::vector<Ref<RenderItem>> items;
+        bool clearColor = false;
+        bool clearDepthStencil = false;
     private:
         static Scope<Renderer> rendererImpl;
     };

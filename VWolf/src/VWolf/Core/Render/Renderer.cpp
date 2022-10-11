@@ -37,6 +37,11 @@ namespace VWolf {
 
     void Renderer::ClearColor(Color color) {
         rendererImpl->backgroundColor = color;
+        rendererImpl->clearColor = true;
+    }
+
+    void Renderer::Clear() {
+        rendererImpl->clearDepthStencil = true;
     }
 
     void Renderer::SetShader(const char* shaderName) {

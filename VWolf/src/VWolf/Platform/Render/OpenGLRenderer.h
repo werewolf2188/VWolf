@@ -10,6 +10,7 @@
 #include "VWolf/Core/Render/Renderer.h"
 
 #include "GLSLShader.h"
+#include "OpenGLBuffer.h"
 #include "OpenGLVertexArray.h"
 #include "OpenGLRenderAPI.h"
 
@@ -19,16 +20,11 @@
 namespace VWolf {
     class OpenGLRenderer: public Renderer {
     public:
-        OpenGLRenderer(GLFWwindow* window): m_window(window) {
-            m_renderApi = CreateScope<OpenGLRenderAPI>(window);
-        }
+        OpenGLRenderer(GLFWwindow* window): m_window(window) {}
         virtual ~OpenGLRenderer() override {};
     protected:
         virtual void ProcessItems() override;
     private:
-        MatrixFloat4x4 projection;
         GLFWwindow* m_window;
-        Scope<OpenGLRenderAPI> m_renderApi;
-        std::vector<Ref<OpenGLVertexArray>> vertexArrays;
     };
 }

@@ -37,10 +37,10 @@ namespace VWolf {
 	}
 	void OpenGLVertexArray::Bind() const
 	{
+        glBindVertexArray(vertexArrayId);
         for(auto vertexBuffer: m_VertexBuffers)
             vertexBuffer->Bind();
-        m_IndexBuffer->Bind();
-		glBindVertexArray(vertexArrayId);
+        m_IndexBuffer->Bind();		
 	}
 	void OpenGLVertexArray::Unbind() const
 	{
