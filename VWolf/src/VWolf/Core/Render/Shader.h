@@ -111,4 +111,30 @@ namespace VWolf {
                                      std::initializer_list<ShaderSource> otherShaders,
                                      std::initializer_list<ShaderParameter> parameters,
                                      ShaderConfiguration configuration)> Shader::m_create = nullptr;
+
+    class ShaderLibrary {
+    public:
+        static void LoadShader(const char* name,
+                               ShaderSource vertexShader,
+                               std::initializer_list<ShaderSource> otherShaders,
+                               std::initializer_list<ShaderParameter> parameters,
+                               ShaderConfiguration configuration) {
+            
+            m_shaders.push_back(Shader::Create(name, vertexShader, MeshData::Layout, otherShaders, parameters, configuration));
+        }
+
+        static Ref<Shader> GetShader(const char* name) {
+            for (auto shader: m_shaders) {
+                std::string shaderName = shader->GetName();
+                if (shaderName == name) {
+                    return shader;
+                }
+            }
+            return nullptr;
+        }
+    private:
+        static std::vector<Ref<Shader>> m_shaders;
+    };
+
+    inline std::vector<Ref<Shader>> ShaderLibrary::m_shaders;
 }

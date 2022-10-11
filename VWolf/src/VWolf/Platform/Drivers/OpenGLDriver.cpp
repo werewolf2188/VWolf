@@ -11,6 +11,7 @@
 
 #include "VWolf/Platform/Render/OpenGLRenderAPI.h"
 #include "VWolf/Core/Render/Renderer.h"
+#include "VWolf/Platform/Render/OpenGLRenderer.h"
 
 #include "VWolf/Core/Time.h"
 
@@ -65,7 +66,8 @@ namespace VWolf {
 
 		window = CreateRef<GLFWWindow>(config, callback);
 		UIManager::SetDefault(CreateRef<OpenGLUIManager>((GLFWwindow*)window->GetNativeWindow()));
-		Renderer::SetRenderAPI(CreateScope<OpenGLRenderAPI>((GLFWwindow *)window->GetNativeWindow()));
+        TestRenderer::SetRenderAPI(CreateScope<OpenGLRenderAPI>((GLFWwindow *)window->GetNativeWindow()));
+        Renderer::SetRenderer(CreateScope<OpenGLRenderer>((GLFWwindow *)window->GetNativeWindow()));
 		Time::SetTimeImplementation(CreateRef<GLFWTime>());
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
@@ -105,4 +107,15 @@ namespace VWolf {
 	void OpenGLDriver::OnEvent(Event& evt) {
 		callback->OnEvent(evt);
 	}
+
+    void OpenGLDriver::Resize(unsigned int m_Width, unsigned int m_Height) {
+#ifdef VWOLF_PLATFORM_MACOS
+        int width;
+        int height;
+        glfwGetFramebufferSize((GLFWwindow*)window->GetNativeWindow(), &width, &height);
+        glViewport(0, 0, width, height);
+#else
+        glViewport(0, 0, m_Width, m_Height);
+#endif
+    }
 }

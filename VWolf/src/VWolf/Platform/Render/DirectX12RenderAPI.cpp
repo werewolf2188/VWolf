@@ -69,11 +69,6 @@ namespace VWolf {
 
 		dx12ExecuteCommands(m_context);
 	}
-	void DirectX12RenderAPI::Resize(unsigned int m_Width, unsigned int m_Height)
-	{
-		if (m_Width == 0 && m_Height == 0) return;
-		dx12ResizeBuffers(m_context, m_Width, m_Height);
-	}
 	void DirectX12RenderAPI::DrawIndexed(const Ref<BufferGroup>& group, uint32_t indexCount)
 	{
 		uint32_t count = indexCount ? indexCount : group->GetIndexBuffer()->GetCount();

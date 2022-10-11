@@ -37,10 +37,16 @@ namespace VWolf {
 	}
 	void OpenGLVertexArray::Bind() const
 	{
+        for(auto vertexBuffer: m_VertexBuffers)
+            vertexBuffer->Bind();
+        m_IndexBuffer->Bind();
 		glBindVertexArray(vertexArrayId);
 	}
 	void OpenGLVertexArray::Unbind() const
 	{
+        for(auto vertexBuffer: m_VertexBuffers)
+            vertexBuffer->Unbind();
+        m_IndexBuffer->Unbind();
 		glBindVertexArray(0);
 	}
 	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
@@ -107,13 +113,13 @@ namespace VWolf {
 				VWOLF_CORE_ASSERT(false, "Unknown ShaderDataType!");
 			}
 		}
-
+        vertexBuffer->Unbind();
 		m_VertexBuffers.push_back(vertexBuffer);
 	}
 	void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
 	{
 		glBindVertexArray(vertexArrayId);
-		indexBuffer->Bind();
+		//indexBuffer->Bind();
 
 		m_IndexBuffer = indexBuffer;
 	}

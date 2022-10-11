@@ -2,32 +2,53 @@
 
 #include "Renderer.h"
 
-namespace VWolf {
-	Scope<RenderAPI> Renderer::m_renderApi = nullptr;
+#include "RenderItem.h"
 
-	void Renderer::Begin(Camera& camera, Ref<Shader> shader)
+namespace VWolf {
+	Scope<RenderAPI> TestRenderer::m_renderApi = nullptr;
+
+	void TestRenderer::Begin(Camera& camera, Ref<Shader> shader)
 	{		
 		m_renderApi->Begin(camera, shader);
 	}
-	void Renderer::ClearColor(Color color)
+	void TestRenderer::ClearColor(Color color)
 	{
 		m_renderApi->ClearColor(color);
 	}
-	void Renderer::Clear()
+	void TestRenderer::Clear()
 	{
 		m_renderApi->Clear();
 	}
-	void Renderer::End()
+	void TestRenderer::End()
 	{
 		m_renderApi->End();
 	}
-	void Renderer::Resize(unsigned int m_Width, unsigned int m_Height)
-	{
-		m_renderApi->Resize(m_Width, m_Height);
-	}
-	void Renderer::Submit(Ref<BufferGroup> group, MatrixFloat4x4 transform)
+	void TestRenderer::Submit(Ref<BufferGroup> group, MatrixFloat4x4 transform)
 	{
 		group->Bind();
 		m_renderApi->DrawIndexed(group, 0);
 	}
+
+    Scope<Renderer> Renderer::rendererImpl = nullptr;
+
+    void Renderer::Begin(Ref<Camera> camera) {
+        rendererImpl->m_camera = camera;
+    }
+
+    void Renderer::ClearColor(Color color) {
+        rendererImpl->backgroundColor = color;
+    }
+
+    void Renderer::SetShader(const char* shaderName) {
+        rendererImpl->shaderName = shaderName;
+    }
+
+    void Renderer::DrawMesh(MeshData meshData, MatrixFloat4x4 transform) {
+        rendererImpl->items.push_back(CreateRef<RenderItem>(meshData, transform));
+    }
+
+    void Renderer::End() {
+        rendererImpl->ProcessItems();
+        rendererImpl->items.clear();
+    }
 }

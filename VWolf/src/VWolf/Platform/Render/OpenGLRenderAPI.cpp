@@ -58,10 +58,6 @@ namespace VWolf {
 	void OpenGLRenderAPI::End()
 	{
 	}
-	void OpenGLRenderAPI::Resize(unsigned int m_Width, unsigned int m_Height)
-	{		
-		glViewport(0, 0, m_Width, m_Height);		
-	}
 	void OpenGLRenderAPI::DrawIndexed(const Ref<BufferGroup>& group, uint32_t indexCount)
 	{
 		group->Bind();

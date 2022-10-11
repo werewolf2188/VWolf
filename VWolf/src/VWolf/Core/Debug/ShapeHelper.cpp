@@ -17,21 +17,6 @@
 #endif
 
 namespace VWolf {
-    std::vector<float> MeshData::GetVertices() {
-        std::vector<float> vertices;
-        
-        for (Vertex vertex: this->vertices) {
-            vertices.push_back(vertex.position.x);
-            vertices.push_back(vertex.position.y);
-            vertices.push_back(vertex.position.z);
-            vertices.push_back(vertex.color.r);
-            vertices.push_back(vertex.color.g);
-            vertices.push_back(vertex.color.b);
-            vertices.push_back(vertex.color.a);
-        }
-        return vertices;
-    }
-
     MeshData ShapeHelper::CreateBox(float width, float height, float depth, std::uint32_t numSubdivisions) {
         MeshData meshData;
         Vertex v[24];

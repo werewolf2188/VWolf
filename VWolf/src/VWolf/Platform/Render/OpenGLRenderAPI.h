@@ -13,7 +13,6 @@ namespace VWolf {
 		virtual void ClearColor(Color color) override;
 		virtual void Clear() override;
 		virtual void End() override;
-		virtual void Resize(unsigned int m_Width, unsigned int m_Height) override;
 		virtual void DrawIndexed(const Ref<BufferGroup>& group, uint32_t indexCount) override;
 	public:
 		GLFWwindow* m_window;
