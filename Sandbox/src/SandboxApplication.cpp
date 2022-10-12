@@ -57,6 +57,7 @@ public:
 	SandboxApplication(): Application(DRIVER_TYPE, { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Sandbox" } ) {
 		camera = VWolf::PerspectiveCamera(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
         position = VWolf::Vector3Float(0.0f);
+        rotation = VWolf::Vector3Float(0.0f);
         scale = VWolf::Vector3Float(1.0f);
         LoadShaderNames(DRIVER_TYPE);
 		for (auto cmd : VWolf::CommandLineArguments::GetArguments()) {
@@ -283,7 +284,7 @@ public:
                                          {});
         gameObjects.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), "0" ));
         gameObjects.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateSphere(2, 32, 32), "1" ));
-        cube = VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateBox(1, 1, 1, 0), "2" );
+        //cube = VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateBox(1, 1, 1, 0), "2");
     }
 
     ~RendererSandboxApplication() {
@@ -299,7 +300,7 @@ public:
         camera->OnUpdate();
         for(auto gameObject: gameObjects)
             gameObject->transform.Apply();
-        cube->transform.Apply();
+        //cube->transform.Apply();
     }
 
     void OnDraw() override {
@@ -311,10 +312,10 @@ public:
             VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
         VWolf::Renderer::End();
 
-        VWolf::Renderer::Begin(camera);
+        /*VWolf::Renderer::Begin(camera);
         VWolf::Renderer::SetShader("flat color");
         VWolf::Renderer::DrawMesh(cube->GetData(), cube->transform.matrix);
-        VWolf::Renderer::End();
+        VWolf::Renderer::End();*/
     }
 
     void OnGUI() override {
@@ -330,12 +331,12 @@ public:
         }
         ImGui::End();
 
-        ImGui::Begin("Cube");
+       /* ImGui::Begin("Cube");
         ImGui::LabelText("Cube #", "%s", cube->GetId());
         ImGui::DragFloat3("Position", VWolf::value_ptr(cube->transform.position));
         ImGui::DragFloat3("Rotation", VWolf::value_ptr(cube->transform.rotation));
         ImGui::DragFloat3("Scale", VWolf::value_ptr(cube->transform.scale));
-        ImGui::End();
+        ImGui::End();*/
     }
 
     bool OnWindowResize(VWolf::WindowResizeEvent& e) {

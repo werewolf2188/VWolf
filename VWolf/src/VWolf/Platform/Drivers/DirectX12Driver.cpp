@@ -10,6 +10,7 @@
 
 #include "VWolf/Platform/Render/DirectX12RenderAPI.h"
 #include "VWolf/Core/Render/Renderer.h"
+#include "VWolf/Platform/Render/DirectX12Renderer.h"
 
 #include "VWolf/Core/Time.h"
 
@@ -56,6 +57,7 @@ namespace VWolf {
 
 		UIManager::SetDefault(CreateRef<DirectX12UIManager>((HWND__*)window->GetNativeWindow(), context));
         TestRenderer::SetRenderAPI(CreateScope<DirectX12RenderAPI>((HWND__*)window->GetNativeWindow(), context));
+		Renderer::SetRenderer(CreateScope<DirectX12Renderer>((HWND__*)window->GetNativeWindow(), context));
 		Time::SetTimeImplementation(CreateRef<WindowsTime>());
 	}
 
@@ -78,7 +80,7 @@ namespace VWolf {
 	}
 
     void DirectX12Driver::Resize(unsigned int m_Width, unsigned int m_Height) {
-        if (m_Width == 0 && m_Height == 0) return;
+        if ((m_Width == 0 && m_Height == 0) || context == nullptr) return;
         dx12ResizeBuffers(context, m_Width, m_Height);
     }
 }
