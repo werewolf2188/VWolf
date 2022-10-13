@@ -52,8 +52,8 @@ namespace VWolf {
 		for (int i = 0; i < items.size(); i++) {			
 			groups[i]->Bind();
 			context->mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			shader->SetData(&projection, "Camera", sizeof(VWolf::MatrixFloat4x4), 0);
-			shader->SetData(&items[i]->transform, "Object", sizeof(VWolf::MatrixFloat4x4), 0);
+			shader->SetData(&projection, "Camera", sizeof(VWolf::MatrixFloat4x4), i);
+			shader->SetData(&items[i]->transform, "Object", sizeof(VWolf::MatrixFloat4x4), i);
 			uint32_t count = groups[i]->GetIndexBuffer()->GetCount();
 			
 			context->mCommandList->DrawIndexedInstanced(

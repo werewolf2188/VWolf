@@ -270,21 +270,21 @@ namespace VWolf {
 		BuildPSO(m_context, m_shaderContext, layout);
 		VWOLF_CORE_ASSERT(m_shaderContext->mPSO);
 
-		// TODO: Build constant buffers
 		// Constant Buffers
+		uint32_t expectedObjects = 1000; // TODO: This is an expected amount, but I'm not satisfied with this.
 		for (ShaderParameter param : m_parameters) {
 			Ref<ConstantBufferContext> cb = CreateRef< ConstantBufferContext>();
 			cb->binding = param.binding;
 			ThrowIfFailed(context->md3dDevice->CreateCommittedResource(
 				&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 				D3D12_HEAP_FLAG_NONE,
-				&CD3DX12_RESOURCE_DESC::Buffer(CalcConstantBufferByteSize(param.size) * 1),
+				&CD3DX12_RESOURCE_DESC::Buffer(CalcConstantBufferByteSize(param.size) * expectedObjects), //TODO: This should not be the case but oh well.
 				D3D12_RESOURCE_STATE_GENERIC_READ,
 				nullptr,
 				IID_PPV_ARGS(&cb->mUploadBuffer)));
 
 			ThrowIfFailed(cb->mUploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&cb->mMappedData)));
-			//ZeroMemory(m_cbContext->mMappedData, CalcConstantBufferByteSize(size) * 1);
+			//ZeroMemory(m_cbContext->mMappedData, CalcConstantBufferByteSize(size) * expectedObjects);
 			VWOLF_CORE_ASSERT(cb->mUploadBuffer);
 			VWOLF_CORE_ASSERT(cb->mMappedData);
 
@@ -324,7 +324,9 @@ namespace VWolf {
 		Ref<ConstantBufferContext> cb = m_shaderContext->constantBuffers[name];
 		memcpy(&cb->mMappedData[offset * CalcConstantBufferByteSize(size)], data, size);
 		// Attach root descriptor directly to the command list
-		m_context->mCommandList->SetGraphicsRootConstantBufferView(cb->binding, cb->mUploadBuffer.Get()->GetGPUVirtualAddress());
+		
+		
+		m_context->mCommandList->SetGraphicsRootConstantBufferView(cb->binding, cb->mUploadBuffer.Get()->GetGPUVirtualAddress() + (offset * CalcConstantBufferByteSize(size)));
 		// Attach descriptor table via descriptor heap
 		/*dx12SetDescriptorHeaps(m_context, m_cbContext->mSrvHeap);
 		m_context->mCommandList->SetGraphicsRootDescriptorTable(0, m_cbContext->mSrvHeap->GetGPUDescriptorHandleForHeapStart());*/
