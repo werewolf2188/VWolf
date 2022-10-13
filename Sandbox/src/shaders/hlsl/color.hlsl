@@ -12,6 +12,9 @@ struct VertexIn
 {
 	float3 PosL  : a_Position;
 	float4 Color : a_Color;
+	float3 Normal  : a_Normal;
+	float3 Tangent  : a_Tangent;
+	float3 TexCoord  : a_TexCoord;
 };
 
 struct VertexOut

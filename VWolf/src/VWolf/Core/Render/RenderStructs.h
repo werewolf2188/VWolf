@@ -116,19 +116,52 @@ namespace VWolf {
         Vertex() {
             position = Vector3Float(0, 0, 0);
             color = Vector4Float(0, 0, 0, 1);
+            normal = Vector3Float(0, 0, 0);
+            tangent = Vector3Float(0, 0, 0);
+            texCoord = Vector2Float(0, 0);
         }
 
         Vertex(float x, float y, float z, float r, float g, float b, float a) {
             position = Vector3Float(x, y, z);
             color = Vector4Float(r, g, b, a);
+            normal = Vector3Float(0, 0, 0);
+            tangent = Vector3Float(0, 0, 0);
+            texCoord = Vector2Float(0, 0);
+        }
+
+        Vertex(float x, float y, float z,
+               float r, float g, float b, float a,
+               float nx, float ny, float nz,
+               float tnx, float tny, float tnz,
+               float tx, float ty) {
+            position = Vector3Float(x, y, z);
+            color = Vector4Float(r, g, b, a);
+            normal = Vector3Float(nx, ny, nz);
+            tangent = Vector3Float(tnx, tny, tnz);
+            texCoord = Vector2Float(tx, ty);
         }
 
         Vertex(Vector3Float pos, Vector4Float col) {
             position = pos;
             color = col;
+            normal = Vector3Float(0, 0, 0);
+            tangent = Vector3Float(0, 0, 0);
+            texCoord = Vector2Float(0, 0);
         }
+
+        Vertex(Vector3Float pos, Vector4Float col, Vector3Float norm, Vector3Float tan, Vector2Float tex) {
+            position = pos;
+            color = col;
+            normal = norm;
+            tangent = tan;
+            texCoord = tex;
+        }
+
         Vector3Float position;
         Vector4Float color;
+        Vector3Float normal;
+        Vector3Float tangent;
+        Vector2Float texCoord;
 
         inline std::vector<float> Transform() {
             std::vector<float> values;
@@ -139,6 +172,14 @@ namespace VWolf {
             values.push_back(color.g);
             values.push_back(color.b);
             values.push_back(color.a);
+            values.push_back(normal.x);
+            values.push_back(normal.y);
+            values.push_back(normal.z);
+            values.push_back(tangent.x);
+            values.push_back(tangent.y);
+            values.push_back(tangent.z);
+            values.push_back(texCoord.x);
+            values.push_back(texCoord.y);
             
             return values;
         }
@@ -163,7 +204,10 @@ namespace VWolf {
 
     inline BufferLayout MeshData::Layout = {
         { ShaderDataType::Float3, "a_Position" },
-        { ShaderDataType::Float4, "a_Color" }
+        { ShaderDataType::Float4, "a_Color" },
+        { ShaderDataType::Float3, "a_Normal" },
+        { ShaderDataType::Float3, "a_Tangent" },
+        { ShaderDataType::Float2, "a_TexCoord" }
     };
 }
 

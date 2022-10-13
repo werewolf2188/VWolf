@@ -26,40 +26,40 @@ namespace VWolf {
         float d2 = 0.5f*depth;
 
         // Fill in the front face vertex data.
-        v[0] = Vertex(-w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f);
-        v[1] = Vertex(-w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f);
-        v[2] = Vertex(+w2, +h2, -d2, 0.0f, 0.0f, 1.0f, 1.0f);
-        v[3] = Vertex(+w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f);
+        v[0] = Vertex(-w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+        v[1] = Vertex(-w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        v[2] = Vertex(+w2, +h2, -d2, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+        v[3] = Vertex(+w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
 
         // Fill in the back face vertex data.
-        v[4] = Vertex(-w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 1.0f);
-        v[5] = Vertex(+w2, -h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f);
-        v[6] = Vertex(+w2, +h2, +d2, 0.0f, 0.0f, 1.0f, 1.0f);
-        v[7] = Vertex(-w2, +h2, +d2, 1.0f, 0.0f, 0.0f, 1.0f);
+        v[4] = Vertex(-w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+        v[5] = Vertex(+w2, -h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+        v[6] = Vertex(+w2, +h2, +d2, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        v[7] = Vertex(-w2, +h2, +d2, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
         // Fill in the top face vertex data.
-        v[8]  = Vertex(-w2, +h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f);
-        v[9]  = Vertex(-w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f);
-        v[10] = Vertex(+w2, +h2, +d2, 0.0f, 0.0f, 1.0f, 1.0f);
-        v[11] = Vertex(+w2, +h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f);
+        v[8]  = Vertex(-w2, +h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+        v[9]  = Vertex(-w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        v[10] = Vertex(+w2, +h2, +d2, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+        v[11] = Vertex(+w2, +h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
 
         // Fill in the bottom face vertex data.
-        v[12] = Vertex(-w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f);
-        v[13] = Vertex(+w2, -h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f);
-        v[14] = Vertex(+w2, -h2, +d2, 0.0f, 0.0f, 1.0f, 1.0f);
-        v[15] = Vertex(-w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 1.0f);
+        v[12] = Vertex(-w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+        v[13] = Vertex(+w2, -h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+        v[14] = Vertex(+w2, -h2, +d2, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        v[15] = Vertex(-w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
         // Fill in the left face vertex data.
-        v[16] = Vertex(-w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 1.0f);
-        v[17] = Vertex(-w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f);
-        v[18] = Vertex(-w2, +h2, -d2, 0.0f, 0.0f, 1.0f, 1.0f);
-        v[19] = Vertex(-w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f);
+        v[16] = Vertex(-w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+        v[17] = Vertex(-w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+        v[18] = Vertex(-w2, +h2, -d2, 0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
+        v[19] = Vertex(-w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
 
         // Fill in the right face vertex data.
-        v[20] = Vertex(+w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f);
-        v[21] = Vertex(+w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f);
-        v[22] = Vertex(+w2, +h2, +d2, 0.0f, 0.0f, 1.0f, 1.0f);
-        v[23] = Vertex(+w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 1.0f);
+        v[20] = Vertex(+w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+        v[21] = Vertex(+w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+        v[22] = Vertex(+w2, +h2, +d2, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
+        v[23] = Vertex(+w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 
         meshData.vertices.assign(&v[0], &v[24]);
 
@@ -108,8 +108,8 @@ namespace VWolf {
         // Poles: note that there will be texture coordinate distortion as there is
         // not a unique point on the texture map to assign to the pole when mapping
         // a rectangular texture onto a sphere.
-        Vertex topVertex(0.0f, +radius, 0.0f, 0.0f, +radius, 0.0f, 1.0f);
-        Vertex bottomVertex(0.0f, -radius, 0.0f, 0.0f, -radius, 0.0f, 1.0f);
+        Vertex topVertex(0.0f, +radius, 0.0f, 0.0f, +radius, 0.0f, 1.0f, 0.0f, +1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        Vertex bottomVertex(0.0f, -radius, 0.0f, 0.0f, -radius, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
         meshData.vertices.push_back( topVertex );
 
@@ -135,6 +135,18 @@ namespace VWolf {
                 
                 Vector3Float pos = v.position;
                 v.color = normalize(Vector4Float(pos.x, pos.y, pos.z, 1.0f));
+
+                // Partial derivative of P with respect to theta
+                v.tangent.x = -radius * sinf(phi) * sinf(theta);
+                v.tangent.y = 0.0f;
+                v.tangent.z = +radius * sinf(phi) * cosf(theta);
+
+                v.tangent = normalize(v.tangent);
+
+                v.normal = normalize(v.position);
+
+                v.texCoord.x = theta / (M_PI * 2);
+                v.texCoord.y = phi / M_PI;
 
                 meshData.vertices.push_back( v );
             }
@@ -242,10 +254,29 @@ namespace VWolf {
             Vector3Float n = normalize(meshData.vertices[i].position);
 
             // Project onto sphere.
-            Vector3Float p = radius*n;
+            Vector3Float p = radius * n;
 
             meshData.vertices[i].position = p;
             meshData.vertices[i].color = normalize(Vector4Float(p.x, p.y, p.z, 1.0f));
+            meshData.vertices[i].position = n;
+
+            float theta = atan2f(meshData.vertices[i].position.z, meshData.vertices[i].position.x);
+
+            // Put in [0, 2pi].
+            if(theta < 0.0f)
+                theta += (M_PI * 2);
+
+            float phi = acosf(meshData.vertices[i].position.y / radius);
+
+            meshData.vertices[i].texCoord.x = theta / (M_PI * 2);
+            meshData.vertices[i].texCoord.y = phi / M_PI;
+
+            // Partial derivative of P with respect to theta
+            meshData.vertices[i].tangent.x = -radius * sinf(phi) * sinf(theta);
+            meshData.vertices[i].tangent.y = 0.0f;
+            meshData.vertices[i].tangent.z = +radius * sinf(phi) * cosf(theta);
+            
+            meshData.vertices[i].tangent = normalize(meshData.vertices[i].tangent);
         }
 
         return meshData;
@@ -282,6 +313,19 @@ namespace VWolf {
 
                 vertex.position = Vector3Float(r * c, y, r * s);
                 vertex.color = normalize(Vector4Float(vertex.position.x, vertex.position.y, vertex.position.z, 1.0f));
+                vertex.texCoord.x = (float)j / sliceCount;
+                vertex.texCoord.y = 1.0f - (float)i / stackCount;
+
+                vertex.tangent = Vector3Float(-s, 0.0f, c);
+
+                float dr = bottomRadius - topRadius;
+                Vector3Float bitangent(dr * c, -height, dr * s);
+
+                Vector3Float T = vertex.tangent;
+                Vector3Float B(bitangent);
+                Vector3Float N = normalize(cross(T, B));
+                vertex.normal = N;
+
                 meshData.vertices.push_back(vertex);
             }
         }
@@ -327,6 +371,9 @@ namespace VWolf {
         float dx = width / (n - 1);
         float dz = depth / (m - 1);
 
+        float du = 1.0f / (n-1);
+        float dv = 1.0f / (m-1);
+
         meshData.vertices.resize(vertexCount);
         for(uint32 i = 0; i < m; ++i)
         {
@@ -337,6 +384,12 @@ namespace VWolf {
 
                 meshData.vertices[i * n + j].position = Vector3Float(x, 0.0f, z);
                 meshData.vertices[i * n + j].color = Vector4Float(x, 0.0f, z, 1.0f);
+                meshData.vertices[i * n + j].normal = Vector3Float(0.0f, 1.0f, 0.0f);
+                meshData.vertices[i * n + j].tangent = Vector3Float(1.0f, 0.0f, 0.0f);
+
+                // Stretch texture over grid.
+                meshData.vertices[i * n + j].texCoord.x = j * du;
+                meshData.vertices[i * n + j].texCoord.y = i * dv;
             }
         }
      
@@ -375,13 +428,29 @@ namespace VWolf {
         meshData.indices.resize(6);
 
         // Position coordinates specified in NDC space.
-        meshData.vertices[0] = Vertex(x, y - h, depth, 1.0f, 1.0f, 1.0f, 1.0f);
+        meshData.vertices[0] = Vertex(x, y - h, depth,
+                                      1.0f, 1.0f, 1.0f, 1.0f,
+                                      0.0f, 0.0f, -1.0f,
+                                      1.0f, 0.0f, 0.0f,
+                                      0.0f, 1.0f);
 
-        meshData.vertices[1] = Vertex(x, y, depth, 1.0f, 1.0f, 1.0f, 1.0f);
+        meshData.vertices[1] = Vertex(x, y, depth,
+                                      1.0f, 1.0f, 1.0f, 1.0f,
+                                      0.0f, 0.0f, -1.0f,
+                                      1.0f, 0.0f, 0.0f,
+                                      0.0f, 0.0f);
 
-        meshData.vertices[2] = Vertex(x + w, y, depth, 1.0f, 1.0f, 1.0f, 1.0f);
+        meshData.vertices[2] = Vertex(x + w, y, depth,
+                                      1.0f, 1.0f, 1.0f, 1.0f,
+                                      0.0f, 0.0f, -1.0f,
+                                      1.0f, 0.0f, 0.0f,
+                                      1.0f, 0.0f);
 
-        meshData.vertices[3] = Vertex(x + w, y - h, depth, 1.0f, 1.0f, 1.0f, 1.0f);
+        meshData.vertices[3] = Vertex(x + w, y - h, depth,
+                                      1.0f, 1.0f, 1.0f, 1.0f,
+                                      0.0f, 0.0f, -1.0f,
+                                      1.0f, 0.0f, 0.0f,
+                                      1.0f, 1.0f);
 
         meshData.indices[0] = 0;
         meshData.indices[1] = 1;
@@ -458,7 +527,10 @@ namespace VWolf {
     Vertex ShapeHelper::MidPoint(const Vertex& v0, const Vertex& v1) {
         Vector3Float pos = 0.5f * (v0.position + v1.position);
         Vector4Float color = 0.5f * (v0.color + v1.color);
-        return Vertex(pos, color);
+        Vector3Float normal = normalize(0.5f * (v0.normal + v1.normal));
+        Vector3Float tangent = normalize(0.5f * (v0.tangent + v1.tangent));
+        Vector2Float texCoord = 0.5f * (v0.texCoord + v1.texCoord);
+        return Vertex(pos, color, normal, tangent, texCoord);
     }
 
     void ShapeHelper::BuildCylinderCap(float radius, int cap, float height, std::uint32_t sliceCount, std::uint32_t stackCount, MeshData& meshData) {
@@ -472,12 +544,17 @@ namespace VWolf {
         {
             float x = radius * cosf(i * dTheta);
             float z = radius * sinf(i * dTheta);
+    
+            // Scale down by the height to try and make top cap texture coord area
+            // proportional to base.
+            float u = x / height + 0.5f;
+            float v = z / height + 0.5f;
 
-            meshData.vertices.push_back(Vertex(x, y, z, x, y, z, 1.0f) );
+            meshData.vertices.push_back(Vertex(x, y, z, x, y, z, 1.0f, 0.0f, 1.0f * (cap == BOTTOM ? -1: 1), 0.0f, 1.0f, 0.0f, 0.0f, u, v) );
         }
 
         // Cap center vertex.
-        meshData.vertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f) );
+        meshData.vertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f * (cap == BOTTOM ? -1: 1), 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f) );
 
         // Cache the index of center vertex.
         std::uint32_t centerIndex = (std::uint32_t)meshData.vertices.size() - 1;
