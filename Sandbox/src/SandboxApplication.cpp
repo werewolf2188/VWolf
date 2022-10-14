@@ -282,14 +282,14 @@ public:
          { "Object", VWolf::ShaderParameterType::In, 1, sizeof(VWolf::MatrixFloat4x4) }
      },
                                          {});
-        VWolf::ShaderLibrary::LoadShader("flat color",
-                                         { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.vert.glsl", vertexShaderFunction.c_str() },
-                                         { { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.frag.glsl", fragmentShaderFunction.c_str() } },
-                                         {
-         { "Camera", VWolf::ShaderParameterType::In, 0, sizeof(VWolf::MatrixFloat4x4) },
-         { "Object", VWolf::ShaderParameterType::In, 1, sizeof(VWolf::MatrixFloat4x4) }
-     },
-                                         {});
+//        VWolf::ShaderLibrary::LoadShader("flat color",
+//                                         { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.vert.glsl", vertexShaderFunction.c_str() },
+//                                         { { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.frag.glsl", fragmentShaderFunction.c_str() } },
+//                                         {
+//         { "Camera", VWolf::ShaderParameterType::In, 0, sizeof(VWolf::MatrixFloat4x4) },
+//         { "Object", VWolf::ShaderParameterType::In, 1, sizeof(VWolf::MatrixFloat4x4) }
+//     },
+//                                         {});
         gameObjects.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), "0" ));
         gameObjects.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateSphere(2, 32, 32), "1" ));
         gameObjects.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateGrid(2, 2, 16, 16), "2" ));
@@ -314,18 +314,20 @@ public:
 
     void OnDraw() override {
         
+//        VWolf::Renderer::Begin(camera);
+//        VWolf::Renderer::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
+//        VWolf::Renderer::Clear();
+//        VWolf::Renderer::SetShader("rainbow color");
+//        VWolf::Renderer::DrawMesh(cube->GetData(), cube->transform.matrix);
+//        VWolf::Renderer::End();
+        
         VWolf::Renderer::Begin(camera);
         VWolf::Renderer::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
         VWolf::Renderer::Clear();
-        VWolf::Renderer::SetShader("flat color");
-        VWolf::Renderer::DrawMesh(cube->GetData(), cube->transform.matrix);
+        VWolf::Renderer::SetShader("rainbow color");
+        for(auto gameObject: gameObjects)
+            VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
         VWolf::Renderer::End();
-        
-//        VWolf::Renderer::Begin(camera);
-//        VWolf::Renderer::SetShader("rainbow color");
-//        for(auto gameObject: gameObjects)
-//            VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
-//        VWolf::Renderer::End();
     }
 
     void OnGUI() override {
