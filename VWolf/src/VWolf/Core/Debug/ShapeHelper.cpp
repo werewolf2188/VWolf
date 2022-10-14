@@ -406,14 +406,13 @@ namespace VWolf {
         {
             for(uint32 j = 0; j < n - 1; ++j)
             {
-                meshData.indices[k + 2] = (i + 1) * n + j;
+                meshData.indices[k] = (i + 1) * n + j;
                 meshData.indices[k + 1] = i * n + j + 1;
-                meshData.indices[k]   = i * n + j;
-
-                meshData.indices[k + 5] = (i + 1 ) * n + j + 1;
+                meshData.indices[k + 2] =  i * n + j;
+                
+                meshData.indices[k + 3] = (i + 1 ) * n + j + 1;
                 meshData.indices[k + 4] = i * n + j + 1;
-                meshData.indices[k + 3] = (i + 1) * n + j;
-
+                meshData.indices[k + 5] = (i + 1) * n + j;
                 k += 6; // next quad
             }
         }

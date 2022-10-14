@@ -44,7 +44,43 @@ namespace VWolf {
     };
 
     struct ShaderConfiguration {
-        
+        struct Rasterization {
+            bool cullEnabled = true;
+            enum class FillMode { Wireframe, Solid };
+            enum class CullMode { Front, Back, FrontAndBack };
+            
+            FillMode fillMode = FillMode::Solid;
+            CullMode cullMode = CullMode::Back;
+            bool counterClockwise = false;
+        };
+
+        struct DepthStencil {
+            bool depthTest = true;
+        };
+
+        struct Blend {
+            enum class Equation { Add, Substract, ReverseSubstract, Min, Max };
+            enum class Function {
+                Zero, One,
+                SrcColor, InvSrcColor,
+                DstColor, InvDstColor,
+                SrcAlpha, InvSrcAlpha,
+                DstAlpha, InvDstAlpha,
+                Src1Color, InvSrc1Color,
+                Src1Alpha, InvSrc1Alpha,
+                SrcAlphaSat,
+                CnstColor, InvCnstColor,
+                CnstAlpha, InvCnstAlpha
+            };
+            
+            bool enabled = true;
+            Equation equation = Equation::Add;
+            Function sourceFunction = Function::SrcAlpha;
+            Function destinationFunction = Function::InvSrcAlpha;
+        };
+        Rasterization rasterization = Rasterization();
+        DepthStencil depthStencil = DepthStencil();
+        Blend blend = Blend();
     };
 
 	class Shader {
