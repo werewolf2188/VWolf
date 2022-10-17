@@ -34,7 +34,8 @@ namespace VWolf {
 
 		MatrixFloat4x4 projection = m_camera->GetProjection();
 		auto pso = ((HLSLShader*)shader.get())->GetPipeline();
-		dx12ResetCommandList(context, pso);
+		dx12ResetCommandList(context, nullptr);
+		context->mCommandList->SetPipelineState(pso.Get());
 
 		dx12SetCommandListClientArea(context);
 

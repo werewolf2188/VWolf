@@ -5,6 +5,8 @@
 #include "VWolf.h"
 #include "VWolf/Core/EntryPoint.h"
 
+#include <array>
+
 #ifdef VWOLF_PLATFORM_WINDOWS
 #define DRIVER_TYPE VWolf::DriverType::DirectX12
 #else
@@ -14,30 +16,48 @@
 #define SCREENWIDTH 1280.0f
 #define SCREENHEIGHT 720.0f
 
-std::string vertexShaderFile;
-std::string fragmentShaderFile;
-std::string vertexShaderFunction;
-std::string fragmentShaderFunction;
+#define NUMSHADERS 2
+std::array<std::string, NUMSHADERS> shaderNames = { { "rainbow color", "flat color" } };
+std::array<VWolf::ShaderSource, NUMSHADERS> vsFiles;
+std::array<VWolf::ShaderSource, NUMSHADERS> psFiles;
 
 void LoadShaderNames(VWolf::DriverType driverType) {
 #ifdef VWOLF_PLATFORM_WINDOWS
     if (driverType == VWolf::DriverType::DirectX12) {
-        vertexShaderFile = "src/shaders/hlsl/color.hlsl";
-        fragmentShaderFile = "src/shaders/hlsl/color.hlsl";
-        vertexShaderFunction = "VS";
-        fragmentShaderFunction = "PS";
+
+        vsFiles = { {
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/hlsl/RainbowColor.hlsl" , "VS" },
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/hlsl/FlatColor.hlsl" , "VS" }
+        } };
+
+        psFiles = { {
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/hlsl/RainbowColor.hlsl" , "PS" },
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/hlsl/FlatColor.hlsl" , "PS" }
+        } };
     }
     else if (driverType == VWolf::DriverType::OpenGL) {
-        vertexShaderFile = "src/shaders/glsl/RainbowColor.vert.glsl";
-        fragmentShaderFile = "src/shaders/glsl/RainbowColor.frag.glsl";
-        vertexShaderFunction = "main";
-        fragmentShaderFunction = "main";
+
+        vsFiles = { {
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/glsl/RainbowColor.vert.glsl" , "main" },
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.glsl" , "main" }
+        } };
+
+        psFiles = { {
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/glsl/RainbowColor.frag.glsl" , "main" },
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.glsl" , "main" }
+        } };
     }
 #else
-    vertexShaderFile = "../../../Sandbox/src/shaders/glsl/RainbowColor.vert.glsl";
-    fragmentShaderFile = "../../../Sandbox/src/shaders/glsl/RainbowColor.frag.glsl";
-    vertexShaderFunction = "main";
-    fragmentShaderFunction = "main";
+
+    vsFiles = { {
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/RainbowColor.vert.glsl" , "main" },
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.glsl" , "main" }
+        } };
+
+    psFiles = { {
+        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/RainbowColor.frag.glsl" , "main" },
+        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.glsl" , "main" }
+    } };
 #endif
 }
 
@@ -96,10 +116,10 @@ public:
 		VWolf::Ref<VWolf::IndexBuffer> indexBuffer = VWolf::IndexBuffer::Create(shape.indices.data(), shape.indices.size());
 		group->SetIndexBuffer(indexBuffer);
         
-		colorShader = VWolf::Shader::Create("flat color",
-                                            { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, vertexShaderFile.c_str(), vertexShaderFunction.c_str() },
+		colorShader = VWolf::Shader::Create(shaderNames[0].c_str(),
+                                            vsFiles[0],
                                             VWolf::MeshData::Layout,
-                                            { { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, fragmentShaderFile.c_str(), fragmentShaderFunction.c_str() } },
+                                            { psFiles[0] },
                                             {
             { "Camera", VWolf::ShaderParameterType::In, 0, sizeof(VWolf::MatrixFloat4x4) },
             { "Object", VWolf::ShaderParameterType::In, 1, sizeof(VWolf::MatrixFloat4x4) }
@@ -274,22 +294,14 @@ public:
     RendererSandboxApplication(): Application(DRIVER_TYPE, { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
         camera = VWolf::CreateRef<VWolf::PerspectiveCamera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
         LoadShaderNames(DRIVER_TYPE);
-        VWolf::ShaderLibrary::LoadShader("rainbow color",
-                                         { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, vertexShaderFile.c_str(), vertexShaderFunction.c_str() },
-                                         { { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, fragmentShaderFile.c_str(), fragmentShaderFunction.c_str() } },
-                                         {
+
+        std::initializer_list<VWolf::ShaderParameter> parameters = {
          { "Camera", VWolf::ShaderParameterType::In, 0, sizeof(VWolf::MatrixFloat4x4) },
          { "Object", VWolf::ShaderParameterType::In, 1, sizeof(VWolf::MatrixFloat4x4) }
-     },
-                                         {});
-//        VWolf::ShaderLibrary::LoadShader("flat color",
-//                                         { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.vert.glsl", vertexShaderFunction.c_str() },
-//                                         { { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.frag.glsl", fragmentShaderFunction.c_str() } },
-//                                         {
-//         { "Camera", VWolf::ShaderParameterType::In, 0, sizeof(VWolf::MatrixFloat4x4) },
-//         { "Object", VWolf::ShaderParameterType::In, 1, sizeof(VWolf::MatrixFloat4x4) }
-//     },
-//                                         {});
+        };
+        for (int i = 0; i < NUMSHADERS; i++) {
+            VWolf::ShaderLibrary::LoadShader(shaderNames[i].c_str(), vsFiles[i], { psFiles[i] }, parameters);
+        }
         gameObjects.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), "0" ));
         gameObjects.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateSphere(2, 32, 32), "1" ));
         gameObjects.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateGrid(2, 2, 16, 16), "2" ));
@@ -324,7 +336,7 @@ public:
         VWolf::Renderer::Begin(camera);
         VWolf::Renderer::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
         VWolf::Renderer::Clear();
-        VWolf::Renderer::SetShader("rainbow color");
+        VWolf::Renderer::SetShader(shaderNames[1].c_str());
         for(auto gameObject: gameObjects)
             VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
         VWolf::Renderer::End();

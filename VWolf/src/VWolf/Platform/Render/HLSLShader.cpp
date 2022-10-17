@@ -144,7 +144,43 @@ namespace VWolf {
 		shaderContext->mRootSignature = mRootSignature;
 	}
 
-	void BuildPSO(DirectX12Context* context, Ref<ShaderContext> shaderContext, BufferLayout layout)
+	D3D12_BLEND GetBlendFunction(ShaderConfiguration::Blend::Function function) {
+		switch (function) {
+		case ShaderConfiguration::Blend::Function::Zero: return D3D12_BLEND_ZERO;
+		case ShaderConfiguration::Blend::Function::One: return D3D12_BLEND_ONE;
+		case ShaderConfiguration::Blend::Function::SrcColor: return D3D12_BLEND_SRC_COLOR;
+		case ShaderConfiguration::Blend::Function::InvSrcColor: return D3D12_BLEND_INV_SRC_COLOR;
+		case ShaderConfiguration::Blend::Function::DstColor: return D3D12_BLEND_DEST_COLOR;
+		case ShaderConfiguration::Blend::Function::InvDstColor: return D3D12_BLEND_INV_DEST_COLOR;
+		case ShaderConfiguration::Blend::Function::SrcAlpha: return D3D12_BLEND_SRC_ALPHA;
+		case ShaderConfiguration::Blend::Function::InvSrcAlpha: return D3D12_BLEND_INV_SRC_ALPHA;
+		case ShaderConfiguration::Blend::Function::DstAlpha: return D3D12_BLEND_DEST_ALPHA;
+		case ShaderConfiguration::Blend::Function::InvDstAlpha: return D3D12_BLEND_INV_DEST_ALPHA;
+		case ShaderConfiguration::Blend::Function::Src1Color: return D3D12_BLEND_SRC1_COLOR;
+		case ShaderConfiguration::Blend::Function::InvSrc1Color: return D3D12_BLEND_INV_SRC1_COLOR;
+		case ShaderConfiguration::Blend::Function::Src1Alpha: return D3D12_BLEND_SRC1_ALPHA;
+		case ShaderConfiguration::Blend::Function::InvSrc1Alpha: return D3D12_BLEND_INV_SRC1_ALPHA;
+		case ShaderConfiguration::Blend::Function::SrcAlphaSat: return D3D12_BLEND_SRC_ALPHA_SAT;
+		case ShaderConfiguration::Blend::Function::CnstColor: return D3D12_BLEND_BLEND_FACTOR;
+		case ShaderConfiguration::Blend::Function::InvCnstColor: return D3D12_BLEND_INV_BLEND_FACTOR;
+		/*case ShaderConfiguration::Blend::Function::CnstAlpha: return GL_CONSTANT_ALPHA;
+		case ShaderConfiguration::Blend::Function::InvCnstAlpha: return GL_ONE_MINUS_CONSTANT_ALPHA;*/
+		}
+		return D3D12_BLEND_ZERO;
+	}
+
+	D3D12_BLEND_OP GetBlendOp(ShaderConfiguration::Blend::Equation equation) {
+		switch (equation) {
+		case ShaderConfiguration::Blend::Equation::Add: return D3D12_BLEND_OP_ADD;
+		case ShaderConfiguration::Blend::Equation::Substract: return D3D12_BLEND_OP_SUBTRACT;
+		case ShaderConfiguration::Blend::Equation::ReverseSubstract: return D3D12_BLEND_OP_REV_SUBTRACT;
+		case ShaderConfiguration::Blend::Equation::Min: return D3D12_BLEND_OP_MIN;
+		case ShaderConfiguration::Blend::Equation::Max: return D3D12_BLEND_OP_MAX;
+		}
+		return D3D12_BLEND_OP_ADD;
+	}
+
+	void BuildPSO(DirectX12Context* context, Ref<ShaderContext> shaderContext, BufferLayout layout, ShaderConfiguration configuration)
 	{
 		// TODO: This should improve to add matrices
 		std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
@@ -204,27 +240,61 @@ namespace VWolf {
 				break;
 			}
 		}
-		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		//
-	// PSO for transparent objects
-	//
+		// Rasterization
+		{
+			psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+			if (configuration.rasterization.cullEnabled) {
+				switch (configuration.rasterization.cullMode) {
+				case ShaderConfiguration::Rasterization::CullMode::Front:
+					psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+					break;
+				case ShaderConfiguration::Rasterization::CullMode::Back:
+					psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+					break;
+				case ShaderConfiguration::Rasterization::CullMode::FrontAndBack:					
+					break;
+				}
+			}
+			else
+				psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 
+			switch (configuration.rasterization.fillMode) {
+			case ShaderConfiguration::Rasterization::FillMode::Wireframe:
+				psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+				break;
+			case ShaderConfiguration::Rasterization::FillMode::Solid:
+				psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+				break;
+			}
 
-		D3D12_RENDER_TARGET_BLEND_DESC transparencyBlendDesc;
-		transparencyBlendDesc.BlendEnable = true;
-		transparencyBlendDesc.LogicOpEnable = false;
-		transparencyBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
-		transparencyBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-		transparencyBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
-		transparencyBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
-		transparencyBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
-		transparencyBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
-		transparencyBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
-		transparencyBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+			psoDesc.RasterizerState.FrontCounterClockwise = configuration.rasterization.counterClockwise;
 
-		psoDesc.BlendState.RenderTarget[0] = transparencyBlendDesc;
-		psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+		}
+		// Blend
+		{
+			psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+
+			psoDesc.BlendState.RenderTarget[0].BlendEnable = configuration.blend.enabled;
+			psoDesc.BlendState.RenderTarget[0].SrcBlend = GetBlendFunction(configuration.blend.sourceFunction);
+			psoDesc.BlendState.RenderTarget[0].DestBlend = GetBlendFunction(configuration.blend.destinationFunction);
+			psoDesc.BlendState.RenderTarget[0].BlendOp = GetBlendOp(configuration.blend.equation);
+
+			/*transparencyBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+			transparencyBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+			transparencyBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+
+			transparencyBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;*/
+
+			psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+			//psoDesc.BlendState.RenderTarget[0] = transparencyBlendDesc;
+		}
+		
+		// Depth/Stencil 
+		{
+			psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+			psoDesc.DepthStencilState.DepthEnable = configuration.depthStencil.depthTest;
+		}
+		
 		psoDesc.SampleMask = UINT_MAX;
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		psoDesc.NumRenderTargets = 1;
@@ -267,7 +337,7 @@ namespace VWolf {
 			CompileShader(source, nullptr, source.mainFunction, ShaderTypeEquivalent(source.type), m_shaderContext);
 		VWOLF_CORE_ASSERT(m_shaderContext->shaderBlobs.size() == (m_otherShaders.size() + 1), "One of the shaders didn't compile");
 
-		BuildPSO(m_context, m_shaderContext, layout);
+		BuildPSO(m_context, m_shaderContext, layout, configuration);
 		VWOLF_CORE_ASSERT(m_shaderContext->mPSO);
 
 		// Constant Buffers

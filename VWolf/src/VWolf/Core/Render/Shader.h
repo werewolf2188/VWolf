@@ -154,7 +154,7 @@ namespace VWolf {
                                ShaderSource vertexShader,
                                std::initializer_list<ShaderSource> otherShaders,
                                std::initializer_list<ShaderParameter> parameters,
-                               ShaderConfiguration configuration) {
+            ShaderConfiguration configuration = {}) {
             
             m_shaders.push_back(Shader::Create(name, vertexShader, MeshData::Layout, otherShaders, parameters, configuration));
         }
