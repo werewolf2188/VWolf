@@ -39,12 +39,12 @@ void LoadShaderNames(VWolf::DriverType driverType) {
 
         vsFiles = { {
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/glsl/RainbowColor.vert.glsl" , "main" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.glsl" , "main" }
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.vert.glsl" , "main" }
         } };
 
         psFiles = { {
             { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/glsl/RainbowColor.frag.glsl" , "main" },
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.glsl" , "main" }
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.frag.glsl" , "main" }
         } };
     }
 #else
