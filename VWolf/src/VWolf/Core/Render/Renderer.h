@@ -34,7 +34,7 @@ namespace VWolf {
         static void ClearColor(Color color);
         static void Clear();
         static void SetShader(const char* shaderName);
-        static void DrawMesh(MeshData meshData, MatrixFloat4x4 transform);
+        static void DrawMesh(MeshData& meshData, MatrixFloat4x4 transform);
         static void End();
 #ifdef VWOLF_CORE
         static void SetRenderer(Scope<Renderer> renderer) { rendererImpl = std::move(renderer); }

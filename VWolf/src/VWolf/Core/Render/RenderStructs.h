@@ -188,18 +188,22 @@ namespace VWolf {
     struct MeshData {
     public:
         inline std::vector<float> GetVertices() {
-            std::vector<float> vertices;
-            
+            if (_vertices.size() > 0) {
+                return _vertices;
+            }
+
             for (Vertex vertex: this->vertices) {
                 std::vector<float> data = vertex.Transform();
-                vertices.insert(vertices.end(), data.begin(), data.end());
+                _vertices.insert(_vertices.end(), data.begin(), data.end());
             }
-            return vertices;
+            return _vertices;
         }
         std::vector<Vertex> vertices;
         std::vector<std::uint32_t> indices;
 
         static BufferLayout Layout;
+    private:
+        std::vector<float> _vertices;
     };
 
     inline BufferLayout MeshData::Layout = {

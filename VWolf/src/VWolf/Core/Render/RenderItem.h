@@ -14,10 +14,11 @@
 
 namespace VWolf {
     struct RenderItem {
-        MeshData data;
+        MeshData& data;
+        std::string shaderName;
         MatrixFloat4x4 transform;
 
-        RenderItem(MeshData data, MatrixFloat4x4 transform): data(data), transform(transform) {
+        RenderItem(MeshData& data, std::string shaderName, MatrixFloat4x4 transform): data(data), shaderName(shaderName), transform(transform) {
             
         }
     };

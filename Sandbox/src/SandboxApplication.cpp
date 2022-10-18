@@ -51,12 +51,12 @@ void LoadShaderNames(VWolf::DriverType driverType) {
 
     vsFiles = { {
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/RainbowColor.vert.glsl" , "main" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.glsl" , "main" }
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.vert.glsl" , "main" }
         } };
 
     psFiles = { {
         { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/RainbowColor.frag.glsl" , "main" },
-        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.glsl" , "main" }
+        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.frag.glsl" , "main" }
     } };
 #endif
 }
@@ -277,7 +277,7 @@ public:
         return m_id;
     }
 
-    VWolf::MeshData GetData() {
+    VWolf::MeshData& GetData() {
         return m_data;
     }
 private:
@@ -288,8 +288,7 @@ private:
 class RendererSandboxApplication: public VWolf::Application {
 public:
     VWolf::Ref<VWolf::PerspectiveCamera> camera;
-    std::vector<VWolf::Ref<GameObject>> gameObjects;
-    VWolf::Ref<GameObject> cube;
+    std::vector<VWolf::Ref<GameObject>> gameObjects1, gameObjects2;
 public:
     RendererSandboxApplication(): Application(DRIVER_TYPE, { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
         camera = VWolf::CreateRef<VWolf::PerspectiveCamera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
@@ -302,10 +301,11 @@ public:
         for (int i = 0; i < NUMSHADERS; i++) {
             VWolf::ShaderLibrary::LoadShader(shaderNames[i].c_str(), vsFiles[i], { psFiles[i] }, parameters);
         }
-        gameObjects.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), "0" ));
-        gameObjects.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateSphere(2, 32, 32), "1" ));
-        gameObjects.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateGrid(2, 2, 16, 16), "2" ));
-//        cube = VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateBox(1, 1, 1, 0), "2");
+        gameObjects1.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), "0" ));
+        gameObjects1.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateSphere(2, 32, 32), "1" ));
+        gameObjects1.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateGrid(2, 2, 16, 16), "2" ));
+        gameObjects2.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateGeosphere(1, 4), "3" ));
+        gameObjects2.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateBox(1, 1, 1, 0), "4" ));
     }
 
     ~RendererSandboxApplication() {
@@ -319,25 +319,21 @@ public:
 
     void OnUpdate() override {
         camera->OnUpdate();
-        for(auto gameObject: gameObjects)
+        for(auto gameObject: gameObjects1)
             gameObject->transform.Apply();
-//        cube->transform.Apply();
+        for(auto gameObject: gameObjects2)
+            gameObject->transform.Apply();
     }
 
     void OnDraw() override {
-        
-//        VWolf::Renderer::Begin(camera);
-//        VWolf::Renderer::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
-//        VWolf::Renderer::Clear();
-//        VWolf::Renderer::SetShader("rainbow color");
-//        VWolf::Renderer::DrawMesh(cube->GetData(), cube->transform.matrix);
-//        VWolf::Renderer::End();
-        
         VWolf::Renderer::Begin(camera);
         VWolf::Renderer::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
         VWolf::Renderer::Clear();
+        VWolf::Renderer::SetShader(shaderNames[0].c_str());
+        for(auto gameObject: gameObjects1)
+            VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
         VWolf::Renderer::SetShader(shaderNames[1].c_str());
-        for(auto gameObject: gameObjects)
+        for(auto gameObject: gameObjects2)
             VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
         VWolf::Renderer::End();
     }
@@ -345,7 +341,15 @@ public:
     void OnGUI() override {
         ImGui::NewFrame();
         ImGui::Begin("Shapes");
-        for(auto gameObject: gameObjects) {
+        for(auto gameObject: gameObjects1) {
+            ImGui::PushID(gameObject->GetId());
+            ImGui::LabelText("Shape #", "%s", gameObject->GetId());
+            ImGui::DragFloat3("Position", VWolf::value_ptr(gameObject->transform.position));
+            ImGui::DragFloat3("Rotation", VWolf::value_ptr(gameObject->transform.rotation));
+            ImGui::DragFloat3("Scale", VWolf::value_ptr(gameObject->transform.scale));
+            ImGui::PopID();
+        }
+        for(auto gameObject: gameObjects2) {
             ImGui::PushID(gameObject->GetId());
             ImGui::LabelText("Shape #", "%s", gameObject->GetId());
             ImGui::DragFloat3("Position", VWolf::value_ptr(gameObject->transform.position));
@@ -354,13 +358,6 @@ public:
             ImGui::PopID();
         }
         ImGui::End();
-
-//        ImGui::Begin("Cube");
-//        ImGui::LabelText("Cube #", "%s", cube->GetId());
-//        ImGui::DragFloat3("Position", VWolf::value_ptr(cube->transform.position));
-//        ImGui::DragFloat3("Rotation", VWolf::value_ptr(cube->transform.rotation));
-//        ImGui::DragFloat3("Scale", VWolf::value_ptr(cube->transform.scale));
-//        ImGui::End();
     }
 
     bool OnWindowResize(VWolf::WindowResizeEvent& e) {

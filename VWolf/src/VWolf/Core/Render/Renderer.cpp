@@ -48,8 +48,8 @@ namespace VWolf {
         rendererImpl->shaderName = shaderName;
     }
 
-    void Renderer::DrawMesh(MeshData meshData, MatrixFloat4x4 transform) {
-        rendererImpl->items.push_back(CreateRef<RenderItem>(meshData, transform));
+    void Renderer::DrawMesh(MeshData& meshData, MatrixFloat4x4 transform) {
+        rendererImpl->items.push_back(CreateRef<RenderItem>(meshData, rendererImpl->shaderName, transform));
     }
 
     void Renderer::End() {

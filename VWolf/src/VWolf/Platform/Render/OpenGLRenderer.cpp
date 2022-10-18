@@ -26,21 +26,24 @@ namespace VWolf {
         }
         
         MatrixFloat4x4 projection = m_camera->GetProjection();
-        Ref<Shader> shader = ShaderLibrary::GetShader(shaderName.c_str());
+        
         if (clearColor)
             glClearColor(backgroundColor.r, backgroundColor.b, backgroundColor.g, backgroundColor.a);
         if (clearDepthStencil)
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        shader->Bind();
-        shader->SetData(&projection, "Camera", sizeof(VWolf::MatrixFloat4x4), 0);
+
         for (int i = 0; i < items.size(); i++) {
+            Ref<Shader> shader = ShaderLibrary::GetShader(items[i]->shaderName.c_str());
+            shader->Bind();
+            shader->SetData(&projection, "Camera", sizeof(VWolf::MatrixFloat4x4), 0);
             shader->SetData(&items[i]->transform, "Object", sizeof(VWolf::MatrixFloat4x4), 0);
             groups[i]->Bind();
             uint32_t count = groups[i]->GetIndexBuffer()->GetCount();
             glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
             groups[i]->Unbind();
+            shader->Unbind();
         }
-        shader->Unbind();
+
         clearColor = false;
         clearDepthStencil = false;
     }
