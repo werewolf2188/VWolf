@@ -45,11 +45,10 @@ namespace VWolf {
 		// Specify the buffers we are going to render to.
 		dx12SetRenderTarget(context);
 
-		
-
 		for (int i = 0; i < items.size(); i++) {	
 
 			Ref<Shader> shader = ShaderLibrary::GetShader(items[i]->shaderName.c_str());
+
 			auto pso = ((HLSLShader*)shader.get())->GetPipeline();
 			context->mCommandList->SetPipelineState(pso.Get());
 
@@ -60,14 +59,13 @@ namespace VWolf {
 			shader->SetData(&projection, "Camera", sizeof(VWolf::MatrixFloat4x4), i);
 			shader->SetData(&items[i]->transform, "Object", sizeof(VWolf::MatrixFloat4x4), i);
 			uint32_t count = groups[i]->GetIndexBuffer()->GetCount();
-			
+
 			context->mCommandList->DrawIndexedInstanced(
 				count,
 				1, 0, 0, 0);
 			//groups[i]->Unbind();			
 		}
 
-		
 		dx12ResourceBarrierTransitionForCurrentBackBuffer(context, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
 		dx12ExecuteCommands(context);

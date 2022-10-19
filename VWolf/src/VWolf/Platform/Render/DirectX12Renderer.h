@@ -5,7 +5,6 @@
 #include "HLSLShader.h"
 #include "DirectX12Buffer.h"
 #include "DirectX12BufferGroup.h"
-#include "DirectX12RenderAPI.h"
 
 struct HWND__;
 struct HINSTANCE__;
