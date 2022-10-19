@@ -29,14 +29,11 @@ namespace VWolf {
 			groups.push_back(group);
 		}
 
-		Ref<Shader> shader = ShaderLibrary::GetShader(shaderName.c_str());
 		frame = context->mCurrBackBuffer;
 
 		MatrixFloat4x4 projection = m_camera->GetProjection();
-		auto pso = ((HLSLShader*)shader.get())->GetPipeline();
+		
 		dx12ResetCommandList(context, nullptr);
-		context->mCommandList->SetPipelineState(pso.Get());
-
 		dx12SetCommandListClientArea(context);
 
 		// Indicate a state transition on the resource usage.
@@ -48,9 +45,16 @@ namespace VWolf {
 		// Specify the buffers we are going to render to.
 		dx12SetRenderTarget(context);
 
-		shader->Bind();
+		
 
-		for (int i = 0; i < items.size(); i++) {			
+		for (int i = 0; i < items.size(); i++) {	
+
+			Ref<Shader> shader = ShaderLibrary::GetShader(items[i]->shaderName.c_str());
+			auto pso = ((HLSLShader*)shader.get())->GetPipeline();
+			context->mCommandList->SetPipelineState(pso.Get());
+
+			shader->Bind();
+
 			groups[i]->Bind();
 			context->mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			shader->SetData(&projection, "Camera", sizeof(VWolf::MatrixFloat4x4), i);
