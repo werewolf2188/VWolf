@@ -33,8 +33,9 @@ namespace VWolf {
 
 		float GetPitch() const { return m_Pitch; }
 		float GetYaw() const { return m_Yaw; }
-
-		virtual const MatrixFloat4x4& GetProjection() const override { return GetViewProjection(); }
+        Vector2Float GetDisplaySize() { return { m_ViewportWidth,  m_ViewportHeight }; }
+        float GetNearZ() const { return m_NearClip; }
+        float GetFarZ() const { return m_FarClip; }
 	private:
 		void UpdateProjection();
 		void UpdateView();

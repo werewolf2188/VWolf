@@ -31,7 +31,7 @@ namespace VWolf {
 
 		frame = context->mCurrBackBuffer;
 
-		MatrixFloat4x4 projection = m_camera->GetProjection();
+        CameraPass projection = GetCameraPass();
 		
 		dx12ResetCommandList(context, nullptr);
 		dx12SetCommandListClientArea(context);
@@ -56,8 +56,8 @@ namespace VWolf {
 
 			groups[i]->Bind();
 			context->mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			shader->SetData(&projection, "Camera", sizeof(VWolf::MatrixFloat4x4), i);
-			shader->SetData(&items[i]->transform, "Object", sizeof(VWolf::MatrixFloat4x4), i);
+			shader->SetData(&projection, "Camera", sizeof(CameraPass), i);
+			shader->SetData(&items[i]->transform, "Object", sizeof(MatrixFloat4x4), i);
 			uint32_t count = groups[i]->GetIndexBuffer()->GetCount();
 
 			context->mCommandList->DrawIndexedInstanced(

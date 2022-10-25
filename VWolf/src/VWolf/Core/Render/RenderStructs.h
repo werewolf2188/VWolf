@@ -213,5 +213,24 @@ namespace VWolf {
         { ShaderDataType::Float3, "a_Tangent" },
         { ShaderDataType::Float2, "a_TexCoord" }
     };
+
+    struct CameraPass {
+        /* TODO: I don't know what this value does
+             float cbPerObjectPad1;
+         */
+        MatrixFloat4x4 view;
+        MatrixFloat4x4 invView;
+        MatrixFloat4x4 proj;
+        MatrixFloat4x4 invProj;
+        MatrixFloat4x4 viewProjection;
+        MatrixFloat4x4 invViewProjection;
+        Vector3Float eyePosition;
+        Vector2Float renderTargetSize;
+        Vector2Float invRenderTargetSize;
+        float nearZ;
+        float farZ;
+        float totalTime;
+        float deltaTime;
+    };
 }
 

@@ -294,8 +294,9 @@ public:
         camera = VWolf::CreateRef<VWolf::PerspectiveCamera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
         LoadShaderNames(DRIVER_TYPE);
 
+        // TODO: Move this inside the library
         std::initializer_list<VWolf::ShaderParameter> parameters = {
-         { "Camera", VWolf::ShaderParameterType::In, 0, sizeof(VWolf::MatrixFloat4x4) },
+         { "Camera", VWolf::ShaderParameterType::In, 0, sizeof(VWolf::CameraPass) },
          { "Object", VWolf::ShaderParameterType::In, 1, sizeof(VWolf::MatrixFloat4x4) }
         };
         for (int i = 0; i < NUMSHADERS; i++) {

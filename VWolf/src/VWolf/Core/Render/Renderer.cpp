@@ -4,10 +4,12 @@
 
 #include "RenderItem.h"
 
+#include "VWolf/Core/Time.h"
+
 namespace VWolf {
     Scope<Renderer> Renderer::rendererImpl = nullptr;
 
-    void Renderer::Begin(Ref<Camera> camera) {
+    void Renderer::Begin(Ref<PerspectiveCamera> camera) {
         rendererImpl->m_camera = camera;
     }
 
@@ -31,5 +33,23 @@ namespace VWolf {
     void Renderer::End() {
         rendererImpl->ProcessItems();
         rendererImpl->items.clear();
+    }
+
+    CameraPass Renderer::GetCameraPass() {
+        return {
+            m_camera->GetViewMatrix(),
+            inverse(m_camera->GetViewMatrix()),
+            m_camera->GetProjection(),
+            inverse(m_camera->GetProjection()),
+            m_camera->GetViewProjection(),
+            inverse(m_camera->GetViewProjection()),
+            m_camera->GetPosition(),
+            m_camera->GetDisplaySize(),
+            { 1 / m_camera->GetDisplaySize().x, 1 / m_camera->GetDisplaySize().y },
+            m_camera->GetNearZ(),
+            m_camera->GetFarZ(),
+            Time::GetTotalTime(),
+            Time::GetDeltaTime()
+        };
     }
 }

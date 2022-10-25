@@ -6,12 +6,25 @@ layout(location = 2) in vec3 a_Normal;
 layout(location = 3) in vec3 a_Tangent;
 layout(location = 2) in vec2 a_TexCoord;
 
-layout(std140) uniform Camera
-{
-	mat4 u_ViewProjection;
-};
 layout(std140) uniform Object {
     mat4 u_Transform;
+};
+
+layout(std140) uniform Camera
+{
+    mat4 u_View;
+    mat4 u_InvView;
+    mat4 u_Proj;
+    mat4 u_InvProj;
+    mat4 u_ViewProjection;
+    mat4 u_InvViewProjection;
+    vec3 u_EyePosition;
+    vec2 u_RenderTargetSize;
+    vec2 u_InvRenderTargetSize;
+    float u_NearZ;
+    float u_FarZ;
+    float u_TotalTime;
+    float u_DeltaTime;
 };
 
 out vec3 v_Position;

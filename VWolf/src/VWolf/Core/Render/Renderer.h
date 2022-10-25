@@ -1,7 +1,8 @@
 #pragma once
 
 #include "VWolf/Core/Base.h"
-#include "Camera.h"
+// TODO: Merge camera classes into one
+#include "PerspectiveCamera.h"
 #include "Shader.h"
 #include "Buffer.h"
 #include "BufferGroup.h"
@@ -15,7 +16,7 @@ namespace VWolf {
     public:
         virtual ~Renderer() = default;
     public:
-        static void Begin(Ref<Camera> camera);
+        static void Begin(Ref<PerspectiveCamera> camera);
         static void ClearColor(Color color);
         static void Clear();
         static void SetShader(const char* shaderName);
@@ -26,8 +27,9 @@ namespace VWolf {
 #endif
     protected:
         virtual void ProcessItems() = 0;
+        CameraPass GetCameraPass();
     protected:
-        Ref<Camera> m_camera;
+        Ref<PerspectiveCamera> m_camera;
         Color backgroundColor;
         std::string shaderName;
         std::vector<Ref<RenderItem>> items;
