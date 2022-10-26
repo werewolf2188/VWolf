@@ -23,9 +23,17 @@ namespace VWolf {
         virtual void SetData(const void* data, const char* name, uint32_t size, uint32_t offset = 0) override;
 
 		unsigned int GetProgramID() { return programId; }
+    private:
+        void SetConfiguration() const;
+        void SetRasterization() const;
+        void SetBlend() const;
+        void SetDepthStencil() const;
 	private:
 		GLFWwindow* m_window;
 		unsigned int programId;
         std::map<const char*, int> m_uniformBuffers;
+
+    private:
+        static int totalParams;
 	};
 }

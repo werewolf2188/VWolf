@@ -1,6 +1,18 @@
 cbuffer cbPerCamera : register(b0)
 {
+	float4x4 u_View;
+	float4x4 u_InvView;
+	float4x4 u_Proj;
+	float4x4 u_InvProj;
 	float4x4 u_ViewProjection;
+	float4x4 u_InvViewProjection;
+	float3 u_EyePosition;
+	float2 u_RenderTargetSize;
+	float2 u_InvRenderTargetSize;
+	float u_NearZ;
+	float u_FarZ;
+	float u_TotalTime;
+	float u_DeltaTime;
 };
 
 cbuffer cbPerObject : register(b1)
@@ -12,6 +24,9 @@ struct VertexIn
 {
 	float3 PosL  : a_Position;
 	float4 Color : a_Color;
+	float3 Normal  : a_Normal;
+	float3 Tangent  : a_Tangent;
+	float2 TexCoord  : a_TexCoord;
 };
 
 struct VertexOut
@@ -44,7 +59,7 @@ VertexOut VS(VertexIn vin)
 	vout.PosH = mul(u_ViewProjection, vout.PosH);
 
 	// Just pass vertex color into the pixel shader.	
-	vout.Color = vin.Color;
+	vout.Color = float4(1.0f, 0.0f, 0.0f, 1.0f);//vin.Color;
 	return vout;
 }
 

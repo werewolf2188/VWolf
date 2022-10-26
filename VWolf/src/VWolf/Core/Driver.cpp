@@ -14,6 +14,7 @@ namespace VWolf {
 		virtual void Initialize(InitConfiguration config, WindowEventCallback& callback) override {};
 		virtual void Shutdown() override {};
 		virtual void OnUpdate() override {};
+        virtual void Resize(unsigned int m_Width, unsigned int m_Height) override {};
 	};
 
 	Scope<Driver> Driver::GetDriver(DriverType type) {

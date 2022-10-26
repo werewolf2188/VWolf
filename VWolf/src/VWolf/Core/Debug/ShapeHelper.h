@@ -7,38 +7,12 @@
 
 #pragma once
 #include "VWolf/Core/Math/Math.h"
+#include "VWolf/Core/Render/RenderStructs.h"
 #ifdef VWOLF_PLATFORM_MACOS
 #include <vector>
 #endif
 
 namespace VWolf {   
-
-    struct Vertex {
-        Vertex() {
-            position = Vector3Float(0, 0, 0);
-            color = Vector4Float(0, 0, 0, 1);
-        }
-
-        Vertex(float x, float y, float z, float r, float g, float b, float a) {
-            position = Vector3Float(x, y, z);
-            color = Vector4Float(r, g, b, a);
-        }
-
-        Vertex(Vector3Float pos, Vector4Float col) {
-            position = pos;
-            color = col;
-        }
-        Vector3Float position;
-        Vector4Float color;
-    };
-
-    struct MeshData {
-    public:
-        std::vector<float> GetVertices();
-        std::vector<Vertex> vertices;
-        std::vector<std::uint32_t> indices;
-    };
-
     class ShapeHelper {
     public:
         static MeshData CreateBox(float width, float height, float depth, std::uint32_t numSubdivisions);

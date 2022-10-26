@@ -9,8 +9,17 @@
 
 #include "VWolf/Platform/UI/OpenGLUIManager.h"
 
-#include "VWolf/Platform/Render/OpenGLRenderAPI.h"
 #include "VWolf/Core/Render/Renderer.h"
+#include "VWolf/Platform/Render/OpenGLRenderer.h"
+
+#include "VWolf/Core/Render/Shader.h"
+#include "VWolf/Platform/Render/GLSLShader.h"
+
+#include "VWolf/Core/Render/Buffer.h"
+#include "VWolf/Platform/Render/OpenGLBuffer.h"
+
+#include "VWolf/Core/Render/BufferGroup.h"
+#include "VWolf/Platform/Render/OpenGLVertexArray.h"
 
 #include "VWolf/Core/Time.h"
 
@@ -65,8 +74,34 @@ namespace VWolf {
 
 		window = CreateRef<GLFWWindow>(config, callback);
 		UIManager::SetDefault(CreateRef<OpenGLUIManager>((GLFWwindow*)window->GetNativeWindow()));
-		Renderer::SetRenderAPI(CreateScope<OpenGLRenderAPI>((GLFWwindow *)window->GetNativeWindow()));
+        Renderer::SetRenderer(CreateScope<OpenGLRenderer>((GLFWwindow *)window->GetNativeWindow()));
 		Time::SetTimeImplementation(CreateRef<GLFWTime>());
+
+		Shader::SetDefaultCreateMethod([this](const char* name,
+			ShaderSource vertexShader,
+			BufferLayout layout,
+			std::initializer_list<ShaderSource> otherShaders,
+			std::initializer_list<ShaderParameter> parameters,
+			ShaderConfiguration configuration) {
+				return CreateRef<GLSLShader>((GLFWwindow*)window->GetNativeWindow(), name, vertexShader, layout, otherShaders, parameters, configuration);
+		});
+
+		VertexBuffer::SetDefaultCreateSizeMethod([this](uint32_t size) {
+			return CreateRef<OpenGLVertexBuffer>((GLFWwindow*)window->GetNativeWindow(), size);
+		});
+
+		VertexBuffer::SetDefaultCreateDataAndSizeMethod([this](float* vertices, uint32_t size) {
+			return CreateRef<OpenGLVertexBuffer>((GLFWwindow*)window->GetNativeWindow(), vertices, size);
+		});
+
+		IndexBuffer::SetDefaultCreateMethod([this](uint32_t* indices, uint32_t count) {
+			return CreateRef<OpenGLIndexBuffer>((GLFWwindow*)window->GetNativeWindow(), indices, count);
+		});
+
+		BufferGroup::SetDefaultCreateMethod([this]() {
+			return CreateRef<OpenGLVertexArray>((GLFWwindow*)window->GetNativeWindow());
+		});
+
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
 			std::cout << "Failed to initialize GLAD" << std::endl;
@@ -82,18 +117,11 @@ namespace VWolf {
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
         }
 #endif
-		// These should be settings
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_CULL_FACE);		
-		glCullFace(GL_FRONT); 
-
-		glEnable(GL_DEPTH_TEST);
-		//
 	}
 
 	void OpenGLDriver::Shutdown()
 	{
+		window.reset();
 		glfwTerminate();
 	}
 
@@ -105,4 +133,15 @@ namespace VWolf {
 	void OpenGLDriver::OnEvent(Event& evt) {
 		callback->OnEvent(evt);
 	}
+
+    void OpenGLDriver::Resize(unsigned int m_Width, unsigned int m_Height) {
+#ifdef VWOLF_PLATFORM_MACOS
+        int width;
+        int height;
+        glfwGetFramebufferSize((GLFWwindow*)window->GetNativeWindow(), &width, &height);
+        glViewport(0, 0, width, height);
+#else
+        glViewport(0, 0, m_Width, m_Height);
+#endif
+    }
 }

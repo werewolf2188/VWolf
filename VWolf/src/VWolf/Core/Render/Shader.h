@@ -44,7 +44,43 @@ namespace VWolf {
     };
 
     struct ShaderConfiguration {
-        
+        struct Rasterization {
+            bool cullEnabled = true;
+            enum class FillMode { Wireframe, Solid };
+            enum class CullMode { Front, Back, FrontAndBack };
+            
+            FillMode fillMode = FillMode::Solid;
+            CullMode cullMode = CullMode::Back;
+            bool counterClockwise = false;
+        };
+
+        struct DepthStencil {
+            bool depthTest = true;
+        };
+
+        struct Blend {
+            enum class Equation { Add, Substract, ReverseSubstract, Min, Max };
+            enum class Function {
+                Zero, One,
+                SrcColor, InvSrcColor,
+                DstColor, InvDstColor,
+                SrcAlpha, InvSrcAlpha,
+                DstAlpha, InvDstAlpha,
+                Src1Color, InvSrc1Color,
+                Src1Alpha, InvSrc1Alpha,
+                SrcAlphaSat,
+                CnstColor, InvCnstColor,
+                CnstAlpha, InvCnstAlpha
+            };
+            
+            bool enabled = true;
+            Equation equation = Equation::Add;
+            Function sourceFunction = Function::SrcAlpha;
+            Function destinationFunction = Function::InvSrcAlpha;
+        };
+        Rasterization rasterization = Rasterization();
+        DepthStencil depthStencil = DepthStencil();
+        Blend blend = Blend();
     };
 
 	class Shader {
@@ -111,4 +147,30 @@ namespace VWolf {
                                      std::initializer_list<ShaderSource> otherShaders,
                                      std::initializer_list<ShaderParameter> parameters,
                                      ShaderConfiguration configuration)> Shader::m_create = nullptr;
+
+    class ShaderLibrary {
+    public:
+        static void LoadShader(const char* name,
+                               ShaderSource vertexShader,
+                               std::initializer_list<ShaderSource> otherShaders,
+                               std::initializer_list<ShaderParameter> parameters,
+            ShaderConfiguration configuration = {}) {
+            
+            m_shaders.push_back(Shader::Create(name, vertexShader, MeshData::Layout, otherShaders, parameters, configuration));
+        }
+
+        static Ref<Shader> GetShader(const char* name) {
+            for (auto shader: m_shaders) {
+                std::string shaderName = shader->GetName();
+                if (shaderName == name) {
+                    return shader;
+                }
+            }
+            return nullptr;
+        }
+    private:
+        static std::vector<Ref<Shader>> m_shaders;
+    };
+
+    inline std::vector<Ref<Shader>> ShaderLibrary::m_shaders;
 }

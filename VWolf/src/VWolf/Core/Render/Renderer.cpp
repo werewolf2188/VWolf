@@ -2,32 +2,54 @@
 
 #include "Renderer.h"
 
-namespace VWolf {
-	Scope<RenderAPI> Renderer::m_renderApi = nullptr;
+#include "RenderItem.h"
 
-	void Renderer::Begin(Camera& camera, Ref<Shader> shader)
-	{		
-		m_renderApi->Begin(camera, shader);
-	}
-	void Renderer::ClearColor(Color color)
-	{
-		m_renderApi->ClearColor(color);
-	}
-	void Renderer::Clear()
-	{
-		m_renderApi->Clear();
-	}
-	void Renderer::End()
-	{
-		m_renderApi->End();
-	}
-	void Renderer::Resize(unsigned int m_Width, unsigned int m_Height)
-	{
-		m_renderApi->Resize(m_Width, m_Height);
-	}
-	void Renderer::Submit(Ref<BufferGroup> group, MatrixFloat4x4 transform)
-	{
-		group->Bind();
-		m_renderApi->DrawIndexed(group, 0);
-	}
+#include "VWolf/Core/Time.h"
+
+namespace VWolf {
+    Scope<Renderer> Renderer::rendererImpl = nullptr;
+
+    void Renderer::Begin(Ref<PerspectiveCamera> camera) {
+        rendererImpl->m_camera = camera;
+    }
+
+    void Renderer::ClearColor(Color color) {
+        rendererImpl->backgroundColor = color;
+        rendererImpl->clearColor = true;
+    }
+
+    void Renderer::Clear() {
+        rendererImpl->clearDepthStencil = true;
+    }
+
+    void Renderer::SetShader(const char* shaderName) {
+        rendererImpl->shaderName = shaderName;
+    }
+
+    void Renderer::DrawMesh(MeshData& meshData, MatrixFloat4x4 transform) {
+        rendererImpl->items.push_back(CreateRef<RenderItem>(meshData, rendererImpl->shaderName, transform));
+    }
+
+    void Renderer::End() {
+        rendererImpl->ProcessItems();
+        rendererImpl->items.clear();
+    }
+
+    CameraPass Renderer::GetCameraPass() {
+        return {
+            m_camera->GetViewMatrix(),
+            inverse(m_camera->GetViewMatrix()),
+            m_camera->GetProjection(),
+            inverse(m_camera->GetProjection()),
+            m_camera->GetViewProjection(),
+            inverse(m_camera->GetViewProjection()),
+            m_camera->GetPosition(),
+            m_camera->GetDisplaySize(),
+            { 1 / m_camera->GetDisplaySize().x, 1 / m_camera->GetDisplaySize().y },
+            m_camera->GetNearZ(),
+            m_camera->GetFarZ(),
+            Time::GetTotalTime(),
+            Time::GetDeltaTime()
+        };
+    }
 }

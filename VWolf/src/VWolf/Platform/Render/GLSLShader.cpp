@@ -12,6 +12,8 @@
 
 namespace VWolf {
 
+    int GLSLShader::totalParams = 0;
+
     GLuint ShaderTypeEquivalent(ShaderType type) {
         switch (type) {
             case ShaderType::Vertex: return GL_VERTEX_SHADER;
@@ -105,16 +107,16 @@ namespace VWolf {
 
         for (ShaderParameter param: m_parameters) {
             unsigned int uniformBlock = glGetUniformBlockIndex(programId, param.name);
-            glUniformBlockBinding(programId, uniformBlock, param.binding);
+            glUniformBlockBinding(programId, uniformBlock, param.binding + totalParams);
     
             glBindBuffer(GL_UNIFORM_BUFFER, *(uniformBuffers + index));
             glBufferData(GL_UNIFORM_BUFFER, param.size, nullptr, GL_STATIC_DRAW); // TODO: investigate usage hint
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
-            glBindBufferBase(GL_UNIFORM_BUFFER, param.binding, *(uniformBuffers + index));
+            glBindBufferBase(GL_UNIFORM_BUFFER, param.binding + totalParams, *(uniformBuffers + index));
             m_uniformBuffers.insert(std::pair<const char*, int>(param.name, *(uniformBuffers + index)));
             index++;
         }
-        
+        totalParams += index;
 	}
 	GLSLShader::~GLSLShader()
 	{
@@ -127,11 +129,135 @@ namespace VWolf {
 	void GLSLShader::Bind() const
 	{
 		glUseProgram(programId);
+        // Configuration
+        SetConfiguration();
+
+        switch (m_configuration.blend.equation) {
+            case ShaderConfiguration::Blend::Equation::Add:
+                glBlendEquation(GL_FUNC_ADD);
+                break;
+            case ShaderConfiguration::Blend::Equation::Substract:
+                glBlendEquation(GL_FUNC_SUBTRACT);
+                break;
+            case ShaderConfiguration::Blend::Equation::ReverseSubstract:
+                glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+                break;
+            case ShaderConfiguration::Blend::Equation::Min:
+                glBlendEquation(GL_MIN);
+                break;
+            case ShaderConfiguration::Blend::Equation::Max:
+                glBlendEquation(GL_MAX);
+                break;
+        }
 	}
+
+    void GLSLShader::SetConfiguration() const {
+        SetRasterization();
+        SetBlend();
+        SetDepthStencil();
+    }
+
+    void GLSLShader::SetRasterization() const {
+        // Rasterization
+        if (m_configuration.rasterization.cullEnabled)
+            glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
+
+        switch (m_configuration.rasterization.cullMode) {
+            case ShaderConfiguration::Rasterization::CullMode::Front:
+                glCullFace(GL_FRONT);
+                break;
+            case ShaderConfiguration::Rasterization::CullMode::Back:
+                glCullFace(GL_BACK);
+                break;
+            case ShaderConfiguration::Rasterization::CullMode::FrontAndBack:
+                glCullFace(GL_FRONT_AND_BACK);
+                break;
+        }
+
+        switch (m_configuration.rasterization.fillMode) {
+            case ShaderConfiguration::Rasterization::FillMode::Wireframe:
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                break;
+            case ShaderConfiguration::Rasterization::FillMode::Solid:
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                break;
+        }
+
+        glFrontFace(m_configuration.rasterization.counterClockwise ? GL_CCW: GL_CW);
+
+    }
+
+    GLuint GetBlendFunction(ShaderConfiguration::Blend::Function function) {
+        switch (function) {
+            case ShaderConfiguration::Blend::Function::Zero: return GL_ZERO;
+            case ShaderConfiguration::Blend::Function::One: return GL_ONE;
+            case ShaderConfiguration::Blend::Function::SrcColor: return GL_SRC_COLOR;
+            case ShaderConfiguration::Blend::Function::InvSrcColor: return GL_ONE_MINUS_SRC_COLOR;
+            case ShaderConfiguration::Blend::Function::DstColor: return GL_DST_COLOR;
+            case ShaderConfiguration::Blend::Function::InvDstColor: return GL_ONE_MINUS_DST_COLOR;
+            case ShaderConfiguration::Blend::Function::SrcAlpha: return GL_SRC_ALPHA;
+            case ShaderConfiguration::Blend::Function::InvSrcAlpha: return GL_ONE_MINUS_SRC_ALPHA;
+            case ShaderConfiguration::Blend::Function::DstAlpha: return GL_DST_ALPHA;
+            case ShaderConfiguration::Blend::Function::InvDstAlpha: return GL_ONE_MINUS_DST_ALPHA;
+            case ShaderConfiguration::Blend::Function::Src1Color: return GL_SRC1_COLOR;
+            case ShaderConfiguration::Blend::Function::InvSrc1Color: return GL_ONE_MINUS_SRC1_COLOR;
+            case ShaderConfiguration::Blend::Function::Src1Alpha: return GL_SRC1_ALPHA;
+            case ShaderConfiguration::Blend::Function::InvSrc1Alpha: return GL_ONE_MINUS_SRC1_ALPHA;
+            case ShaderConfiguration::Blend::Function::SrcAlphaSat: return GL_SRC_ALPHA_SATURATE;
+            case ShaderConfiguration::Blend::Function::CnstColor: return GL_CONSTANT_COLOR;
+            case ShaderConfiguration::Blend::Function::InvCnstColor: return GL_ONE_MINUS_CONSTANT_COLOR;
+            case ShaderConfiguration::Blend::Function::CnstAlpha: return GL_CONSTANT_ALPHA;
+            case ShaderConfiguration::Blend::Function::InvCnstAlpha: return GL_ONE_MINUS_CONSTANT_ALPHA;
+        }
+        return GL_ZERO;
+    }
+
+    void GLSLShader::SetBlend() const {
+        // Blend
+        if (m_configuration.blend.enabled)
+            glEnable(GL_BLEND);
+        else
+            glDisable(GL_BLEND);
+
+        GLuint sourceFunction, destinationFunction;
+        sourceFunction = GetBlendFunction(m_configuration.blend.sourceFunction);
+        destinationFunction = GetBlendFunction(m_configuration.blend.destinationFunction);
+        glBlendFunc(sourceFunction, destinationFunction);
+        
+        switch (m_configuration.blend.equation) {
+            case ShaderConfiguration::Blend::Equation::Add:
+                glBlendEquation(GL_FUNC_ADD);
+                break;
+            case ShaderConfiguration::Blend::Equation::Substract:
+                glBlendEquation(GL_FUNC_SUBTRACT);
+                break;
+            case ShaderConfiguration::Blend::Equation::ReverseSubstract:
+                glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+                break;
+            case ShaderConfiguration::Blend::Equation::Min:
+                glBlendEquation(GL_MIN);
+                break;
+            case ShaderConfiguration::Blend::Equation::Max:
+                glBlendEquation(GL_MAX);
+                break;
+        }
+    }
+
+    void GLSLShader::SetDepthStencil() const {
+        // Depth/Stencil
+        if (m_configuration.depthStencil.depthTest)
+            glEnable(GL_DEPTH_TEST);
+        else
+            glDisable(GL_DEPTH_TEST);
+    }
+
 	void GLSLShader::Unbind() const
 	{
 		glUseProgram(0);
 	}
+
 	const char* GLSLShader::GetName() const
 	{
 		return this->m_name;

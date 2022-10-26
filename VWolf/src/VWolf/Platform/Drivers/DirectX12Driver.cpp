@@ -8,8 +8,17 @@
 #include "VWolf/Platform/UI/DirectX12UIManager.h"
 #include "VWolf/Platform/Windows/WinWindow.h"
 
-#include "VWolf/Platform/Render/DirectX12RenderAPI.h"
 #include "VWolf/Core/Render/Renderer.h"
+#include "VWolf/Platform/Render/DirectX12Renderer.h"
+
+#include "VWolf/Core/Render/Shader.h"
+#include "VWolf/Platform/Render/HLSLShader.h"
+
+#include "VWolf/Core/Render/Buffer.h"
+#include "VWolf/Platform/Render/DirectX12Buffer.h"
+
+#include "VWolf/Core/Render/BufferGroup.h"
+#include "VWolf/Platform/Render/DirectX12BufferGroup.h"
 
 #include "VWolf/Core/Time.h"
 
@@ -55,8 +64,33 @@ namespace VWolf {
 		dx12ResizeBuffers(context, config.width, config.height);
 
 		UIManager::SetDefault(CreateRef<DirectX12UIManager>((HWND__*)window->GetNativeWindow(), context));
-		Renderer::SetRenderAPI(CreateScope<DirectX12RenderAPI>((HWND__*)window->GetNativeWindow(), context));
+		Renderer::SetRenderer(CreateScope<DirectX12Renderer>((HWND__*)window->GetNativeWindow(), context));
 		Time::SetTimeImplementation(CreateRef<WindowsTime>());
+
+		Shader::SetDefaultCreateMethod([this](const char* name,
+			ShaderSource vertexShader,
+			BufferLayout layout,
+			std::initializer_list<ShaderSource> otherShaders,
+			std::initializer_list<ShaderParameter> parameters,
+			ShaderConfiguration configuration) {
+				return CreateRef<HLSLShader>((HWND__*)window->GetNativeWindow(), context, name, vertexShader, layout, otherShaders, parameters, configuration);
+		});
+
+		VertexBuffer::SetDefaultCreateSizeMethod([this](uint32_t size) {
+			return CreateRef<DirectX12VertexBuffer>((HWND__*)window->GetNativeWindow(), context, size);
+		});
+
+		VertexBuffer::SetDefaultCreateDataAndSizeMethod([this](float* vertices, uint32_t size) {
+			return CreateRef<DirectX12VertexBuffer>((HWND__*)window->GetNativeWindow(), context, vertices, size);
+		});
+
+		IndexBuffer::SetDefaultCreateMethod([this](uint32_t* indices, uint32_t count) {
+			return CreateRef<DirectX12IndexBuffer>((HWND__*)window->GetNativeWindow(), context, indices, count);
+		});
+
+		BufferGroup::SetDefaultCreateMethod([this]() {
+			return CreateRef<DirectX12BufferGroup>((HWND__*)window->GetNativeWindow(), context);
+		});
 	}
 
 	void DirectX12Driver::OnUpdate() {
@@ -76,5 +110,10 @@ namespace VWolf {
 	void DirectX12Driver::OnEvent(Event& evt) {
 		callback->OnEvent(evt);
 	}
+
+    void DirectX12Driver::Resize(unsigned int m_Width, unsigned int m_Height) {
+        if ((m_Width == 0 && m_Height == 0) || context == nullptr) return;
+        dx12ResizeBuffers(context, m_Width, m_Height);
+    }
 }
 #endif

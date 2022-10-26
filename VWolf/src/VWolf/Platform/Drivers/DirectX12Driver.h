@@ -14,6 +14,7 @@ namespace VWolf {
 		virtual void Shutdown() override;
 		virtual void OnUpdate() override;
 		virtual void OnEvent(Event& evt) override;
+        virtual void Resize(unsigned int m_Width, unsigned int m_Height) override;
 	private:
 		HINSTANCE__* handle;
 		WindowEventCallback* callback;

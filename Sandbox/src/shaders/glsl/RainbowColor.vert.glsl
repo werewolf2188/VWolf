@@ -12,10 +12,6 @@ layout(std140) uniform Object {
 
 layout(std140) uniform Camera
 {
-    /*
-        TODO: I don't know what this value does
-         float cbPerObjectPad1;
-     */
     mat4 u_View;
     mat4 u_InvView;
     mat4 u_Proj;

@@ -203,8 +203,14 @@ namespace VWolf {
 
 	void GLFWWindow::Initialize()
 	{
-		// TODO: Move
-		glViewport(0, 0, width, height);
+#ifdef VWOLF_PLATFORM_MACOS
+        int width;
+        int height;
+        glfwGetFramebufferSize(m_window, &width, &height);
+        glViewport(0, 0, width, height);
+#else
+        glViewport(0, 0, width, height);
+#endif
 	}
 
 	void GLFWWindow::OnUpdate() {

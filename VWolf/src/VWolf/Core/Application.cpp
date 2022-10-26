@@ -105,8 +105,7 @@ namespace VWolf {
 	bool Application::OnWindowResize(WindowResizeEvent& e) {
 		VWOLF_CORE_DEBUG(e.ToString());
 		m_minimized = e.GetHeight() == 0 && e.GetWidth() == 0;
-		if (Renderer::Ready())
-			Renderer::Resize(e.GetWidth(), e.GetHeight());
+        driver->Resize(e.GetWidth(), e.GetHeight());
 		return false;
 	}
 }
