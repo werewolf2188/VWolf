@@ -19,7 +19,8 @@ namespace VWolf {
         static void Begin(Ref<PerspectiveCamera> camera);
         static void ClearColor(Color color);
         static void Clear();
-        static void SetShader(const char* shaderName);
+        static void SetMaterial(AbstractMaterial& material);
+        static void SetLight(Light& light);
         static void DrawMesh(MeshData& meshData, MatrixFloat4x4 transform);
         static void End();
 #ifdef VWOLF_CORE
@@ -31,7 +32,8 @@ namespace VWolf {
     protected:
         Ref<PerspectiveCamera> m_camera;
         Color backgroundColor;
-        std::string shaderName;
+        AbstractMaterial* material;
+        Light* light;
         std::vector<Ref<RenderItem>> items;
         bool clearColor = false;
         bool clearDepthStencil = false;

@@ -89,7 +89,7 @@ namespace VWolf {
                ShaderSource vertexShader,
                BufferLayout layout,
                std::initializer_list<ShaderSource> otherShaders,
-               std::initializer_list<ShaderParameter> parameters,
+               std::vector<ShaderParameter> parameters,
                ShaderConfiguration configuration):
         m_name(name),
         m_vertexShader(vertexShader),
@@ -113,7 +113,7 @@ namespace VWolf {
                                   ShaderSource vertexShader,
                                   BufferLayout layout,
                                   std::initializer_list<ShaderSource> otherShaders,
-                                  std::initializer_list<ShaderParameter> parameters,
+                                  std::vector<ShaderParameter> parameters,
                                   ShaderConfiguration configuration) {
 			return m_create(name, vertexShader, layout, otherShaders, parameters, configuration);
 		}
@@ -122,7 +122,7 @@ namespace VWolf {
                                                                      ShaderSource vertexShader,
                                                                      BufferLayout layout,
                                                                      std::initializer_list<ShaderSource> otherShaders,
-                                                                     std::initializer_list<ShaderParameter> parameters,
+                                                                     std::vector<ShaderParameter> parameters,
                                                                      ShaderConfiguration configuration)> create) { m_create = create; }
 #endif
 	protected:
@@ -137,7 +137,7 @@ namespace VWolf {
                                          ShaderSource vertexShader,
                                          BufferLayout layout,
                                          std::initializer_list<ShaderSource> otherShaders,
-                                         std::initializer_list<ShaderParameter> parameters,
+                                         std::vector<ShaderParameter> parameters,
                                          ShaderConfiguration configuration)> m_create;
 	};
 
@@ -145,18 +145,28 @@ namespace VWolf {
                                      ShaderSource vertexShader,
                                      BufferLayout layout,
                                      std::initializer_list<ShaderSource> otherShaders,
-                                     std::initializer_list<ShaderParameter> parameters,
+                                     std::vector<ShaderParameter> parameters,
                                      ShaderConfiguration configuration)> Shader::m_create = nullptr;
 
     class ShaderLibrary {
     public:
+        // TODO: Not sure if this should live here.
+        static const char* CameraBufferName;
+        static const char* ObjectBufferName;
+
         static void LoadShader(const char* name,
                                ShaderSource vertexShader,
                                std::initializer_list<ShaderSource> otherShaders,
                                std::initializer_list<ShaderParameter> parameters,
             ShaderConfiguration configuration = {}) {
             
-            m_shaders.push_back(Shader::Create(name, vertexShader, MeshData::Layout, otherShaders, parameters, configuration));
+            std::vector<VWolf::ShaderParameter> minimalParameters = {
+             { ShaderLibrary::CameraBufferName, VWolf::ShaderParameterType::In, 0, sizeof(VWolf::CameraPass) },
+             { ShaderLibrary::ObjectBufferName, VWolf::ShaderParameterType::In, 1, sizeof(VWolf::MatrixFloat4x4) }
+            };
+            
+            minimalParameters.insert(minimalParameters.end(), parameters.begin(), parameters.end());
+            m_shaders.push_back(Shader::Create(name, vertexShader, MeshData::Layout, otherShaders, minimalParameters, configuration));
         }
 
         static Ref<Shader> GetShader(const char* name) {
@@ -173,4 +183,6 @@ namespace VWolf {
     };
 
     inline std::vector<Ref<Shader>> ShaderLibrary::m_shaders;
+    inline const char* ShaderLibrary::CameraBufferName = "Camera";
+    inline const char* ShaderLibrary::ObjectBufferName = "Object";
 }

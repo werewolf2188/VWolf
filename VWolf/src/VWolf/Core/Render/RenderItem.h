@@ -15,10 +15,18 @@
 namespace VWolf {
     struct RenderItem {
         MeshData& data;
-        std::string shaderName;
+        AbstractMaterial& material;
+        Light& light;
         MatrixFloat4x4 transform;
 
-        RenderItem(MeshData& data, std::string shaderName, MatrixFloat4x4 transform): data(data), shaderName(shaderName), transform(transform) {
+        RenderItem(MeshData& data,
+                   AbstractMaterial& material,
+                   Light& light,
+                   MatrixFloat4x4 transform):
+        data(data),
+        material(material),
+        light(light),
+        transform(transform) {
             
         }
     };

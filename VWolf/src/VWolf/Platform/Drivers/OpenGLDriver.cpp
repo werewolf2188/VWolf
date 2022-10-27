@@ -81,7 +81,7 @@ namespace VWolf {
 			ShaderSource vertexShader,
 			BufferLayout layout,
 			std::initializer_list<ShaderSource> otherShaders,
-			std::initializer_list<ShaderParameter> parameters,
+			std::vector<ShaderParameter> parameters,
 			ShaderConfiguration configuration) {
 				return CreateRef<GLSLShader>((GLFWwindow*)window->GetNativeWindow(), name, vertexShader, layout, otherShaders, parameters, configuration);
 		});

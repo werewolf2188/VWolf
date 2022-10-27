@@ -22,12 +22,16 @@ namespace VWolf {
         rendererImpl->clearDepthStencil = true;
     }
 
-    void Renderer::SetShader(const char* shaderName) {
-        rendererImpl->shaderName = shaderName;
+    void Renderer::SetMaterial(AbstractMaterial& material) {
+        rendererImpl->material = &material;
+    }
+
+    void Renderer::SetLight(Light& light) {
+        rendererImpl->light = &light;
     }
 
     void Renderer::DrawMesh(MeshData& meshData, MatrixFloat4x4 transform) {
-        rendererImpl->items.push_back(CreateRef<RenderItem>(meshData, rendererImpl->shaderName, transform));
+        rendererImpl->items.push_back(CreateRef<RenderItem>(meshData, *rendererImpl->material, *rendererImpl->light, transform));
     }
 
     void Renderer::End() {

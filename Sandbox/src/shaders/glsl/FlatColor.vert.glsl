@@ -31,12 +31,53 @@ layout(std140) uniform Camera
     float u_DeltaTime;
 };
 
+layout(std140) uniform Material {
+    vec4 u_ambientColor;
+    vec4 u_diffuseColor;
+    vec3 u_specular;
+    float u_shinines;
+};
+
+layout(std140) uniform Light {
+//    uint u_type;
+    vec4 u_color;
+    vec3 u_direction;
+    vec3 u_position;
+    vec3 u_strength;
+    float u_falloffStart;
+    float u_falloffEnd;
+    float u_spotPower;
+};
+
 out vec3 v_Position;
 out vec4 v_Color;
+
+vec4 ComputePhongLightColor() {
+    mat3 normalMatrix = mat3(u_View * u_Transform);
+    
+    vec3 n = normalize(normalMatrix * a_Normal);
+    vec4 camCoords = (u_View * u_Transform) * vec4(a_Position, 1.0);
+    
+    vec4 ambient = u_ambientColor * u_color;
+    
+    vec3 s = normalize(u_position - camCoords.xyz);
+    float sDotN = max( dot(s,n), 0.0 );
+    vec4 diffuse = u_color * u_diffuseColor * sDotN;
+    
+    vec3 spec = vec3(0.0);
+    if( sDotN > 0.0 ) {
+      vec3 v = normalize(-camCoords.xyz);
+      vec3 r = reflect( -s, n );
+      spec = u_color.xyz * u_specular *
+              pow( max( dot(r,v), 0.0 ), u_shinines );
+    }
+
+    return ambient + diffuse + vec4(spec, 1.0);
+}
 
 void main()
 {
 	v_Position = a_Position;
-	v_Color = a_Color;
+	v_Color = ComputePhongLightColor();
 	gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);	
 }

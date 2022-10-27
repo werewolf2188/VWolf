@@ -12,7 +12,7 @@ namespace VWolf {
                    ShaderSource vertexShader,
                    BufferLayout layout,
                    std::initializer_list<ShaderSource> otherShaders,
-                   std::initializer_list<ShaderParameter> parameters,
+                   std::vector<ShaderParameter> parameters,
                    ShaderConfiguration configuration);
 		virtual ~GLSLShader();
 
