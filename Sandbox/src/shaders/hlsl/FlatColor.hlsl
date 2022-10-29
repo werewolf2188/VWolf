@@ -20,6 +20,24 @@ cbuffer cbPerObject : register(b1)
 	float4x4 u_Transform;
 };
 
+cbuffer cbPerMaterial : register(b2) {
+	float4 u_ambientColor;
+	float4 u_diffuseColor;
+	float3 u_specular;
+	float u_shinines;
+};
+
+cbuffer cbPerLight : register(b3) {
+	//    uint u_type;
+	float4 u_color;
+	float3 u_direction;
+	float3 u_position;
+	float3 u_strength;
+	float u_falloffStart;
+	float u_falloffEnd;
+	float u_spotPower;
+};
+
 struct VertexIn
 {
 	float3 PosL  : a_Position;
@@ -34,6 +52,54 @@ struct VertexOut
 	float4 PosH  : SV_POSITION;
 	float4 Color : a_Color;
 };
+
+/*
+* OPENGL
+vec4 ComputePhongLightColor() {
+	mat3 normalMatrix = mat3(u_View * u_Transform);
+
+	vec3 n = normalize(normalMatrix * a_Normal);
+	vec4 camCoords = (u_View * u_Transform) * vec4(a_Position, 1.0);
+
+	vec4 ambient = u_ambientColor * u_color;
+
+	vec3 s = normalize(u_position - camCoords.xyz);
+	float sDotN = max( dot(s,n), 0.0 );
+	vec4 diffuse = u_color * u_diffuseColor * sDotN;
+
+	vec3 spec = vec3(0.0);
+	if( sDotN > 0.0 ) {
+	  vec3 v = normalize(-camCoords.xyz);
+	  vec3 r = reflect( -s, n );
+	  spec = u_color.xyz * u_specular *
+			  pow( max( dot(r,v), 0.0 ), u_shinines );
+	}
+
+	return ambient + diffuse + vec4(spec, 1.0);
+}
+*/
+
+float4 ComputePhongLightColor(VertexIn vin) {
+	float3x3 normalMatrix = (float3x3) (u_View * u_Transform);
+	float3 n = normalize(mul(normalMatrix, vin.Normal));
+	float4 camCoords = mul(mul(u_View, u_Transform), float4(vin.PosL, 1.0f));
+
+	float4 ambient = u_ambientColor * u_color;
+
+	float3 s = normalize(u_position - camCoords.xyz);
+	float sDotN = max(dot(s, n), 0.0);
+	float4 diffuse = u_color * u_diffuseColor * sDotN;
+
+	float3 spec = float3(0.0, 0.0, 0.0);
+	if (sDotN > 0.0) {
+		float3 v = normalize(-camCoords.xyz);
+		float3 r = reflect(-s, n);
+		float maximum = max(dot(r, v), 0.0);
+		float shiny = pow(maximum, u_shinines);
+		spec = u_color.xyz * u_specular * shiny;
+	}
+	return ambient + diffuse + float4(spec, 1.0);
+}
 
 VertexOut VS(VertexIn vin)
 {
@@ -59,7 +125,7 @@ VertexOut VS(VertexIn vin)
 	vout.PosH = mul(u_ViewProjection, vout.PosH);
 
 	// Just pass vertex color into the pixel shader.	
-	vout.Color = float4(1.0f, 0.0f, 0.0f, 1.0f);//vin.Color;
+	vout.Color = ComputePhongLightColor(vin);//vin.Color;
 	return vout;
 }
 

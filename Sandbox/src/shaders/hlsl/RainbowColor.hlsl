@@ -20,6 +20,24 @@ cbuffer cbPerObject : register(b1)
 	float4x4 u_Transform;
 };
 
+cbuffer cbPerMaterial : register(b2) {
+	float4 u_ambientColor;
+	float4 u_diffuseColor;
+	float3 u_specular;
+	float u_shinines;
+};
+
+cbuffer cbPerLight : register(b3) {
+	//    uint u_type;
+	float4 u_color;
+	float3 u_direction;
+	float3 u_position;
+	float3 u_strength;
+	float u_falloffStart;
+	float u_falloffEnd;
+	float u_spotPower;
+};
+
 struct VertexIn
 {
 	float3 PosL  : a_Position;

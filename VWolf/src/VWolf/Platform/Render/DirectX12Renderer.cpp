@@ -48,6 +48,7 @@ namespace VWolf {
 		for (int i = 0; i < items.size(); i++) {	
 
 			Ref<Shader> shader = ShaderLibrary::GetShader(items[i]->material.GetShader().c_str());
+			void* material = items[i]->material.GetDataPointer();
 
 			auto pso = ((HLSLShader*)shader.get())->GetPipeline();
 			context->mCommandList->SetPipelineState(pso.Get());
@@ -58,6 +59,8 @@ namespace VWolf {
 			context->mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			shader->SetData(&projection, ShaderLibrary::CameraBufferName, sizeof(CameraPass), i);
 			shader->SetData(&items[i]->transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), i);
+			shader->SetData(material, items[i]->material.GetName(), items[i]->material.GetSize(), i);
+			shader->SetData(&items[i]->light, Light::LightName, sizeof(Light), i);
 			uint32_t count = groups[i]->GetIndexBuffer()->GetCount();
 
 			context->mCommandList->DrawIndexedInstanced(

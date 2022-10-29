@@ -8,6 +8,7 @@
 #include <array>
 
 #ifdef VWOLF_PLATFORM_WINDOWS
+# define M_PI           3.14159265358979323846  /* pi TODO: Move later*/
 #define DRIVER_TYPE VWolf::DriverType::DirectX12
 #else
 #define DRIVER_TYPE VWolf::DriverType::OpenGL
