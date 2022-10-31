@@ -125,6 +125,9 @@ public:
     Albedo* mat1;
     Albedo* mat2;
     
+    VWolf::MatrixFloat4x4 lightMatrix;
+    VWolf::MeshData lightMesh;
+    
     const char *materialName = "Material";
 public:
     RendererSandboxApplication(): Application(DRIVER_TYPE, { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
@@ -142,14 +145,15 @@ public:
         mat2->ambientColor = { 1.0f, 0.3f, 0.2f, 1.0f };
         mat2->diffuseColor = { 0.2f, 0.3f, 0.5f, 1.0f };
         mat2->specular = { 0.2f, 0.3f, 1.0f };
-        mat2->shinines = 0.5f;
+        mat2->shinines = 1;
         
         float radius = 1.0f;
         float theta = M_PI * 1.25;
         float phi = M_PI / 4;
-        
+
         light.direction = { radius * sinf(phi) * cosf(theta), radius * cosf(phi), radius * sinf(phi) * sinf(theta) };
         light.direction = -light.direction;
+
         lightRotation = VWolf::degrees(light.direction);
         light.color = { 1.0f, 1.0f, 0.0f, 1.0f };
         light.strength = { 1.0f, 1.0f, 0.9f };
@@ -170,6 +174,9 @@ public:
         gameObjects1.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateGrid(2, 2, 16, 16), "2" ));
         gameObjects2.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateGeosphere(1, 4), "3" ));
         gameObjects2.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateBox(1, 1, 1, 0), "4" ));
+        
+        lightMatrix = VWolf::MatrixFloat4x4(1.0f);
+        lightMesh = VWolf::ShapeHelper::CreateSphere(1, 32, 32);
     }
 
     ~RendererSandboxApplication() {
@@ -188,6 +195,8 @@ public:
             gameObject->transform.Apply();
         for(auto gameObject: gameObjects2)
             gameObject->transform.Apply();
+        
+        lightMatrix = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), light.position);
     }
 
     void OnDraw() override {
@@ -201,6 +210,10 @@ public:
 //        VWolf::Renderer::SetMaterial(material2);
         for(auto gameObject: gameObjects2)
             VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
+        
+        // Light representation
+        VWolf::Renderer::SetMaterial(material1);
+        VWolf::Renderer::DrawMesh(lightMesh, lightMatrix);
         VWolf::Renderer::End();
     }
 
@@ -242,16 +255,16 @@ public:
         ImGui::PopID();
         ImGui::PushID("Light");
         ImGui::LabelText("Light", "");
-        // TODO: Corruption in memory when using ints
-//        if (ImGui::RadioButton("Directional", light.type == VWolf::Light::LightType::Directional)) {
-//            light.type = VWolf::Light::LightType::Directional;
-//        }
-//        if (ImGui::RadioButton("Point", light.type == VWolf::Light::LightType::Point)) {
-//            light.type = VWolf::Light::LightType::Point;
-//        }
-//        if (ImGui::RadioButton("Spot", light.type == VWolf::Light::LightType::Spot)) {
-//            light.type = VWolf::Light::LightType::Spot;
-//        }
+
+        if (ImGui::RadioButton("Directional", light.type == VWolf::Light::LightType::Directional)) {
+            light.type = VWolf::Light::LightType::Directional;
+        }
+        if (ImGui::RadioButton("Point", light.type == VWolf::Light::LightType::Point)) {
+            light.type = VWolf::Light::LightType::Point;
+        }
+        if (ImGui::RadioButton("Spot", light.type == VWolf::Light::LightType::Spot)) {
+            light.type = VWolf::Light::LightType::Spot;
+        }
         ImGui::ColorEdit4("Light Color", VWolf::value_ptr(light.color));
         ImGui::DragFloat3("Light Position", VWolf::value_ptr(light.position));
         ImGui::DragFloat3("Light Rotation", VWolf::value_ptr(lightRotation));

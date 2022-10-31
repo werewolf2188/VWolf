@@ -35,14 +35,14 @@ layout(std140) uniform Material {
 };
 
 layout(std140) uniform Light {
-//    uint u_type;
     vec4 u_color;
-    vec3 u_direction;
     vec3 u_position;
+    vec3 u_direction;
     vec3 u_strength;
     float u_falloffStart;
     float u_falloffEnd;
     float u_spotPower;
+    uint u_type;
 };
 
 out vec3 v_Position;

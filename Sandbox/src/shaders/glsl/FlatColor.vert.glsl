@@ -39,14 +39,14 @@ layout(std140) uniform Material {
 };
 
 layout(std140) uniform Light {
-//    uint u_type;
     vec4 u_color;
-    vec3 u_direction;
     vec3 u_position;
+    vec3 u_direction;
     vec3 u_strength;
     float u_falloffStart;
     float u_falloffEnd;
     float u_spotPower;
+    uint u_type;
 };
 
 out vec3 v_Position;
@@ -60,7 +60,9 @@ vec4 ComputePhongLightColor() {
     
     vec4 ambient = u_ambientColor * u_color;
     
-    vec3 s = normalize(u_position - camCoords.xyz);
+    vec4 lightPosition = u_View * vec4(u_position, 1.0);
+    
+    vec3 s = normalize(vec3(lightPosition - camCoords));
     float sDotN = max( dot(s,n), 0.0 );
     vec4 diffuse = u_color * u_diffuseColor * sDotN;
     

@@ -290,21 +290,22 @@ namespace VWolf {
     // Lights
     struct Light {
     public:
-        // TODO: Corruption in memory when using ints
-//        enum class LightType: unsigned short int {
-//            Unknown = 0,
-//            Directional = 1,
-//            Spot = 2,
-//            Point = 3
-//        };
-//        LightType type = LightType::Directional;
+        enum class LightType: unsigned int {
+            Unknown = 0,
+            Directional = 1,
+            Spot = 2,
+            Point = 3
+        };
+        
         Vector4Float color;
-        Vector3Float direction;
         Vector3Float position;
+        Vector3Float direction;
         Vector3Float strength;
         float falloffStart;
         float falloffEnd;
         float spotPower;
+        LightType type = LightType::Directional;
+        
 
     public:
         static const char* LightName;
