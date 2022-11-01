@@ -28,14 +28,14 @@ cbuffer cbPerMaterial : register(b2) {
 };
 
 cbuffer cbPerLight : register(b3) {
-	//    uint u_type;
 	float4 u_color;
-	float3 u_direction;
 	float3 u_position;
+	float3 u_direction;
 	float3 u_strength;
 	float u_falloffStart;
 	float u_falloffEnd;
 	float u_spotPower;
+	uint u_type;
 };
 
 struct VertexIn
@@ -77,7 +77,7 @@ VertexOut VS(VertexIn vin)
 	vout.PosH = mul(u_ViewProjection, vout.PosH);
 
 	// Just pass vertex color into the pixel shader.	
-	vout.Color = vin.Color;
+	vout.Color = u_color;
 	return vout;
 }
 
