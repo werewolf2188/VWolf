@@ -39,25 +39,25 @@ void LoadShaderNames(VWolf::DriverType driverType) {
     else if (driverType == VWolf::DriverType::OpenGL) {
 
         vsFiles = { {
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/glsl/RainbowColor.vert.glsl" , "main" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.vert.glsl" , "main" }
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.vert.glsl" , "main" },
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/glsl/BlinnPhong.vert.glsl" , "main" }
         } };
 
         psFiles = { {
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/glsl/RainbowColor.frag.glsl" , "main" },
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.frag.glsl" , "main" }
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.frag.glsl" , "main" },
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/glsl/BlinnPhong.frag.glsl" , "main" }
         } };
     }
 #else
 
     vsFiles = { {
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/RainbowColor.vert.glsl" , "main" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.vert.glsl" , "main" }
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.vert.glsl" , "main" },
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/BlinnPhong.vert.glsl" , "main" }
         } };
 
     psFiles = { {
-        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/RainbowColor.frag.glsl" , "main" },
-        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.frag.glsl" , "main" }
+        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.frag.glsl" , "main" },
+        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/BlinnPhong.frag.glsl" , "main" }
     } };
 #endif
 }
@@ -138,14 +138,14 @@ public:
         mat1 = material1.GetChildObject();
         mat1->ambientColor = { 1.0f, 0.0f, 0.0f, 1.0f };
         mat1->diffuseColor = { 0.2f, 0.3f, 0.5f, 1.0f };
-        mat1->specular = { 0.2f, 0.3f, 1.0f };
-        mat1->shinines = 0.5f;
+        mat1->specular = { 0.8f, 0.8f, 0.8f };
+        mat1->shinines = 20;
         material2 = VWolf::Material<Albedo>(shaderNames[1].c_str(), materialName);
         mat2 = material2.GetChildObject();
         mat2->ambientColor = { 1.0f, 0.3f, 0.2f, 1.0f };
         mat2->diffuseColor = { 0.2f, 0.3f, 0.5f, 1.0f };
-        mat2->specular = { 0.2f, 0.3f, 1.0f };
-        mat2->shinines = 1;
+        mat2->specular = { 0.8f, 0.8f, 0.8f };
+        mat2->shinines = 20;
         
         float radius = 1.0f;
         float theta = M_PI * 1.25;
@@ -250,8 +250,8 @@ public:
         ImGui::LabelText("Material 2", "");
         ImGui::ColorEdit4("Ambient Color", VWolf::value_ptr(mat2->ambientColor));
         ImGui::ColorEdit4("Diffuse Color", VWolf::value_ptr(mat2->diffuseColor));
-        ImGui::DragFloat3("Specular Vector", VWolf::value_ptr(mat2->specular));
-        ImGui::SliderFloat("Shinines", &mat2->shinines, 0, 1);
+        ImGui::DragFloat3("Specular Vector", VWolf::value_ptr(mat2->specular), 0.01f, 0, 1);
+        ImGui::SliderFloat("Shinines", &mat2->shinines, 0, 180);
         ImGui::PopID();
         ImGui::PushID("Light");
         ImGui::LabelText("Light", "");

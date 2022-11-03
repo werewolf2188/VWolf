@@ -12,6 +12,10 @@ layout(std140) uniform Object {
 
 layout(std140) uniform Camera
 {
+    /*
+        TODO: I don't know what this value does
+         float cbPerObjectPad1;
+     */
     mat4 u_View;
     mat4 u_InvView;
     mat4 u_Proj;
@@ -27,13 +31,6 @@ layout(std140) uniform Camera
     float u_DeltaTime;
 };
 
-layout(std140) uniform Material {
-    vec4 u_ambientColor;
-    vec4 u_diffuseColor;
-    vec3 u_specular;
-    float u_shinines;
-};
-
 layout(std140) uniform Light {
     vec4 u_color;
     vec3 u_position;
@@ -46,11 +43,16 @@ layout(std140) uniform Light {
 };
 
 out vec3 v_Position;
-out vec4 v_Color;
+out vec3 v_Normal;
+
+out vec4 v_LightPosition;
 
 void main()
 {
-	v_Position = a_Position;
-    v_Color = a_Color;
+    mat3 normalMatrix = mat3(u_View * u_Transform);
+	v_Position = (u_View * u_Transform * vec4(a_Position, 1.0)).xyz;
+    v_Normal = normalize(normalMatrix * a_Normal);
+    v_LightPosition = u_View * vec4(u_position, 1.0);
+    
 	gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);	
 }
