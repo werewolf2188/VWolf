@@ -18,7 +18,7 @@
 #define SCREENHEIGHT 720.0f
 
 #define NUMSHADERS 2
-std::array<std::string, NUMSHADERS> shaderNames = { { "rainbow color", "flat color" } };
+std::array<std::string, NUMSHADERS> shaderNames = { { "Flat Color", "Blinn Phon" } };
 std::array<VWolf::ShaderSource, NUMSHADERS> vsFiles;
 std::array<VWolf::ShaderSource, NUMSHADERS> psFiles;
 
@@ -27,13 +27,13 @@ void LoadShaderNames(VWolf::DriverType driverType) {
     if (driverType == VWolf::DriverType::DirectX12) {
 
         vsFiles = { {
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/hlsl/RainbowColor.hlsl" , "VS" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/hlsl/FlatColor.hlsl" , "VS" }
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/hlsl/FlatColor.hlsl" , "VS" },
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/hlsl/BlinnPhong.hlsl" , "VS" }
         } };
 
         psFiles = { {
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/hlsl/RainbowColor.hlsl" , "PS" },
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/hlsl/FlatColor.hlsl" , "PS" }
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/hlsl/FlatColor.hlsl" , "PS" },
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/hlsl/BlinnPhong.hlsl" , "PS" }
         } };
     }
     else if (driverType == VWolf::DriverType::OpenGL) {

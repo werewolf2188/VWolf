@@ -50,38 +50,52 @@ struct VertexIn
 struct VertexOut
 {
 	float4 PosH  : SV_POSITION;
-	float4 Color : a_Color;
+	float3 PosL : a_Position;
+	float3 Normal  : a_Normal;
 };
+
+float3 ComputeBlinnPhongLightColor(float3 position, float3 n) {
+	// Light position
+	float4 LightPosition = mul(u_View, float4(u_position, 1.0));
+
+	// Ambient
+	float3 ambient = (u_ambientColor * u_color).xyz;
+
+	// Diffuse
+	float3 s = normalize(LightPosition.xyz - position);
+	float sDotN = max(dot(s, n), 0.0);
+	float3 diffuse = (u_color * u_diffuseColor * sDotN).xyz;
+
+	// Specular
+	float3 spec = float3(0.0, 0.0, 0.0);
+	if (sDotN > 0) {
+		float3 v = normalize(-position.xyz);
+		float3 h = normalize(v + s);
+		spec = u_specular * pow(max(dot(h, n), 0.0), u_shinines);
+	}
+
+	return ambient + diffuse + spec;
+}
 
 VertexOut VS(VertexIn vin)
 {
 	VertexOut vout;
-
-	// GLM
-	// Working
-	/*float4x4 vp = {
-		41.0274, 0, 0, 0,
-		0, 72.9467, 0, 0,
-		0, 0, -1.0002, -1,
-		0, 0, 49.81, 50
-	};*/
-
-	// Tests to make sure the constant buffer is passing or not
-	//vout.PosH = mul(float4(vin.PosL, 1.0f), vp);
-	//vout.PosH = float4(vin.PosL, 1.0f);
-	//float4 co = { u_ViewProjection._11 / 0xff, u_ViewProjection._22 / 0xff, u_ViewProjection._43 / 0xff, u_ViewProjection._44 / 0xff };
-	//vout.Color = co;
 
 	// Transform to homogeneous clip space.
 	vout.PosH = mul(u_Transform, float4(vin.PosL, 1.0f));
 	vout.PosH = mul(u_ViewProjection, vout.PosH);
 
 	// Just pass vertex color into the pixel shader.	
-	vout.Color = vin.Color;
+	float3x3 normalMatrix = (float3x3)mul(u_View, u_Transform);
+	vout.PosL = mul(u_Transform, float4(vin.PosL, 1.0f)).xyz;
+	vout.PosL = mul(u_View, float4(vout.PosL, 1.0f)).xyz;
+	vout.Normal = normalize(mul(normalMatrix, vin.Normal));
+	
 	return vout;
 }
 
 float4 PS(VertexOut pin) : SV_Target
 {
-	return pin.Color;
+
+	return float4(ComputeBlinnPhongLightColor(pin.PosL, normalize(pin.Normal)), 1.0);
 }
