@@ -12,32 +12,31 @@
 
 namespace VWolf {
 
+    struct OpenGLLight {
+        Vector4Float color;
+        Vector4Float position;
+        Vector4Float direction;
+        Vector4Float strength;
+        float falloffStart;
+        float falloffEnd;
+        float spotPower;
+        unsigned int type;
+    };
+
     // TODO: This is not a good way of dealing with the padding, but it will work for now
     // TODO: Vertex3Float are treated as Vector4Float in GLSL (std140)
     // TODO: This only happens with lights, not with our material
-    float* CreateLightPack(Light light) {
-        float* pack = new float[20];
-        pack[0] = light.color.r;
-        pack[1] = light.color.g;
-        pack[2] = light.color.b;
-        pack[3] = light.color.a;
-        pack[4] = light.position.x;
-        pack[5] = light.position.y;
-        pack[6] = light.position.z;
-        pack[7] = 0.0f;
-        pack[8] = light.direction.x;
-        pack[9] = light.direction.y;
-        pack[10] = light.direction.z;
-        pack[11] = 0.0f;
-        pack[12] = light.strength.x;
-        pack[13] = light.strength.y;
-        pack[14] = light.strength.z;
-        pack[15] = 0.0f;
-        pack[16] = light.falloffStart;
-        pack[17] = light.falloffEnd;
-        pack[18] = light.spotPower;
-        pack[19] = (unsigned int)light.type;
-        return pack;
+    OpenGLLight CreateLightPack(Light light) {
+        return {
+            light.color,
+            { light.position.x, light.position.y, light.position.z, 1.0f },
+            { light.direction.x, light.direction.y, light.direction.z, 0.0f },
+            { light.strength.x, light.strength.y, light.strength.z, 0.0f },
+            light.falloffStart,
+            light.falloffEnd,
+            light.spotPower,
+            (unsigned int)light.type
+        };
     }
 
     void OpenGLRenderer::ProcessItems() {
@@ -69,7 +68,9 @@ namespace VWolf {
             shader->SetData(&projection, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
             shader->SetData(&items[i]->transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
             shader->SetData(material, items[i]->material.GetName(), items[i]->material.GetSize(), 0);
-            shader->SetData(CreateLightPack(items[i]->light), Light::LightName, sizeof(Light), 0);
+            // TODO: I'm not sending the entire data for light. The alignment is not working well in OpenGL
+            OpenGLLight lig = CreateLightPack(items[i]->light);
+            shader->SetData(&lig, Light::LightName, sizeof(OpenGLLight), 0);
             groups[i]->Bind();
             uint32_t count = groups[i]->GetIndexBuffer()->GetCount();
             glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);

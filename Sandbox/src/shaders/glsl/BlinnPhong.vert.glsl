@@ -33,9 +33,9 @@ layout(std140) uniform Camera
 
 layout(std140) uniform Light {
     vec4 u_color;
-    vec3 u_position;
-    vec3 u_direction;
-    vec3 u_strength;
+    vec4 u_position;
+    vec4 u_direction;
+    vec4 u_strength;
     float u_falloffStart;
     float u_falloffEnd;
     float u_spotPower;
@@ -52,7 +52,7 @@ void main()
     mat3 normalMatrix = mat3(u_View * u_Transform);
 	v_Position = (u_View * u_Transform * vec4(a_Position, 1.0)).xyz;
     v_Normal = normalize(normalMatrix * a_Normal);
-    v_LightPosition = u_View * vec4(u_position, 1.0);
+    v_LightPosition = u_View * u_position;
     
 	gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);	
 }

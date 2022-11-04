@@ -11,9 +11,9 @@ layout(std140) uniform Material {
 
 layout(std140) uniform Light {
     vec4 u_color;
-    vec3 u_position;
-    vec3 u_direction;
-    vec3 u_strength;
+    vec4 u_position;
+    vec4 u_direction;
+    vec4 u_strength;
     float u_falloffStart;
     float u_falloffEnd;
     float u_spotPower;
@@ -31,7 +31,13 @@ vec3 ComputeBlinnPhongLightColor(vec3 position, vec3 n) {
     vec3 ambient = (u_ambientColor * u_color).xyz;
 
     // Diffuse
-    vec3 s = normalize(v_LightPosition.xyz - position);
+    vec3 s = vec3(0.0);
+    if (u_type == 1.0) { // Directional
+        s = normalize(u_direction.xyz);
+    } else if (u_type == 3.0) { //Point
+        s = normalize(v_LightPosition.xyz - position);
+    }
+    
     float sDotN = max(dot(s,n), 0.0);
     vec3 diffuse = (u_color * u_diffuseColor * sDotN).xyz;
     
