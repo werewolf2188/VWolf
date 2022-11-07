@@ -29,9 +29,9 @@ cbuffer cbPerMaterial : register(b2) {
 
 cbuffer cbPerLight : register(b3) {
 	float4 u_color;
-	float3 u_position;
-	float3 u_direction;
-	float3 u_strength;
+	float4 u_position;
+	float4 u_direction;
+	float4 u_strength;
 	float u_falloffStart;
 	float u_falloffEnd;
 	float u_spotPower;
@@ -61,7 +61,7 @@ float4 ComputePhongLightColor(VertexIn vin) {
 	float4 camCoords = mul(mul(u_View, u_Transform), float4(vin.PosL, 1.0f));
 
 	float4 ambient = u_ambientColor * u_color;
-	float4 lightPosition = mul(u_View, float4(u_position, 1.0));
+	float4 lightPosition = mul(u_View, u_position);
 
 	float3 s = normalize((lightPosition - camCoords).xyz);
 	float sDotN = max(dot(s, n), 0.0);

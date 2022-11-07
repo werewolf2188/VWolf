@@ -29,9 +29,9 @@ cbuffer cbPerMaterial : register(b2) {
 
 cbuffer cbPerLight : register(b3) {
 	float4 u_color;
-	float3 u_position;
-	float3 u_direction;
-	float3 u_strength;
+	float4 u_position;
+	float4 u_direction;
+	float4 u_strength;
 	float u_falloffStart;
 	float u_falloffEnd;
 	float u_spotPower;
@@ -56,13 +56,19 @@ struct VertexOut
 
 float3 ComputeBlinnPhongLightColor(float3 position, float3 n) {
 	// Light position
-	float4 LightPosition = mul(u_View, float4(u_position, 1.0));
+	float4 LightPosition = mul(u_View, u_position);
 
 	// Ambient
 	float3 ambient = (u_ambientColor * u_color).xyz;
 
 	// Diffuse
-	float3 s = normalize(LightPosition.xyz - position);
+	float3 s = float3(0, 0, 0);
+	if (u_type == 1) { // Directional
+		s = normalize(u_direction.xyz);
+	}
+	else if (u_type == 3) { //Point
+		s = normalize(LightPosition.xyz - position);
+	}
 	float sDotN = max(dot(s, n), 0.0);
 	float3 diffuse = (u_color * u_diffuseColor * sDotN).xyz;
 

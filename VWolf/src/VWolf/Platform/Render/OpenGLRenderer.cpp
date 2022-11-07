@@ -11,34 +11,6 @@
 #include "VWolf/Core/Render/RenderItem.h"
 
 namespace VWolf {
-
-    struct OpenGLLight {
-        Vector4Float color;
-        Vector4Float position;
-        Vector4Float direction;
-        Vector4Float strength;
-        float falloffStart;
-        float falloffEnd;
-        float spotPower;
-        unsigned int type;
-    };
-
-    // TODO: This is not a good way of dealing with the padding, but it will work for now
-    // TODO: Vertex3Float are treated as Vector4Float in GLSL (std140)
-    // TODO: This only happens with lights, not with our material
-    OpenGLLight CreateLightPack(Light light) {
-        return {
-            light.color,
-            { light.position.x, light.position.y, light.position.z, 1.0f },
-            { light.direction.x, light.direction.y, light.direction.z, 0.0f },
-            { light.strength.x, light.strength.y, light.strength.z, 0.0f },
-            light.falloffStart,
-            light.falloffEnd,
-            light.spotPower,
-            (unsigned int)light.type
-        };
-    }
-
     void OpenGLRenderer::ProcessItems() {
         std::vector<Ref<BufferGroup>> groups;
         for (auto renderItem: items) {
@@ -68,9 +40,7 @@ namespace VWolf {
             shader->SetData(&projection, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
             shader->SetData(&items[i]->transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
             shader->SetData(material, items[i]->material.GetName(), items[i]->material.GetSize(), 0);
-            // TODO: I'm not sending the entire data for light. The alignment is not working well in OpenGL
-            OpenGLLight lig = CreateLightPack(items[i]->light);
-            shader->SetData(&lig, Light::LightName, sizeof(OpenGLLight), 0);
+            shader->SetData(&items[i]->light, Light::LightName, sizeof(Light), 0);
             groups[i]->Bind();
             uint32_t count = groups[i]->GetIndexBuffer()->GetCount();
             glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);

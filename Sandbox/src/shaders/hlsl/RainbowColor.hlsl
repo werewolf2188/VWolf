@@ -29,9 +29,9 @@ cbuffer cbPerMaterial : register(b2) {
 
 cbuffer cbPerLight : register(b3) {
 	float4 u_color;
-	float3 u_position;
-	float3 u_direction;
-	float3 u_strength;
+	float4 u_position;
+	float4 u_direction;
+	float4 u_strength;
 	float u_falloffStart;
 	float u_falloffEnd;
 	float u_spotPower;

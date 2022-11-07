@@ -121,7 +121,7 @@ public:
     VWolf::Material<Albedo> material1;
     VWolf::Material<Albedo> material2;
     VWolf::Light light;
-    VWolf::Vector3Float lightRotation;
+    VWolf::Vector4Float lightRotation;
     Albedo* mat1;
     Albedo* mat2;
     
@@ -151,28 +151,22 @@ public:
         float theta = M_PI * 1.25;
         float phi = M_PI / 4;
 
-        light.direction = { radius * sinf(phi) * cosf(theta), radius * cosf(phi), radius * sinf(phi) * sinf(theta) };
+        light.direction = { radius * sinf(phi) * cosf(theta), radius * cosf(phi), radius * sinf(phi) * sinf(theta), 0.0f };
         light.direction = -light.direction;
         light.type = VWolf::Light::LightType::Directional;
 
         lightRotation = VWolf::degrees(light.direction);
         light.color = { 1.0f, 1.0f, 0.0f, 1.0f };
-        light.strength = { 1.0f, 1.0f, 1.0f };
-        light.position = { 6.0f, 3.0f, 0.0f };
+        light.strength = { 1.0f, 1.0f, 1.0f, 0.0f };
+        light.position = { 6.0f, 3.0f, 0.0f, 1.0f };
 
         light.falloffStart = 1;
         light.falloffEnd = 1;
         light.spotPower = 1;
         
-        // TODO: I'm not sending the entire data for light. The alignment is not working well in OpenGL
-        size_t extraLightSpace = 0;
-        if (DRIVER_TYPE == VWolf::DriverType::OpenGL)
-            extraLightSpace = 12;
-        
         std::initializer_list<VWolf::ShaderParameter> parameters = {
             { materialName, VWolf::ShaderParameterType::In, 2, material1.GetSize() },
-            // TODO: I'm not sending the entire data for light. The alignment is not working well in OpenGL
-            { VWolf::Light::LightName, VWolf::ShaderParameterType::In, 3, sizeof(VWolf::Light) + extraLightSpace }
+            { VWolf::Light::LightName, VWolf::ShaderParameterType::In, 3, sizeof(VWolf::Light) }
            };
         for (int i = 0; i < NUMSHADERS; i++) {
             VWolf::ShaderLibrary::LoadShader(shaderNames[i].c_str(), vsFiles[i], { psFiles[i] }, parameters);
@@ -186,7 +180,7 @@ public:
         
         pointMesh = VWolf::ShapeHelper::CreateSphere(1, 32, 32);
         directionalMesh = VWolf::ShapeHelper::CreateBox(1, 1, 1, 0);
-        lightMatrix = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), light.position);
+        lightMatrix = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), VWolf::Vector3Float(light.position));
         lightMatrix = VWolf::rotate(lightMatrix, light.direction.x, { 1.0f, 0.0f, 0.0f });
         lightMatrix = VWolf::rotate(lightMatrix, light.direction.y, { 0.0f, 1.0f, 0.0f });
         lightMatrix = VWolf::rotate(lightMatrix, light.direction.z, { 0.0f, 0.0f, 1.0f });
@@ -209,7 +203,7 @@ public:
         for(auto gameObject: gameObjects2)
             gameObject->transform.Apply();
         
-        lightMatrix = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), light.position);
+        lightMatrix = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), VWolf::Vector3Float(light.position));
         lightMatrix = VWolf::rotate(lightMatrix, light.direction.x, { 1.0f, 0.0f, 0.0f });
         lightMatrix = VWolf::rotate(lightMatrix, light.direction.y, { 0.0f, 1.0f, 0.0f });
         lightMatrix = VWolf::rotate(lightMatrix, light.direction.z, { 0.0f, 0.0f, 1.0f });

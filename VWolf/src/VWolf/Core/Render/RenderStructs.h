@@ -298,9 +298,9 @@ namespace VWolf {
         };
         
         Vector4Float color;
-        Vector3Float position;
-        Vector3Float direction;
-        Vector3Float strength;
+        Vector4Float position;
+        Vector4Float direction;
+        Vector4Float strength;
         float falloffStart;
         float falloffEnd;
         float spotPower;

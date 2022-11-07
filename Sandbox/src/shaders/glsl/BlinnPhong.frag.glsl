@@ -32,9 +32,9 @@ vec3 ComputeBlinnPhongLightColor(vec3 position, vec3 n) {
 
     // Diffuse
     vec3 s = vec3(0.0);
-    if (u_type == 1.0) { // Directional
+    if (u_type == 1) { // Directional
         s = normalize(u_direction.xyz);
-    } else if (u_type == 3.0) { //Point
+    } else if (u_type == 3) { //Point
         s = normalize(v_LightPosition.xyz - position);
     }
     
