@@ -36,9 +36,8 @@ layout(std140) uniform Light {
     vec4 u_position;
     vec4 u_direction;
     vec4 u_strength;
-    float u_falloffStart;
-    float u_falloffEnd;
-    float u_spotPower;
+    float u_cutOff;
+    float u_exponent;
     uint u_type;
 };
 
@@ -46,6 +45,7 @@ out vec3 v_Position;
 out vec3 v_Normal;
 
 out vec4 v_LightPosition;
+out vec4 v_LightDirection;
 
 void main()
 {
@@ -53,6 +53,7 @@ void main()
 	v_Position = (u_View * u_Transform * vec4(a_Position, 1.0)).xyz;
     v_Normal = normalize(normalMatrix * a_Normal);
     v_LightPosition = u_View * u_position;
+    v_LightDirection = u_View * u_direction;
     
 	gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);	
 }

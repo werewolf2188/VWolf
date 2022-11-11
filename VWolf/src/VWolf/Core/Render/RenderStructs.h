@@ -301,9 +301,8 @@ namespace VWolf {
         Vector4Float position;
         Vector4Float direction;
         Vector4Float strength;
-        float falloffStart;
-        float falloffEnd;
-        float spotPower;
+        float cutOff;
+        float exponent;
         LightType type = LightType::Directional;
         
 

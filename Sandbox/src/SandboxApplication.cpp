@@ -126,7 +126,7 @@ public:
     Albedo* mat2;
     
     VWolf::MatrixFloat4x4 lightMatrix;
-    VWolf::MeshData pointMesh, directionalMesh;
+    VWolf::MeshData pointMesh, directionalMesh, spotMesh;
     
     const char *materialName = "Material";
 public:
@@ -157,12 +157,11 @@ public:
 
         lightRotation = VWolf::degrees(light.direction);
         light.color = { 1.0f, 1.0f, 0.0f, 1.0f };
-        light.strength = { 1.0f, 1.0f, 1.0f, 0.0f };
+        light.strength = { 0.5f, 0.5f, 0.5f, 0.5f };
         light.position = { 6.0f, 3.0f, 0.0f, 1.0f };
 
-        light.falloffStart = 1;
-        light.falloffEnd = 1;
-        light.spotPower = 1;
+        light.cutOff = VWolf::radians(15.0f);
+        light.exponent = 50.0f;
         
         std::initializer_list<VWolf::ShaderParameter> parameters = {
             { materialName, VWolf::ShaderParameterType::In, 2, material1.GetSize() },
@@ -180,6 +179,7 @@ public:
         
         pointMesh = VWolf::ShapeHelper::CreateSphere(1, 32, 32);
         directionalMesh = VWolf::ShapeHelper::CreateBox(1, 1, 1, 0);
+        spotMesh = VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 32);
         lightMatrix = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), VWolf::Vector3Float(light.position));
         lightMatrix = VWolf::rotate(lightMatrix, light.direction.x, { 1.0f, 0.0f, 0.0f });
         lightMatrix = VWolf::rotate(lightMatrix, light.direction.y, { 0.0f, 1.0f, 0.0f });
@@ -227,6 +227,8 @@ public:
             VWolf::Renderer::DrawMesh(pointMesh, lightMatrix);
         else if (light.type == VWolf::Light::LightType::Directional)
             VWolf::Renderer::DrawMesh(directionalMesh, lightMatrix);
+        else if (light.type == VWolf::Light::LightType::Spot)
+            VWolf::Renderer::DrawMesh(spotMesh, lightMatrix);
         VWolf::Renderer::End();
     }
 
@@ -275,14 +277,22 @@ public:
         if (ImGui::RadioButton("Point", light.type == VWolf::Light::LightType::Point)) {
             light.type = VWolf::Light::LightType::Point;
         }
-//        if (ImGui::RadioButton("Spot", light.type == VWolf::Light::LightType::Spot)) {
-//            light.type = VWolf::Light::LightType::Spot;
-//        }
+        if (ImGui::RadioButton("Spot", light.type == VWolf::Light::LightType::Spot)) {
+            light.type = VWolf::Light::LightType::Spot;
+        }
         ImGui::ColorEdit4("Light Color", VWolf::value_ptr(light.color));
+        ImGui::DragFloat3("Light Strength", VWolf::value_ptr(light.strength), 0.1f, 0, 1);
         if (light.type == VWolf::Light::LightType::Point)
             ImGui::DragFloat3("Light Position", VWolf::value_ptr(light.position));
         else if (light.type == VWolf::Light::LightType::Directional)
             ImGui::DragFloat3("Light Rotation", VWolf::value_ptr(lightRotation));
+        else if (light.type == VWolf::Light::LightType::Spot) {
+            ImGui::DragFloat3("Light Position", VWolf::value_ptr(light.position));
+            ImGui::DragFloat3("Light Rotation", VWolf::value_ptr(lightRotation));
+            ImGui::DragFloat("Light CutOff", &light.cutOff, 0.1f, 0, VWolf::radians(90.0f));
+            ImGui::DragFloat("Light Exponent", &light.exponent, 0.1f, 0, 100);
+        }
+        
         ImGui::PopID();
         ImGui::End();
     }
