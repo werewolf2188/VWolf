@@ -32,9 +32,8 @@ cbuffer cbPerLight : register(b3) {
 	float4 u_position;
 	float4 u_direction;
 	float4 u_strength;
-	float u_falloffStart;
-	float u_falloffEnd;
-	float u_spotPower;
+	float u_cutOff;
+	float u_exponent;
 	uint u_type;
 };
 
