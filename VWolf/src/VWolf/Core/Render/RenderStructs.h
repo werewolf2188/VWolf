@@ -304,12 +304,16 @@ namespace VWolf {
         float cutOff;
         float exponent;
         LightType type = LightType::Directional;
-        
+        // TODO: This padding is only for OPENGL, but it could be useful for DirectX
+        // TODO: In case of not being useful, pass it to the specific render.
+        float padding; // Needed for OPENGL
 
     public:
         static const char* LightName;
+        static const int LightsMax;
     };
 
     inline const char* Light::LightName = "Light";
+    inline const int Light::LightsMax = 8;    
 }
 

@@ -49,6 +49,7 @@ namespace VWolf {
 
 			Ref<Shader> shader = ShaderLibrary::GetShader(items[i]->material.GetShader().c_str());
 			void* material = items[i]->material.GetDataPointer();
+            Light* lights = this->lights.data();
 
 			auto pso = ((HLSLShader*)shader.get())->GetPipeline();
 			context->mCommandList->SetPipelineState(pso.Get());
@@ -60,7 +61,7 @@ namespace VWolf {
 			shader->SetData(&projection, ShaderLibrary::CameraBufferName, sizeof(CameraPass), i);
 			shader->SetData(&items[i]->transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), i);
 			shader->SetData(material, items[i]->material.GetName(), items[i]->material.GetSize(), i);
-			shader->SetData(&items[i]->light, Light::LightName, sizeof(Light), i);
+			shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, i);
 			uint32_t count = groups[i]->GetIndexBuffer()->GetCount();
 
 			context->mCommandList->DrawIndexedInstanced(

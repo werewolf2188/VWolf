@@ -114,18 +114,23 @@ private:
     const char* m_id;
 };
 
+struct LightInfo {
+    VWolf::Light light;
+    VWolf::MatrixFloat4x4 lightMatrix;
+    VWolf::Vector4Float lightRotation;
+};
+
 class RendererSandboxApplication: public VWolf::Application {
 public:
     VWolf::Ref<VWolf::PerspectiveCamera> camera;
     std::vector<VWolf::Ref<GameObject>> gameObjects1, gameObjects2;
     VWolf::Material<Albedo> material1;
     VWolf::Material<Albedo> material2;
-    VWolf::Light light;
-    VWolf::Vector4Float lightRotation;
+//    LightInfo lightInfo;
+    std::vector<LightInfo> lights;
     Albedo* mat1;
     Albedo* mat2;
-    
-    VWolf::MatrixFloat4x4 lightMatrix;
+
     VWolf::MeshData pointMesh, directionalMesh, spotMesh;
     
     const char *materialName = "Material";
@@ -151,21 +156,46 @@ public:
         float theta = M_PI * 1.25;
         float phi = M_PI / 4;
 
-        light.direction = { radius * sinf(phi) * cosf(theta), radius * cosf(phi), radius * sinf(phi) * sinf(theta), 0.0f };
-        light.direction = -light.direction;
-        light.type = VWolf::Light::LightType::Directional;
+        LightInfo lightInfo1;
+        lightInfo1.light.direction = { radius * sinf(phi) * cosf(theta), radius * cosf(phi), radius * sinf(phi) * sinf(theta), 0.0f };
+        lightInfo1.light.direction = -lightInfo1.light.direction;
+        lightInfo1.light.type = VWolf::Light::LightType::Directional;
 
-        lightRotation = VWolf::degrees(light.direction);
-        light.color = { 1.0f, 1.0f, 0.0f, 1.0f };
-        light.strength = { 0.5f, 0.5f, 0.5f, 0.5f };
-        light.position = { 6.0f, 3.0f, 0.0f, 1.0f };
+        lightInfo1.lightRotation = VWolf::degrees(lightInfo1.light.direction);
+        lightInfo1.light.color = { 1.0f, 1.0f, 0.0f, 1.0f };
+        lightInfo1.light.strength = { 0.5f, 0.5f, 0.5f, 0.5f };
+        lightInfo1.light.position = { 6.0f, 3.0f, 0.0f, 1.0f };
 
-        light.cutOff = VWolf::radians(15.0f);
-        light.exponent = 50.0f;
+        lightInfo1.light.cutOff = VWolf::radians(15.0f);
+        lightInfo1.light.exponent = 50.0f;
+        
+        lightInfo1.lightMatrix = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), VWolf::Vector3Float(lightInfo1.light.position));
+        lightInfo1.lightMatrix = VWolf::rotate(lightInfo1.lightMatrix, lightInfo1.light.direction.x, { 1.0f, 0.0f, 0.0f });
+        lightInfo1.lightMatrix = VWolf::rotate(lightInfo1.lightMatrix, lightInfo1.light.direction.y, { 0.0f, 1.0f, 0.0f });
+        lightInfo1.lightMatrix = VWolf::rotate(lightInfo1.lightMatrix, lightInfo1.light.direction.z, { 0.0f, 0.0f, 1.0f });
+        lights.push_back(lightInfo1);
+        LightInfo lightInfo2;
+        lightInfo2.light.direction = { radius * sinf(phi) * cosf(theta), radius * cosf(phi), radius * sinf(phi) * sinf(theta), 0.0f };
+        lightInfo2.light.direction = -lightInfo2.light.direction;
+        lightInfo2.light.type = VWolf::Light::LightType::Point;
+
+        lightInfo2.lightRotation = VWolf::degrees(lightInfo2.light.direction);
+        lightInfo2.light.color = { 1.0f, 0.0f, 0.0f, 1.0f };
+        lightInfo2.light.strength = { 0.5f, 0.5f, 0.5f, 0.5f };
+        lightInfo2.light.position = { -6.0f, 8.0f, 0.0f, 1.0f };
+
+        lightInfo2.light.cutOff = VWolf::radians(15.0f);
+        lightInfo2.light.exponent = 50.0f;
+        
+        lightInfo2.lightMatrix = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), VWolf::Vector3Float(lightInfo2.light.position));
+        lightInfo2.lightMatrix = VWolf::rotate(lightInfo2.lightMatrix, lightInfo2.light.direction.x, { 1.0f, 0.0f, 0.0f });
+        lightInfo2.lightMatrix = VWolf::rotate(lightInfo2.lightMatrix, lightInfo2.light.direction.y, { 0.0f, 1.0f, 0.0f });
+        lightInfo2.lightMatrix = VWolf::rotate(lightInfo2.lightMatrix, lightInfo2.light.direction.z, { 0.0f, 0.0f, 1.0f });
+        lights.push_back(lightInfo2);
         
         std::initializer_list<VWolf::ShaderParameter> parameters = {
             { materialName, VWolf::ShaderParameterType::In, 2, material1.GetSize() },
-            { VWolf::Light::LightName, VWolf::ShaderParameterType::In, 3, sizeof(VWolf::Light) }
+            { VWolf::Light::LightName, VWolf::ShaderParameterType::In, 3, (sizeof(VWolf::Light) * VWolf::Light::LightsMax) } // MAX Lights = 8
            };
         for (int i = 0; i < NUMSHADERS; i++) {
             VWolf::ShaderLibrary::LoadShader(shaderNames[i].c_str(), vsFiles[i], { psFiles[i] }, parameters);
@@ -180,10 +210,6 @@ public:
         pointMesh = VWolf::ShapeHelper::CreateSphere(1, 32, 32);
         directionalMesh = VWolf::ShapeHelper::CreateBox(1, 1, 1, 0);
         spotMesh = VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 32);
-        lightMatrix = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), VWolf::Vector3Float(light.position));
-        lightMatrix = VWolf::rotate(lightMatrix, light.direction.x, { 1.0f, 0.0f, 0.0f });
-        lightMatrix = VWolf::rotate(lightMatrix, light.direction.y, { 0.0f, 1.0f, 0.0f });
-        lightMatrix = VWolf::rotate(lightMatrix, light.direction.z, { 0.0f, 0.0f, 1.0f });
     }
 
     ~RendererSandboxApplication() {
@@ -197,23 +223,28 @@ public:
 
     void OnUpdate() override {
         camera->OnUpdate();
-        light.direction = VWolf::radians(lightRotation);
         for(auto gameObject: gameObjects1)
             gameObject->transform.Apply();
         for(auto gameObject: gameObjects2)
             gameObject->transform.Apply();
         
-        lightMatrix = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), VWolf::Vector3Float(light.position));
-        lightMatrix = VWolf::rotate(lightMatrix, light.direction.x, { 1.0f, 0.0f, 0.0f });
-        lightMatrix = VWolf::rotate(lightMatrix, light.direction.y, { 0.0f, 1.0f, 0.0f });
-        lightMatrix = VWolf::rotate(lightMatrix, light.direction.z, { 0.0f, 0.0f, 1.0f });
+        for (LightInfo& lightInfo: lights) {
+            lightInfo.light.direction = VWolf::radians(lightInfo.lightRotation);
+            lightInfo.lightMatrix = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), VWolf::Vector3Float(lightInfo.light.position));
+            lightInfo.lightMatrix = VWolf::rotate(lightInfo.lightMatrix, lightInfo.light.direction.x, { 1.0f, 0.0f, 0.0f });
+            lightInfo.lightMatrix = VWolf::rotate(lightInfo.lightMatrix, lightInfo.light.direction.y, { 0.0f, 1.0f, 0.0f });
+            lightInfo.lightMatrix = VWolf::rotate(lightInfo.lightMatrix, lightInfo.light.direction.z, { 0.0f, 0.0f, 1.0f });
+        }
     }
 
     void OnDraw() override {
         VWolf::Renderer::Begin(camera);
         VWolf::Renderer::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
         VWolf::Renderer::Clear();
-        VWolf::Renderer::SetLight(light);
+        for (LightInfo& lightInfo: lights) {
+            VWolf::Renderer::AddLight(lightInfo.light);
+        }
+        
         VWolf::Renderer::SetMaterial(material2);
         for(auto gameObject: gameObjects1)
             VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
@@ -223,12 +254,15 @@ public:
         
         // Light representation
         VWolf::Renderer::SetMaterial(material1);
-        if (light.type == VWolf::Light::LightType::Point)
-            VWolf::Renderer::DrawMesh(pointMesh, lightMatrix);
-        else if (light.type == VWolf::Light::LightType::Directional)
-            VWolf::Renderer::DrawMesh(directionalMesh, lightMatrix);
-        else if (light.type == VWolf::Light::LightType::Spot)
-            VWolf::Renderer::DrawMesh(spotMesh, lightMatrix);
+        for (LightInfo& lightInfo: lights) {
+            if (lightInfo.light.type == VWolf::Light::LightType::Point)
+                VWolf::Renderer::DrawMesh(pointMesh, lightInfo.lightMatrix);
+            else if (lightInfo.light.type == VWolf::Light::LightType::Directional)
+                VWolf::Renderer::DrawMesh(directionalMesh, lightInfo.lightMatrix);
+            else if (lightInfo.light.type == VWolf::Light::LightType::Spot)
+                VWolf::Renderer::DrawMesh(spotMesh, lightInfo.lightMatrix);
+        }
+        
         VWolf::Renderer::End();
     }
 
@@ -268,31 +302,37 @@ public:
         ImGui::DragFloat3("Specular Vector", VWolf::value_ptr(mat2->specular), 0.01f, 0, 1);
         ImGui::SliderFloat("Shinines", &mat2->shinines, 0, 180);
         ImGui::PopID();
-        ImGui::PushID("Light");
-        ImGui::LabelText("Light", "");
 
-        if (ImGui::RadioButton("Directional", light.type == VWolf::Light::LightType::Directional)) {
-            light.type = VWolf::Light::LightType::Directional;
+        int i = 0;
+        ImGui::PushID("Light");
+        for (LightInfo& lightInfo: lights) {
+            
+            ImGui::PushID(i);
+            ImGui::LabelText("Light", "");
+            if (ImGui::RadioButton("Directional", lightInfo.light.type == VWolf::Light::LightType::Directional)) {
+                lightInfo.light.type = VWolf::Light::LightType::Directional;
+            }
+            if (ImGui::RadioButton("Point", lightInfo.light.type == VWolf::Light::LightType::Point)) {
+                lightInfo.light.type = VWolf::Light::LightType::Point;
+            }
+            if (ImGui::RadioButton("Spot", lightInfo.light.type == VWolf::Light::LightType::Spot)) {
+                lightInfo.light.type = VWolf::Light::LightType::Spot;
+            }
+            ImGui::ColorEdit4("Light Color", VWolf::value_ptr(lightInfo.light.color));
+            ImGui::DragFloat3("Light Strength", VWolf::value_ptr(lightInfo.light.strength), 0.1f, 0, 1);
+            if (lightInfo.light.type == VWolf::Light::LightType::Point)
+                ImGui::DragFloat3("Light Position", VWolf::value_ptr(lightInfo.light.position));
+            else if (lightInfo.light.type == VWolf::Light::LightType::Directional)
+                ImGui::DragFloat3("Light Rotation", VWolf::value_ptr(lightInfo.lightRotation));
+            else if (lightInfo.light.type == VWolf::Light::LightType::Spot) {
+                ImGui::DragFloat3("Light Position", VWolf::value_ptr(lightInfo.light.position));
+                ImGui::DragFloat3("Light Rotation", VWolf::value_ptr(lightInfo.lightRotation));
+                ImGui::DragFloat("Light CutOff", &lightInfo.light.cutOff, 0.1f, 0, VWolf::radians(90.0f));
+                ImGui::DragFloat("Light Exponent", &lightInfo.light.exponent, 0.1f, 0, 100);
+            }
+            ImGui::PopID();
+            i++;
         }
-        if (ImGui::RadioButton("Point", light.type == VWolf::Light::LightType::Point)) {
-            light.type = VWolf::Light::LightType::Point;
-        }
-        if (ImGui::RadioButton("Spot", light.type == VWolf::Light::LightType::Spot)) {
-            light.type = VWolf::Light::LightType::Spot;
-        }
-        ImGui::ColorEdit4("Light Color", VWolf::value_ptr(light.color));
-        ImGui::DragFloat3("Light Strength", VWolf::value_ptr(light.strength), 0.1f, 0, 1);
-        if (light.type == VWolf::Light::LightType::Point)
-            ImGui::DragFloat3("Light Position", VWolf::value_ptr(light.position));
-        else if (light.type == VWolf::Light::LightType::Directional)
-            ImGui::DragFloat3("Light Rotation", VWolf::value_ptr(lightRotation));
-        else if (light.type == VWolf::Light::LightType::Spot) {
-            ImGui::DragFloat3("Light Position", VWolf::value_ptr(light.position));
-            ImGui::DragFloat3("Light Rotation", VWolf::value_ptr(lightRotation));
-            ImGui::DragFloat("Light CutOff", &light.cutOff, 0.1f, 0, VWolf::radians(90.0f));
-            ImGui::DragFloat("Light Exponent", &light.exponent, 0.1f, 0, 100);
-        }
-        
         ImGui::PopID();
         ImGui::End();
     }

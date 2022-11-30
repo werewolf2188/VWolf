@@ -12,6 +12,7 @@
 
 namespace VWolf {
     void OpenGLRenderer::ProcessItems() {
+        
         std::vector<Ref<BufferGroup>> groups;
         for (auto renderItem: items) {
             auto data = renderItem->data.GetVertices();
@@ -36,11 +37,12 @@ namespace VWolf {
         for (int i = 0; i < items.size(); i++) {
             Ref<Shader> shader = ShaderLibrary::GetShader(items[i]->material.GetShader().c_str());
             void* material = items[i]->material.GetDataPointer();
+            Light* lights = this->lights.data();
             shader->Bind();
             shader->SetData(&projection, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
             shader->SetData(&items[i]->transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
             shader->SetData(material, items[i]->material.GetName(), items[i]->material.GetSize(), 0);
-            shader->SetData(&items[i]->light, Light::LightName, sizeof(Light), 0);
+            shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
             groups[i]->Bind();
             uint32_t count = groups[i]->GetIndexBuffer()->GetCount();
             glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);

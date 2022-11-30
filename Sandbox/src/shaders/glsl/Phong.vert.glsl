@@ -38,7 +38,7 @@ layout(std140) uniform Material {
     float u_shinines;
 };
 
-layout(std140) uniform Light {
+struct LightInfo {
     vec4 u_color;
     vec4 u_position;
     vec4 u_direction;
@@ -46,6 +46,10 @@ layout(std140) uniform Light {
     float u_cutOff;
     float u_exponent;
     uint u_type;
+};
+
+layout(std140) uniform Light {
+    LightInfo light[LIGHTS_MAX];
 };
 
 out vec3 v_Position;
@@ -57,13 +61,13 @@ vec4 ComputePhongLightColor() {
     vec3 n = normalize(normalMatrix * a_Normal);
     vec4 camCoords = (u_View * u_Transform) * vec4(a_Position, 1.0);
     
-    vec4 ambient = u_ambientColor * u_color;
+    vec4 ambient = u_ambientColor * light[0].u_color;
     
-    vec4 lightPosition = u_View * u_position;
+    vec4 lightPosition = u_View * light[0].u_position;
     
     vec3 s = normalize(vec3(lightPosition - camCoords));
     float sDotN = max( dot(s,n), 0.0 );
-    vec4 diffuse = u_color * u_diffuseColor * sDotN;
+    vec4 diffuse = light[0].u_color * u_diffuseColor * sDotN;
     
     vec3 spec = vec3(0.0);
     if( sDotN > 0.0 ) {

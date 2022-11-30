@@ -26,17 +26,23 @@ namespace VWolf {
         rendererImpl->material = &material;
     }
 
-    void Renderer::SetLight(Light& light) {
-        rendererImpl->light = &light;
+//    void Renderer::SetLight(Light& light) {
+//        rendererImpl->light = &light;
+//    }
+
+    void Renderer::AddLight(Light& light) {
+        rendererImpl->lights.push_back(light);
     }
 
     void Renderer::DrawMesh(MeshData& meshData, MatrixFloat4x4 transform) {
-        rendererImpl->items.push_back(CreateRef<RenderItem>(meshData, *rendererImpl->material, *rendererImpl->light, transform));
+        rendererImpl->items.push_back(CreateRef<RenderItem>(meshData, *rendererImpl->material, transform));
     }
 
     void Renderer::End() {
         rendererImpl->ProcessItems();
         rendererImpl->items.clear();
+//        rendererImpl->light = nullptr;
+        rendererImpl->lights.clear();
     }
 
     CameraPass Renderer::GetCameraPass() {

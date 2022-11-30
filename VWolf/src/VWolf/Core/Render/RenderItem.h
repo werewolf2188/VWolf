@@ -16,16 +16,13 @@ namespace VWolf {
     struct RenderItem {
         MeshData& data;
         AbstractMaterial& material;
-        Light& light;
         MatrixFloat4x4 transform;
 
         RenderItem(MeshData& data,
                    AbstractMaterial& material,
-                   Light& light,
                    MatrixFloat4x4 transform):
         data(data),
         material(material),
-        light(light),
         transform(transform) {
             
         }

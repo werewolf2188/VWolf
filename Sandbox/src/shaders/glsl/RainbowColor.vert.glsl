@@ -1,4 +1,5 @@
 #version 400 core
+#define LIGHTS_MAX 8
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec4 a_Color;
@@ -34,7 +35,7 @@ layout(std140) uniform Material {
     float u_shinines;
 };
 
-layout(std140) uniform Light {
+struct LightInfo {
     vec4 u_color;
     vec4 u_position;
     vec4 u_direction;
@@ -42,6 +43,10 @@ layout(std140) uniform Light {
     float u_cutOff;
     float u_exponent;
     uint u_type;
+};
+
+layout(std140) uniform Light {
+    LightInfo light[LIGHTS_MAX];
 };
 
 out vec3 v_Position;
