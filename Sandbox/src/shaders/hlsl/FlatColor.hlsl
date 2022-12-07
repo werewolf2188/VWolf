@@ -27,7 +27,9 @@ cbuffer cbPerMaterial : register(b2) {
 	float u_shinines;
 };
 
-cbuffer cbPerLight : register(b3) {
+#define LIGHTS_MAX 8
+
+struct LightInfo {
 	float4 u_color;
 	float4 u_position;
 	float4 u_direction;
@@ -35,6 +37,10 @@ cbuffer cbPerLight : register(b3) {
 	float u_cutOff;
 	float u_exponent;
 	uint u_type;
+};
+
+cbuffer cbPerLight : register(b3) {
+	LightInfo light[LIGHTS_MAX];
 };
 
 struct VertexIn
@@ -61,7 +67,7 @@ VertexOut VS(VertexIn vin)
 	vout.PosH = mul(u_ViewProjection, vout.PosH);
 
 	// Just pass vertex color into the pixel shader.	
-	vout.Color = u_color;
+	vout.Color = light[0].u_color;
 	return vout;
 }
 

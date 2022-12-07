@@ -27,7 +27,9 @@ cbuffer cbPerMaterial : register(b2) {
 	float u_shinines;
 };
 
-cbuffer cbPerLight : register(b3) {
+#define LIGHTS_MAX 8
+
+struct LightInfo {
 	float4 u_color;
 	float4 u_position;
 	float4 u_direction;
@@ -35,6 +37,10 @@ cbuffer cbPerLight : register(b3) {
 	float u_cutOff;
 	float u_exponent;
 	uint u_type;
+};
+
+cbuffer cbPerLight : register(b3) {
+	LightInfo light[LIGHTS_MAX];
 };
 
 struct VertexIn
@@ -54,44 +60,16 @@ struct VertexOut
 };
 
 
-float3 ComputeSpotBlinnPhongLightColor(float3 position, float3 n) {
-
-	/*
-	 // Ambient
-    vec3 ambient = (u_ambientColor * u_color).xyz;
-    
-    vec3 s = normalize(v_LightPosition.xyz - position);
-    float cosAng = dot(-s, normalize(v_LightDirection.xyz));
-    float angle = acos( cosAng );
-    float spotScale = 0.0;
-
-    // Diffuse
-    vec3 diffuse = vec3(0);
-    
-    // Specular
-    vec3 spec = vec3(0);
-    
-    if (angle >= 0.0 && angle < u_cutOff) {
-        spotScale = pow(cosAng, u_exponent);
-        float sDotN = max(dot(s,n), 0.0);
-        diffuse = (u_color * u_diffuseColor * sDotN).xyz;
-        
-        if (sDotN > 0.0) {
-            vec3 v = normalize(-position.xyz);
-            vec3 h = normalize(v + s);
-            spec = u_specular * pow(max(dot(h,n), 0.0 ), u_shinines );
-        }
-    }
-	*/
-
+float3 ComputeSpotBlinnPhongLightColor(float3 position, float3 n, LightInfo lightInfo) {
+	
 	// Light position
-	float4 LightPosition = mul(u_View, u_position);
+	float4 LightPosition = mul(u_View, lightInfo.u_position);
 
 	// Light direction 
-	float4 LightDirection = mul(u_View, u_direction);
+	float4 LightDirection = mul(u_View, lightInfo.u_direction);
 
 	// Ambient
-	float3 ambient = (u_ambientColor * u_color).xyz;
+	float3 ambient = (u_ambientColor * lightInfo.u_color).xyz;
 
 	
 	float3 s = float3(0, 0, 0);
@@ -106,10 +84,10 @@ float3 ComputeSpotBlinnPhongLightColor(float3 position, float3 n) {
 	// Spec
 	float3 spec = float3(0.0, 0.0, 0.0);
 
-	if (angle >= 0.0 && angle < u_cutOff) {
-		spotScale = pow(cosAng, u_exponent);
+	if (angle >= 0.0 && angle < lightInfo.u_cutOff) {
+		spotScale = pow(cosAng, lightInfo.u_exponent);
 		float sDotN = max(dot(s, n), 0.0);
-		diffuse = (u_color * u_diffuseColor * sDotN).xyz;
+		diffuse = (lightInfo.u_color * u_diffuseColor * sDotN).xyz;
 
 		// Specular
 		if (sDotN > 0) {
@@ -119,22 +97,22 @@ float3 ComputeSpotBlinnPhongLightColor(float3 position, float3 n) {
 		}
 	}
 
-	return ambient + spotScale * u_strength.xyz * (diffuse + spec);
+	return ambient + spotScale * lightInfo.u_strength.xyz * (diffuse + spec);
 }
 
 
-float3 ComputePointBlinnPhongLightColor(float3 position, float3 n) {
+float3 ComputePointBlinnPhongLightColor(float3 position, float3 n, LightInfo lightInfo) {
 	// Light position
-	float4 LightPosition = mul(u_View, u_position);
+	float4 LightPosition = mul(u_View, lightInfo.u_position);
 
 	// Ambient
-	float3 ambient = (u_ambientColor * u_color).xyz;
+	float3 ambient = (u_ambientColor * lightInfo.u_color).xyz;
 
 	// Diffuse
 	float3 s = float3(0, 0, 0);
 	s = normalize(LightPosition.xyz - position);
 	float sDotN = max(dot(s, n), 0.0);
-	float3 diffuse = (u_color * u_diffuseColor * sDotN).xyz;
+	float3 diffuse = (lightInfo.u_color * u_diffuseColor * sDotN).xyz;
 
 	// Specular
 	float3 spec = float3(0.0, 0.0, 0.0);
@@ -144,21 +122,19 @@ float3 ComputePointBlinnPhongLightColor(float3 position, float3 n) {
 		spec = u_specular * pow(max(dot(h, n), 0.0), u_shinines);
 	}
 
-	return ambient + u_strength.xyz * (diffuse + spec);
+	return ambient + lightInfo.u_strength.xyz * (diffuse + spec);
 }
 
-float3 ComputeDirectionalBlinnPhongLightColor(float3 position, float3 n) {
-	// Light position
-	float4 LightPosition = mul(u_View, u_position);
+float3 ComputeDirectionalBlinnPhongLightColor(float3 position, float3 n, LightInfo lightInfo) {
 
 	// Ambient
-	float3 ambient = (u_ambientColor * u_color).xyz;
+	float3 ambient = (u_ambientColor * lightInfo.u_color).xyz;
 
 	// Diffuse
 	float3 s = float3(0, 0, 0);
-	s = normalize(u_direction.xyz);
+	s = normalize(lightInfo.u_direction.xyz);
 	float sDotN = max(dot(s, n), 0.0);
-	float3 diffuse = (u_color * u_diffuseColor * sDotN).xyz;
+	float3 diffuse = (lightInfo.u_color * u_diffuseColor * sDotN).xyz;
 
 	// Specular
 	float3 spec = float3(0.0, 0.0, 0.0);
@@ -168,19 +144,22 @@ float3 ComputeDirectionalBlinnPhongLightColor(float3 position, float3 n) {
 		spec = u_specular * pow(max(dot(h, n), 0.0), u_shinines);
 	}
 
-	return ambient + u_strength.xyz * (diffuse + spec);
+	return ambient + lightInfo.u_strength.xyz * (diffuse + spec);
 }
 
 float3 ComputeBlinnPhongLightColor(float3 position, float3 n) {
-	float3 color = float3(1.0, 1.0, 1.0);
-	if (u_type == 1) { // Directional
-		color = ComputeDirectionalBlinnPhongLightColor(position, n);
-	}
-	else if (u_type == 2) { // Spotlight
-		color = ComputeSpotBlinnPhongLightColor(position, n);
-	}
-	else if (u_type == 3) { // Point
-		color = ComputePointBlinnPhongLightColor(position, n);
+	float3 color = float3(0.0, 0.0, 0.0);
+
+	for (int i = 0; i < LIGHTS_MAX; i++) {
+		if (light[i].u_type == 1) { // Directional
+			color += ComputeDirectionalBlinnPhongLightColor(position, n, light[i]);
+		}
+		else if (light[i].u_type == 2) { // Spotlight
+			color += ComputeSpotBlinnPhongLightColor(position, n, light[i]);
+		}
+		else if (light[i].u_type == 3) { // Point
+			color += ComputePointBlinnPhongLightColor(position, n, light[i]);
+		}
 	}
 	return color;
 }

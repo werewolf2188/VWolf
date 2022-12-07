@@ -27,7 +27,9 @@ cbuffer cbPerMaterial : register(b2) {
 	float u_shinines;
 };
 
-cbuffer cbPerLight : register(b3) {
+#define LIGHTS_MAX 8
+
+struct LightInfo {
 	float4 u_color;
 	float4 u_position;
 	float4 u_direction;
@@ -35,6 +37,10 @@ cbuffer cbPerLight : register(b3) {
 	float u_cutOff;
 	float u_exponent;
 	uint u_type;
+};
+
+cbuffer cbPerLight : register(b3) {
+	LightInfo light[LIGHTS_MAX];
 };
 
 struct VertexIn
@@ -59,12 +65,12 @@ float4 ComputePhongLightColor(VertexIn vin) {
 
 	float4 camCoords = mul(mul(u_View, u_Transform), float4(vin.PosL, 1.0f));
 
-	float4 ambient = u_ambientColor * u_color;
-	float4 lightPosition = mul(u_View, u_position);
+	float4 ambient = u_ambientColor * light[0].u_color;
+	float4 lightPosition = mul(u_View, light[0].u_position);
 
 	float3 s = normalize((lightPosition - camCoords).xyz);
 	float sDotN = max(dot(s, n), 0.0);
-	float4 diffuse = u_color * u_diffuseColor * sDotN;
+	float4 diffuse = light[0].u_color * u_diffuseColor * sDotN;
 
 	float3 spec = float3(0.0, 0.0, 0.0);
 	if (sDotN > 0.0) {
@@ -72,7 +78,7 @@ float4 ComputePhongLightColor(VertexIn vin) {
 		float3 r = reflect(-s, n);
 		float maximum = max(dot(r, v), 0.0);
 		float shiny = pow(maximum, u_shinines);
-		spec = u_color.xyz * u_specular * shiny;
+		spec = light[0].u_color.xyz * u_specular * shiny;
 	}
 	return ambient + diffuse + float4(spec, 1.0);
 }

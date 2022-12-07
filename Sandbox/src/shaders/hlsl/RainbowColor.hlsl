@@ -26,8 +26,9 @@ cbuffer cbPerMaterial : register(b2) {
 	float3 u_specular;
 	float u_shinines;
 };
+#define LIGHTS_MAX 8
 
-cbuffer cbPerLight : register(b3) {
+struct LightInfo {
 	float4 u_color;
 	float4 u_position;
 	float4 u_direction;
@@ -35,6 +36,10 @@ cbuffer cbPerLight : register(b3) {
 	float u_cutOff;
 	float u_exponent;
 	uint u_type;
+};
+
+cbuffer cbPerLight : register(b3) {
+	LightInfo light[LIGHTS_MAX];
 };
 
 struct VertexIn

@@ -295,8 +295,8 @@ public:
 //        ImGui::DragFloat3("Specular Vector", VWolf::value_ptr(mat1->specular));
 //        ImGui::SliderFloat("Shinines", &mat1->shinines, 0, 1);
 //        ImGui::PopID();
-        ImGui::PushID("Material 2");
-        ImGui::LabelText("Material 2", "");
+        ImGui::PushID("Material");
+        ImGui::LabelText("Material", "");
         ImGui::ColorEdit4("Ambient Color", VWolf::value_ptr(mat2->ambientColor));
         ImGui::ColorEdit4("Diffuse Color", VWolf::value_ptr(mat2->diffuseColor));
         ImGui::DragFloat3("Specular Vector", VWolf::value_ptr(mat2->specular), 0.01f, 0, 1);
@@ -317,6 +317,9 @@ public:
             }
             if (ImGui::RadioButton("Spot", lightInfo.light.type == VWolf::Light::LightType::Spot)) {
                 lightInfo.light.type = VWolf::Light::LightType::Spot;
+            }
+            if (ImGui::RadioButton("Unknown", lightInfo.light.type == VWolf::Light::LightType::Unknown)) {
+                lightInfo.light.type = VWolf::Light::LightType::Unknown;
             }
             ImGui::ColorEdit4("Light Color", VWolf::value_ptr(lightInfo.light.color));
             ImGui::DragFloat3("Light Strength", VWolf::value_ptr(lightInfo.light.strength), 0.1f, 0, 1);
