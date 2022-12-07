@@ -258,7 +258,7 @@ namespace VWolf {
 
             meshData.vertices[i].position = p;
             meshData.vertices[i].color = normalize(Vector4Float(p.x, p.y, p.z, 1.0f));
-            meshData.vertices[i].position = n;
+            meshData.vertices[i].normal = n;
 
             float theta = atan2f(meshData.vertices[i].position.z, meshData.vertices[i].position.x);
 

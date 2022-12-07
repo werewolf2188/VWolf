@@ -20,6 +20,29 @@ cbuffer cbPerObject : register(b1)
 	float4x4 u_Transform;
 };
 
+cbuffer cbPerMaterial : register(b2) {
+	float4 u_ambientColor;
+	float4 u_diffuseColor;
+	float3 u_specular;
+	float u_shinines;
+};
+
+#define LIGHTS_MAX 8
+
+struct LightInfo {
+	float4 u_color;
+	float4 u_position;
+	float4 u_direction;
+	float4 u_strength;
+	float u_cutOff;
+	float u_exponent;
+	uint u_type;
+};
+
+cbuffer cbPerLight : register(b3) {
+	LightInfo light[LIGHTS_MAX];
+};
+
 struct VertexIn
 {
 	float3 PosL  : a_Position;
@@ -39,27 +62,12 @@ VertexOut VS(VertexIn vin)
 {
 	VertexOut vout;
 
-	// GLM
-	// Working
-	/*float4x4 vp = {
-		41.0274, 0, 0, 0,
-		0, 72.9467, 0, 0,
-		0, 0, -1.0002, -1,
-		0, 0, 49.81, 50
-	};*/
-
-	// Tests to make sure the constant buffer is passing or not
-	//vout.PosH = mul(float4(vin.PosL, 1.0f), vp);
-	//vout.PosH = float4(vin.PosL, 1.0f);
-	//float4 co = { u_ViewProjection._11 / 0xff, u_ViewProjection._22 / 0xff, u_ViewProjection._43 / 0xff, u_ViewProjection._44 / 0xff };
-	//vout.Color = co;
-
 	// Transform to homogeneous clip space.
 	vout.PosH = mul(u_Transform, float4(vin.PosL, 1.0f));
 	vout.PosH = mul(u_ViewProjection, vout.PosH);
 
 	// Just pass vertex color into the pixel shader.	
-	vout.Color = float4(1.0f, 0.0f, 0.0f, 1.0f);//vin.Color;
+	vout.Color = light[0].u_color;
 	return vout;
 }
 

@@ -32,33 +32,14 @@ layout(std140) uniform Camera
     float u_DeltaTime;
 };
 
-layout(std140) uniform Material {
-    vec4 u_ambientColor;
-    vec4 u_diffuseColor;
-    vec3 u_specular;
-    float u_shinines;
-};
-
-struct LightInfo {
-    vec4 u_color;
-    vec4 u_position;
-    vec4 u_direction;
-    vec4 u_strength;
-    float u_cutOff;
-    float u_exponent;
-    uint u_type;
-};
-
-layout(std140) uniform Light {
-    LightInfo light[LIGHTS_MAX];
-};
-
 out vec3 v_Position;
-out vec4 v_Color;
+out vec3 v_Normal;
 
 void main()
 {
-	v_Position = a_Position;
-	v_Color = light[0].u_color;
+    mat3 normalMatrix = mat3(u_View * u_Transform);
+	v_Position = (u_View * u_Transform * vec4(a_Position, 1.0)).xyz;
+    v_Normal = normalize(normalMatrix * a_Normal);
+    
 	gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);	
 }

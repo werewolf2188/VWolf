@@ -1,5 +1,4 @@
 #version 400 core
-#define LIGHTS_MAX 8
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec4 a_Color;
@@ -56,9 +55,34 @@ layout(std140) uniform Light {
 out vec3 v_Position;
 out vec4 v_Color;
 
+vec4 ComputePhongLightColor() {
+    mat3 normalMatrix = mat3(u_View * u_Transform);
+    
+    vec3 n = normalize(normalMatrix * a_Normal);
+    vec4 camCoords = (u_View * u_Transform) * vec4(a_Position, 1.0);
+    
+    vec4 ambient = u_ambientColor * light[0].u_color;
+    
+    vec4 lightPosition = u_View * light[0].u_position;
+    
+    vec3 s = normalize(vec3(lightPosition - camCoords));
+    float sDotN = max( dot(s,n), 0.0 );
+    vec4 diffuse = light[0].u_color * u_diffuseColor * sDotN;
+    
+    vec3 spec = vec3(0.0);
+    if( sDotN > 0.0 ) {
+      vec3 v = normalize(-camCoords.xyz);
+      vec3 r = reflect( -s, n );
+      spec = u_specular *
+              pow( max( dot(r,v), 0.0 ), u_shinines );
+    }
+
+    return ambient + diffuse + vec4(spec, 1.0);
+}
+
 void main()
 {
 	v_Position = a_Position;
-	v_Color = light[0].u_color;
+	v_Color = ComputePhongLightColor();
 	gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);	
 }

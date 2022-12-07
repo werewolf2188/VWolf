@@ -8,6 +8,7 @@
 #pragma once
 #include "VWolf/Core/Base.h"
 #include "VWolf/Core/Math/Math.h"
+#include <map>
 #ifdef VWOLF_PLATFORM_MACOS
 #include <vector>
 #endif
@@ -33,6 +34,7 @@ namespace VWolf {
         case ShaderDataType::Int3:     return 4 * 3;
         case ShaderDataType::Int4:     return 4 * 4;
         case ShaderDataType::Bool:     return 1;
+        case ShaderDataType::None:     return 0;
         }
 
         //VWOLF_CORE_ASSERT(false, "Unknown ShaderDataType!"); // ??????
@@ -69,6 +71,7 @@ namespace VWolf {
             case ShaderDataType::Int3:    return 3;
             case ShaderDataType::Int4:    return 4;
             case ShaderDataType::Bool:    return 1;
+            case ShaderDataType::None:    return 0;
             }
 
             //VWOLF_CORE_ASSERT(false, "Unknown ShaderDataType!"); // ??????
@@ -76,6 +79,7 @@ namespace VWolf {
         }
     };
 
+    // Buffer Layout per vertex
     class BufferLayout
     {
     public:
@@ -111,7 +115,7 @@ namespace VWolf {
         uint32_t m_Stride = 0;
     };
 
-
+    // Vertex structure (intercalated)
     struct Vertex {
         Vertex() {
             position = Vector3Float(0, 0, 0);
@@ -185,6 +189,7 @@ namespace VWolf {
         }
     };
 
+    // Mesh data
     struct MeshData {
     public:
         inline std::vector<float> GetVertices() {
@@ -214,6 +219,7 @@ namespace VWolf {
         { ShaderDataType::Float2, "a_TexCoord" }
     };
 
+    // Camera Pass
     struct CameraPass {
         /* TODO: I don't know what this value does
              float cbPerObjectPad1;
@@ -232,5 +238,82 @@ namespace VWolf {
         float totalTime;
         float deltaTime;
     };
+
+
+    // Materials
+    class AbstractMaterial {
+    public:
+        virtual size_t GetSize() = 0;
+        virtual std::string GetShader() = 0;
+        virtual const char* GetName() = 0;
+        virtual void* GetDataPointer() = 0;
+    };
+
+    template<typename T>
+    class Material: public AbstractMaterial {
+    public:
+        Material(): shaderName(""), materialName("") {
+            pointer = new T();
+        }
+        Material(const std::string shaderName, const char* materialName): shaderName(shaderName), materialName(materialName) {
+            pointer = new T();
+        }
+        
+        virtual size_t GetSize() override {
+            return sizeof(T);
+        }
+
+        virtual std::string GetShader() override {
+            return shaderName;
+        }
+        
+        virtual void* GetDataPointer() override {
+            return pointer;
+        }
+        
+        virtual const char* GetName() override {
+            return materialName;
+        }
+        
+        T* GetChildObject() {
+            return pointer;
+        }
+    private:
+        std::string shaderName;
+        const char* materialName;
+        std::map<std::string, Color> colors;
+        std::map<std::string, Vector3Float> vectors3d;
+        std::map<std::string, float> values;
+        T* pointer = nullptr;
+    };
+
+    // Lights
+    struct Light {
+    public:
+        enum class LightType: unsigned int {
+            Unknown = 0,
+            Directional = 1,
+            Spot = 2,
+            Point = 3
+        };
+        
+        Vector4Float color;
+        Vector4Float position;
+        Vector4Float direction;
+        Vector4Float strength;
+        float cutOff;
+        float exponent;
+        LightType type = LightType::Directional;
+        // TODO: This padding is only for OPENGL, but it could be useful for DirectX
+        // TODO: In case of not being useful, pass it to the specific render.
+        float padding; // Needed for OPENGL
+
+    public:
+        static const char* LightName;
+        static const int LightsMax;
+    };
+
+    inline const char* Light::LightName = "Light";
+    inline const int Light::LightsMax = 8;    
 }
 
