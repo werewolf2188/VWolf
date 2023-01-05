@@ -1,6 +1,6 @@
 # VWolf
 
-Project inspired by the [Game engine series](https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT) by [The Cherno](https://www.youtube.com/@TheCherno), this repo contains code to make a game engine core with and a demo app to test its implementation. 
+Project inspired by the [Game engine series](https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT) by [The Cherno](https://www.youtube.com/@TheCherno), this repo contains code to make a game engine core and a demo app to test its implementation. 
 
 ![Demo](Demo.gif)
 
@@ -77,6 +77,7 @@ This projects requires premake5 to be included in your local machine. Right now 
     - GLFW and Vulkan
 - Scene management
     - ECS
+- Editor
 - Physics system
 - Audio
 
