@@ -9,7 +9,7 @@
 namespace VWolf {
     Scope<Renderer> Renderer::rendererImpl = nullptr;
 
-    void Renderer::Begin(Ref<PerspectiveCamera> camera) {
+    void Renderer::Begin(Ref<Camera> camera) {
         rendererImpl->m_camera = camera;
     }
 

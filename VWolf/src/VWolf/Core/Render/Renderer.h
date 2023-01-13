@@ -2,7 +2,7 @@
 
 #include "VWolf/Core/Base.h"
 // TODO: Merge camera classes into one
-#include "PerspectiveCamera.h"
+#include "Camera.h"
 #include "Shader.h"
 #include "Buffer.h"
 #include "BufferGroup.h"
@@ -16,7 +16,7 @@ namespace VWolf {
     public:
         virtual ~Renderer() = default;
     public:
-        static void Begin(Ref<PerspectiveCamera> camera);
+        static void Begin(Ref<Camera> camera);
         static void ClearColor(Color color);
         static void Clear();
         static void SetMaterial(AbstractMaterial& material);
@@ -31,7 +31,7 @@ namespace VWolf {
         virtual void ProcessItems() = 0;
         CameraPass GetCameraPass();
     protected:
-        Ref<PerspectiveCamera> m_camera;
+        Ref<Camera> m_camera;
         Color backgroundColor;
         AbstractMaterial* material;
 //        Light* light;
