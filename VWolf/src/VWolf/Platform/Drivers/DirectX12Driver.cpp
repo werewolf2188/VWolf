@@ -14,12 +14,6 @@
 #include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Platform/Render/HLSLShader.h"
 
-#include "VWolf/Core/Render/Buffer.h"
-#include "VWolf/Platform/Render/DirectX12Buffer.h"
-
-#include "VWolf/Core/Render/BufferGroup.h"
-#include "VWolf/Platform/Render/DirectX12BufferGroup.h"
-
 #include "VWolf/Core/Time.h"
 
 namespace VWolf {
@@ -74,22 +68,6 @@ namespace VWolf {
 			std::vector<ShaderParameter> parameters,
 			ShaderConfiguration configuration) {
 				return CreateRef<HLSLShader>((HWND__*)window->GetNativeWindow(), context, name, vertexShader, layout, otherShaders, parameters, configuration);
-		});
-
-		VertexBuffer::SetDefaultCreateSizeMethod([this](uint32_t size) {
-			return CreateRef<DirectX12VertexBuffer>((HWND__*)window->GetNativeWindow(), context, size);
-		});
-
-		VertexBuffer::SetDefaultCreateDataAndSizeMethod([this](float* vertices, uint32_t size) {
-			return CreateRef<DirectX12VertexBuffer>((HWND__*)window->GetNativeWindow(), context, vertices, size);
-		});
-
-		IndexBuffer::SetDefaultCreateMethod([this](uint32_t* indices, uint32_t count) {
-			return CreateRef<DirectX12IndexBuffer>((HWND__*)window->GetNativeWindow(), context, indices, count);
-		});
-
-		BufferGroup::SetDefaultCreateMethod([this]() {
-			return CreateRef<DirectX12BufferGroup>((HWND__*)window->GetNativeWindow(), context);
 		});
 	}
 

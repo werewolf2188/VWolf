@@ -23,6 +23,6 @@ namespace VWolf {
         HWND__* window;
         DirectX12Context* context;
         int frame = 0;
-        std::vector<Ref<BufferGroup>> groups;
+        std::vector<Ref<DirectX12BufferGroup>> groups;
 	};
 }

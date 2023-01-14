@@ -3,7 +3,7 @@
 #include "VWolf/Core/Base.h"
 #include "VWolf/Core/Math/Math.h"
 
-#include "Buffer.h"
+#include "RenderStructs.h"
 
 #include <functional>
 

@@ -4,8 +4,7 @@
 // TODO: Merge camera classes into one
 #include "Camera.h"
 #include "Shader.h"
-#include "Buffer.h"
-#include "BufferGroup.h"
+#include "RenderStructs.h"
 
 #include "VWolf/Core/Math/Math.h"
 

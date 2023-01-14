@@ -1,42 +1,46 @@
 #pragma once
 
-#include "VWolf/Core/Render/Buffer.h"
+#include "VWolf/Core/Render/RenderStructs.h"
 
 struct GLFWwindow;
 
 namespace VWolf {
-	class OpenGLVertexBuffer : public VertexBuffer
+	class OpenGLVertexBuffer
 	{
 	public:
 		OpenGLVertexBuffer(GLFWwindow* window, uint32_t size);
 		OpenGLVertexBuffer(GLFWwindow* window, float* vertices, uint32_t size);
-		virtual ~OpenGLVertexBuffer();
+		~OpenGLVertexBuffer();
 
-		virtual void Bind() const override;
-		virtual void Unbind() const override;
+		void Bind() const;
+		void Unbind() const;
 
-		virtual void SetData(const void* data, uint32_t size) override;
+		void SetData(const void* data, uint32_t size);
 
-		virtual const BufferLayout& GetLayout() const override;
-		virtual void SetLayout(const BufferLayout& layout) override;
+		const BufferLayout& GetLayout() const;
+		void SetLayout(const BufferLayout& layout);
 	private:
 		GLFWwindow* m_window = nullptr;
 		BufferLayout layout;
 		unsigned int vertexBufferId = 0;
+		float* m_vertices;
+		uint32_t m_size;
 	};
 
-	class OpenGLIndexBuffer: public IndexBuffer
+	class OpenGLIndexBuffer
 	{
 	public:
 		OpenGLIndexBuffer(GLFWwindow* window, uint32_t* indices, uint32_t count);
-		virtual ~OpenGLIndexBuffer();
+		~OpenGLIndexBuffer();
 
-		virtual void Bind() const override;
-		virtual void Unbind() const override;
+		void Bind() const;
+		void Unbind() const;
 
-		virtual uint32_t GetCount() const override;
+		uint32_t GetCount() const;
 	private:
 		GLFWwindow* m_window = nullptr;
 		unsigned int indexBufferId = 0;
+		uint32_t* m_indices;
+		uint32_t m_count;
 	};
 }
