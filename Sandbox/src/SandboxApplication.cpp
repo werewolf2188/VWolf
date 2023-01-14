@@ -17,6 +17,172 @@
 #define SCREENWIDTH 1280.0f
 #define SCREENHEIGHT 720.0f
 
+// For testing purposes.
+// TODO: The purpose of this controller is to allow the camera to move. The camera movement should be dictated by scripts or
+// TODO: by editor
+class CameraController {
+public:
+    CameraController(VWolf::Ref<VWolf::Camera> camera): camera(camera) {
+        
+    }
+    
+    void OnEvent(VWolf::Event& evt) {
+        VWolf::Dispatch<VWolf::MouseScrolledEvent>(evt, VWOLF_BIND_EVENT_FN(OnMouseScroll));
+    }
+
+    bool OnMouseScroll(VWolf::MouseScrolledEvent& e) {
+        // Will Zoom
+        float delta = e.GetYOffset() * 0.1f;
+        MouseZoom(delta);
+        camera->UpdateView(CalculatePosition(), GetOrientation());
+        return false;
+    }
+
+    void OnUpdate() {
+        // TODO: Change the input to be more universal. Middle button does not work in laptops
+        
+        // Left shift: Pan
+        // Left alt: Rotate
+        // Left ctrl: Zoom
+        
+        if (VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftShift))
+        {
+            VWolf::Vector2Float delta = GetMouseDelta();
+            if (VWolf::Input::IsMouseButtonPressed(VWolf::MouseCode::Left))
+                MousePan(delta);
+        }
+        if (VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftAlt))
+        {
+            VWolf::Vector2Float delta = GetMouseDelta();
+            if (VWolf::Input::IsMouseButtonPressed(VWolf::MouseCode::Left))
+                MouseRotate(delta);
+        }
+        if (VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftControl))
+        {
+            VWolf::Vector2Float delta = GetMouseDelta();
+            if (VWolf::Input::IsMouseButtonPressed(VWolf::MouseCode::Left))
+                MouseZoom(delta.y);
+        }
+
+        camera->UpdateView(CalculatePosition(), GetOrientation());
+    }
+
+    VWolf::Vector2Float GetMouseDelta() {
+        const VWolf::Vector2Float& mouse{ VWolf::Input::GetMouseX(), VWolf::Input::GetMouseY() };
+        VWolf::Vector2Float delta = (mouse - m_InitialMousePosition) * 0.003f;
+        m_InitialMousePosition = mouse;
+        return delta;
+    }
+
+    void SetViewportSize(float width, float height) {
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
+        camera->SetViewportSize(width, height);
+    }
+
+    float GetPitch() const { return m_Pitch; }
+
+    float GetYaw() const { return m_Yaw; }
+
+    float GetDistance() const { return m_Distance; }
+
+    void SetDistance(float distance) {
+        m_Distance = distance;
+        camera->SetZoomLevel(m_Distance);
+    }
+private:
+    void MousePan(const VWolf::Vector2Float& delta)
+    {
+        auto [xSpeed, ySpeed] = PanSpeed();
+        m_FocalPoint += -GetRightDirection() * delta.x * xSpeed * m_Distance;
+        m_FocalPoint += GetUpDirection() * delta.y * ySpeed * m_Distance;
+    }
+
+    void MouseRotate(const VWolf::Vector2Float& delta)
+    {
+        float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
+        m_Yaw += yawSign * delta.x * RotationSpeed();
+        m_Pitch += delta.y * RotationSpeed();
+    }
+
+    void MouseZoom(float delta)
+    {
+        m_Distance -= delta * ZoomSpeed();
+        if (m_Distance < 1.0f)
+        {
+            m_FocalPoint += GetForwardDirection();
+            m_Distance = 1.0f;
+        }
+        camera->SetZoomLevel(m_Distance);
+    }
+
+    std::pair<float, float> PanSpeed() const
+    {
+        float x = std::min(m_ViewportWidth / 1000.0f, 2.4f); // max = 2.4f
+        float xFactor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;
+
+        float y = std::min(m_ViewportHeight / 1000.0f, 2.4f); // max = 2.4f
+        float yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
+
+        return { xFactor, yFactor };
+    }
+
+    float RotationSpeed() const
+    {
+        return 0.8f;
+    }
+
+    float ZoomSpeed() const
+    {
+        float distance = m_Distance * 0.2f;
+        distance = std::max(distance, 0.0f);
+        float speed = distance * distance;
+        speed = std::min(speed, 100.0f); // max speed = 100
+        return speed;
+    }
+
+    VWolf::Vector3Float CalculatePosition() const
+    {
+        return m_FocalPoint - GetForwardDirection() * m_Distance;
+    }
+    
+    VWolf::Vector3Float GetUpDirection() const
+    {
+        return VWolf::rotate(GetOrientation(), { 0.0f, 1.0f, 0.0f });
+    }
+
+    VWolf::Vector3Float GetRightDirection() const
+    {
+        return VWolf::rotate(GetOrientation(), { 1.0f, 0.0f, 0.0f });
+    }
+
+    VWolf::Vector3Float GetForwardDirection() const
+    {
+        return VWolf::rotate(GetOrientation(), { 0.0f, 0.0f, -1.0f });
+    }
+
+    VWolf::Quat GetOrientation() const {
+        return VWolf::Quat({ -m_Pitch, -m_Yaw, 0.0f });
+    }
+private:
+    VWolf::Ref<VWolf::Camera> camera;
+    // This is going to change into a transform, once we start implementing components
+    // For position
+    VWolf::Vector3Float m_Position = { 0.0f, 0.0f, 0.0f };
+    // For rotation
+    float m_Pitch = 0.0f;
+    float m_Yaw = 0.0f;
+    // For zoom
+    VWolf::Vector3Float m_FocalPoint = { 0.0f, 0.0f, 0.0f };
+    float m_Distance = 10.0f;
+    // Window/Image size
+    float m_ViewportWidth = 1280.0f;
+    float m_ViewportHeight = 720.0f;
+
+    // Input
+    VWolf::Vector2Float m_InitialMousePosition = { 0.0f, 0.0f };
+};
+
 #define NUMSHADERS 2
 std::array<std::string, NUMSHADERS> shaderNames = { { "Flat Color", "Blinn Phon" } };
 std::array<VWolf::ShaderSource, NUMSHADERS> vsFiles;
@@ -122,7 +288,7 @@ struct LightInfo {
 
 class RendererSandboxApplication: public VWolf::Application {
 public:
-    VWolf::Ref<VWolf::PerspectiveCamera> camera;
+    VWolf::Ref<VWolf::Camera> camera;
     std::vector<VWolf::Ref<GameObject>> gameObjects1, gameObjects2;
     VWolf::Material<Albedo> material1;
     VWolf::Material<Albedo> material2;
@@ -132,11 +298,14 @@ public:
     Albedo* mat2;
 
     VWolf::MeshData pointMesh, directionalMesh, spotMesh;
+
+    VWolf::Ref<CameraController> controller;
     
     const char *materialName = "Material";
 public:
     RendererSandboxApplication(): Application(DRIVER_TYPE, { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
-        camera = VWolf::CreateRef<VWolf::PerspectiveCamera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
+        camera = VWolf::CreateRef<VWolf::Camera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
+        controller = VWolf::CreateRef<CameraController>(camera);
         LoadShaderNames(DRIVER_TYPE);
         
         material1 = VWolf::Material<Albedo>(shaderNames[0].c_str(), materialName);
@@ -217,12 +386,12 @@ public:
 
     void OnEvent(VWolf::Event& evt) override {
         VWolf::Application::OnEvent(evt);
-        camera->OnEvent(evt);
+        controller->OnEvent(evt);
         VWolf::Dispatch<VWolf::WindowResizeEvent>(evt, VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowResize));
     }
 
     void OnUpdate() override {
-        camera->OnUpdate();
+        controller->OnUpdate();
         for(auto gameObject: gameObjects1)
             gameObject->transform.Apply();
         for(auto gameObject: gameObjects2)
@@ -342,7 +511,7 @@ public:
 
     bool OnWindowResize(VWolf::WindowResizeEvent& e) {
         if (e.GetWidth() != 0 && e.GetHeight() != 0)
-            camera->SetViewportSize(e.GetWidth(), e.GetHeight());
+            controller->SetViewportSize(e.GetWidth(), e.GetHeight());
         return true;
     }
 };
