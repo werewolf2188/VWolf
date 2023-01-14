@@ -49,7 +49,7 @@ namespace VWolf {
         m_IndexBuffer->Unbind();
 		glBindVertexArray(0);
 	}
-	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
+	void OpenGLVertexArray::AddVertexBuffer(const Ref<OpenGLVertexBuffer>& vertexBuffer)
 	{
 		VWOLF_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
 
@@ -116,18 +116,18 @@ namespace VWolf {
         vertexBuffer->Unbind();
 		m_VertexBuffers.push_back(vertexBuffer);
 	}
-	void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
+	void OpenGLVertexArray::SetIndexBuffer(const Ref<OpenGLIndexBuffer>& indexBuffer)
 	{
 		glBindVertexArray(vertexArrayId);
 		//indexBuffer->Bind();
 
 		m_IndexBuffer = indexBuffer;
 	}
-	const std::vector<Ref<VertexBuffer>>& OpenGLVertexArray::GetVertexBuffers() const
+	const std::vector<Ref<OpenGLVertexBuffer>>& OpenGLVertexArray::GetVertexBuffers() const
 	{
 		return m_VertexBuffers;
 	}
-	const Ref<IndexBuffer>& OpenGLVertexArray::GetIndexBuffer() const
+	const Ref<OpenGLIndexBuffer>& OpenGLVertexArray::GetIndexBuffer() const
 	{
 		return m_IndexBuffer;
 	}

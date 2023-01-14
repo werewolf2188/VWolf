@@ -63,13 +63,13 @@ namespace VWolf {
 	}
 
 	DirectX12VertexBuffer::DirectX12VertexBuffer(HWND__* window, DirectX12Context* context, uint32_t size): 
-		m_window(window), m_context(context), VertexBuffer(size)
+		m_window(window), m_context(context), m_size(size)
 	{
 		m_vContext = CreateScope<VertexContext>();
 		VWOLF_CORE_ASSERT(size);
 	}
 	DirectX12VertexBuffer::DirectX12VertexBuffer(HWND__* window, DirectX12Context* context, float* vertices, uint32_t size): 
-		m_window(window), m_context(context), VertexBuffer(vertices, size)
+		m_window(window), m_context(context), m_vertices(vertices), m_size(size)
 	{
 		VWOLF_CORE_ASSERT(size);
 		m_vContext = CreateScope<VertexContext>();
@@ -131,7 +131,7 @@ namespace VWolf {
 	};
 
 	DirectX12IndexBuffer::DirectX12IndexBuffer(HWND__* window, DirectX12Context* context, uint32_t* indices, uint32_t count):
-		m_window(window), m_context(context), IndexBuffer(indices, count)
+		m_window(window), m_context(context), m_indices(indices), m_count(count)
 	{
 		m_iContext = CreateScope<IndexContext>();
 		VWOLF_CORE_ASSERT(count);

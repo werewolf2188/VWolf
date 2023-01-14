@@ -1,29 +1,30 @@
 #pragma once
 
-#include "VWolf/Core/Render/BufferGroup.h"
+#include "VWolf/Core/Render/RenderStructs.h"
+#include "OpenGLBuffer.h"
 
 struct GLFWwindow;
 
 namespace VWolf {
-	class OpenGLVertexArray: public BufferGroup
+	class OpenGLVertexArray
 	{
 	public:
 		OpenGLVertexArray(GLFWwindow* window);
-		virtual ~OpenGLVertexArray();
+		~OpenGLVertexArray();
 
-		virtual void Bind() const override;
-		virtual void Unbind() const override;
+		void Bind() const;
+		void Unbind() const;
 
-		virtual void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) override;
-		virtual void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer) override;
+		void AddVertexBuffer(const Ref<OpenGLVertexBuffer>& vertexBuffer);
+		void SetIndexBuffer(const Ref<OpenGLIndexBuffer>& indexBuffer);
 
-		virtual const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const override;
-		virtual const Ref<IndexBuffer>& GetIndexBuffer() const override;
+		const std::vector<Ref<OpenGLVertexBuffer>>& GetVertexBuffers() const;
+		const Ref<OpenGLIndexBuffer>& GetIndexBuffer() const;
 	private:
 		GLFWwindow* m_window = nullptr;
 		unsigned int vertexArrayId = 0;
 		unsigned int m_VertexBufferIndex = 0;
-		Ref<IndexBuffer> m_IndexBuffer = nullptr;
-		std::vector<Ref<VertexBuffer>> m_VertexBuffers;
+		Ref<OpenGLIndexBuffer> m_IndexBuffer = nullptr;
+		std::vector<Ref<OpenGLVertexBuffer>> m_VertexBuffers;
 	};
 }

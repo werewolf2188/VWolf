@@ -13,7 +13,7 @@
 namespace VWolf {
     void OpenGLRenderer::ProcessItems() {
         
-        std::vector<Ref<BufferGroup>> groups;
+        std::vector<Ref<OpenGLVertexArray>> groups;
         for (auto renderItem: items) {
             auto data = renderItem->data.GetVertices();
             auto indices = renderItem->data.indices;

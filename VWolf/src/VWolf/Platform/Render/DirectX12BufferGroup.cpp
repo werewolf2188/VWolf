@@ -21,19 +21,19 @@ namespace VWolf {
 	void DirectX12BufferGroup::Unbind() const
 	{
 	}
-	void DirectX12BufferGroup::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
+	void DirectX12BufferGroup::AddVertexBuffer(const Ref<DirectX12VertexBuffer>& vertexBuffer)
 	{
 		m_vBuffers.push_back(vertexBuffer);
 	}
-	void DirectX12BufferGroup::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
+	void DirectX12BufferGroup::SetIndexBuffer(const Ref<DirectX12IndexBuffer>& indexBuffer)
 	{
 		m_indexBuffer = indexBuffer;
 	}
-	const std::vector<Ref<VertexBuffer>>& DirectX12BufferGroup::GetVertexBuffers() const
+	const std::vector<Ref<DirectX12VertexBuffer>>& DirectX12BufferGroup::GetVertexBuffers() const
 	{
 		return m_vBuffers;
 	}
-	const Ref<IndexBuffer>& DirectX12BufferGroup::GetIndexBuffer() const
+	const Ref<DirectX12IndexBuffer>& DirectX12BufferGroup::GetIndexBuffer() const
 	{
 		return m_indexBuffer;
 	}
