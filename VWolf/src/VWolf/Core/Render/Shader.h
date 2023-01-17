@@ -9,6 +9,9 @@
 
 namespace VWolf {
 
+    // TODO: Move this eventually
+    static std::string materialName = "Material";
+
     enum class ShaderType {
         Vertex,
         Pre_Tesselator,
@@ -83,6 +86,22 @@ namespace VWolf {
         Blend blend = Blend();
     };
 
+    struct ShaderInput {
+    public:
+        ShaderInput(std::string name, ShaderDataType type, uint32_t size, uint32_t offset):
+        name(name), type(type), size(size), offset(offset) { }
+
+        std::string GetName() { return name; }
+        ShaderDataType GetType() { return type; }
+        uint32_t GetSize() { return size; }
+        uint32_t GetOffset() { return offset; }
+    private:
+        std::string name;
+        ShaderDataType type;
+        uint32_t size;
+        uint32_t offset;
+    };
+
 	class Shader {
 	public:
         Shader(const char* name,
@@ -98,10 +117,21 @@ namespace VWolf {
         m_parameters(parameters),
         m_configuration(configuration) {}
 
+        Shader(const char* name,
+               BufferLayout layout,
+               std::initializer_list<ShaderSource> otherShaders,
+               ShaderConfiguration configuration):
+        m_name(name),
+        m_layout(layout),
+        m_otherShaders(otherShaders),
+        m_configuration(configuration) {}
+
 		virtual ~Shader() = default;
 
 		virtual void Bind() const = 0;
 		virtual void Unbind() const = 0;
+        virtual std::vector<Ref<ShaderInput>> GetMaterialInputs() const = 0;
+        virtual size_t GetMaterialSize() const = 0;
 
 		virtual const char* GetName() const = 0;
 
@@ -147,7 +177,6 @@ namespace VWolf {
                                      std::initializer_list<ShaderSource> otherShaders,
                                      std::vector<ShaderParameter> parameters,
                                      ShaderConfiguration configuration)> Shader::m_create = nullptr;
-
     class ShaderLibrary {
     public:
         // TODO: Not sure if this should live here.
@@ -169,20 +198,12 @@ namespace VWolf {
             m_shaders.push_back(Shader::Create(name, vertexShader, MeshData::Layout, otherShaders, minimalParameters, configuration));
         }
 
-        static Ref<Shader> GetShader(const char* name) {
-            for (auto shader: m_shaders) {
-                std::string shaderName = shader->GetName();
-                if (shaderName == name) {
-                    return shader;
-                }
-            }
-            return nullptr;
-        }
+        static void LoadShader(const char* name,
+                               std::initializer_list<ShaderSource> otherShaders,
+                               ShaderConfiguration configuration = {});
+
+        static Ref<Shader> GetShader(const char* name);
     private:
         static std::vector<Ref<Shader>> m_shaders;
     };
-
-    inline std::vector<Ref<Shader>> ShaderLibrary::m_shaders;
-    inline const char* ShaderLibrary::CameraBufferName = "Camera";
-    inline const char* ShaderLibrary::ObjectBufferName = "Object";
 }

@@ -1,19 +1,16 @@
 #include "vwpch.h"
 #include "OpenGLDriver.h"
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include "VWolf/Platform/Windows/GLFWWindow.h"
+#include "VWolf/Platform/OpenGL/Windows/GLFWWindow.h"
 #include "VWolf/Core/UI/UIManager.h"
 
-#include "VWolf/Platform/UI/OpenGLUIManager.h"
+#include "VWolf/Platform/OpenGL/UI/OpenGLUIManager.h"
 
 #include "VWolf/Core/Render/Renderer.h"
-#include "VWolf/Platform/Render/OpenGLRenderer.h"
+#include "VWolf/Platform/OpenGL/Render/OpenGLRenderer.h"
 
 #include "VWolf/Core/Render/Shader.h"
-#include "VWolf/Platform/Render/GLSLShader.h"
+#include "VWolf/Platform/OpenGL/Render/GLSLShader.h"
 
 #include "VWolf/Core/Time.h"
 
@@ -68,7 +65,7 @@ namespace VWolf {
 
 		window = CreateRef<GLFWWindow>(config, callback);
 		UIManager::SetDefault(CreateRef<OpenGLUIManager>((GLFWwindow*)window->GetNativeWindow()));
-        Renderer::SetRenderer(CreateScope<OpenGLRenderer>((GLFWwindow *)window->GetNativeWindow()));
+        Graphics::SetGraphicsImpl(CreateScope<OpenGLGraphics>());
 		Time::SetTimeImplementation(CreateRef<GLFWTime>());
 
 		Shader::SetDefaultCreateMethod([this](const char* name,
@@ -77,7 +74,7 @@ namespace VWolf {
 			std::initializer_list<ShaderSource> otherShaders,
 			std::vector<ShaderParameter> parameters,
 			ShaderConfiguration configuration) {
-				return CreateRef<GLSLShader>((GLFWwindow*)window->GetNativeWindow(), name, vertexShader, layout, otherShaders, parameters, configuration);
+				return CreateRef<GLSLShader>(name, vertexShader, layout, otherShaders, parameters, configuration);
 		});
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -95,6 +92,10 @@ namespace VWolf {
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
         }
 #endif
+        VWOLF_CORE_INFO("GL Vendor %s", glGetString(GL_VENDOR));
+        VWOLF_CORE_INFO("GL Render %s", glGetString(GL_RENDERER));
+        VWOLF_CORE_INFO("GL Version %s", glGetString(GL_VERSION));
+        VWOLF_CORE_INFO("GL Shading Language version %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 	}
 
 	void OpenGLDriver::Shutdown()

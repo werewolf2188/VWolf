@@ -1,8 +1,8 @@
 #include "vwpch.h"
 
-#include "Driver.h"
+#include "VWolf/Core/Driver.h"
 
-#include "VWolf/Platform/Drivers/OpenGLDriver.h"
+#include "VWolf/Platform/OpenGL/OpenGLDriver.h"
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "VWolf/Platform/Drivers/DirectX12Driver.h"
 #endif

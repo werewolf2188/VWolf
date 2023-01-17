@@ -1,8 +1,6 @@
 #include "vwpch.h"
 #include "OpenGLUIManager.h"
 
-#include <GLFW/glfw3.h>
-
 #include <imgui.h>
 #include "VWolf/Platform/UI/backends/imgui_impl_glfw.h"
 #include "VWolf/Platform/UI/backends/imgui_impl_opengl3.h"

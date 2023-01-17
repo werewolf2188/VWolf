@@ -19,6 +19,7 @@
 #include "VWolf/Core/UI/UIManager.h"
 
 #include "VWolf/Core/Render/Renderer.h"
+#include "VWolf/Core/Render/Material.h"
 #include "VWolf/Core/Render/Shader.h"
 
 #include "VWolf/Core/Math/Math.h"

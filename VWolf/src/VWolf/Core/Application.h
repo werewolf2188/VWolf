@@ -30,6 +30,7 @@ namespace VWolf {
 		void Run();
 		Ref<Window> GetWindow();
 		std::vector<std::string> GetArguments();
+        DriverType GetDriverType() { return m_type; }
 	protected: 
 		Application() = delete;
 		Application(DriverType type, InitConfiguration config);	

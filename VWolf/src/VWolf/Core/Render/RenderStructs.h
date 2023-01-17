@@ -231,6 +231,7 @@ namespace VWolf {
         MatrixFloat4x4 viewProjection;
         MatrixFloat4x4 invViewProjection;
         Vector3Float eyePosition;
+        float padding;
         Vector2Float renderTargetSize;
         Vector2Float invRenderTargetSize;
         float nearZ;
@@ -250,12 +251,12 @@ namespace VWolf {
     };
 
     template<typename T>
-    class Material: public AbstractMaterial {
+    class OldMaterial: public AbstractMaterial {
     public:
-        Material(): shaderName(""), materialName("") {
+        OldMaterial(): shaderName(""), materialName("") {
             pointer = new T();
         }
-        Material(const std::string shaderName, const char* materialName): shaderName(shaderName), materialName(materialName) {
+        OldMaterial(const std::string shaderName, const char* materialName): shaderName(shaderName), materialName(materialName) {
             pointer = new T();
         }
         
