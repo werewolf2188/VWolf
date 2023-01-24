@@ -30,6 +30,8 @@ namespace VWolf {
 
 		virtual const char* GetName() const override;
 		virtual void SetData(const void* data, const char* name, uint32_t size, uint32_t offset = 0) override;
+		virtual std::vector<Ref<ShaderInput>> GetMaterialInputs() const override;
+		virtual size_t GetMaterialSize() const override;
 
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeline();
 	private:

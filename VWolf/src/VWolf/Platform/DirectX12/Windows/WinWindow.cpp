@@ -6,7 +6,7 @@
 #include "WinWindow.h"
 
 #include "VWolf/Core/UI/UIManager.h"
-#include "VWolf/Platform/UI/DirectX12UIManager.h"
+#include "VWolf/Platform/DirectX12/UI/DirectX12UIManager.h"
 
 const wchar_t* CLASS_NAME = L"VWOLF_MAIN_WINDOW";
 

@@ -76,9 +76,10 @@ namespace VWolf {
 
         void PrintError() {
             GLint length = GetStatus(GL_INFO_LOG_LENGTH);
-            GLchar infoLog[length];
+            GLchar* infoLog = new GLchar[length];
             glGetShaderInfoLog(shaderId, length, nullptr, infoLog);
             VWOLF_CORE_DEBUG(infoLog);
+            delete[] infoLog;
         }
 
         GLuint ShaderTypeEquivalent(ShaderType type) {
@@ -102,9 +103,10 @@ namespace VWolf {
     public:
         GLAttribute(GLuint programId, GLint index) {
             GLint length = 255;
-            GLchar nameHolder[length];
+            GLchar* nameHolder = new GLchar[length];
             glGetActiveAttrib(programId, index, length, 0, &size, &type, nameHolder);
             name = std::string(nameHolder);
+            delete[] nameHolder;
         }
     
         ~GLAttribute() = default;
@@ -126,9 +128,10 @@ namespace VWolf {
         GLUniform(GLuint programId, GLint index): index(index) {
             GLint length;
             glGetProgramiv(programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &length);
-            char nameHolder[length];
+            char* nameHolder = new char[length];
             glGetActiveUniformName(programId, index, length, 0, nameHolder);
             name = std::string(nameHolder);
+            delete[] nameHolder;
         }
 
         ~GLUniform() = default;
@@ -231,9 +234,10 @@ namespace VWolf {
             // Getting the name
             GLint length;
             glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_NAME_LENGTH, &length);
-            char nameHolder[length];
+            char* nameHolder = new char[length];
             glGetActiveUniformBlockName(programId, index, length, 0, nameHolder);
             name = std::string(nameHolder);
+            delete[] nameHolder;
     
             // Getting the size of the block
             glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
@@ -451,10 +455,11 @@ namespace VWolf {
 
         void PrintErrorAndAssert() {
             GLint length = GetStatus(GL_INFO_LOG_LENGTH);
-            GLchar infoLog[length];
+            GLchar* infoLog = new GLchar[length];
             glGetProgramInfoLog(programId, length, nullptr, infoLog);
             VWOLF_CORE_DEBUG(infoLog);
             VWOLF_CORE_ASSERT(false, infoLog);
+            delete[] infoLog;
         }
     
         void AttachShaderWithoutAdding(Ref<GLShaderSource> source) {
@@ -676,8 +681,9 @@ namespace VWolf {
         auto lambda = [_materialName](std::pair<std::string, Ref<GLUniformBuffer>> it) {
             return strcmp(it.first.c_str(), _materialName) == 0;
         };
-        Ref<GLUniformBuffer> material = std::find_if(m_program->GetUniformBuffers().begin(),
-                                                     m_program->GetUniformBuffers().end(),
+        auto container = m_program->GetUniformBuffers();
+        Ref<GLUniformBuffer> material = std::find_if(container.begin(),
+                                                     container.end(),
                                                      lambda)->second;
         std::vector<Ref<ShaderInput>> inputs;
         for (std::pair<std::string, Ref<GLUniform>> uniform: material->GetUniforms()) {
@@ -695,8 +701,9 @@ namespace VWolf {
         auto lambda = [_materialName](std::pair<std::string, Ref<GLUniformBuffer>> it) {
             return strcmp(it.first.c_str(), _materialName) == 0;
         };
-        return std::find_if(m_program->GetUniformBuffers().begin(),
-                            m_program->GetUniformBuffers().end(),
+        auto container = m_program->GetUniformBuffers();
+        return std::find_if(container.begin(),
+                            container.end(),
                             lambda)->second->GetSize();
     }
 }

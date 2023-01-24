@@ -4,7 +4,7 @@
 
 #include "VWolf/Platform/OpenGL/OpenGLDriver.h"
 #ifdef VWOLF_PLATFORM_WINDOWS
-#include "VWolf/Platform/Drivers/DirectX12Driver.h"
+#include "VWolf/Platform/DirectX12/DirectX12Driver.h"
 #endif
 
 namespace VWolf {
