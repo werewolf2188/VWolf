@@ -9,6 +9,7 @@ namespace VWolf {
 	class OpenGLVertexArray
 	{
 	public:
+        OpenGLVertexArray();
 		OpenGLVertexArray(const Ref<OpenGLVertexBuffer>& vertexBuffer);
         OpenGLVertexArray(const Ref<OpenGLVertexBuffer>& vertexBuffer, const BufferLayout& layout);
 		~OpenGLVertexArray();

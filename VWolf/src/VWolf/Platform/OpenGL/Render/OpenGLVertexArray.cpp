@@ -24,6 +24,10 @@ namespace VWolf {
 		return 0;
 	}
 
+    OpenGLVertexArray::OpenGLVertexArray(): m_layout(MeshData::Layout) {
+        glGenVertexArrays(1, &vertexArrayId);
+    }
+
 	OpenGLVertexArray::OpenGLVertexArray(const Ref<OpenGLVertexBuffer>& vertexBuffer): OpenGLVertexArray(vertexBuffer,
                                                                                                          MeshData::Layout) { }
 

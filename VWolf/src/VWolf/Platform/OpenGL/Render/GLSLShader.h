@@ -21,7 +21,7 @@ namespace VWolf {
         GLSLShader(const char* name,
                    BufferLayout layout,
                    std::initializer_list<ShaderSource> otherShaders,
-                   ShaderConfiguration configuration);
+                   ShaderConfiguration configuration = {});
 		virtual ~GLSLShader();
 
 		virtual void Bind() const override;

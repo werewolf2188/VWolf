@@ -11,6 +11,21 @@
 #include "VWolf/Core/Render/RenderItem.h"
 
 namespace VWolf {
+    void OpenGLGraphics::Build() {
+#ifdef VWOLF_PLATFORM_WINDOWS
+        const char *vertexShaderText = "src/shaders/glsl/Grid.vert.glsl";
+        const char *fragmentShaderText = "Sandbox/src/shaders/glsl/Grid.frag.glsl";
+#else
+        const char *vertexShaderText = "../../../Sandbox/src/shaders/glsl/Grid.vert.glsl";
+        const char *fragmentShaderText = "../../../Sandbox/src/shaders/glsl/Grid.frag.glsl";
+#endif
+
+        ShaderSource vertexSource = { ShaderType::Vertex, ShaderSourceType::File, vertexShaderText };
+        ShaderSource fragmentSource = { ShaderType::Fragment, ShaderSourceType::File, fragmentShaderText };
+
+        std::initializer_list<ShaderSource> otherShaders = { vertexSource, fragmentSource };
+        gridShader = CreateRef<GLSLShader>("Grid", MeshData::Layout, otherShaders);
+    }
 // TODO: For the future on how to create render queue
 //    void OpenGLRenderer::ProcessItems() {
 //        
@@ -165,5 +180,27 @@ namespace VWolf {
         group->Unbind();
         shader->Unbind();
         free(material1);
+    }
+
+    void OpenGLGraphics::DrawGridImpl() {
+        // Shader requires a vertex array
+        Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>();
+        
+        auto view = Camera::main->GetViewMatrix();
+        auto projection = Camera::main->GetProjection();
+        auto position = Camera::main->GetPosition();
+        auto near = Camera::main->GetNearZ();
+        auto far = Camera::main->GetFarZ();
+        
+        gridShader->Bind();
+        gridShader->SetData(&view, "ViewUniforms", sizeof(MatrixFloat4x4), 0);
+        gridShader->SetData(&projection, "ViewUniforms", sizeof(MatrixFloat4x4), sizeof(MatrixFloat4x4));
+        gridShader->SetData(&position, "ViewUniforms", sizeof(Vector3Float), sizeof(MatrixFloat4x4) * 2);
+        gridShader->SetData(&near, "NearFarPoint", sizeof(float), 0);
+        gridShader->SetData(&far, "NearFarPoint", sizeof(float), sizeof(float));
+        group->Bind();
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        group->Unbind();
+        gridShader->Unbind();
     }
 }

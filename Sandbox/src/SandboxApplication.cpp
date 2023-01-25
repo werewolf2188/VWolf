@@ -427,6 +427,7 @@ public:
         if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
             VWolf::Graphics::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
             VWolf::Graphics::Clear();
+            
             for (LightInfo& lightInfo: lights) {
                 VWolf::Graphics::AddLight(lightInfo.light);
             }
@@ -448,6 +449,7 @@ public:
                 else if (lightInfo.light.type == VWolf::Light::LightType::Spot)
                     VWolf::Graphics::RenderMesh(spotMesh, lightInfo.lightMatrix, material_1);
             }
+            VWolf::Graphics::DrawGrid();
            
         } else {
             VWolf::Renderer::Begin(camera);

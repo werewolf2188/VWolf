@@ -65,7 +65,8 @@ namespace VWolf {
 
 		window = CreateRef<GLFWWindow>(config, callback);
 		UIManager::SetDefault(CreateRef<OpenGLUIManager>((GLFWwindow*)window->GetNativeWindow()));
-        Graphics::SetGraphicsImpl(CreateScope<OpenGLGraphics>());
+        Ref<OpenGLGraphics> graphics = CreateRef<OpenGLGraphics>();
+        Graphics::SetGraphicsImpl(graphics);
 		Time::SetTimeImplementation(CreateRef<GLFWTime>());
 
 		Shader::SetDefaultCreateMethod([this](const char* name,
@@ -83,6 +84,7 @@ namespace VWolf {
 			glfwTerminate();
 		}
 		window->Initialize();
+        graphics->Build();
 #ifdef DEBUG
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);

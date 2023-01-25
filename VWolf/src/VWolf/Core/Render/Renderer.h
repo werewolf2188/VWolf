@@ -54,8 +54,10 @@ namespace VWolf {
         static void Clear();
         // TODO: Not sure about this one
         static void AddLight(Light& light);
+        static void DrawGrid();
 #ifdef VWOLF_CORE
-        static void SetGraphicsImpl(Scope<Graphics> graphics) { graphicsImpl = std::move(graphics); }
+        static void SetGraphicsImpl(Ref<Graphics> graphics) { graphicsImpl = graphics; }
+        static Ref<Graphics> SetGraphicsImpl() { return graphicsImpl; }
 #endif
     protected:
         virtual void DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera = nullptr) = 0;
@@ -64,7 +66,8 @@ namespace VWolf {
         virtual void ClearImpl() = 0;
         // TODO: Not sure about this one
         virtual void AddLightImpl(Light& light) = 0;
+        virtual void DrawGridImpl() = 0;
     private:
-        static Scope<Graphics> graphicsImpl;
+        static Ref<Graphics> graphicsImpl;
     };
 }

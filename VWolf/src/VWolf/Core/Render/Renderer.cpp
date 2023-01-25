@@ -64,7 +64,7 @@ namespace VWolf {
 
 /// Graphics
 
-    Scope<Graphics> Graphics::graphicsImpl = nullptr;
+    Ref<Graphics> Graphics::graphicsImpl = nullptr;
 
     void Graphics::ClearColor(Color color) {
         if (graphicsImpl) {
@@ -93,6 +93,12 @@ namespace VWolf {
     void Graphics::RenderMesh(MeshData& mesh, MatrixFloat4x4 transform, Material& material, Ref<Camera> camera) {
         if (graphicsImpl) {
             graphicsImpl->RenderMeshImpl(mesh, transform, material, camera);
+        }
+    }
+
+    void Graphics::DrawGrid() {
+        if (graphicsImpl) {
+            graphicsImpl->DrawGridImpl();
         }
     }
 }
