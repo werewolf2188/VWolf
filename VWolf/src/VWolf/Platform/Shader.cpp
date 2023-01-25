@@ -3,8 +3,9 @@
 #include "VWolf/Core/Application.h"
 
 #include "VWolf/Platform/OpenGL/Render/GLSLShader.h"
-// TODO: Will move
-#include "VWolf/Platform/Render/HLSLShader.h"
+#ifdef VWOLF_PLATFORM_WINDOWS
+#include "VWolf/Platform/DirectX12/Render/HLSLShader.h"
+#endif
 
 namespace VWolf {
 
