@@ -69,6 +69,14 @@ namespace VWolf {
         return properties;
     }
 
+    void Material::SetTexture(std::string name, Ref<Texture> texture) {
+        textures[name] = texture;
+    }
+
+    Ref<Texture> Material::GetTexture(std::string name) {
+        return textures[name];
+    }
+
     void * Material::GetDataPointer() const {
         char * pointer = (char *)malloc(size);
         memset(pointer, 0, size);

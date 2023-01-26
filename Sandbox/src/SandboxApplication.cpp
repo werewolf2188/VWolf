@@ -294,6 +294,7 @@ public:
     VWolf::OldMaterial<Albedo> material2;
     VWolf::Material material_1;
     VWolf::Material material_2;
+    VWolf::Ref<VWolf::Texture2D> testTexture;
 //    LightInfo lightInfo;
     std::vector<LightInfo> lights;
     Albedo* mat1;
@@ -376,8 +377,11 @@ public:
             }
             
         }
+        testTexture = VWolf::Texture::LoadTexture2D(512, 512);
+        testTexture->PopulateTest();
         material_1 = VWolf::Material(shaderNames[0].c_str());
         material_2 = VWolf::Material(shaderNames[1].c_str());
+        material_2.SetTexture("u_texture", testTexture);
         material_1.SetColor("u_ambientColor", { 1.0f, 0.0f, 0.0f, 1.0f });
         material_1.SetColor("u_diffuseColor", { 0.2f, 0.3f, 0.5f, 1.0f });
         material_1.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });

@@ -166,6 +166,13 @@ namespace VWolf {
         void* material1 = material.GetDataPointer();
         Light* lights = this->lights.data();
         shader->Bind();
+        // Texture test
+        OpenGLTexture2D* texture = dynamic_cast<OpenGLTexture2D*>(material.GetTexture("u_texture").get());
+        if (texture != nullptr) {
+            texture->Bind(0);
+            glUniform1i(0, 0);
+        }
+        //
         shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
         shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
         shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
@@ -173,12 +180,19 @@ namespace VWolf {
         group->Bind();
         vertices->Bind();
         index->Bind();
+        
         uint32_t count = index->GetCount();
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
         vertices->Unbind();
         index->Unbind();
         group->Unbind();
+        // Texture test
+        if (texture != nullptr) {
+            texture->Unbind(0);
+        }
+        //
         shader->Unbind();
+        
         free(material1);
     }
 

@@ -12,6 +12,7 @@
 #include "GLSLShader.h"
 #include "OpenGLBuffer.h"
 #include "OpenGLVertexArray.h"
+#include "OpenGLTexture.h"
 
 namespace VWolf {
     class OpenGLGraphics: public Graphics {
