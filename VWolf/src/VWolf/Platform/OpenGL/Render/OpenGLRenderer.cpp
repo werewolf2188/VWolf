@@ -203,15 +203,15 @@ namespace VWolf {
         auto view = Camera::main->GetViewMatrix();
         auto projection = Camera::main->GetProjection();
         auto position = Camera::main->GetPosition();
-        auto near = Camera::main->GetNearZ();
-        auto far = Camera::main->GetFarZ();
+        auto nearZ = Camera::main->GetNearZ();
+        auto farZ = Camera::main->GetFarZ();
         
         gridShader->Bind();
         gridShader->SetData(&view, "ViewUniforms", sizeof(MatrixFloat4x4), 0);
         gridShader->SetData(&projection, "ViewUniforms", sizeof(MatrixFloat4x4), sizeof(MatrixFloat4x4));
         gridShader->SetData(&position, "ViewUniforms", sizeof(Vector3Float), sizeof(MatrixFloat4x4) * 2);
-        gridShader->SetData(&near, "NearFarPoint", sizeof(float), 0);
-        gridShader->SetData(&far, "NearFarPoint", sizeof(float), sizeof(float));
+        gridShader->SetData(&nearZ, "NearFarPoint", sizeof(float), 0);
+        gridShader->SetData(&farZ, "NearFarPoint", sizeof(float), sizeof(float));
         group->Bind();
         glDrawArrays(GL_TRIANGLES, 0, 6);
         group->Unbind();

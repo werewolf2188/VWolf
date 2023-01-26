@@ -21,11 +21,11 @@ namespace VWolf {
 
 	typedef glm::vec2 Vector2Float;
 
-	typedef glm::vec4 Vector4Int;
+	typedef glm::ivec4 Vector4Int;
 
-	typedef glm::vec3 Vector3Int;
+	typedef glm::ivec3 Vector3Int;
 
-	typedef glm::vec2 Vector2Int;
+	typedef glm::ivec2 Vector2Int;
 
 	typedef glm::quat Quat;
 
