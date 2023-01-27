@@ -27,6 +27,7 @@ IncludeDir["Glad"] = "%{wks.location}/VWolf/vendor/Glad/include"
 IncludeDir["boost"] = boost
 IncludeDir["ImGui"] = "%{wks.location}/VWolf/vendor/imgui"
 IncludeDir["glm"] = "%{wks.location}/VWolf/vendor/glm"
+IncludeDir["stb_image"] = "%{wks.location}/VWolf/vendor/stb_image"
 
 LibDir = {}
 LibDir["boost"] = "%{boost}/stage/lib"

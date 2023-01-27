@@ -88,11 +88,12 @@ namespace VWolf {
 
     struct ShaderInput {
     public:
-        ShaderInput(std::string name, ShaderDataType type, uint32_t size, uint32_t offset):
-        name(name), type(type), size(size), offset(offset) { }
+        ShaderInput(std::string name, ShaderDataType type, uint32_t index, uint32_t size, uint32_t offset):
+        name(name), type(type), size(size), offset(offset), index(index) { }
 
         std::string GetName() { return name; }
         ShaderDataType GetType() { return type; }
+        uint32_t GetIndex() { return index; }
         uint32_t GetSize() { return size; }
         uint32_t GetOffset() { return offset; }
     private:
@@ -100,6 +101,7 @@ namespace VWolf {
         ShaderDataType type;
         uint32_t size;
         uint32_t offset;
+        uint32_t index;
     };
 
 	class Shader {
@@ -132,6 +134,7 @@ namespace VWolf {
 		virtual void Unbind() const = 0;
         virtual std::vector<Ref<ShaderInput>> GetMaterialInputs() const = 0;
         virtual size_t GetMaterialSize() const = 0;
+        virtual std::vector<ShaderInput> GetTextureInputs() const = 0;
 
 		virtual const char* GetName() const = 0;
 

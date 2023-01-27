@@ -101,4 +101,10 @@ namespace VWolf {
             graphicsImpl->DrawGridImpl();
         }
     }
+
+    void Graphics::SetRenderTexture(Ref<RenderTexture> renderTexture) {
+        if (graphicsImpl) {
+            graphicsImpl->renderTexture = renderTexture;
+        }
+    }
 }

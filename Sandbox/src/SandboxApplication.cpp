@@ -295,6 +295,7 @@ public:
     VWolf::Material material_1;
     VWolf::Material material_2;
     VWolf::Ref<VWolf::Texture2D> testTexture;
+    VWolf::Ref<VWolf::RenderTexture> renderTexture;
 //    LightInfo lightInfo;
     std::vector<LightInfo> lights;
     Albedo* mat1;
@@ -377,19 +378,22 @@ public:
             }
             
         }
-        testTexture = VWolf::Texture::LoadTexture2D(512, 512);
-        testTexture->PopulateTest();
-        material_1 = VWolf::Material(shaderNames[0].c_str());
-        material_2 = VWolf::Material(shaderNames[1].c_str());
-        material_2.SetTexture("u_texture", testTexture);
-        material_1.SetColor("u_ambientColor", { 1.0f, 0.0f, 0.0f, 1.0f });
-        material_1.SetColor("u_diffuseColor", { 0.2f, 0.3f, 0.5f, 1.0f });
-        material_1.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
-        material_1.SetFloat("u_shinines", 20);
-        material_2.SetColor("u_ambientColor", { 1.0f, 0.3f, 0.2f, 1.0f });
-        material_2.SetColor("u_diffuseColor", {  0.2f, 0.3f, 0.5f, 1.0f });
-        material_2.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
-        material_2.SetFloat("u_shinines", 20);
+        if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
+//            testTexture = VWolf::Texture::LoadTexture2D(512, 512);
+            testTexture = VWolf::Texture::LoadTexture2D("../../../Sandbox/src/assets/textExample.png");
+            renderTexture = VWolf::Texture::LoadRenderTexture(SCREENWIDTH, SCREENHEIGHT);
+            material_1 = VWolf::Material(shaderNames[0].c_str());
+            material_2 = VWolf::Material(shaderNames[1].c_str());
+            material_2.SetTexture("u_texture", testTexture);
+            material_1.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
+            material_1.SetColor("u_diffuseColor", { 1.0f, 1.0f, 1.0f, 1.0f });
+            material_1.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
+            material_1.SetFloat("u_shinines", 20);
+            material_2.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
+            material_2.SetColor("u_diffuseColor", {  1.0f, 1.0f, 1.0f, 1.0f });
+            material_2.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
+            material_2.SetFloat("u_shinines", 20);
+        }
 
         gameObjects1.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), "0" ));
         gameObjects1.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateSphere(2, 32, 32), "1" ));
@@ -429,6 +433,8 @@ public:
 
     void OnDraw() override {
         if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
+            VWolf::Graphics::Clear();
+            VWolf::Graphics::SetRenderTexture(renderTexture);
             VWolf::Graphics::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
             VWolf::Graphics::Clear();
             
@@ -453,7 +459,8 @@ public:
                 else if (lightInfo.light.type == VWolf::Light::LightType::Spot)
                     VWolf::Graphics::RenderMesh(spotMesh, lightInfo.lightMatrix, material_1);
             }
-            VWolf::Graphics::DrawGrid();
+//            VWolf::Graphics::DrawGrid();
+            VWolf::Graphics::SetRenderTexture(nullptr);
            
         } else {
             VWolf::Renderer::Begin(camera);
@@ -569,6 +576,16 @@ public:
         }
         ImGui::PopID();
         ImGui::End();
+
+        if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
+            ImGui::Begin("Texture");
+            ImGui::Image(testTexture->GetHandler(), ImVec2(128, 128));
+            ImGui::End();
+
+            ImGui::Begin("Render Texture", nullptr, ImGuiWindowFlags_NoMouseInputs);
+            ImGui::Image(renderTexture->GetHandler(), ImVec2(800, 600), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::End();
+        }
     }
 
     bool OnWindowResize(VWolf::WindowResizeEvent& e) {

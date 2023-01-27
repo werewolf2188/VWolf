@@ -30,6 +30,9 @@ namespace VWolf {
         virtual void AddLightImpl(Light& light) override;
         virtual void DrawGridImpl() override;
     private:
+        void BindToRenderTexture();
+        void UnbindToRenderTexture();
+    private:
         // TODO: Plan later
         std::vector<Light> lights;
         Ref<GLSLShader> gridShader;

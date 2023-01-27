@@ -70,12 +70,28 @@ namespace VWolf {
 //        clearDepthStencil = false;
 //    }
 
+    void OpenGLGraphics::BindToRenderTexture() {
+        if (renderTexture != nullptr) {
+            ((OpenGLRenderTexture*)renderTexture.get())->Bind();
+        }
+    }
+
+    void OpenGLGraphics::UnbindToRenderTexture(){
+        if (renderTexture != nullptr) {
+            ((OpenGLRenderTexture*)renderTexture.get())->Unbind();
+        }
+    }
+
     void OpenGLGraphics::ClearColorImpl(Color color) {
+        BindToRenderTexture();
         glClearColor(color.r, color.b, color.g, color.a);
+        UnbindToRenderTexture();
     }
 
     void OpenGLGraphics::ClearImpl() {
+        BindToRenderTexture();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        UnbindToRenderTexture();
         lights.clear();
     }
 
@@ -127,7 +143,9 @@ namespace VWolf {
         vertices->Bind();
         index->Bind();
         uint32_t count = index->GetCount();
+        BindToRenderTexture();
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+        UnbindToRenderTexture();
         vertices->Unbind();
         index->Unbind();
         group->Unbind();
@@ -165,14 +183,15 @@ namespace VWolf {
         Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
         void* material1 = material.GetDataPointer();
         Light* lights = this->lights.data();
+        std::vector<ShaderInput> textures = shader->GetTextureInputs();
         shader->Bind();
-        // Texture test
-        OpenGLTexture2D* texture = dynamic_cast<OpenGLTexture2D*>(material.GetTexture("u_texture").get());
-        if (texture != nullptr) {
-            texture->Bind(0);
-            glUniform1i(0, 0);
+        for (u_int32_t index = 0; index < textures.size(); index++) {
+            OpenGLTexture2D* texture = dynamic_cast<OpenGLTexture2D*>(material.GetTexture(textures[index].GetName()).get());
+            if (texture != nullptr) {
+                texture->Bind(index);
+                glUniform1i(textures[index].GetIndex(), index);
+            }
         }
-        //
         shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
         shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
         shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
@@ -182,15 +201,18 @@ namespace VWolf {
         index->Bind();
         
         uint32_t count = index->GetCount();
+        BindToRenderTexture();
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+        UnbindToRenderTexture();
         vertices->Unbind();
         index->Unbind();
         group->Unbind();
-        // Texture test
-        if (texture != nullptr) {
-            texture->Unbind(0);
+        for (u_int32_t index = 0; index < textures.size(); index++) {
+            OpenGLTexture2D* texture = dynamic_cast<OpenGLTexture2D*>(material.GetTexture(textures[index].GetName()).get());
+            if (texture != nullptr) {
+                texture->Unbind(index);
+            }
         }
-        //
         shader->Unbind();
         
         free(material1);
@@ -213,7 +235,9 @@ namespace VWolf {
         gridShader->SetData(&nearZ, "NearFarPoint", sizeof(float), 0);
         gridShader->SetData(&farZ, "NearFarPoint", sizeof(float), sizeof(float));
         group->Bind();
+        BindToRenderTexture();
         glDrawArrays(GL_TRIANGLES, 0, 6);
+        UnbindToRenderTexture();
         group->Unbind();
         gridShader->Unbind();
     }

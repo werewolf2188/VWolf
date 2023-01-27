@@ -28,6 +28,7 @@ namespace VWolf {
 		virtual void Unbind() const override;
         virtual std::vector<Ref<ShaderInput>> GetMaterialInputs() const override;
         virtual size_t GetMaterialSize() const override;
+        virtual std::vector<ShaderInput> GetTextureInputs() const override;
 
 		virtual const char* GetName() const override;
         virtual void SetData(const void* data, const char* name, uint32_t size, uint32_t offset = 0) override;

@@ -173,6 +173,13 @@ namespace VWolf {
             return ShaderDataType::None;
         }
 
+        bool IsTexture() {
+            switch (type) {
+                case GL_SAMPLER_2D: return true;
+            }
+            return false;
+        }
+
         GLuint GetOffset() {
             return offset;
         }
@@ -687,8 +694,10 @@ namespace VWolf {
                                                      lambda)->second;
         std::vector<Ref<ShaderInput>> inputs;
         for (std::pair<std::string, Ref<GLUniform>> uniform: material->GetUniforms()) {
+            if (uniform.second->GetShaderDataType() == ShaderDataType::None) continue;
             inputs.push_back(CreateRef<ShaderInput>(uniform.second->GetName(),
                                                     uniform.second->GetShaderDataType(),
+                                                    uniform.second->GetIndex(),
                                                     ShaderDataTypeSize(uniform.second->GetShaderDataType()),
                                                     uniform.second->GetOffset()));
         }
@@ -705,5 +714,31 @@ namespace VWolf {
         return std::find_if(container.begin(),
                             container.end(),
                             lambda)->second->GetSize();
+    }
+
+    std::vector<ShaderInput> GLSLShader::GetTextureInputs() const {
+        std::vector<ShaderInput> inputs;
+        
+        for (auto uBuffer: m_program->GetUniformBuffers()) {
+            for (auto uniform: uBuffer.second->GetUniforms()) {
+                if (!uniform.second->IsTexture()) continue;
+                inputs.push_back(ShaderInput(uniform.second->GetName(),
+                                             uniform.second->GetShaderDataType(),
+                                             uniform.second->GetIndex(),
+                                             1,
+                                             uniform.second->GetOffset()));
+            }
+        }
+
+        for (auto uniform: m_program->GetDefaultUniforms()) {
+            if (!uniform.second->IsTexture()) continue;
+            inputs.push_back(ShaderInput(uniform.second->GetName(),
+                                         uniform.second->GetShaderDataType(),
+                                         uniform.second->GetIndex(),
+                                         1,
+                                         uniform.second->GetOffset()));
+        }
+        
+        return inputs;
     }
 }
