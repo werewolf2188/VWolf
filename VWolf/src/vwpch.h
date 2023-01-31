@@ -40,6 +40,10 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/support/date_time.hpp>
 
+// OPENGL
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #ifdef VWOLF_PLATFORM_WINDOWS
 #define NOMINMAX 1
 #include <Windows.h>

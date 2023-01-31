@@ -5,8 +5,8 @@
 
 #ifdef VWOLF_PLATFORM_WINDOWS
 
-#include "VWolf/Platform/UI/backends/imgui_impl_win32.h"
-#include "VWolf/Platform/UI/backends/imgui_impl_dx12.h"
+#include "VWolf/Platform/ImGUI/backends/imgui_impl_win32.h"
+#include "VWolf/Platform/ImGUI/backends/imgui_impl_dx12.h"
 
 #define NUM_FRAMES_IN_FLIGHT 2
 

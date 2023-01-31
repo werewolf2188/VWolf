@@ -5,14 +5,14 @@
 
 #include "VWolf/Core/UI/UIManager.h"
 
-#include "VWolf/Platform/UI/DirectX12UIManager.h"
-#include "VWolf/Platform/Windows/WinWindow.h"
+#include "VWolf/Platform/DirectX12/UI/DirectX12UIManager.h"
+#include "VWolf/Platform/DirectX12/Windows/WinWindow.h"
 
 #include "VWolf/Core/Render/Renderer.h"
-#include "VWolf/Platform/Render/DirectX12Renderer.h"
+#include "VWolf/Platform/DirectX12/Render/DirectX12Renderer.h"
 
 #include "VWolf/Core/Render/Shader.h"
-#include "VWolf/Platform/Render/HLSLShader.h"
+#include "VWolf/Platform/DirectX12/Render/HLSLShader.h"
 
 #include "VWolf/Core/Time.h"
 

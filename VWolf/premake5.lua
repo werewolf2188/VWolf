@@ -17,6 +17,9 @@ project "VWolf"
 	  "src/**.cpp",
       "vendor/glm/glm/**.hpp",
 	  "vendor/glm/glm/**.inl",
+	  "vendor/stb_image/**.h",
+	  "vendor/stb_image/**.cpp"
+
    }
    removefiles { "vendor/imgui/**" }
   
@@ -33,6 +36,7 @@ project "VWolf"
       "%{IncludeDir.boost}",
 	  "%{IncludeDir.ImGui}",
       "%{IncludeDir.glm}",
+      "%{IncludeDir.stb_image}",
    }
 
    libdirs 
@@ -48,7 +52,7 @@ project "VWolf"
 	  "opengl32.lib"
 	}
    
-   filter { 'files:src/VWolf/Platform/UI/backends/**.cpp' }
+   filter { 'files:src/VWolf/Platform/ImGUI/backends/**.cpp' }
       flags { 'NoPCH' }
 
    filter "system:windows"

@@ -1,12 +1,10 @@
 #include "vwpch.h"
 #include "OpenGLUIManager.h"
 
-#include <GLFW/glfw3.h>
-
 #include <imgui.h>
-#include "VWolf/Platform/UI/backends/imgui_impl_glfw.h"
-#include "VWolf/Platform/UI/backends/imgui_impl_opengl3.h"
-#include "VWolf/Platform/UI/backends/imgui_impl_opengl3_loader.h"
+#include "VWolf/Platform/ImGUI/backends/imgui_impl_glfw.h"
+#include "VWolf/Platform/ImGUI/backends/imgui_impl_opengl3.h"
+#include "VWolf/Platform/ImGUI/backends/imgui_impl_opengl3_loader.h"
 
 namespace VWolf {
 	OpenGLUIManager::OpenGLUIManager(GLFWwindow* window): m_window(window)

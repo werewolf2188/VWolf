@@ -401,6 +401,20 @@ namespace VWolf {
 		/*dx12SetDescriptorHeaps(m_context, m_cbContext->mSrvHeap);
 		m_context->mCommandList->SetGraphicsRootDescriptorTable(0, m_cbContext->mSrvHeap->GetGPUDescriptorHandleForHeapStart());*/
 	}
+
+	std::vector<Ref<ShaderInput>> HLSLShader::GetMaterialInputs() const
+	{
+		return std::vector<Ref<ShaderInput>>();
+	}
+
+	size_t HLSLShader::GetMaterialSize() const
+	{
+		return size_t();
+	}
+
+	std::vector<ShaderInput> HLSLShader::GetTextureInputs() const {
+		return std::vector<ShaderInput>();
+	}
 	
 	const char* HLSLShader::GetName() const
 	{

@@ -1,18 +1,15 @@
 #include "vwpch.h"
 #include "OpenGLBuffer.h"
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 namespace VWolf {
-	OpenGLVertexBuffer::OpenGLVertexBuffer(GLFWwindow* window, uint32_t size): m_window(window), m_size(size)
+	OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size): m_size(size)
 	{
 		VWOLF_CORE_ASSERT(size);
 		glGenBuffers(1, &vertexBufferId);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
 		glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 	}
-	OpenGLVertexBuffer::OpenGLVertexBuffer(GLFWwindow* window, float* vertices, uint32_t size) : m_window(window), m_vertices(vertices), m_size(size)
+	OpenGLVertexBuffer::OpenGLVertexBuffer(void* vertices, uint32_t size): m_vertices(vertices), m_size(size)
 	{
 		VWOLF_CORE_ASSERT(size);
 //        VWOLF_DUMP_TYPED_ARRAY(vertices, size, float);
@@ -45,7 +42,7 @@ namespace VWolf {
 	{
 		this->layout = layout;
 	}
-	OpenGLIndexBuffer::OpenGLIndexBuffer(GLFWwindow* window, uint32_t* indices, uint32_t count): m_window(window), m_indices(indices), m_count(count)
+	OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t* indices, uint32_t count): m_indices(indices), m_count(count)
 	{
 		VWOLF_CORE_ASSERT(count);
 		glGenBuffers(1, &indexBufferId);

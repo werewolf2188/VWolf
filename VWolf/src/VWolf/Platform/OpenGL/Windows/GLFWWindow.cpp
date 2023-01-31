@@ -3,9 +3,6 @@
 
 #include "VWolf/Core/Events/ApplicationEvent.h"
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 namespace VWolf {
 	static KeyCode GetKeyCodeFrom(int key);
 	static int GetKeyFrom(KeyCode key);

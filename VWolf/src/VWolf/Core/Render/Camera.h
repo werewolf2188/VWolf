@@ -7,10 +7,15 @@ namespace VWolf {
 	class Camera
 	{
 	public:
-		Camera() = default;
+        Camera() {
+            if (!Camera::main)
+                Camera::main = this;
+        };
         Camera(float fov, float aspectRatio, float nearClip, float farClip):
         m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip),
         m_Projection(perspective(radians(fov), aspectRatio, nearClip, farClip)) {
+            if (!Camera::main)
+                Camera::main = this;
             UpdateView(Vector3Float(), Quat());
         }
 
@@ -31,6 +36,8 @@ namespace VWolf {
         void SetViewportSize(float width, float height) { m_ViewportWidth = width; m_ViewportHeight = height; UpdateProjection(); }
         void SetZoomLevel(float zoom) { m_zoom = zoom; UpdateProjection(); }
         void SetOrthographic(bool isOrthographic) { m_isOrthographic = isOrthographic; UpdateProjection(); }
+    public:
+        static Camera* main;
     private:
         MatrixFloat4x4 m_Projection = MatrixFloat4x4(1.0);
         MatrixFloat4x4 m_ViewMatrix;

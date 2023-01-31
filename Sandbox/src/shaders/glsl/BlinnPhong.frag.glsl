@@ -45,8 +45,11 @@ layout(std140) uniform Light {
     LightInfo light[LIGHTS_MAX];
 };
 
+uniform sampler2D u_texture;
+
 in vec3 v_Position;
 in vec3 v_Normal;
+in vec2 v_TexCoord;
 
 vec3 ComputeSpotBlinnPhongLightColor(vec4 v_LightPosition, vec4 v_LightDirection, int index, vec3 position, vec3 n) {
     // Ambient
@@ -141,5 +144,6 @@ vec3 ComputeBlinnPhongLightColor(vec3 position, vec3 n) {
 
 void main()
 {
-	color = vec4(ComputeBlinnPhongLightColor(v_Position, normalize(v_Normal)), 1.0);
+    vec4 sampleTexture = texture(u_texture, v_TexCoord);
+    color = sampleTexture * vec4(ComputeBlinnPhongLightColor(v_Position, normalize(v_Normal)), 1.0);
 }
