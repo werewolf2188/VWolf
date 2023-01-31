@@ -14,7 +14,7 @@ namespace VWolf {
     void OpenGLGraphics::Build() {
 #ifdef VWOLF_PLATFORM_WINDOWS
         const char *vertexShaderText = "src/shaders/glsl/Grid.vert.glsl";
-        const char *fragmentShaderText = "Sandbox/src/shaders/glsl/Grid.frag.glsl";
+        const char *fragmentShaderText = "src/shaders/glsl/Grid.frag.glsl";
 #else
         const char *vertexShaderText = "../../../Sandbox/src/shaders/glsl/Grid.vert.glsl";
         const char *fragmentShaderText = "../../../Sandbox/src/shaders/glsl/Grid.frag.glsl";
@@ -185,7 +185,7 @@ namespace VWolf {
         Light* lights = this->lights.data();
         std::vector<ShaderInput> textures = shader->GetTextureInputs();
         shader->Bind();
-        for (u_int32_t index = 0; index < textures.size(); index++) {
+        for (GLuint index = 0; index < textures.size(); index++) {
             OpenGLTexture2D* texture = dynamic_cast<OpenGLTexture2D*>(material.GetTexture(textures[index].GetName()).get());
             if (texture != nullptr) {
                 texture->Bind(index);
@@ -207,7 +207,7 @@ namespace VWolf {
         vertices->Unbind();
         index->Unbind();
         group->Unbind();
-        for (u_int32_t index = 0; index < textures.size(); index++) {
+        for (GLuint index = 0; index < textures.size(); index++) {
             OpenGLTexture2D* texture = dynamic_cast<OpenGLTexture2D*>(material.GetTexture(textures[index].GetName()).get());
             if (texture != nullptr) {
                 texture->Unbind(index);

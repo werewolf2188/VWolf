@@ -9,7 +9,7 @@
 
 #ifdef VWOLF_PLATFORM_WINDOWS
 # define M_PI           3.14159265358979323846  /* pi TODO: Move later*/
-#define DRIVER_TYPE VWolf::DriverType::DirectX12
+#define DRIVER_TYPE VWolf::DriverType::OpenGL
 #else
 #define DRIVER_TYPE VWolf::DriverType::OpenGL
 #endif
@@ -380,7 +380,12 @@ public:
         }
         if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
 //            testTexture = VWolf::Texture::LoadTexture2D(512, 512);
+#ifdef VWOLF_PLATFORM_WINDOWS
+            testTexture = VWolf::Texture::LoadTexture2D("src/assets/textExample.png");
+#else
             testTexture = VWolf::Texture::LoadTexture2D("../../../Sandbox/src/assets/textExample.png");
+#endif
+
             renderTexture = VWolf::Texture::LoadRenderTexture(SCREENWIDTH, SCREENHEIGHT);
             material_1 = VWolf::Material(shaderNames[0].c_str());
             material_2 = VWolf::Material(shaderNames[1].c_str());

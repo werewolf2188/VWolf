@@ -52,7 +52,7 @@ project "VWolf"
 	  "opengl32.lib"
 	}
    
-   filter { 'files:src/VWolf/Platform/UI/backends/**.cpp' }
+   filter { 'files:src/VWolf/Platform/ImGUI/backends/**.cpp' }
       flags { 'NoPCH' }
 
    filter "system:windows"

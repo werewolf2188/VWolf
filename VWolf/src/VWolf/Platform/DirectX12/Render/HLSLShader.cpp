@@ -411,6 +411,10 @@ namespace VWolf {
 	{
 		return size_t();
 	}
+
+	std::vector<ShaderInput> HLSLShader::GetTextureInputs() const {
+		return std::vector<ShaderInput>();
+	}
 	
 	const char* HLSLShader::GetName() const
 	{
