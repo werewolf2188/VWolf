@@ -15,6 +15,8 @@ namespace VWolf {
 		virtual void OnUpdate() override;
 		virtual void OnEvent(Event& evt) override;
         virtual void Resize(unsigned int m_Width, unsigned int m_Height) override;
+	public:
+		DirectX12Context* GetContext() { return context; }
 	private:
 		HINSTANCE__* handle;
 		WindowEventCallback* callback;

@@ -25,7 +25,11 @@ namespace VWolf {
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
                 shader = CreateRef<GLSLShader>(name,
-                                               MeshData::Layout,
+                                               otherShaders,
+                                               configuration);
+                break;
+            case DriverType::DirectX12:
+                shader = CreateRef<HLSLShader>(name,
                                                otherShaders,
                                                configuration);
                 break;

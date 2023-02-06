@@ -11,9 +11,6 @@
 #include "VWolf/Core/Render/Renderer.h"
 #include "VWolf/Platform/DirectX12/Render/DirectX12Renderer.h"
 
-#include "VWolf/Core/Render/Shader.h"
-#include "VWolf/Platform/DirectX12/Render/HLSLShader.h"
-
 #include "VWolf/Core/Time.h"
 
 namespace VWolf {
@@ -60,15 +57,6 @@ namespace VWolf {
 		UIManager::SetDefault(CreateRef<DirectX12UIManager>((HWND__*)window->GetNativeWindow(), context));
 		Renderer::SetRenderer(CreateScope<DirectX12Renderer>((HWND__*)window->GetNativeWindow(), context));
 		Time::SetTimeImplementation(CreateRef<WindowsTime>());
-
-		Shader::SetDefaultCreateMethod([this](const char* name,
-			ShaderSource vertexShader,
-			BufferLayout layout,
-			std::initializer_list<ShaderSource> otherShaders,
-			std::vector<ShaderParameter> parameters,
-			ShaderConfiguration configuration) {
-				return CreateRef<HLSLShader>((HWND__*)window->GetNativeWindow(), context, name, vertexShader, layout, otherShaders, parameters, configuration);
-		});
 	}
 
 	void DirectX12Driver::OnUpdate() {

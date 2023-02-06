@@ -20,7 +20,7 @@ cbuffer cbPerObject : register(b1)
 	float4x4 u_Transform;
 };
 
-cbuffer cbPerMaterial : register(b2) {
+cbuffer cbPerMaterial : register(b3) {
 	float4 u_ambientColor;
 	float4 u_diffuseColor;
 	float3 u_specular;
@@ -39,7 +39,7 @@ struct LightInfo {
 	uint u_type;
 };
 
-cbuffer cbPerLight : register(b3) {
+cbuffer cbPerLight : register(b2) {
 	LightInfo light[LIGHTS_MAX];
 };
 

@@ -2,27 +2,14 @@
 
 #include "VWolf/Core/Render/Shader.h"
 #ifdef VWOLF_PLATFORM_WINDOWS
-
-struct HWND__;
-struct HINSTANCE__;
-
-struct DirectX12Context;
-
-
-
 namespace VWolf {
-	struct ShaderContext;
+	class HLProgram;
 
 	class HLSLShader : public Shader {
 	public:
-		HLSLShader(HWND__* window, 
-				DirectX12Context* context,
-				const char* name,
-				ShaderSource vertexShader,
-				BufferLayout layout,
-				std::initializer_list<ShaderSource> otherShaders,
-				std::vector<ShaderParameter> parameters,
-				ShaderConfiguration configuration);
+		HLSLShader(const char* name,
+				   std::initializer_list<ShaderSource> otherShaders,
+				   ShaderConfiguration configuration = {});
 		virtual ~HLSLShader();
 
 		virtual void Bind() const override;
@@ -36,9 +23,7 @@ namespace VWolf {
 
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeline();
 	private:
-		HWND__* m_window;
-		DirectX12Context* m_context;
-		Ref<ShaderContext> m_shaderContext;
+		Ref<HLProgram> m_program;
 	};
 }
 #endif

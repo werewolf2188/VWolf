@@ -24,7 +24,7 @@ namespace VWolf {
         ShaderSource fragmentSource = { ShaderType::Fragment, ShaderSourceType::File, fragmentShaderText };
 
         std::initializer_list<ShaderSource> otherShaders = { vertexSource, fragmentSource };
-        gridShader = CreateRef<GLSLShader>("Grid", MeshData::Layout, otherShaders);
+        gridShader = CreateRef<GLSLShader>("Grid", otherShaders);
     }
 // TODO: For the future on how to create render queue
 //    void OpenGLRenderer::ProcessItems() {

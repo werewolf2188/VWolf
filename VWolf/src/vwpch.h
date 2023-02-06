@@ -57,12 +57,14 @@
 #include <d3dx12Context.h>
 #include <d3dx12Commands.h>
 #include <D3Dcompiler.h>
+#include <d3d11shader.h>
 #include <DirectXPackedVector.h>
 //#include <DirectXCollision.h>
 
 #pragma comment(lib,"d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "dxguid.lib")
 #endif
 
 #include "VWolf/Core/Log.h"

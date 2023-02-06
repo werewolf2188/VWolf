@@ -47,7 +47,7 @@ namespace VWolf {
 
 		for (int i = 0; i < items.size(); i++) {	
 
-			Ref<Shader> shader = ShaderLibrary::GetShader(items[i]->material.GetShader().c_str());
+			Ref<Shader> shader = ShaderLibrary::GetShader(items[i]->material.GetName().c_str());
 			void* material = items[i]->material.GetDataPointer();
             Light* lights = this->lights.data();
 
@@ -60,7 +60,7 @@ namespace VWolf {
 			context->mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			shader->SetData(&projection, ShaderLibrary::CameraBufferName, sizeof(CameraPass), i);
 			shader->SetData(&items[i]->transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), i);
-			shader->SetData(material, items[i]->material.GetName(), items[i]->material.GetSize(), i);
+			shader->SetData(material, materialName.c_str(), items[i]->material.GetSize(), i);
 			shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, i);
 			uint32_t count = groups[i]->GetIndexBuffer()->GetCount();
 

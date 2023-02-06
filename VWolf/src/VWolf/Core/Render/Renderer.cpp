@@ -20,7 +20,7 @@ namespace VWolf {
         rendererImpl->clearDepthStencil = true;
     }
 
-    void Renderer::SetMaterial(AbstractMaterial& material) {
+    void Renderer::SetMaterial(Material& material) {
         rendererImpl->material = &material;
     }
 

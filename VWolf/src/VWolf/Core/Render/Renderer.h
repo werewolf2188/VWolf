@@ -20,7 +20,7 @@ namespace VWolf {
         static void Begin(Ref<Camera> camera);
         static void ClearColor(Color color);
         static void Clear();
-        static void SetMaterial(AbstractMaterial& material);
+        static void SetMaterial(Material& material);
 //        static void SetLight(Light& light);
         static void AddLight(Light& light);
         static void DrawMesh(MeshData& meshData, MatrixFloat4x4 transform);
@@ -34,7 +34,7 @@ namespace VWolf {
     protected:
         Ref<Camera> m_camera;
         Color backgroundColor;
-        AbstractMaterial* material;
+        Material* material;
 //        Light* light;
         std::vector<Light> lights;
         std::vector<Ref<RenderItem>> items;

@@ -9,17 +9,8 @@ namespace VWolf {
 
 	class GLSLShader : public Shader {
 	public:
-        // TODO: We don't need to separate both shaders
         // TODO: Compute shader is the only one that is different.
-        // TODO: Maybe, buffer layout can be created by the shader
-		GLSLShader(const char* name,
-                   ShaderSource vertexShader,
-                   BufferLayout layout,
-                   std::initializer_list<ShaderSource> otherShaders,
-                   std::vector<ShaderParameter> parameters,
-                   ShaderConfiguration configuration);
         GLSLShader(const char* name,
-                   BufferLayout layout,
                    std::initializer_list<ShaderSource> otherShaders,
                    ShaderConfiguration configuration = {});
 		virtual ~GLSLShader();

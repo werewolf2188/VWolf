@@ -9,9 +9,6 @@
 #include "VWolf/Core/Render/Renderer.h"
 #include "VWolf/Platform/OpenGL/Render/OpenGLRenderer.h"
 
-#include "VWolf/Core/Render/Shader.h"
-#include "VWolf/Platform/OpenGL/Render/GLSLShader.h"
-
 #include "VWolf/Core/Time.h"
 
 #define OPENGL_MAJOR_VERSION 4
@@ -68,15 +65,6 @@ namespace VWolf {
         Ref<OpenGLGraphics> graphics = CreateRef<OpenGLGraphics>();
         Graphics::SetGraphicsImpl(graphics);
 		Time::SetTimeImplementation(CreateRef<GLFWTime>());
-
-		Shader::SetDefaultCreateMethod([this](const char* name,
-			ShaderSource vertexShader,
-			BufferLayout layout,
-			std::initializer_list<ShaderSource> otherShaders,
-			std::vector<ShaderParameter> parameters,
-			ShaderConfiguration configuration) {
-				return CreateRef<GLSLShader>(name, vertexShader, layout, otherShaders, parameters, configuration);
-		});
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
