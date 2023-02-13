@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "VWolf/Core/Render/Renderer.h"
+#include "VWolf/Core/Render/Graphics.h"
 
 #include "GLSLShader.h"
 #include "OpenGLBuffer.h"

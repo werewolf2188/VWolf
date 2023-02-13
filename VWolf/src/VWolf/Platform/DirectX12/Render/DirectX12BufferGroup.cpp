@@ -5,7 +5,7 @@
 #include "DirectX12Buffer.h"
 
 namespace VWolf {
-	DirectX12BufferGroup::DirectX12BufferGroup(HWND__* window, DirectX12Context* context): m_window(window), m_context(context)
+	DirectX12BufferGroup::DirectX12BufferGroup(DirectX12Context* context): m_context(context)
 	{
 	}
 	DirectX12BufferGroup::~DirectX12BufferGroup()

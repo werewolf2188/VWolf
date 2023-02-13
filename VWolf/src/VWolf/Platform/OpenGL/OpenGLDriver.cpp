@@ -6,8 +6,8 @@
 
 #include "VWolf/Platform/OpenGL/UI/OpenGLUIManager.h"
 
-#include "VWolf/Core/Render/Renderer.h"
-#include "VWolf/Platform/OpenGL/Render/OpenGLRenderer.h"
+#include "VWolf/Core/Render/Graphics.h"
+#include "VWolf/Platform/OpenGL/Render/OpenGLGraphics.h"
 
 #include "VWolf/Core/Time.h"
 

@@ -7,7 +7,7 @@
 #include "Input.h"
 
 #include "UI/UIManager.h"
-#include "Render/Renderer.h"
+#include "Render/Graphics.h"
 
 #include "Time.h"
 

@@ -8,8 +8,8 @@
 #include "VWolf/Platform/DirectX12/UI/DirectX12UIManager.h"
 #include "VWolf/Platform/DirectX12/Windows/WinWindow.h"
 
-#include "VWolf/Core/Render/Renderer.h"
-#include "VWolf/Platform/DirectX12/Render/DirectX12Renderer.h"
+#include "VWolf/Core/Render/Graphics.h"
+#include "VWolf/Platform/DirectX12/Render/DirectX12Graphics.h"
 
 #include "VWolf/Core/Time.h"
 
@@ -55,8 +55,9 @@ namespace VWolf {
 		dx12ResizeBuffers(context, config.width, config.height);
 
 		UIManager::SetDefault(CreateRef<DirectX12UIManager>((HWND__*)window->GetNativeWindow(), context));
-		Renderer::SetRenderer(CreateScope<DirectX12Renderer>((HWND__*)window->GetNativeWindow(), context));
 		Time::SetTimeImplementation(CreateRef<WindowsTime>());
+		Ref<DirectX12Graphics> graphics = CreateRef<DirectX12Graphics>();
+		Graphics::SetGraphicsImpl(graphics);
 	}
 
 	void DirectX12Driver::OnUpdate() {

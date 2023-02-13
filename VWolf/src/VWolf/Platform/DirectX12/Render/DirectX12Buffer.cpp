@@ -62,14 +62,14 @@ namespace VWolf {
 		return defaultBuffer;
 	}
 
-	DirectX12VertexBuffer::DirectX12VertexBuffer(HWND__* window, DirectX12Context* context, uint32_t size): 
-		m_window(window), m_context(context), m_size(size)
+	DirectX12VertexBuffer::DirectX12VertexBuffer(DirectX12Context* context, uint32_t size): 
+		m_context(context), m_size(size)
 	{
 		m_vContext = CreateScope<VertexContext>();
 		VWOLF_CORE_ASSERT(size);
 	}
-	DirectX12VertexBuffer::DirectX12VertexBuffer(HWND__* window, DirectX12Context* context, float* vertices, uint32_t size): 
-		m_window(window), m_context(context), m_vertices(vertices), m_size(size)
+	DirectX12VertexBuffer::DirectX12VertexBuffer(DirectX12Context* context, void* vertices, uint32_t size): 
+		m_context(context), m_vertices(vertices), m_size(size)
 	{
 		VWOLF_CORE_ASSERT(size);
 		m_vContext = CreateScope<VertexContext>();
@@ -79,6 +79,7 @@ namespace VWolf {
 
 		// Not entirely sure about this
 		//dx12ResetCommandListAllocator(context);
+		// TODO: It should not reset and flush the commands
 		dx12ResetCommandList(context);
 		m_vContext->VertexBufferGPU = CreateDefaultBuffer(context->md3dDevice.Get(),
 			context->mCommandList.Get(), vertices, size, m_vContext->VertexBufferUploader);
@@ -130,8 +131,8 @@ namespace VWolf {
 
 	};
 
-	DirectX12IndexBuffer::DirectX12IndexBuffer(HWND__* window, DirectX12Context* context, uint32_t* indices, uint32_t count):
-		m_window(window), m_context(context), m_indices(indices), m_count(count)
+	DirectX12IndexBuffer::DirectX12IndexBuffer(DirectX12Context* context, uint32_t* indices, uint32_t count):
+		m_context(context), m_indices(indices), m_count(count)
 	{
 		m_iContext = CreateScope<IndexContext>();
 		VWOLF_CORE_ASSERT(count);
@@ -142,6 +143,7 @@ namespace VWolf {
 
 		// Not entirely sure about this
 		//dx12ResetCommandListAllocator(context);
+		// TODO: It should not reset and flush the commands
 		dx12ResetCommandList(context);
 		m_iContext->IndexBufferGPU = CreateDefaultBuffer(context->md3dDevice.Get(),
 			context->mCommandList.Get(), indices, size, m_iContext->IndexBufferUploader);

@@ -410,62 +410,39 @@ public:
     }
 
     void OnDraw() override {
+
         if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
             VWolf::Graphics::Clear();
             VWolf::Graphics::SetRenderTexture(renderTexture);
-            VWolf::Graphics::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
-            VWolf::Graphics::Clear();
-            
-            for (LightInfo& lightInfo: lights) {
-                VWolf::Graphics::AddLight(lightInfo.light);
-            }
-            
-            for(auto gameObject: gameObjects1)
-                VWolf::Graphics::RenderMesh(gameObject->GetData(),
-                                            gameObject->transform.matrix,
-                                            material_2);
-            for(auto gameObject: gameObjects2)
-                VWolf::Graphics::RenderMesh(gameObject->GetData(),
-                                            gameObject->transform.matrix,
-                                            material_2);
-            
-            for (LightInfo& lightInfo: lights) {
-                if (lightInfo.light.type == VWolf::Light::LightType::Point)
-                    VWolf::Graphics::RenderMesh(pointMesh, lightInfo.lightMatrix, material_1);
-                else if (lightInfo.light.type == VWolf::Light::LightType::Directional)
-                    VWolf::Graphics::RenderMesh(directionalMesh, lightInfo.lightMatrix, material_1);
-                else if (lightInfo.light.type == VWolf::Light::LightType::Spot)
-                    VWolf::Graphics::RenderMesh(spotMesh, lightInfo.lightMatrix, material_1);
-            }
-//            VWolf::Graphics::DrawGrid();
+        }
+        VWolf::Graphics::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
+        VWolf::Graphics::Clear();
+
+        for (LightInfo& lightInfo : lights) {
+            VWolf::Graphics::AddLight(lightInfo.light);
+        }
+
+        for (auto gameObject : gameObjects1)
+            VWolf::Graphics::RenderMesh(gameObject->GetData(),
+                gameObject->transform.matrix,
+                material_2);
+        for (auto gameObject : gameObjects2)
+            VWolf::Graphics::RenderMesh(gameObject->GetData(),
+                gameObject->transform.matrix,
+                material_2);
+
+        for (LightInfo& lightInfo : lights) {
+            if (lightInfo.light.type == VWolf::Light::LightType::Point)
+                VWolf::Graphics::RenderMesh(pointMesh, lightInfo.lightMatrix, material_1);
+            else if (lightInfo.light.type == VWolf::Light::LightType::Directional)
+                VWolf::Graphics::RenderMesh(directionalMesh, lightInfo.lightMatrix, material_1);
+            else if (lightInfo.light.type == VWolf::Light::LightType::Spot)
+                VWolf::Graphics::RenderMesh(spotMesh, lightInfo.lightMatrix, material_1);
+        }
+        
+        // VWolf::Graphics::DrawGrid();
+        if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
             VWolf::Graphics::SetRenderTexture(nullptr);
-           
-        } else {
-            VWolf::Renderer::Begin(camera);
-            VWolf::Renderer::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
-            VWolf::Renderer::Clear();
-            for (LightInfo& lightInfo: lights) {
-                VWolf::Renderer::AddLight(lightInfo.light);
-            }
-    //
-            VWolf::Renderer::SetMaterial(material_2);
-            for(auto gameObject: gameObjects1)
-                VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
-    //        VWolf::Renderer::SetMaterial(material2);
-            for(auto gameObject: gameObjects2)
-                VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
-            
-            // Light representation
-            VWolf::Renderer::SetMaterial(material_1);
-            for (LightInfo& lightInfo: lights) {
-                if (lightInfo.light.type == VWolf::Light::LightType::Point)
-                    VWolf::Renderer::DrawMesh(pointMesh, lightInfo.lightMatrix);
-                else if (lightInfo.light.type == VWolf::Light::LightType::Directional)
-                    VWolf::Renderer::DrawMesh(directionalMesh, lightInfo.lightMatrix);
-                else if (lightInfo.light.type == VWolf::Light::LightType::Spot)
-                    VWolf::Renderer::DrawMesh(spotMesh, lightInfo.lightMatrix);
-            }
-            VWolf::Renderer::End();
         }
     }
 

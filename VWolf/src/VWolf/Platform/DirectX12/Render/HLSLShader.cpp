@@ -7,7 +7,7 @@
 
 namespace VWolf {
 
-	DirectX12Context* GetMainContext() {
+	static DirectX12Context* GetMainContext() {
 		return ((DirectX12Driver*)Application::GetApplication()->GetDriver())->GetContext();
 	}
 

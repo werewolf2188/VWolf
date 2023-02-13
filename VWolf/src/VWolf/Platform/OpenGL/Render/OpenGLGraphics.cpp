@@ -6,7 +6,7 @@
 //
 
 #include "vwpch.h"
-#include "OpenGLRenderer.h"
+#include "OpenGLGraphics.h"
 
 #include "VWolf/Core/Render/RenderItem.h"
 

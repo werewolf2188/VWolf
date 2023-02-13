@@ -12,7 +12,7 @@ namespace VWolf {
 	class DirectX12BufferGroup
 	{
 	public:
-		DirectX12BufferGroup(HWND__* window, DirectX12Context* context);
+		DirectX12BufferGroup(DirectX12Context* context);
 		~DirectX12BufferGroup();
 
 		void Bind() const;
@@ -24,7 +24,6 @@ namespace VWolf {
 		const std::vector<Ref<DirectX12VertexBuffer>>& GetVertexBuffers() const;
 		const Ref<DirectX12IndexBuffer>& GetIndexBuffer() const;
 	private:
-		HWND__* m_window;
 		DirectX12Context* m_context;
 
 		std::vector<Ref<DirectX12VertexBuffer>> m_vBuffers;
