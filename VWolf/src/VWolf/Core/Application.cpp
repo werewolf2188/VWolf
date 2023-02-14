@@ -56,7 +56,7 @@ namespace VWolf {
 	}
 
 	void Application::Run() {
-		UIManager::GetDefault().get()->Initialize();
+		UIManager::GetDefault()->Initialize();
 
 		VWOLF_CORE_INFO("Running core application");
 		m_running = true;
@@ -65,10 +65,12 @@ namespace VWolf {
 			Time::Tick();
 			if (!m_minimized) {
 				OnUpdate();
-                OnDraw();
+				Graphics::BeginFrame(); // ??
+				OnDraw();				
 				UIManager::GetDefault()->NewFrame();
                 OnGUI();
 				UIManager::GetDefault()->Render();
+				Graphics::EndFrame(); // ??
 			}			
 
 			driver->OnUpdate();
@@ -76,7 +78,7 @@ namespace VWolf {
 			EventQueue::defaultQueue->Dispatch();
 #endif
 		}
-		UIManager::GetDefault().get()->Terminate();
+		UIManager::GetDefault()->Terminate();
 	}
 
 	Ref<Window>Application::GetWindow() {

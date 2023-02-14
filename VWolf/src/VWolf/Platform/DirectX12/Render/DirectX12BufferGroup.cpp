@@ -4,38 +4,30 @@
 
 #include "DirectX12Buffer.h"
 
+#include "VWolf/Platform/DirectX12/Core/DX12Command.h"
+
 namespace VWolf {
-	DirectX12BufferGroup::DirectX12BufferGroup(DirectX12Context* context): m_context(context)
+	DirectX12BufferGroup::DirectX12BufferGroup()
 	{
 	}
+
 	DirectX12BufferGroup::~DirectX12BufferGroup()
 	{
 	}
-	void DirectX12BufferGroup::Bind() const
+
+	void DirectX12BufferGroup::Bind(Ref<DX12Command> commands) const
 	{
-		for (auto vBuffer : m_vBuffers) {
-			m_context->mCommandList->IASetVertexBuffers(0, 1, &((DirectX12VertexBuffer *)vBuffer.get())->VertexBufferView());
-		}
-		m_context->mCommandList->IASetIndexBuffer(&((DirectX12IndexBuffer *)m_indexBuffer.get())->IndexBufferView());
+		m_vBuffer->Bind(commands);
+		m_indexBuffer->Bind(commands);
 	}
-	void DirectX12BufferGroup::Unbind() const
+
+	void DirectX12BufferGroup::SetVertexBuffer(const Ref<DirectX12VertexBuffer>& vertexBuffer)
 	{
-	}
-	void DirectX12BufferGroup::AddVertexBuffer(const Ref<DirectX12VertexBuffer>& vertexBuffer)
-	{
-		m_vBuffers.push_back(vertexBuffer);
+		m_vBuffer = vertexBuffer;
 	}
 	void DirectX12BufferGroup::SetIndexBuffer(const Ref<DirectX12IndexBuffer>& indexBuffer)
 	{
 		m_indexBuffer = indexBuffer;
-	}
-	const std::vector<Ref<DirectX12VertexBuffer>>& DirectX12BufferGroup::GetVertexBuffers() const
-	{
-		return m_vBuffers;
-	}
-	const Ref<DirectX12IndexBuffer>& DirectX12BufferGroup::GetIndexBuffer() const
-	{
-		return m_indexBuffer;
 	}
 }
 #endif

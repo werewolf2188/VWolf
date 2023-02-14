@@ -29,6 +29,8 @@ namespace VWolf {
         // TODO: Not sure about this one
         virtual void AddLightImpl(Light& light) override;
         virtual void DrawGridImpl() override;
+        virtual void BeginFrameImpl() override;
+        virtual void EndFrameImpl() override;
     private:
         void BindToRenderTexture();
         void UnbindToRenderTexture();

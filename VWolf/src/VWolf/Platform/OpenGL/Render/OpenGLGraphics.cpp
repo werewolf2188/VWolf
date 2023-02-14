@@ -241,4 +241,11 @@ namespace VWolf {
         group->Unbind();
         gridShader->Unbind();
     }
+
+    void OpenGLGraphics::BeginFrameImpl()
+    {
+    }
+    void OpenGLGraphics::EndFrameImpl()
+    {
+    }
 }

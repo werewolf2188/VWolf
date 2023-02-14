@@ -1,9 +1,14 @@
 #include "vwpch.h"
-#include "DirectX12UIManager.h"
+
 
 #include <imgui.h>
 
 #ifdef VWOLF_PLATFORM_WINDOWS
+#include "DirectX12UIManager.h"
+#include "VWolf/Platform/DirectX12/DirectX12Driver.h"
+
+#include "VWolf/Platform/DirectX12/Core/DX12Device.h"
+#include "VWolf/Platform/DirectX12/Core/DX12Command.h"
 
 #include "VWolf/Platform/ImGUI/backends/imgui_impl_win32.h"
 #include "VWolf/Platform/ImGUI/backends/imgui_impl_dx12.h"
@@ -13,18 +18,16 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace VWolf {
-	struct UIContext {
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSrvHeap;
-	};
 
-	DirectX12UIManager::DirectX12UIManager(HWND__* window, DirectX12Context* context) : m_window(window), context(context)
+	DirectX12UIManager::DirectX12UIManager(HWND__* window) : m_window(window)
 	{
-		m_uiContext = new UIContext();
-		dx12InitializeDescriptorHeap(context->md3dDevice, m_uiContext->mSrvHeap, 1, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+		// TODO: Replace with heap inside driver instead
+		/*heap = CreateRef<DX12DescriptorHeap>(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		heap->Initialize(1, true);		*/
 	}
 	DirectX12UIManager::~DirectX12UIManager()
 	{
-		delete m_uiContext;
+		
 	}
 	void DirectX12UIManager::Initialize()
 	{
@@ -38,10 +41,11 @@ namespace VWolf {
 
 		// Setup Platform/Renderer backends
 		ImGui_ImplWin32_Init(m_window);
-		ImGui_ImplDX12_Init(context->md3dDevice.Get(), NUM_FRAMES_IN_FLIGHT,
-			DXGI_FORMAT_R8G8B8A8_UNORM, m_uiContext->mSrvHeap.Get(),
-			m_uiContext->mSrvHeap.Get()->GetCPUDescriptorHandleForHeapStart(),
-			m_uiContext->mSrvHeap.Get()->GetGPUDescriptorHandleForHeapStart());
+		auto descriptor = DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap()->Allocate();
+		ImGui_ImplDX12_Init(DirectX12Driver::GetCurrent()->GetDevice()->GetDevice().Get(), NUM_FRAMES_IN_FLIGHT,
+			DXGI_FORMAT_R8G8B8A8_UNORM, DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap()->GetHeap().Get(),
+			descriptor.GetCPUAddress(),
+			descriptor.GetGPUAddress());
 	}
 	void DirectX12UIManager::Terminate()
 	{
@@ -52,21 +56,10 @@ namespace VWolf {
 	void DirectX12UIManager::Render()
 	{	
 		ImGui::Render();
-		dx12ResetCommandList(context);
 
-		// Indicate a state transition on the resource usage.
-		dx12ResourceBarrierTransitionForCurrentBackBuffer(context, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		
-		// Specify the buffers we are going to render to.
-		dx12SetRenderTarget(context);
-
-		dx12SetDescriptorHeaps(context, m_uiContext->mSrvHeap);
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), context->mCommandList.Get());
-
-		// Indicate a state transition on the resource usage.
-		dx12ResourceBarrierTransitionForCurrentBackBuffer(context, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-
-		dx12ExecuteCommands(context);		
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
+			->SetDescriptorHeaps(1, DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap()->GetHeap().GetAddressOf());
+		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList().Get());
 	}
 	void DirectX12UIManager::NewFrame()
 	{

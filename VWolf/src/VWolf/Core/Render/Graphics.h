@@ -18,7 +18,6 @@ namespace VWolf {
         virtual ~Graphics() = default;
     public:
         static void SetRenderTexture(Ref<RenderTexture> renderTexture);
-    public:
         static void DrawMesh(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera = nullptr);
         static void RenderMesh(MeshData& mesh, MatrixFloat4x4 transform, Material& material, Ref<Camera> camera = nullptr);
         static void ClearColor(Color color);
@@ -29,6 +28,8 @@ namespace VWolf {
 #ifdef VWOLF_CORE
         static void SetGraphicsImpl(Ref<Graphics> graphics) { graphicsImpl = graphics; }
         static Ref<Graphics> SetGraphicsImpl() { return graphicsImpl; }
+        static void BeginFrame();
+        static void EndFrame();
 #endif
     protected:
         virtual void DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera = nullptr) = 0;
@@ -38,6 +39,8 @@ namespace VWolf {
         // TODO: Not sure about this one
         virtual void AddLightImpl(Light& light) = 0;
         virtual void DrawGridImpl() = 0;
+        virtual void BeginFrameImpl() = 0;
+        virtual void EndFrameImpl() = 0;
     protected:
         // TODO: Think about how to deal with render textures
         Ref<RenderTexture> renderTexture;

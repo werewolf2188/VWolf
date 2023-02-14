@@ -3,14 +3,15 @@
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "DirectX12Graphics.h"
 #include "VWolf/Core/Render/RenderItem.h"
+#include "VWolf/Core/Math/Math.h"
 
-#include "VWolf/Core/Application.h"
 #include "VWolf/Platform/DirectX12/DirectX12Driver.h"
 
+#include "VWolf/Platform/DirectX12/Core/DX12Command.h"
+#include "VWolf/Platform/DirectX12/Core/DX12Surface.h"
+#include "VWolf/Platform/DirectX12/Core/DX12Resources.h"
+
 namespace VWolf {
-	static DirectX12Context* GetMainContext() {
-		return ((DirectX12Driver*)Application::GetApplication()->GetDriver())->GetContext();
-	}
 
 	//void DirectX12Renderer::ProcessItems()
 	//{
@@ -80,16 +81,16 @@ namespace VWolf {
 	// TODO: Working as intended, but not happy with the implementation
 	void DirectX12Graphics::DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera)
 	{
-		if (frame != GetMainContext()->mCurrBackBuffer) {
+		/*if (frame != DirectX12Driver::GetCurrent()->GetContext()->mCurrBackBuffer) {
 			groups.clear();
 		}
-		frame = GetMainContext()->mCurrBackBuffer;
+		frame = DirectX12Driver::GetCurrent()->GetContext()->mCurrBackBuffer;
 		auto data = mesh.vertices;
 		auto indices = mesh.indices;
-		Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(GetMainContext(), data.data(), data.size() * sizeof(Vertex));
+		Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetContext(), data.data(), data.size() * sizeof(Vertex));
 		vertices->SetLayout(MeshData::Layout);
-		Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(GetMainContext(), indices.data(), indices.size());
-		Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>(GetMainContext());
+		Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetContext(), indices.data(), indices.size());
+		Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>(DirectX12Driver::GetCurrent()->GetContext());
 		group->AddVertexBuffer(vertices);
 		group->SetIndexBuffer(index);
 		groups.push_back(group);
@@ -118,55 +119,53 @@ namespace VWolf {
 		transform = VWolf::rotate(transform, rotation.y, { 0.0f, 1.0f, 0.0f });
 		transform = VWolf::rotate(transform, rotation.z, { 0.0f, 0.0f, 1.0f });
 
-		dx12ResetCommandListAllocator(GetMainContext());
-		dx12ResetCommandList(GetMainContext(), nullptr);
-		dx12SetCommandListClientArea(GetMainContext());
-		dx12ResourceBarrierTransitionForCurrentBackBuffer(GetMainContext(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		dx12SetRenderTarget(GetMainContext());
+		dx12ResetCommandListAllocator(DirectX12Driver::GetCurrent()->GetContext());
+		dx12ResetCommandList(DirectX12Driver::GetCurrent()->GetContext(), nullptr);
+		dx12SetCommandListClientArea(DirectX12Driver::GetCurrent()->GetContext());
+		dx12ResourceBarrierTransitionForCurrentBackBuffer(DirectX12Driver::GetCurrent()->GetContext(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		dx12SetRenderTarget(DirectX12Driver::GetCurrent()->GetContext());
 
 		Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
 		void* material1 = material.GetDataPointer();
 		Light* lights = this->lights.data();
 
 		auto pso = ((HLSLShader*)shader.get())->GetPipeline();
-		GetMainContext()->mCommandList->SetPipelineState(pso.Get());
+		DirectX12Driver::GetCurrent()->GetContext()->mCommandList->SetPipelineState(pso.Get());
 
 		shader->Bind();
 
 		group->Bind();
-		GetMainContext()->mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		DirectX12Driver::GetCurrent()->GetContext()->mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
 		shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
 		shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
 		shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
 		uint32_t count = group->GetIndexBuffer()->GetCount();
 
-		GetMainContext()->mCommandList->DrawIndexedInstanced(
+		DirectX12Driver::GetCurrent()->GetContext()->mCommandList->DrawIndexedInstanced(
 			count,
 			1, 0, 0, 0);
 
-		dx12ResourceBarrierTransitionForCurrentBackBuffer(GetMainContext(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		dx12ExecuteCommands(GetMainContext());
-		free(material1);
+		dx12ResourceBarrierTransitionForCurrentBackBuffer(DirectX12Driver::GetCurrent()->GetContext(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		dx12ExecuteCommands(DirectX12Driver::GetCurrent()->GetContext());
+		free(material1);*/
 	}
 
 	// TODO: Working as intended, but not happy with the implementation
 	void DirectX12Graphics::RenderMeshImpl(MeshData& mesh, MatrixFloat4x4 transform, Material& material, Ref<Camera> camera)
 	{
-		if (frame != GetMainContext()->mCurrBackBuffer) {
-			groups.clear();
-		}
-
-		frame = GetMainContext()->mCurrBackBuffer;
 		auto data = mesh.vertices;
 		auto indices = mesh.indices;
-		Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(GetMainContext(), data.data(), data.size() * sizeof(Vertex));
-		vertices->SetLayout(MeshData::Layout);
-		Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(GetMainContext(), indices.data(), indices.size());
-		Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>(GetMainContext());
-		group->AddVertexBuffer(vertices);
+		Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex));
+		Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
+		Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
+		group->SetVertexBuffer(vertices);
 		group->SetIndexBuffer(index);
-		groups.push_back(group);
+
+		groups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), group);
+
+		vertices->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
+		index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
 
 		Camera* cam = camera != nullptr ? camera.get() : Camera::main;
 
@@ -186,58 +185,42 @@ namespace VWolf {
 			Time::GetTotalTime(),
 			Time::GetDeltaTime()
 		};
-		
-		dx12ResetCommandListAllocator(GetMainContext());
-		dx12ResetCommandList(GetMainContext(), nullptr);
-		dx12SetCommandListClientArea(GetMainContext());
-		dx12ResourceBarrierTransitionForCurrentBackBuffer(GetMainContext(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		dx12SetRenderTarget(GetMainContext());		
 
 		Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
 		void* material1 = material.GetDataPointer();
 		Light* lights = this->lights.data();
-
+		
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		group->Bind(DirectX12Driver::GetCurrent()->GetCommands());
 		auto pso = ((HLSLShader*)shader.get())->GetPipeline();
-		GetMainContext()->mCommandList->SetPipelineState(pso.Get());
-
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetPipelineState(pso.Get());
 		shader->Bind();
+		
+		shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
+		shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), shapes);
+		shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
+		shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
+		uint32_t count = indices.size();
 
-		group->Bind();
-		GetMainContext()->mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
-		shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
-		shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
-		shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
-		uint32_t count = group->GetIndexBuffer()->GetCount();
-
-		GetMainContext()->mCommandList->DrawIndexedInstanced(
-			count,
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->DrawIndexedInstanced(
+			count, // Change later
 			1, 0, 0, 0);
-
-		dx12ResourceBarrierTransitionForCurrentBackBuffer(GetMainContext(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		dx12ExecuteCommands(GetMainContext());
-		free(material1);		
+		free(material1);
+		shapes++; // TEST
 	}
 
 	// TODO: Rework to follow a consistent flow with the command list and command allocator
 	void DirectX12Graphics::ClearColorImpl(Color color)
 	{
-		dx12ResetCommandList(GetMainContext(), nullptr);
-		dx12SetCommandListClientArea(GetMainContext());
-		dx12ResourceBarrierTransitionForCurrentBackBuffer(GetMainContext(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		dx12ClearRenderTargetView(GetMainContext(), {{{color.r, color.b, color.g, color.a}}});
-		dx12ResourceBarrierTransitionForCurrentBackBuffer(GetMainContext(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		dx12ExecuteCommands(GetMainContext());
+		auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->ClearRenderTargetView(rtv->GetHandle().GetCPUAddress(), value_ptr(color), 0, nullptr);
 	}
 
 	// TODO: Rework to follow a consistent flow with the command list and command allocator
 	void DirectX12Graphics::ClearImpl()
 	{
-		dx12ResetCommandList(GetMainContext(), nullptr);
-		dx12SetCommandListClientArea(GetMainContext());
-		dx12ClearDepthStencilView(GetMainContext());
-		dx12ExecuteCommands(GetMainContext());
-		lights.clear();
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
+			->ClearDepthStencilView(DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 	}
 
 	void DirectX12Graphics::AddLightImpl(Light& light)
@@ -247,6 +230,50 @@ namespace VWolf {
 
 	void DirectX12Graphics::DrawGridImpl()
 	{
+	}
+	void DirectX12Graphics::BeginFrameImpl()
+	{		
+		// Reset command list and allocator
+		DirectX12Driver::GetCurrent()->GetCommands()->BeginFrame();
+
+		// Set the viewport and rect
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->RSSetViewports(1, &DirectX12Driver::GetCurrent()->GetSurface()->GetScreenViewport());
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->RSSetScissorRects(1, &DirectX12Driver::GetCurrent()->GetSurface()->GetScissorRect());
+
+		auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
+		rtv->TransitionResource(DirectX12Driver::GetCurrent()->GetCommands(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
+			->OMSetRenderTargets(1, &rtv->GetHandle().GetCPUAddress(), FALSE, &DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress());
+
+		lights.clear();
+		shapes = 0;
+	}
+
+	void DirectX12Graphics::ClearResources(bool forceRelease) {
+		auto NumCompletedCmdLists = DirectX12Driver::GetCurrent()->GetCommands()->GetCompletedFence();
+		// Release all objects whose cmd list number value < number of completed cmd lists
+		while (!groups.empty())
+		{
+			auto& FirstObj = groups.front();
+			// GPU must have been idled when ForceRelease == true 
+			if (FirstObj.first < NumCompletedCmdLists || forceRelease)
+				groups.pop_front();
+			else
+				break;
+		}
+	}
+
+	void DirectX12Graphics::EndFrameImpl()
+	{
+		auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
+		rtv->TransitionResource(DirectX12Driver::GetCurrent()->GetCommands(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+
+		DirectX12Driver::GetCurrent()->GetCommands()->EndFrame(DirectX12Driver::GetCurrent()->GetSurface());
+
+		ClearResources(false);
+
+		frame++;
 	}
 }
 #endif

@@ -21,6 +21,7 @@ namespace VWolf {
         static MeshData CreateCylinder(float bottomRadius, float topRadius, float height, std::uint32_t sliceCount, std::uint32_t stackCount);
         static MeshData CreateGrid(float width, float depth, std::uint32_t m, std::uint32_t n);
         static MeshData CreateQuad(float x, float y, float w, float h, float depth);
+        static MeshData CreateTriangle();
     private:
     private:
         static void Subdivide(MeshData& meshData);

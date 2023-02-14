@@ -50,4 +50,16 @@ namespace VWolf {
             graphicsImpl->renderTexture = renderTexture;
         }
     }
+
+    void Graphics::BeginFrame() {
+        if (graphicsImpl) {
+            graphicsImpl->BeginFrameImpl();
+        }
+    }
+
+    void Graphics::EndFrame() {
+        if (graphicsImpl) {
+            graphicsImpl->EndFrameImpl();
+        }
+    }
 }

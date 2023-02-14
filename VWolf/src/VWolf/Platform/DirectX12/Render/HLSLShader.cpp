@@ -2,14 +2,16 @@
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "HLSLShader.h"
 
-#include "VWolf/Core/Application.h"
 #include "VWolf/Platform/DirectX12/DirectX12Driver.h"
 
-namespace VWolf {
 
-	static DirectX12Context* GetMainContext() {
-		return ((DirectX12Driver*)Application::GetApplication()->GetDriver())->GetContext();
-	}
+#include "VWolf/Platform/DirectX12/Core/DX12Core.h"
+#include "VWolf/Platform/DirectX12/Core/DX12Device.h"
+#include "VWolf/Platform/DirectX12/Core/DX12Command.h"
+#include "VWolf/Platform/DirectX12/Core/DX12Surface.h"
+#include "VWolf/Platform/DirectX12/Core/DX12Resources.h"
+
+namespace VWolf {
 
 	static UINT CalcConstantBufferByteSize(UINT byteSize)
 	{
@@ -207,14 +209,23 @@ namespace VWolf {
 		}
 
 		Microsoft::WRL::ComPtr<ID3D12Resource>& GetUploadBuffer() { 
-			return mUploadBuffer; 
+			return uploadBuffer->GetResource();
 		}
 
-		// TODO: Move this into a getter
-		BYTE* mMappedData = nullptr;
+		void CreateUploadBuffer(UINT size) {
+			DX12BufferResourceInfo info;
+			info.CreateBufferResourceDescription(true);
+			uploadBuffer = CreateRef<DX12BufferResource>(info);
+			uploadBuffer->CreateBuffer(DirectX12Driver::GetCurrent()->GetDevice(), size);
+		}
 
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& GetSrvHeap() {
-			return mSrvHeap;
+		void SetData(const void* data, uint32_t size, uint32_t offset) {
+			BYTE* mMappedData = nullptr;
+
+			D3D12_RANGE range{};
+			DXThrowIfFailed(GetUploadBuffer()->Map(0, &range, reinterpret_cast<void**>(&mMappedData)));
+			memcpy(&mMappedData[offset * CalcConstantBufferByteSize(size)], data, size);
+			GetUploadBuffer()->Unmap(0, &range);
 		}
 
 		void SetVariables(std::vector<HLConstantBufferVariable> variables) {
@@ -229,8 +240,7 @@ namespace VWolf {
 		size_t size;
 		UINT bindingIndex;
 
-		Microsoft::WRL::ComPtr<ID3D12Resource> mUploadBuffer;		
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSrvHeap;
+		Ref<DX12BufferResource> uploadBuffer;
 
 		std::vector<HLConstantBufferVariable> variables;
 	};
@@ -268,13 +278,13 @@ namespace VWolf {
 			HRESULT hr = S_OK;
 			ID3D11ShaderReflection* pReflector = NULL;
 			hr = D3DReflect(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
-			ThrowIfFailed(hr);
+			DXThrowIfFailed(hr);
 
 			// Getting description
 			D3D11_SHADER_DESC desc;
 			ZeroMemory(&desc, sizeof(D3D11_SHADER_DESC));
 			hr = pReflector->GetDesc(&desc);
-			ThrowIfFailed(hr);
+			DXThrowIfFailed(hr);
 
 			// Getting attributes
 			UINT offset = 0;
@@ -283,7 +293,7 @@ namespace VWolf {
 					D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
 					ZeroMemory(&paramDesc, sizeof(D3D11_SIGNATURE_PARAMETER_DESC));
 					hr = pReflector->GetInputParameterDesc(index, &paramDesc);
-					ThrowIfFailed(hr);
+					DXThrowIfFailed(hr);
 
 					HLAttribute attr(paramDesc, index, offset);
 					offset += attr.GetSize();
@@ -355,7 +365,7 @@ namespace VWolf {
 				VWOLF_CORE_ERROR((char*)errors->GetBufferPointer());
 				VWOLF_CORE_ASSERT(errors == nullptr, "Shader produce an error");
 			}
-			ThrowIfFailedWithReturnValue(hr, nullptr);
+			DXThrowIfFailedWithReturnValue(hr, nullptr);
 			return byteCode;
 		}
 
@@ -404,9 +414,9 @@ namespace VWolf {
 			{
 				VWOLF_CORE_ERROR((char*)errorBlob->GetBufferPointer());
 			}
-			ThrowIfFailed(hr);
+			DXThrowIfFailed(hr);
 
-			ThrowIfFailed(GetMainContext()->md3dDevice->CreateRootSignature(
+			DXThrowIfFailed(DirectX12Driver::GetCurrent()->GetDevice()->GetDevice()->CreateRootSignature(
 				0,
 				serializedRootSig->GetBufferPointer(),
 				serializedRootSig->GetBufferSize(),
@@ -532,11 +542,11 @@ namespace VWolf {
 			psoDesc.SampleMask = UINT_MAX;
 			psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 			psoDesc.NumRenderTargets = 1;
-			psoDesc.RTVFormats[0] = GetMainContext()->mBackBufferFormat;
-			psoDesc.SampleDesc.Count = GetMainContext()->m4xMsaaState ? 4 : 1;
-			psoDesc.SampleDesc.Quality = GetMainContext()->m4xMsaaState ? (GetMainContext()->m4xMsaaQuality - 1) : 0;
-			psoDesc.DSVFormat = GetMainContext()->mDepthStencilFormat;
-			ThrowIfFailed(GetMainContext()->md3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPSO)));
+			psoDesc.RTVFormats[0] = DirectX12Driver::GetCurrent()->GetSurface()->GetFormat();
+			psoDesc.SampleDesc.Count = 1; // DirectX12Driver::GetCurrent()->GetDevice()->GetMSAAQuality() ? 4 : 1;
+			psoDesc.SampleDesc.Quality = 0; // DirectX12Driver::GetCurrent()->GetDevice()->GetMSAAQuality() ? (DirectX12Driver::GetCurrent()->GetDevice()->GetMSAAQuality() - 1) : 0;
+			psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT; // FOR NOW //DirectX12Driver::GetCurrent()->GetContext()->mDepthStencilFormat;
+			DXThrowIfFailed(DirectX12Driver::GetCurrent()->GetDevice()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPSO)));
 			VWOLF_CORE_ASSERT(mPSO.Get());
 		}
 
@@ -594,18 +604,8 @@ namespace VWolf {
 		uint32_t expectedObjects = 1000; // TODO: This is an expected amount, but I'm not satisfied with this.
 		for (std::pair<std::string, Ref<HLConstantBuffer>> param : m_program->GetConstantBuffers()) {
 			Ref<HLConstantBuffer> cb = param.second;
-			ThrowIfFailed(GetMainContext()->md3dDevice->CreateCommittedResource(
-				&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-				D3D12_HEAP_FLAG_NONE,
-				&CD3DX12_RESOURCE_DESC::Buffer(CalcConstantBufferByteSize(cb->GetSize()) * expectedObjects), //TODO: This should not be the case but oh well.
-				D3D12_RESOURCE_STATE_GENERIC_READ,
-				nullptr,
-				IID_PPV_ARGS(&cb->GetUploadBuffer())));
-
-			ThrowIfFailed(cb->GetUploadBuffer()->Map(0, nullptr, reinterpret_cast<void**>(&cb->mMappedData))); // Check
-			//ZeroMemory(m_cbContext->mMappedData, CalcConstantBufferByteSize(size) * expectedObjects);
+			cb->CreateUploadBuffer(CalcConstantBufferByteSize(cb->GetSize()) * expectedObjects);
 			VWOLF_CORE_ASSERT(cb->GetUploadBuffer());
-			VWOLF_CORE_ASSERT(cb->mMappedData);
 
 			// This is if I want to go back to descriptor table
 			/*UINT objCBByteSize = CalcConstantBufferByteSize(param.size);
@@ -631,7 +631,7 @@ namespace VWolf {
 
 	void HLSLShader::Bind() const
 	{
-		GetMainContext()->mCommandList->SetGraphicsRootSignature(m_program->GetRootSignature().Get());
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootSignature(m_program->GetRootSignature().Get());
 	}
 
 	void HLSLShader::Unbind() const
@@ -643,11 +643,9 @@ namespace VWolf {
 		Ref<HLConstantBuffer> cb = m_program->GetConstantBuffers()[std::string("cbPer") + std::string(name)];
 		if (!cb) return;
 
-		memcpy(&cb->mMappedData[offset * CalcConstantBufferByteSize(size)], data, size);
-		// Attach root descriptor directly to the command list
+		cb->SetData(data, size, offset);
 
-
-		GetMainContext()->mCommandList->SetGraphicsRootConstantBufferView(cb->GetBindingIndex(), cb->GetUploadBuffer().Get()->GetGPUVirtualAddress() + (offset * CalcConstantBufferByteSize(size)));
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootConstantBufferView(cb->GetBindingIndex(), cb->GetUploadBuffer().Get()->GetGPUVirtualAddress() + (offset * CalcConstantBufferByteSize(size)));
 
 		// Attach descriptor table via descriptor heap
 		/*dx12SetDescriptorHeaps(m_context, m_cbContext->mSrvHeap);
