@@ -18,7 +18,7 @@
 
 #include "VWolf/Core/UI/UIManager.h"
 
-#include "VWolf/Core/Render/Renderer.h"
+#include "VWolf/Core/Render/Graphics.h"
 #include "VWolf/Core/Render/Material.h"
 #include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Core/Render/Texture.h"

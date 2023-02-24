@@ -198,11 +198,6 @@ namespace VWolf {
             Build(programId);
         }
 
-        GLUniformBuffer(GLuint programId, ShaderParameter parameter){
-            glGenBuffers(1, &id);
-            Build(programId, parameter);
-        }
-
         ~GLUniformBuffer() {
             glDeleteBuffers(1, &id);
         }
@@ -260,20 +255,6 @@ namespace VWolf {
     
             // Setting the base
             glBindBufferBase(GL_UNIFORM_BUFFER, binding, id);
-            RetrieveUniforms(programId);
-        }
-
-        void Build(GLuint programId, ShaderParameter param) {
-            index = glGetUniformBlockIndex(programId, param.name);
-            name = std::string(param.name);
-            size = param.size;
-            binding = param.binding;
-            glUniformBlockBinding(programId, index, binding + totalBindings);
-    
-            glBindBuffer(GL_UNIFORM_BUFFER, id);
-            glBufferData(GL_UNIFORM_BUFFER, param.size, nullptr, GL_DYNAMIC_DRAW);
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
-            glBindBufferBase(GL_UNIFORM_BUFFER, binding + totalBindings, id);
             RetrieveUniforms(programId);
         }
 
@@ -387,16 +368,6 @@ namespace VWolf {
                 uniformBuffers.insert(std::pair<std::string, Ref<GLUniformBuffer>>(ubBlock->GetName(), ubBlock));
             }
             GLUniformBuffer::AddTotalBindings(ubCount);
-            RetrieveDefaultUniforms();
-            RetrieveAttributes();
-        }
-    
-        void RetrieveUniforms(std::vector<ShaderParameter> parameters) {
-            for (ShaderParameter param: parameters) {
-                Ref<GLUniformBuffer> ubBlock = CreateRef<GLUniformBuffer>(*this, param);
-                uniformBuffers.insert(std::pair<std::string, Ref<GLUniformBuffer>>(ubBlock->GetName(), ubBlock));
-            }
-            GLUniformBuffer::AddTotalBindings(parameters.size());
             RetrieveDefaultUniforms();
             RetrieveAttributes();
         }
@@ -515,35 +486,9 @@ namespace VWolf {
         std::map<std::string, Ref<GLAttribute>> attributes;
     };
 
-	GLSLShader::GLSLShader(const char* name,
-                           ShaderSource vertexShader,
-                           BufferLayout layout,
-                           std::initializer_list<ShaderSource> otherShaders,
-                           std::vector<ShaderParameter> parameters,
-                           ShaderConfiguration configuration): Shader(name,
-                                                                      vertexShader,
-                                                                      layout,
-                                                                      otherShaders,
-                                                                      parameters,
-                                                                      configuration)
-
-	{
-        // Compiling vertex shader
-        VWOLF_CORE_ASSERT(vertexShader.type == ShaderType::Vertex, "The first shader should be a vertex shader");
-        m_program = CreateRef<GLProgram>();
-        m_program->AttachShader(CreateRef<GLShaderSource>(vertexShader));
-        for(ShaderSource source: m_otherShaders)
-            m_program->AttachShader(CreateRef<GLShaderSource>(source));
-        m_program->Link();
-//        m_program->Validate();
-        m_program->DettachShaders();
-        m_program->RetrieveUniforms(m_parameters);
-	}
     GLSLShader::GLSLShader(const char* name,
-                           BufferLayout layout,
                            std::initializer_list<ShaderSource> otherShaders,
                            ShaderConfiguration configuration): Shader(name,
-                                                                      layout,
                                                                       otherShaders,
                                                                       configuration)
     {

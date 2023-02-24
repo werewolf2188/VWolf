@@ -9,7 +9,7 @@
 
 #ifdef VWOLF_PLATFORM_WINDOWS
 # define M_PI           3.14159265358979323846  /* pi TODO: Move later*/
-#define DRIVER_TYPE VWolf::DriverType::OpenGL
+#define DRIVER_TYPE VWolf::DriverType::DirectX12 
 #else
 #define DRIVER_TYPE VWolf::DriverType::OpenGL
 #endif
@@ -228,14 +228,6 @@ void LoadShaderNames(VWolf::DriverType driverType) {
 #endif
 }
 
-struct Albedo {
-public:
-    VWolf::Color ambientColor;
-    VWolf::Color diffuseColor;
-    VWolf::Vector3Float specular;
-    float shinines;
-};
-
 struct Transform {
     VWolf::Vector3Float position;
     VWolf::Vector3Float rotation;
@@ -290,16 +282,12 @@ class RendererSandboxApplication: public VWolf::Application {
 public:
     VWolf::Ref<VWolf::Camera> camera;
     std::vector<VWolf::Ref<GameObject>> gameObjects1, gameObjects2;
-    VWolf::OldMaterial<Albedo> material1;
-    VWolf::OldMaterial<Albedo> material2;
     VWolf::Material material_1;
     VWolf::Material material_2;
     VWolf::Ref<VWolf::Texture2D> testTexture;
     VWolf::Ref<VWolf::RenderTexture> renderTexture;
 //    LightInfo lightInfo;
     std::vector<LightInfo> lights;
-    Albedo* mat1;
-    Albedo* mat2;
 
     VWolf::MeshData pointMesh, directionalMesh, spotMesh;
 
@@ -311,19 +299,6 @@ public:
         camera = VWolf::CreateRef<VWolf::Camera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
         controller = VWolf::CreateRef<CameraController>(camera);
         LoadShaderNames(DRIVER_TYPE);
-        
-        material1 = VWolf::OldMaterial<Albedo>(shaderNames[0].c_str(), materialName);
-        mat1 = material1.GetChildObject();
-        mat1->ambientColor = { 1.0f, 0.0f, 0.0f, 1.0f };
-        mat1->diffuseColor = { 0.2f, 0.3f, 0.5f, 1.0f };
-        mat1->specular = { 0.8f, 0.8f, 0.8f };
-        mat1->shinines = 20;
-        material2 = VWolf::OldMaterial<Albedo>(shaderNames[1].c_str(), materialName);
-        mat2 = material2.GetChildObject();
-        mat2->ambientColor = { 1.0f, 0.3f, 0.2f, 1.0f };
-        mat2->diffuseColor = { 0.2f, 0.3f, 0.5f, 1.0f };
-        mat2->specular = { 0.8f, 0.8f, 0.8f };
-        mat2->shinines = 20;
         
         float radius = 1.0f;
         float theta = M_PI * 1.25;
@@ -366,18 +341,26 @@ public:
         lightInfo2.lightMatrix = VWolf::rotate(lightInfo2.lightMatrix, lightInfo2.light.direction.z, { 0.0f, 0.0f, 1.0f });
         lights.push_back(lightInfo2);
         
-        std::initializer_list<VWolf::ShaderParameter> parameters = {
-            { materialName, VWolf::ShaderParameterType::In, 2, material1.GetSize() },
-            { VWolf::Light::LightName, VWolf::ShaderParameterType::In, 3, (sizeof(VWolf::Light) * VWolf::Light::LightsMax) } // MAX Lights = 8
-           };
         for (int i = 0; i < NUMSHADERS; i++) {
-            if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
-                VWolf::ShaderLibrary::LoadShader(shaderNames[i].c_str(), { vsFiles[i], psFiles[i] });
-            } else {
-                VWolf::ShaderLibrary::LoadShader(shaderNames[i].c_str(),  vsFiles[i], { psFiles[i] }, parameters);
-            }
-            
+            VWolf::ShaderLibrary::LoadShader(shaderNames[i].c_str(), { vsFiles[i], psFiles[i] });
         }
+
+        material_1 = VWolf::Material(shaderNames[0].c_str());
+        material_2 = VWolf::Material(shaderNames[1].c_str());
+        material_1.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
+        material_1.SetColor("u_diffuseColor", { 1.0f, 1.0f, 1.0f, 1.0f });
+        material_1.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
+        material_1.SetFloat("u_shinines", 20);
+        if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
+            material_2.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
+            material_2.SetColor("u_diffuseColor", { 1.0f, 1.0f, 1.0f, 1.0f });
+        }
+        else {
+            material_2.SetColor("u_ambientColor", { 1.0f, 0.3f, 0.2f, 1.0f });
+            material_2.SetColor("u_diffuseColor", { 0.2f, 0.3f, 0.5f, 1.0f });
+        }
+        material_2.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
+        material_2.SetFloat("u_shinines", 20);
         if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
 //            testTexture = VWolf::Texture::LoadTexture2D(512, 512);
 #ifdef VWOLF_PLATFORM_WINDOWS
@@ -386,18 +369,8 @@ public:
             testTexture = VWolf::Texture::LoadTexture2D("../../../Sandbox/src/assets/textExample.png");
 #endif
 
-            renderTexture = VWolf::Texture::LoadRenderTexture(SCREENWIDTH, SCREENHEIGHT);
-            material_1 = VWolf::Material(shaderNames[0].c_str());
-            material_2 = VWolf::Material(shaderNames[1].c_str());
+            renderTexture = VWolf::Texture::LoadRenderTexture(SCREENWIDTH, SCREENHEIGHT);            
             material_2.SetTexture("u_texture", testTexture);
-            material_1.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
-            material_1.SetColor("u_diffuseColor", { 1.0f, 1.0f, 1.0f, 1.0f });
-            material_1.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
-            material_1.SetFloat("u_shinines", 20);
-            material_2.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
-            material_2.SetColor("u_diffuseColor", {  1.0f, 1.0f, 1.0f, 1.0f });
-            material_2.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
-            material_2.SetFloat("u_shinines", 20);
         }
 
         gameObjects1.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), "0" ));
@@ -437,62 +410,39 @@ public:
     }
 
     void OnDraw() override {
+
         if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
             VWolf::Graphics::Clear();
             VWolf::Graphics::SetRenderTexture(renderTexture);
-            VWolf::Graphics::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
-            VWolf::Graphics::Clear();
-            
-            for (LightInfo& lightInfo: lights) {
-                VWolf::Graphics::AddLight(lightInfo.light);
-            }
-            
-            for(auto gameObject: gameObjects1)
-                VWolf::Graphics::RenderMesh(gameObject->GetData(),
-                                            gameObject->transform.matrix,
-                                            material_2);
-            for(auto gameObject: gameObjects2)
-                VWolf::Graphics::RenderMesh(gameObject->GetData(),
-                                            gameObject->transform.matrix,
-                                            material_2);
-            
-            for (LightInfo& lightInfo: lights) {
-                if (lightInfo.light.type == VWolf::Light::LightType::Point)
-                    VWolf::Graphics::RenderMesh(pointMesh, lightInfo.lightMatrix, material_1);
-                else if (lightInfo.light.type == VWolf::Light::LightType::Directional)
-                    VWolf::Graphics::RenderMesh(directionalMesh, lightInfo.lightMatrix, material_1);
-                else if (lightInfo.light.type == VWolf::Light::LightType::Spot)
-                    VWolf::Graphics::RenderMesh(spotMesh, lightInfo.lightMatrix, material_1);
-            }
-//            VWolf::Graphics::DrawGrid();
+        }
+        VWolf::Graphics::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
+        VWolf::Graphics::Clear();
+
+        for (LightInfo& lightInfo : lights) {
+            VWolf::Graphics::AddLight(lightInfo.light);
+        }
+
+        for (auto gameObject : gameObjects1)
+            VWolf::Graphics::RenderMesh(gameObject->GetData(),
+                gameObject->transform.matrix,
+                material_2);
+        for (auto gameObject : gameObjects2)
+            VWolf::Graphics::RenderMesh(gameObject->GetData(),
+                gameObject->transform.matrix,
+                material_2);
+
+        for (LightInfo& lightInfo : lights) {
+            if (lightInfo.light.type == VWolf::Light::LightType::Point)
+                VWolf::Graphics::RenderMesh(pointMesh, lightInfo.lightMatrix, material_1);
+            else if (lightInfo.light.type == VWolf::Light::LightType::Directional)
+                VWolf::Graphics::RenderMesh(directionalMesh, lightInfo.lightMatrix, material_1);
+            else if (lightInfo.light.type == VWolf::Light::LightType::Spot)
+                VWolf::Graphics::RenderMesh(spotMesh, lightInfo.lightMatrix, material_1);
+        }
+        
+        // VWolf::Graphics::DrawGrid();
+        if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
             VWolf::Graphics::SetRenderTexture(nullptr);
-           
-        } else {
-            VWolf::Renderer::Begin(camera);
-            VWolf::Renderer::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
-            VWolf::Renderer::Clear();
-            for (LightInfo& lightInfo: lights) {
-                VWolf::Renderer::AddLight(lightInfo.light);
-            }
-    //
-            VWolf::Renderer::SetMaterial(material2);
-            for(auto gameObject: gameObjects1)
-                VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
-    //        VWolf::Renderer::SetMaterial(material2);
-            for(auto gameObject: gameObjects2)
-                VWolf::Renderer::DrawMesh(gameObject->GetData(), gameObject->transform.matrix);
-            
-            // Light representation
-            VWolf::Renderer::SetMaterial(material1);
-            for (LightInfo& lightInfo: lights) {
-                if (lightInfo.light.type == VWolf::Light::LightType::Point)
-                    VWolf::Renderer::DrawMesh(pointMesh, lightInfo.lightMatrix);
-                else if (lightInfo.light.type == VWolf::Light::LightType::Directional)
-                    VWolf::Renderer::DrawMesh(directionalMesh, lightInfo.lightMatrix);
-                else if (lightInfo.light.type == VWolf::Light::LightType::Spot)
-                    VWolf::Renderer::DrawMesh(spotMesh, lightInfo.lightMatrix);
-            }
-            VWolf::Renderer::End();
         }
     }
 
@@ -518,33 +468,23 @@ public:
         ImGui::End();
         
         ImGui::Begin("Materials");
-        if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
-            ImGui::PushID(material_2.GetName().c_str());
-            ImGui::LabelText("Material", "");
-            for(auto property: material_2.GetProperties()) {
-                switch(property.second) {
-                    case VWolf::ShaderDataType::Float4:
-                        ImGui::ColorEdit4(property.first.c_str(), VWolf::value_ptr(material_2.GetColor(property.first)));
-                        break;
-                    case VWolf::ShaderDataType::Float3:
-                        ImGui::DragFloat3(property.first.c_str(), VWolf::value_ptr(material_2.GetVector3(property.first)));
-                        break;
-                    case VWolf::ShaderDataType::Float:
-                        ImGui::SliderFloat(property.first.c_str(), &material_2.GetFloat(property.first), 0, 180);
-                        break;
-                    default: break;
-                }
+        ImGui::PushID(material_2.GetName().c_str());
+        ImGui::LabelText("Material", "");
+        for (auto property : material_2.GetProperties()) {
+            switch (property.second) {
+            case VWolf::ShaderDataType::Float4:
+                ImGui::ColorEdit4(property.first.c_str(), VWolf::value_ptr(material_2.GetColor(property.first)));
+                break;
+            case VWolf::ShaderDataType::Float3:
+                ImGui::DragFloat3(property.first.c_str(), VWolf::value_ptr(material_2.GetVector3(property.first)));
+                break;
+            case VWolf::ShaderDataType::Float:
+                ImGui::SliderFloat(property.first.c_str(), &material_2.GetFloat(property.first), 0, 180);
+                break;
+            default: break;
             }
-            ImGui::PopID();
-        } else {
-            ImGui::PushID("Material");
-            ImGui::LabelText("Material", "");
-            ImGui::ColorEdit4("Ambient Color", VWolf::value_ptr(mat2->ambientColor));
-            ImGui::ColorEdit4("Diffuse Color", VWolf::value_ptr(mat2->diffuseColor));
-            ImGui::DragFloat3("Specular Vector", VWolf::value_ptr(mat2->specular), 0.01f, 0, 1);
-            ImGui::SliderFloat("Shinines", &mat2->shinines, 0, 180);
-            ImGui::PopID();
         }
+        ImGui::PopID();
 
         int i = 0;
         ImGui::PushID("Light");

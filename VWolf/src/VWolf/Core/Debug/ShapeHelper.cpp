@@ -462,6 +462,37 @@ namespace VWolf {
         return meshData;
     }
 
+    MeshData ShapeHelper::CreateTriangle()
+    {
+        MeshData meshData;
+
+        meshData.vertices.resize(3);
+        meshData.indices.resize(3);
+
+        meshData.vertices[0] = Vertex(1.0f, -1.0f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 1.0f);
+
+        meshData.vertices[1] = Vertex(-1.0f, -1.0f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+            1.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 1.0f);
+
+        meshData.vertices[2] = Vertex(0.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+            0.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 1.0f);
+
+        meshData.indices[0] = 0;
+        meshData.indices[1] = 1;
+        meshData.indices[2] = 2;
+        return meshData;
+    }
+
     void ShapeHelper::Subdivide(MeshData& meshData) {
         MeshData inputCopy = meshData;
 

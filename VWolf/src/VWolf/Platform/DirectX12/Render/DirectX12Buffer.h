@@ -13,29 +13,23 @@ namespace VWolf {
 
 	struct VertexContext;
 
+	class DX12BufferResource;
+	class DX12Device;
+	class DX12Command;
+
 	class DirectX12VertexBuffer
 	{
 	public:
-		DirectX12VertexBuffer(HWND__* window, DirectX12Context* context, uint32_t size);
-		DirectX12VertexBuffer(HWND__* window, DirectX12Context* context, float* vertices, uint32_t size);
+		DirectX12VertexBuffer(Ref<DX12Device> device, void* vertices, uint32_t size);
 		~DirectX12VertexBuffer();
 
-		void Bind() const;
-		void Unbind() const;
-
-		void SetData(const void* data, uint32_t size);
-
-		const BufferLayout& GetLayout() const;
-		void SetLayout(const BufferLayout& layout);
-
-		D3D12_VERTEX_BUFFER_VIEW VertexBufferView() const;
+		void Bind(Ref<DX12Command> commands) const;
+		void CopyToDefaultBuffer(Ref<DX12Command> commands) const;
 	private:
-		HWND__* m_window = nullptr;
-		DirectX12Context* m_context = nullptr;
-		Scope<VertexContext> m_vContext = nullptr;
-		BufferLayout m_layout;
-		float* m_vertices;
-		uint32_t m_size;
+		Ref<DX12BufferResource> uploadBuffer;
+		Ref<DX12BufferResource> defaultBuffer;
+		uint32_t size;
+		void* data;
 	};
 
 	struct IndexContext;
@@ -43,21 +37,16 @@ namespace VWolf {
 	class DirectX12IndexBuffer
 	{
 	public:
-		DirectX12IndexBuffer(HWND__* window, DirectX12Context* context, uint32_t* indices, uint32_t count);
-		virtual ~DirectX12IndexBuffer();
+		DirectX12IndexBuffer(Ref<DX12Device> device, UINT32* indices, uint32_t count);
+		~DirectX12IndexBuffer();
 
-		void Bind() const;
-		void Unbind() const;
-
-		uint32_t GetCount() const;
-
-		D3D12_INDEX_BUFFER_VIEW IndexBufferView() const;
+		void Bind(Ref<DX12Command> commands) const;
+		void CopyToDefaultBuffer(Ref<DX12Command> commands) const;
 	private:
-		HWND__* m_window = nullptr;
-		DirectX12Context* m_context = nullptr;
-		Scope<IndexContext> m_iContext = nullptr;
-		uint32_t* m_indices;
-		uint32_t m_count;
+		Ref<DX12BufferResource> uploadBuffer;
+		Ref<DX12BufferResource> defaultBuffer;
+		uint32_t size;
+		void* data;
 	};
 }
 #endif

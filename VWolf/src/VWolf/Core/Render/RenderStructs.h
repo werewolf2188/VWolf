@@ -240,54 +240,6 @@ namespace VWolf {
         float deltaTime;
     };
 
-
-    // Materials
-    class AbstractMaterial {
-    public:
-        virtual size_t GetSize() = 0;
-        virtual std::string GetShader() = 0;
-        virtual const char* GetName() = 0;
-        virtual void* GetDataPointer() = 0;
-    };
-
-    template<typename T>
-    class OldMaterial: public AbstractMaterial {
-    public:
-        OldMaterial(): shaderName(""), materialName("") {
-            pointer = new T();
-        }
-        OldMaterial(const std::string shaderName, const char* materialName): shaderName(shaderName), materialName(materialName) {
-            pointer = new T();
-        }
-        
-        virtual size_t GetSize() override {
-            return sizeof(T);
-        }
-
-        virtual std::string GetShader() override {
-            return shaderName;
-        }
-        
-        virtual void* GetDataPointer() override {
-            return pointer;
-        }
-        
-        virtual const char* GetName() override {
-            return materialName;
-        }
-        
-        T* GetChildObject() {
-            return pointer;
-        }
-    private:
-        std::string shaderName;
-        const char* materialName;
-        std::map<std::string, Color> colors;
-        std::map<std::string, Vector3Float> vectors3d;
-        std::map<std::string, float> values;
-        T* pointer = nullptr;
-    };
-
     // Lights
     struct Light {
     public:

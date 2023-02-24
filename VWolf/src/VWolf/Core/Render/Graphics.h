@@ -13,43 +13,11 @@
 namespace VWolf {
     struct RenderItem;
 
-    class Renderer {
-    public:
-        virtual ~Renderer() = default;
-    public:
-        static void Begin(Ref<Camera> camera);
-        static void ClearColor(Color color);
-        static void Clear();
-        static void SetMaterial(AbstractMaterial& material);
-//        static void SetLight(Light& light);
-        static void AddLight(Light& light);
-        static void DrawMesh(MeshData& meshData, MatrixFloat4x4 transform);
-        static void End();
-#ifdef VWOLF_CORE
-        static void SetRenderer(Scope<Renderer> renderer) { rendererImpl = std::move(renderer); }
-#endif
-    protected:
-        virtual void ProcessItems() = 0;
-        CameraPass GetCameraPass();
-    protected:
-        Ref<Camera> m_camera;
-        Color backgroundColor;
-        AbstractMaterial* material;
-//        Light* light;
-        std::vector<Light> lights;
-        std::vector<Ref<RenderItem>> items;
-        bool clearColor = false;
-        bool clearDepthStencil = false;
-    private:
-        static Scope<Renderer> rendererImpl;
-    };
-
     class Graphics {
     public:
         virtual ~Graphics() = default;
     public:
         static void SetRenderTexture(Ref<RenderTexture> renderTexture);
-    public:
         static void DrawMesh(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera = nullptr);
         static void RenderMesh(MeshData& mesh, MatrixFloat4x4 transform, Material& material, Ref<Camera> camera = nullptr);
         static void ClearColor(Color color);
@@ -60,6 +28,8 @@ namespace VWolf {
 #ifdef VWOLF_CORE
         static void SetGraphicsImpl(Ref<Graphics> graphics) { graphicsImpl = graphics; }
         static Ref<Graphics> SetGraphicsImpl() { return graphicsImpl; }
+        static void BeginFrame();
+        static void EndFrame();
 #endif
     protected:
         virtual void DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera = nullptr) = 0;
@@ -69,6 +39,8 @@ namespace VWolf {
         // TODO: Not sure about this one
         virtual void AddLightImpl(Light& light) = 0;
         virtual void DrawGridImpl() = 0;
+        virtual void BeginFrameImpl() = 0;
+        virtual void EndFrameImpl() = 0;
     protected:
         // TODO: Think about how to deal with render textures
         Ref<RenderTexture> renderTexture;

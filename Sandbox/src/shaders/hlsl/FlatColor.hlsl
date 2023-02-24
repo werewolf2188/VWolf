@@ -20,12 +20,12 @@ cbuffer cbPerObject : register(b1)
 	float4x4 u_Transform;
 };
 
-cbuffer cbPerMaterial : register(b2) {
-	float4 u_ambientColor;
-	float4 u_diffuseColor;
-	float3 u_specular;
-	float u_shinines;
-};
+//cbuffer cbPerMaterial : register(b2) {
+//	float4 u_ambientColor;
+//	float4 u_diffuseColor;
+//	float3 u_specular;
+//	float u_shinines;
+//};
 
 #define LIGHTS_MAX 8
 
@@ -39,7 +39,7 @@ struct LightInfo {
 	uint u_type;
 };
 
-cbuffer cbPerLight : register(b3) {
+cbuffer cbPerLight : register(b2) {
 	LightInfo light[LIGHTS_MAX];
 };
 
@@ -62,11 +62,11 @@ VertexOut VS(VertexIn vin)
 {
 	VertexOut vout;
 
-	// Transform to homogeneous clip space.
+	 //Transform to homogeneous clip space.
 	vout.PosH = mul(u_Transform, float4(vin.PosL, 1.0f));
 	vout.PosH = mul(u_ViewProjection, vout.PosH);
 
-	// Just pass vertex color into the pixel shader.	
+	// Just pass vertex color into the pixel shader.
 	vout.Color = light[0].u_color;
 	return vout;
 }

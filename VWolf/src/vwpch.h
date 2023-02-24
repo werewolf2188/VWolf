@@ -10,6 +10,7 @@
 #include <utility>
 #include <algorithm>
 #include <functional>
+#include <mutex>
 
 #include <string>
 #include <codecvt>
@@ -17,6 +18,7 @@
 #include <sstream>
 #include <array>
 #include <vector>
+#include <deque>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -49,20 +51,25 @@
 #include <Windows.h>
 #include <windowsx.h>
 #include <wrl.h>
-#include <dxgi1_4.h>
+#include <dxgi1_4.h> 
+#include <dxgi1_6.h> // This will replace above
 #include <d3d12.h>
 //#include <DirectXMath.h>
 #include <DirectXColors.h>
 #include <d3dx12.h>
-#include <d3dx12Context.h>
-#include <d3dx12Commands.h>
 #include <D3Dcompiler.h>
+#include <d3d11shader.h>
 #include <DirectXPackedVector.h>
+#if defined(_DEBUG) || defined(DEBUG)
+#define USE_PIX
+#include "pix3.h"
+#endif
 //#include <DirectXCollision.h>
 
 #pragma comment(lib,"d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "dxguid.lib")
 #endif
 
 #include "VWolf/Core/Log.h"
