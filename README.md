@@ -59,9 +59,6 @@ This projects requires premake5 to be included in your local machine. Right now 
 ## Future goals
 
 - Cleanup
-    - Refactor code to break unnecessary OOP (inheritance) among files
-    - Revisit public interface
-    - Decouple camera interaction and camera math
     - Divide sub namespaces
 - Window management
     - Clean events code

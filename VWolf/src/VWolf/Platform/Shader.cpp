@@ -28,11 +28,13 @@ namespace VWolf {
                                                otherShaders,
                                                configuration);
                 break;
+#ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
                 shader = CreateRef<HLSLShader>(name,
                                                otherShaders,
                                                configuration);
                 break;
+#endif
             default:
                 VWOLF_CORE_ASSERT(false, "Shader: Not yet implemented");
         }
