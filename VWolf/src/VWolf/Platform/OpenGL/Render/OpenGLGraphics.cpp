@@ -10,6 +10,9 @@
 
 #include "VWolf/Core/Render/RenderItem.h"
 
+
+#include "VWolf/Platform/OpenGL/Core/GLCore.h"
+
 namespace VWolf {
     void OpenGLGraphics::Build() {
 #ifdef VWOLF_PLATFORM_WINDOWS
@@ -84,13 +87,13 @@ namespace VWolf {
 
     void OpenGLGraphics::ClearColorImpl(Color color) {
         BindToRenderTexture();
-        glClearColor(color.r, color.b, color.g, color.a);
+        GLThrowIfFailed(glClearColor(color.r, color.b, color.g, color.a));
         UnbindToRenderTexture();
     }
 
     void OpenGLGraphics::ClearImpl() {
         BindToRenderTexture();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        GLThrowIfFailed(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
         UnbindToRenderTexture();
         lights.clear();
     }
@@ -144,7 +147,7 @@ namespace VWolf {
         index->Bind();
         uint32_t count = index->GetCount();
         BindToRenderTexture();
-        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+        GLThrowIfFailed(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr));
         UnbindToRenderTexture();
         vertices->Unbind();
         index->Unbind();
@@ -189,7 +192,7 @@ namespace VWolf {
             OpenGLTexture2D* texture = dynamic_cast<OpenGLTexture2D*>(material.GetTexture(textures[index].GetName()).get());
             if (texture != nullptr) {
                 texture->Bind(index);
-                glUniform1i(textures[index].GetIndex(), index);
+                GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
             }
         }
         shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
@@ -202,7 +205,7 @@ namespace VWolf {
         
         uint32_t count = index->GetCount();
         BindToRenderTexture();
-        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+        GLThrowIfFailed(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr));
         UnbindToRenderTexture();
         vertices->Unbind();
         index->Unbind();
@@ -236,7 +239,7 @@ namespace VWolf {
         gridShader->SetData(&farZ, "NearFarPoint", sizeof(float), sizeof(float));
         group->Bind();
         BindToRenderTexture();
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        GLThrowIfFailed(glDrawArrays(GL_TRIANGLES, 0, 6));
         UnbindToRenderTexture();
         group->Unbind();
         gridShader->Unbind();

@@ -3,6 +3,8 @@
 
 #include "VWolf/Core/Events/ApplicationEvent.h"
 
+#include "VWolf/Platform/OpenGL/Core/GLCore.h"
+
 namespace VWolf {
 	static KeyCode GetKeyCodeFrom(int key);
 	static int GetKeyFrom(KeyCode key);
@@ -204,9 +206,9 @@ namespace VWolf {
         int width;
         int height;
         glfwGetFramebufferSize(m_window, &width, &height);
-        glViewport(0, 0, width, height);
+        GLThrowIfFailed(glViewport(0, 0, width, height));
 #else
-        glViewport(0, 0, width, height);
+        GLThrowIfFailed(glViewport(0, 0, width, height));
 #endif
 	}
 

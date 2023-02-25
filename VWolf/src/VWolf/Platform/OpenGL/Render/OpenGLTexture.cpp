@@ -12,6 +12,8 @@
 
 #include "stb_image/stb_image.h"
 
+#include "VWolf/Platform/OpenGL/Core/GLCore.h"
+
 namespace VWolf {
 
     namespace {
@@ -47,29 +49,29 @@ namespace VWolf {
         m_internalDataFormat = GL_RGBA32F;
         m_dataFormat = GL_RGBA;
 
-        glGenTextures(1, &m_textureID);
-        glBindTexture(GL_TEXTURE_2D, m_textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, m_internalDataFormat, m_width, m_height, 0, m_dataFormat, GL_FLOAT, NULL);
+        GLThrowIfFailed(glGenTextures(1, &m_textureID));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_textureID));
+        GLThrowIfFailed(glTexImage2D(GL_TEXTURE_2D, 0, m_internalDataFormat, m_width, m_height, 0, m_dataFormat, GL_FLOAT, NULL));
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode()));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
-                                                                            m_options.GetWrapModeU()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
-                                                                            m_options.GetWrapModeV()));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                            m_options.GetWrapModeU())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                            m_options.GetWrapModeV())));
         //
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        GLThrowIfFailed(glGenerateMipmap(GL_TEXTURE_2D));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
 
-        glGenSamplers(1, &m_sampleID);
-        glSamplerParameteri(m_sampleID, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode()));
-        glSamplerParameteri(m_sampleID, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode()));
+        GLThrowIfFailed(glGenSamplers(1, &m_sampleID));
+        GLThrowIfFailed(glSamplerParameteri(m_sampleID, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+        GLThrowIfFailed(glSamplerParameteri(m_sampleID, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
 
-        glSamplerParameteri(m_sampleID, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
-                                                                             m_options.GetWrapModeU()));
-        glSamplerParameteri(m_sampleID, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
-                                                                             m_options.GetWrapModeV()));
+        GLThrowIfFailed(glSamplerParameteri(m_sampleID, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                             m_options.GetWrapModeU())));
+        GLThrowIfFailed(glSamplerParameteri(m_sampleID, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                             m_options.GetWrapModeV())));
 #if defined(DEBUG) || defined(_DEBUG)
         if (m_options.IsTestTexture())
             PopulateTest();
@@ -96,38 +98,38 @@ namespace VWolf {
         // TODO: Creation should be the same for both constructors. Clean code
         // TODO: Data type not right
         // TODO: Mip maps and resize
-        glGenTextures(1, &m_textureID);
-        glBindTexture(GL_TEXTURE_2D, m_textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, m_internalDataFormat, m_width, m_height, 0, m_dataFormat, GL_UNSIGNED_BYTE, img);
+        GLThrowIfFailed(glGenTextures(1, &m_textureID));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_textureID));
+        GLThrowIfFailed(glTexImage2D(GL_TEXTURE_2D, 0, m_internalDataFormat, m_width, m_height, 0, m_dataFormat, GL_UNSIGNED_BYTE, img));
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode()));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
-                                                                            m_options.GetWrapModeU()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
-                                                                            m_options.GetWrapModeV()));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                            m_options.GetWrapModeU())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                            m_options.GetWrapModeV())));
         //
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, img);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        GLThrowIfFailed(glGenerateMipmap(GL_TEXTURE_2D));
+        GLThrowIfFailed(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, img));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
 
-        glGenSamplers(1, &m_sampleID);
-        glSamplerParameteri(m_sampleID, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode()));
-        glSamplerParameteri(m_sampleID, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode()));
+        GLThrowIfFailed(glGenSamplers(1, &m_sampleID));
+        GLThrowIfFailed(glSamplerParameteri(m_sampleID, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+        GLThrowIfFailed(glSamplerParameteri(m_sampleID, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
 
-        glSamplerParameteri(m_sampleID, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
-                                                                             m_options.GetWrapModeU()));
-        glSamplerParameteri(m_sampleID, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
-                                                                             m_options.GetWrapModeV()));
+        GLThrowIfFailed(glSamplerParameteri(m_sampleID, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                             m_options.GetWrapModeU())));
+        GLThrowIfFailed(glSamplerParameteri(m_sampleID, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                             m_options.GetWrapModeV())));
 
         
         stbi_image_free(img);
     }
 
     OpenGLTexture2D::~OpenGLTexture2D() {
-        glDeleteTextures(1, &m_textureID);
-        glDeleteSamplers(1, &m_sampleID);
+        GLThrowIfFailed(glDeleteTextures(1, &m_textureID));
+        GLThrowIfFailed(glDeleteSamplers(1, &m_sampleID));
     }
 #if defined(DEBUG) || defined(_DEBUG)
     void OpenGLTexture2D::PopulateTest() {
@@ -156,9 +158,9 @@ namespace VWolf {
                 data[index] = value;
             }
         }
-        glBindTexture(GL_TEXTURE_2D, m_textureID);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_dataFormat, GL_FLOAT, data);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_textureID));
+        GLThrowIfFailed(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_dataFormat, GL_FLOAT, data));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
         delete[] data;
     }
 #endif
@@ -167,83 +169,83 @@ namespace VWolf {
     }
 
     void OpenGLTexture2D::Bind(uint32_t base) {
-        glActiveTexture(GL_TEXTURE0 + base);
-        glBindTexture(GL_TEXTURE_2D, m_textureID);
-        glBindSampler(base, m_sampleID);
+        GLThrowIfFailed(glActiveTexture(GL_TEXTURE0 + base));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_textureID));
+        GLThrowIfFailed(glBindSampler(base, m_sampleID));
     }
 
     void OpenGLTexture2D::Unbind(uint32_t base) {
-        glBindSampler(base, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        GLThrowIfFailed(glBindSampler(base, 0));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
     }
 
     OpenGLRenderTexture::OpenGLRenderTexture(uint32_t width, uint32_t height, TextureOptions options):
     RenderTexture(width, height, options) {
-        glGenFramebuffers(1, &m_frameBufferID);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferID);
+        GLThrowIfFailed(glGenFramebuffers(1, &m_frameBufferID));
+        GLThrowIfFailed(glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferID));
 
         // TODO: Invalidate when resize
         // TODO: Declare attachments as outside of this block
         // Color attachment
-        glGenTextures(1, &m_colorTextureID);
-        glBindTexture(GL_TEXTURE_2D, m_colorTextureID);
+        GLThrowIfFailed(glGenTextures(1, &m_colorTextureID));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_colorTextureID));
           
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        GLThrowIfFailed(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode()));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
-                                                                            m_options.GetWrapModeU()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
-                                                                            m_options.GetWrapModeV()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, TransformWrapMode(m_options.GetWrapMode(),
-                                                                            m_options.GetWrapModeW()));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                            m_options.GetWrapModeU())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                            m_options.GetWrapModeV())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                            m_options.GetWrapModeW())));
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTextureID, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        GLThrowIfFailed(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTextureID, 0));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
         //
         
         // Depth Attachment
-        glGenTextures(1, &m_depthTextureID);
-        glBindTexture(GL_TEXTURE_2D, m_depthTextureID);
+        GLThrowIfFailed(glGenTextures(1, &m_depthTextureID));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_depthTextureID));
 
-        glTexImage2D(
+        GLThrowIfFailed(glTexImage2D(
           GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0,
           GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL
-        );
+        ));
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, TransformWrapMode(m_options.GetWrapMode(),
-                                                                            m_options.GetWrapModeW()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
-                                                                            m_options.GetWrapModeU()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
-                                                                            m_options.GetWrapModeV()));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                            m_options.GetWrapModeW())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                            m_options.GetWrapModeU())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                            m_options.GetWrapModeV())));
     
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_depthTextureID, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        GLThrowIfFailed(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_depthTextureID, 0));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
         //
         
-        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        GLThrowIfFailed(glDrawBuffer(GL_COLOR_ATTACHMENT0));
         VWOLF_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Render texture complete");
         
-        glBindFramebuffer(GL_FRAMEBUFFER, 0); ;
+        GLThrowIfFailed(glBindFramebuffer(GL_FRAMEBUFFER, 0)); ;
     }
 
     OpenGLRenderTexture::~OpenGLRenderTexture() {
-        glDeleteFramebuffers(1, &m_frameBufferID);
-        glDeleteTextures(1, &m_colorTextureID);
-        glDeleteTextures(1, &m_depthTextureID);
+        GLThrowIfFailed(glDeleteFramebuffers(1, &m_frameBufferID));
+        GLThrowIfFailed(glDeleteTextures(1, &m_colorTextureID));
+        GLThrowIfFailed(glDeleteTextures(1, &m_depthTextureID));
     }
 
     void OpenGLRenderTexture::Bind() {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferID);
-        glViewport(0, 0, m_width, m_height);
+        GLThrowIfFailed(glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferID));
+        GLThrowIfFailed(glViewport(0, 0, m_width, m_height));
     }
     void OpenGLRenderTexture::Unbind() {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        GLThrowIfFailed(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     }
 
     void* OpenGLRenderTexture::GetHandler() {
