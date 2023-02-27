@@ -53,6 +53,7 @@ namespace VWolf {
 	{
 		VWOLF_CORE_INFO("Shutting down core application");
 		driver->Shutdown();
+		// Log::ClearLogObjects(); // TODO: Take control of memory
 	}
 
 	void Application::Run() {

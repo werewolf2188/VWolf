@@ -100,8 +100,8 @@ namespace VWolf {
 		Log::LogSeverity LogImpl::minSeverity = Log::LogSeverity::trace;
 	END_DEFINE_PRIVATE
 
-	Log Log::coreLog;
-	Log Log::clientLog;
+	Log* Log::coreLog = new Log;
+	Log* Log::clientLog = new Log;
 
 	Log::Log()
 	{
@@ -126,6 +126,11 @@ namespace VWolf {
 	void Log::setSeverityFilter(LogSeverity severity)
 	{
 		Private::LogImpl::setSeverityFilter(severity);
+	}
+
+	void Log::ClearLogObjects() {
+		delete Log::coreLog;
+		delete Log::clientLog;
 	}
 
 	std::ostream& operator<< (std::ostream& strm, Log::LogSeverity level)

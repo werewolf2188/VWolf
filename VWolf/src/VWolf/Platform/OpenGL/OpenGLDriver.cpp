@@ -11,38 +11,13 @@
 
 #include "VWolf/Core/Time.h"
 
+#include "VWolf/Platform/OpenGL/Core/GLCore.h"
+
 #define OPENGL_MAJOR_VERSION 4
 #define OPENGL_MINOR_VERSION 1
 #define OPENGL_PROFILE GLFW_OPENGL_CORE_PROFILE
 
 namespace VWolf {
-	// TODO: Error events
-	static void GLFWErrorCallback(int error, const char* description)
-	{
-		VWOLF_CORE_ERROR("GLFW Error (%d): %s", error, description);
-	}
-
-	void OpenGLMessageCallback(
-		unsigned source,
-		unsigned type,
-		unsigned id,
-		unsigned severity,
-		int length,
-		const char* message,
-		const void* userParam)
-	{
-		switch (severity)
-		{
-		case GL_DEBUG_SEVERITY_HIGH:         VWOLF_CORE_FATAL(message); return;
-		case GL_DEBUG_SEVERITY_MEDIUM:       VWOLF_CORE_ERROR(message); return;
-		case GL_DEBUG_SEVERITY_LOW:          VWOLF_CORE_WARNING(message); return;
-		case GL_DEBUG_SEVERITY_NOTIFICATION: VWOLF_CORE_TRACE(message); return;
-		}
-
-		VWOLF_CORE_ASSERT(false, "Unknown severity level!");
-	}
-	//
-
 	class GLFWTime : public Time {
 	protected:
 		virtual float GetTime() override {
@@ -73,19 +48,22 @@ namespace VWolf {
 		}
 		window->Initialize();
         graphics->Build();
-#ifdef DEBUG
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#ifdef DEBUG        
         if (OPENGL_MINOR_VERSION > 5) {
-            glDebugMessageCallback(OpenGLMessageCallback, nullptr);
-
-            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+            GLThrowIfFailed(glEnable(GL_DEBUG_OUTPUT));
+            GLThrowIfFailed(glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
+            GLThrowIfFailed(glDebugMessageCallback(OpenGLMessageCallback, nullptr));
+            GLThrowIfFailed(glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE));
         }
 #endif
         VWOLF_CORE_INFO("GL Vendor %s", glGetString(GL_VENDOR));
+        GLThrowIfFailedNoAction("glGetString(GL_VENDOR)");
         VWOLF_CORE_INFO("GL Render %s", glGetString(GL_RENDERER));
+        GLThrowIfFailedNoAction("glGetString(GL_RENDERER)");
         VWOLF_CORE_INFO("GL Version %s", glGetString(GL_VERSION));
+        GLThrowIfFailedNoAction("glGetString(GL_VERSION)");
         VWOLF_CORE_INFO("GL Shading Language version %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+        GLThrowIfFailedNoAction("glGetString(GL_SHADING_LANGUAGE_VERSION)");
 	}
 
 	void OpenGLDriver::Shutdown()
@@ -108,9 +86,9 @@ namespace VWolf {
         int width;
         int height;
         glfwGetFramebufferSize((GLFWwindow*)window->GetNativeWindow(), &width, &height);
-        glViewport(0, 0, width, height);
+        GLThrowIfFailed(glViewport(0, 0, width, height));
 #else
-        glViewport(0, 0, m_Width, m_Height);
+        GLThrowIfFailed(glViewport(0, 0, m_Width, m_Height));
 #endif
     }
 }

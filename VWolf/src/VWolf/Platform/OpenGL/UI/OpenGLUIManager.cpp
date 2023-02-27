@@ -14,7 +14,7 @@ namespace VWolf {
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO();
+//		ImGuiIO& io = ImGui::GetIO();
 
 		// setup platform/renderer bindings
 		VWOLF_CORE_ASSERT(ImGui_ImplGlfw_InitForOpenGL(m_window, true), 

@@ -1,6 +1,8 @@
 #include "vwpch.h"
 #include "OpenGLVertexArray.h"
 
+#include "VWolf/Platform/OpenGL/Core/GLCore.h"
+
 namespace VWolf {
 
 	static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type)
@@ -25,14 +27,14 @@ namespace VWolf {
 	}
 
     OpenGLVertexArray::OpenGLVertexArray(): m_layout(MeshData::Layout) {
-        glGenVertexArrays(1, &vertexArrayId);
+        GLThrowIfFailed(glGenVertexArrays(1, &vertexArrayId));
     }
 
 	OpenGLVertexArray::OpenGLVertexArray(const Ref<OpenGLVertexBuffer>& vertexBuffer): OpenGLVertexArray(vertexBuffer,
                                                                                                          MeshData::Layout) { }
 
     OpenGLVertexArray::OpenGLVertexArray(const Ref<OpenGLVertexBuffer>& vertexBuffer, const BufferLayout& layout): m_layout(layout) {
-        glGenVertexArrays(1, &vertexArrayId);
+        GLThrowIfFailed(glGenVertexArrays(1, &vertexArrayId));
         Build(vertexBuffer);
     }
 
@@ -48,13 +50,13 @@ namespace VWolf {
             case ShaderDataType::Float3:
             case ShaderDataType::Float4:
             {
-                glEnableVertexAttribArray(m_VertexBufferIndex);
-                glVertexAttribPointer(m_VertexBufferIndex,
-                                      element.GetComponentCount(),
-                                      ShaderDataTypeToOpenGLBaseType(element.Type),
-                                      element.Normalized ? GL_TRUE : GL_FALSE,
-                                      m_layout.GetStride(),
-                                      (const void*)element.Offset);
+                GLThrowIfFailed(glEnableVertexAttribArray(m_VertexBufferIndex));
+                GLThrowIfFailed(glVertexAttribPointer(m_VertexBufferIndex,
+                                                      element.GetComponentCount(),
+                                                      ShaderDataTypeToOpenGLBaseType(element.Type),
+                                                      element.Normalized ? GL_TRUE : GL_FALSE,
+                                                      m_layout.GetStride(),
+                                                      (const void*)element.Offset));
                 m_VertexBufferIndex++;
                 break;
             }
@@ -64,12 +66,12 @@ namespace VWolf {
             case ShaderDataType::Int4:
             case ShaderDataType::Bool:
             {
-                glEnableVertexAttribArray(m_VertexBufferIndex);
-                glVertexAttribIPointer(m_VertexBufferIndex,
-                                       element.GetComponentCount(),
-                                       ShaderDataTypeToOpenGLBaseType(element.Type),
-                                       m_layout.GetStride(),
-                                       (const void*)element.Offset);
+                GLThrowIfFailed(glEnableVertexAttribArray(m_VertexBufferIndex));
+                GLThrowIfFailed(glVertexAttribIPointer(m_VertexBufferIndex,
+                                                       element.GetComponentCount(),
+                                                       ShaderDataTypeToOpenGLBaseType(element.Type),
+                                                       m_layout.GetStride(),
+                                                       (const void*)element.Offset));
                 m_VertexBufferIndex++;
                 break;
             }
@@ -79,14 +81,14 @@ namespace VWolf {
                 uint8_t count = element.GetComponentCount();
                 for (uint8_t i = 0; i < count; i++)
                 {
-                    glEnableVertexAttribArray(m_VertexBufferIndex);
-                    glVertexAttribPointer(m_VertexBufferIndex,
-                                          count,
-                                          ShaderDataTypeToOpenGLBaseType(element.Type),
-                                          element.Normalized ? GL_TRUE : GL_FALSE,
-                                          m_layout.GetStride(),
-                                          (const void*)(element.Offset + sizeof(float) * count * i));
-                    glVertexAttribDivisor(m_VertexBufferIndex, 1);
+                    GLThrowIfFailed(glEnableVertexAttribArray(m_VertexBufferIndex));
+                    GLThrowIfFailed(glVertexAttribPointer(m_VertexBufferIndex,
+                                                          count,
+                                                          ShaderDataTypeToOpenGLBaseType(element.Type),
+                                                          element.Normalized ? GL_TRUE : GL_FALSE,
+                                                          m_layout.GetStride(),
+                                                          (const void*)(element.Offset + sizeof(float) * count * i)));
+                    GLThrowIfFailed(glVertexAttribDivisor(m_VertexBufferIndex, 1));
                     m_VertexBufferIndex++;
                 }
                 break;
@@ -101,15 +103,15 @@ namespace VWolf {
 
 	OpenGLVertexArray::~OpenGLVertexArray()
 	{
-		glDeleteVertexArrays(1, &vertexArrayId);
+        GLThrowIfFailed(glDeleteVertexArrays(1, &vertexArrayId));
 	}
 
 	void OpenGLVertexArray::Bind() const
 	{
-        glBindVertexArray(vertexArrayId);
+        GLThrowIfFailed(glBindVertexArray(vertexArrayId));
 	}
 	void OpenGLVertexArray::Unbind() const
 	{
-		glBindVertexArray(0);
+        GLThrowIfFailed(glBindVertexArray(0));
 	}
 }

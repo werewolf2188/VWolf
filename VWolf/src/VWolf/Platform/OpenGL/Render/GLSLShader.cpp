@@ -5,6 +5,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include "VWolf/Platform/OpenGL/Core/GLCore.h"
+
 #define MESSAGE_LENGTH 512
 
 namespace VWolf {
@@ -24,12 +26,13 @@ namespace VWolf {
             }
             type = ShaderTypeEquivalent(source.type);
             shaderId = glCreateShader(type);
+            GLThrowIfFailedNoAction("glCreateShader");
             if (compile)
                 Compile();
         }
         ~GLShaderSource() {
             if (!HasBeenDeleted())
-                glDeleteShader(shaderId);
+                GLThrowIfFailed(glDeleteShader(shaderId));
         }
     
         bool HasBeenDeleted() {
@@ -46,7 +49,7 @@ namespace VWolf {
         }
 
         void Delete() {
-            glDeleteShader(shaderId);
+            GLThrowIfFailed(glDeleteShader(shaderId));
         }
 
         GLint GetSize() {
@@ -61,13 +64,13 @@ namespace VWolf {
     private:
         GLint GetStatus(GLenum enumValue) {
             GLint success;
-            glGetShaderiv(shaderId, enumValue, &success);
+            GLThrowIfFailed(glGetShaderiv(shaderId, enumValue, &success));
             return success;
         }
 
         void Compile(const char* shaderText) {
-            glShaderSource(shaderId, 1, &shaderText, NULL);
-            glCompileShader(shaderId);
+            GLThrowIfFailed(glShaderSource(shaderId, 1, &shaderText, NULL));
+            GLThrowIfFailed(glCompileShader(shaderId));
             if (!IsCompiled()) {
                 PrintError();
                 VWOLF_CORE_ASSERT(false, "Something happened");
@@ -77,7 +80,7 @@ namespace VWolf {
         void PrintError() {
             GLint length = GetStatus(GL_INFO_LOG_LENGTH);
             GLchar* infoLog = new GLchar[length];
-            glGetShaderInfoLog(shaderId, length, nullptr, infoLog);
+            GLThrowIfFailed(glGetShaderInfoLog(shaderId, length, nullptr, infoLog));
             VWOLF_CORE_DEBUG(infoLog);
             delete[] infoLog;
         }
@@ -104,7 +107,7 @@ namespace VWolf {
         GLAttribute(GLuint programId, GLint index) {
             GLint length = 255;
             GLchar* nameHolder = new GLchar[length];
-            glGetActiveAttrib(programId, index, length, 0, &size, &type, nameHolder);
+            GLThrowIfFailed(glGetActiveAttrib(programId, index, length, 0, &size, &type, nameHolder));
             name = std::string(nameHolder);
             delete[] nameHolder;
         }
@@ -127,9 +130,9 @@ namespace VWolf {
     public:
         GLUniform(GLuint programId, GLint index): index(index) {
             GLint length;
-            glGetProgramiv(programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &length);
+            GLThrowIfFailed(glGetProgramiv(programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &length));
             char* nameHolder = new char[length];
-            glGetActiveUniformName(programId, index, length, 0, nameHolder);
+            GLThrowIfFailed(glGetActiveUniformName(programId, index, length, 0, nameHolder));
             name = std::string(nameHolder);
             delete[] nameHolder;
         }
@@ -138,6 +141,10 @@ namespace VWolf {
 
         std::string GetName() {
             return name;
+        }
+
+        void SetIndex(GLint index) {
+            this->index = index;
         }
 
         void SetType(GLint type) {
@@ -194,12 +201,12 @@ namespace VWolf {
     public:
     
         GLUniformBuffer(GLuint programId, GLint index): index(index) {
-            glGenBuffers(1, &id);
+            GLThrowIfFailed(glGenBuffers(1, &id));
             Build(programId);
         }
 
         ~GLUniformBuffer() {
-            glDeleteBuffers(1, &id);
+            GLThrowIfFailed(glDeleteBuffers(1, &id));
         }
 
         std::string GetName() {
@@ -223,9 +230,9 @@ namespace VWolf {
         }
 
         void SetData(const void* data, uint32_t size, uint32_t offset) {
-            glBindBuffer(GL_UNIFORM_BUFFER, id);
-            glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+            GLThrowIfFailed(glBindBuffer(GL_UNIFORM_BUFFER, id));
+            GLThrowIfFailed(glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data));
+            GLThrowIfFailed(glBindBuffer(GL_UNIFORM_BUFFER, 0));
         }
     public:
         static void AddTotalBindings(int bindings) {
@@ -235,43 +242,43 @@ namespace VWolf {
         void Build(GLuint programId) {
             // Getting the name
             GLint length;
-            glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_NAME_LENGTH, &length);
+            GLThrowIfFailed(glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_NAME_LENGTH, &length));
             char* nameHolder = new char[length];
-            glGetActiveUniformBlockName(programId, index, length, 0, nameHolder);
+            GLThrowIfFailed(glGetActiveUniformBlockName(programId, index, length, 0, nameHolder));
             name = std::string(nameHolder);
             delete[] nameHolder;
     
             // Getting the size of the block
-            glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
+            GLThrowIfFailed(glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_DATA_SIZE, &size));
     
             // Binding the UB
-            glUniformBlockBinding(programId, index, index + totalBindings);
+            GLThrowIfFailed(glUniformBlockBinding(programId, index, index + totalBindings));
    
             // Sizing the buffer
-            glBindBuffer(GL_UNIFORM_BUFFER, id);
-            glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_BINDING, &binding);
-            glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+            GLThrowIfFailed(glBindBuffer(GL_UNIFORM_BUFFER, id));
+            GLThrowIfFailed(glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_BINDING, &binding));
+            GLThrowIfFailed(glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW));
+            GLThrowIfFailed(glBindBuffer(GL_UNIFORM_BUFFER, 0));
     
             // Setting the base
-            glBindBufferBase(GL_UNIFORM_BUFFER, binding, id);
+            GLThrowIfFailed(glBindBufferBase(GL_UNIFORM_BUFFER, binding, id));
             RetrieveUniforms(programId);
         }
 
         void RetrieveUniforms(GLuint programId) {
             GLint ubActiveUniforms;
-            glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &ubActiveUniforms);
+            GLThrowIfFailed(glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &ubActiveUniforms));
             GLint* ubActiveUniformsIndices = new GLint[ubActiveUniforms];
             std::vector<GLuint> ubActiveUniformsIndicesNotNegative;
             GLint* ubActiveUniformsOffsets = new GLint[ubActiveUniforms];
             GLint* ubActiveUniformsTypes = new GLint[ubActiveUniforms];
-            glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, ubActiveUniformsIndices);
+            GLThrowIfFailed(glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, ubActiveUniformsIndices));
             for(int uIndex = 0; uIndex < ubActiveUniforms; uIndex++) {
                 if (ubActiveUniformsIndices[uIndex] > -1)
                     ubActiveUniformsIndicesNotNegative.push_back(ubActiveUniformsIndices[uIndex]);
             }
-            glGetActiveUniformsiv(programId, ubActiveUniforms, ubActiveUniformsIndicesNotNegative.data(), GL_UNIFORM_TYPE, ubActiveUniformsTypes);
-            glGetActiveUniformsiv(programId, ubActiveUniforms, ubActiveUniformsIndicesNotNegative.data(), GL_UNIFORM_OFFSET, ubActiveUniformsOffsets);
+            GLThrowIfFailed(glGetActiveUniformsiv(programId, ubActiveUniforms, ubActiveUniformsIndicesNotNegative.data(), GL_UNIFORM_TYPE, ubActiveUniformsTypes));
+            GLThrowIfFailed(glGetActiveUniformsiv(programId, ubActiveUniforms, ubActiveUniformsIndicesNotNegative.data(), GL_UNIFORM_OFFSET, ubActiveUniformsOffsets));
             
             for(int uIndex = 0; uIndex < ubActiveUniforms; uIndex++) {
                 Ref<GLUniform> uniform = CreateRef<GLUniform>(programId, ubActiveUniformsIndices[uIndex]);
@@ -299,11 +306,11 @@ namespace VWolf {
     class GLProgram {
     public:
         GLProgram(): programId(glCreateProgram()) {
-            
+            GLThrowIfFailedNoAction("glCreateProgram");
         }
         ~GLProgram() {
             Clear();
-            glDeleteProgram(programId);
+            GLThrowIfFailed(glDeleteProgram(programId));
         }
 
         void AddShader(Ref<GLShaderSource> source) {
@@ -336,7 +343,7 @@ namespace VWolf {
         }
 
         void DettachShader(Ref<GLShaderSource> source) {
-            glDetachShader(programId, source->shaderId);
+            GLThrowIfFailed(glDetachShader(programId, source->shaderId));
             source->isAttached = false;
         }
 
@@ -348,21 +355,21 @@ namespace VWolf {
         }
 
         void Link() {
-            glLinkProgram(programId);
+            GLThrowIfFailed(glLinkProgram(programId));
             if (!IsLinked()) {
                 PrintErrorAndAssert();
             }
         }
 
         void Validate() {
-            glValidateProgram(programId);
+            GLThrowIfFailed(glValidateProgram(programId));
             if (!IsValid())
                 PrintErrorAndAssert();
         }
 
         void RetrieveUniforms() {
             GLint ubCount;
-            glGetProgramiv(programId, GL_ACTIVE_UNIFORM_BLOCKS, &ubCount);
+            GLThrowIfFailed(glGetProgramiv(programId, GL_ACTIVE_UNIFORM_BLOCKS, &ubCount));
             for(int index = 0; index < ubCount; index++) {
                 Ref<GLUniformBuffer> ubBlock = CreateRef<GLUniformBuffer>(*this, index);
                 uniformBuffers.insert(std::pair<std::string, Ref<GLUniformBuffer>>(ubBlock->GetName(), ubBlock));
@@ -382,11 +389,11 @@ namespace VWolf {
         }
 
         void Bind() {
-            glUseProgram(programId);
+            GLThrowIfFailed(glUseProgram(programId));
         }
 
         void Unbind() {
-            glUseProgram(0);
+            GLThrowIfFailed(glUseProgram(0));
         }
 
         bool IsLinked() {
@@ -427,27 +434,27 @@ namespace VWolf {
     private:
         GLint GetStatus(GLenum enumValue) {
             GLint success;
-            glGetProgramiv(programId, enumValue, &success);
+            GLThrowIfFailed(glGetProgramiv(programId, enumValue, &success));
             return success;
         }
 
         void PrintErrorAndAssert() {
             GLint length = GetStatus(GL_INFO_LOG_LENGTH);
             GLchar* infoLog = new GLchar[length];
-            glGetProgramInfoLog(programId, length, nullptr, infoLog);
+            GLThrowIfFailed(glGetProgramInfoLog(programId, length, nullptr, infoLog));
             VWOLF_CORE_DEBUG(infoLog);
             VWOLF_CORE_ASSERT(false, infoLog);
             delete[] infoLog;
         }
     
         void AttachShaderWithoutAdding(Ref<GLShaderSource> source) {
-            glAttachShader(programId, source->shaderId);
+            GLThrowIfFailed(glAttachShader(programId, source->shaderId));
             source->isAttached = true;
         }
 
         void RetrieveDefaultUniforms() {
             GLint uniforms;
-            glGetProgramiv(programId, GL_ACTIVE_UNIFORMS, &uniforms);
+            GLThrowIfFailed(glGetProgramiv(programId, GL_ACTIVE_UNIFORMS, &uniforms));
             std::vector<GLuint> ubActiveUniformsIndicesNotNegative;
             for(int uIndex = 0; uIndex < uniforms; uIndex++) {
                 ubActiveUniformsIndicesNotNegative.push_back(uIndex);
@@ -455,15 +462,20 @@ namespace VWolf {
             GLint* uActiveUniformsOffsets = new GLint[uniforms];
             GLint* uActiveUniformsTypes = new GLint[uniforms];
             GLint* uActiveUniformsBlockIndex = new GLint[uniforms];
-            glGetActiveUniformsiv(programId, uniforms, ubActiveUniformsIndicesNotNegative.data(), GL_UNIFORM_TYPE, uActiveUniformsTypes);
-            glGetActiveUniformsiv(programId, uniforms, ubActiveUniformsIndicesNotNegative.data(), GL_UNIFORM_OFFSET, uActiveUniformsOffsets);
-            glGetActiveUniformsiv(programId, uniforms, ubActiveUniformsIndicesNotNegative.data(), GL_UNIFORM_BLOCK_INDEX, uActiveUniformsBlockIndex);
+            GLThrowIfFailed(glGetActiveUniformsiv(programId, uniforms, ubActiveUniformsIndicesNotNegative.data(), GL_UNIFORM_TYPE, uActiveUniformsTypes));
+            GLThrowIfFailed(glGetActiveUniformsiv(programId, uniforms, ubActiveUniformsIndicesNotNegative.data(), GL_UNIFORM_OFFSET, uActiveUniformsOffsets));
+            GLThrowIfFailed(glGetActiveUniformsiv(programId, uniforms, ubActiveUniformsIndicesNotNegative.data(), GL_UNIFORM_BLOCK_INDEX, uActiveUniformsBlockIndex));
             
             for(int uIndex = 0; uIndex < uniforms; uIndex++) {
                 if (uActiveUniformsBlockIndex[uIndex] != -1) continue;
                 Ref<GLUniform> uniform = CreateRef<GLUniform>(programId, uIndex);
                 uniform->SetType(uActiveUniformsTypes[uIndex]);
                 uniform->SetOffset(uActiveUniformsOffsets[uIndex]);
+#ifdef VWOLF_PLATFORM_WINDOWS
+                GLuint _index = glGetUniformLocation(programId, uniform->GetName().c_str());
+                if (uIndex != _index)
+                    uniform->SetIndex(_index);
+#endif
                 defaultUniforms.insert(std::pair<std::string, Ref<GLUniform>>(uniform->GetName(), uniform));
             }
             delete[] uActiveUniformsOffsets;
@@ -472,7 +484,7 @@ namespace VWolf {
 
         void RetrieveAttributes() {
             GLint attributesCount;
-            glGetProgramiv(programId, GL_ACTIVE_ATTRIBUTES, &attributesCount);
+            GLThrowIfFailed(glGetProgramiv(programId, GL_ACTIVE_ATTRIBUTES, &attributesCount));
             for(int aIndex = 0; aIndex < attributesCount; aIndex++) {
                 Ref<GLAttribute> attribute = CreateRef<GLAttribute>(programId, aIndex);
                 attributes.insert(std::pair<std::string, Ref<GLAttribute>>(attribute->GetName(), attribute));
@@ -520,33 +532,35 @@ namespace VWolf {
 
     void GLSLShader::SetRasterization() const {
         // Rasterization
-        if (m_configuration.rasterization.cullEnabled)
-            glEnable(GL_CULL_FACE);
-        else
-            glDisable(GL_CULL_FACE);
+        if (m_configuration.rasterization.cullEnabled) {
+            GLThrowIfFailed(glEnable(GL_CULL_FACE));
+        }
+        else {
+            GLThrowIfFailed(glDisable(GL_CULL_FACE));
+        }
 
         switch (m_configuration.rasterization.cullMode) {
             case ShaderConfiguration::Rasterization::CullMode::Front:
-                glCullFace(GL_FRONT);
+                GLThrowIfFailed(glCullFace(GL_FRONT));
                 break;
             case ShaderConfiguration::Rasterization::CullMode::Back:
-                glCullFace(GL_BACK);
+                GLThrowIfFailed(glCullFace(GL_BACK));
                 break;
             case ShaderConfiguration::Rasterization::CullMode::FrontAndBack:
-                glCullFace(GL_FRONT_AND_BACK);
+                GLThrowIfFailed(glCullFace(GL_FRONT_AND_BACK));
                 break;
         }
 
         switch (m_configuration.rasterization.fillMode) {
             case ShaderConfiguration::Rasterization::FillMode::Wireframe:
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                GLThrowIfFailed(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
                 break;
             case ShaderConfiguration::Rasterization::FillMode::Solid:
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                GLThrowIfFailed(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
                 break;
         }
 
-        glFrontFace(m_configuration.rasterization.counterClockwise ? GL_CCW: GL_CW);
+        GLThrowIfFailed(glFrontFace(m_configuration.rasterization.counterClockwise ? GL_CCW: GL_CW));
 
     }
 
@@ -577,41 +591,45 @@ namespace VWolf {
 
     void GLSLShader::SetBlend() const {
         // Blend
-        if (m_configuration.blend.enabled)
-            glEnable(GL_BLEND);
-        else
-            glDisable(GL_BLEND);
+        if (m_configuration.blend.enabled) {
+            GLThrowIfFailed(glEnable(GL_BLEND));
+        }
+        else {
+            GLThrowIfFailed(glDisable(GL_BLEND));
+        }
 
         GLuint sourceFunction, destinationFunction;
         sourceFunction = GetBlendFunction(m_configuration.blend.sourceFunction);
         destinationFunction = GetBlendFunction(m_configuration.blend.destinationFunction);
-        glBlendFunc(sourceFunction, destinationFunction);
+        GLThrowIfFailed(glBlendFunc(sourceFunction, destinationFunction));
         
         switch (m_configuration.blend.equation) {
             case ShaderConfiguration::Blend::Equation::Add:
-                glBlendEquation(GL_FUNC_ADD);
+                GLThrowIfFailed(glBlendEquation(GL_FUNC_ADD));
                 break;
             case ShaderConfiguration::Blend::Equation::Substract:
-                glBlendEquation(GL_FUNC_SUBTRACT);
+                GLThrowIfFailed(glBlendEquation(GL_FUNC_SUBTRACT));
                 break;
             case ShaderConfiguration::Blend::Equation::ReverseSubstract:
-                glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+                GLThrowIfFailed(glBlendEquation(GL_FUNC_REVERSE_SUBTRACT));
                 break;
             case ShaderConfiguration::Blend::Equation::Min:
-                glBlendEquation(GL_MIN);
+                GLThrowIfFailed(glBlendEquation(GL_MIN));
                 break;
             case ShaderConfiguration::Blend::Equation::Max:
-                glBlendEquation(GL_MAX);
+                GLThrowIfFailed(glBlendEquation(GL_MAX));
                 break;
         }
     }
 
     void GLSLShader::SetDepthStencil() const {
         // Depth/Stencil
-        if (m_configuration.depthStencil.depthTest)
-            glEnable(GL_DEPTH_TEST);
-        else
-            glDisable(GL_DEPTH_TEST);
+        if (m_configuration.depthStencil.depthTest) {
+            GLThrowIfFailed(glEnable(GL_DEPTH_TEST));
+        }
+        else {
+            GLThrowIfFailed(glDisable(GL_DEPTH_TEST));
+        }
     }
 
 	void GLSLShader::Unbind() const
