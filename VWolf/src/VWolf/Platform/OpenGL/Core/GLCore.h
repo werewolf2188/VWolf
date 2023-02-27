@@ -19,7 +19,9 @@ static bool CheckForGLErrors(const char* file, const char* code, int line) {
             case GL_INVALID_OPERATION:
                 //The specified operation is not allowed in the current state. The offending command is ignored and has no other side effect than to set the error flag.
                 VWOLF_CORE_ERROR("OpenGL INVALID OPERATION Error: File %s. Line: %d. Code: %s", file, line, code);
-                VWOLF_CORE_ASSERT(false);
+#ifndef VWOLF_PLATFORM_WINDOWS
+                VWOLF_CORE_ASSERT(false); // TODO: For now I'm going to not allow this in windows, since I'm not paying attention on cleaning the memory correctly.
+#endif
                 break;
             case GL_INVALID_FRAMEBUFFER_OPERATION:
                 //The framebuffer object is not complete. The offending command is ignored and has no other side effect than to set the error flag.

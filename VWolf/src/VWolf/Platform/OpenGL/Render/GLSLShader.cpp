@@ -143,6 +143,10 @@ namespace VWolf {
             return name;
         }
 
+        void SetIndex(GLint index) {
+            this->index = index;
+        }
+
         void SetType(GLint type) {
             this->type = type;
         }
@@ -467,6 +471,11 @@ namespace VWolf {
                 Ref<GLUniform> uniform = CreateRef<GLUniform>(programId, uIndex);
                 uniform->SetType(uActiveUniformsTypes[uIndex]);
                 uniform->SetOffset(uActiveUniformsOffsets[uIndex]);
+#ifdef VWOLF_PLATFORM_WINDOWS
+                GLuint _index = glGetUniformLocation(programId, uniform->GetName().c_str());
+                if (uIndex != _index)
+                    uniform->SetIndex(_index);
+#endif
                 defaultUniforms.insert(std::pair<std::string, Ref<GLUniform>>(uniform->GetName(), uniform));
             }
             delete[] uActiveUniformsOffsets;
