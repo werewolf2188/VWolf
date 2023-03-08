@@ -9,7 +9,7 @@
 
 #include "Shader.h"
 #include "Texture.h"
-#include "VWolf/Core/Math/Math.h"
+#include "VWolf/Core/Math/VMath.h"
 
 namespace VWolf {
     class Material {

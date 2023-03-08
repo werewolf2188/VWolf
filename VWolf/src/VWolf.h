@@ -23,6 +23,6 @@
 #include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Core/Render/Texture.h"
 
-#include "VWolf/Core/Math/Math.h"
+#include "VWolf/Core/Math/VMath.h"
 
 #include "VWolf/Core/Utils/File.h"

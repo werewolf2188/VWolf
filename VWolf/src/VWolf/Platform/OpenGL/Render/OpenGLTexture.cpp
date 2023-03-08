@@ -8,7 +8,7 @@
 #include "vwpch.h"
 #include "OpenGLTexture.h"
 
-#include "VWolf/Core/Math/Math.h"
+#include "VWolf/Core/Math/VMath.h"
 
 #include "stb_image/stb_image.h"
 

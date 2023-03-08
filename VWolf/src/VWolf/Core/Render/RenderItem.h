@@ -8,7 +8,7 @@
 #pragma once
 
 #include "VWolf/Core/Base.h"
-#include "VWolf/Core/Math/Math.h"
+#include "VWolf/Core/Math/VMath.h"
 
 #include "RenderStructs.h"
 

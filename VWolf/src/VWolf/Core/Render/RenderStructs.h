@@ -7,7 +7,7 @@
 
 #pragma once
 #include "VWolf/Core/Base.h"
-#include "VWolf/Core/Math/Math.h"
+#include "VWolf/Core/Math/VMath.h"
 #include <map>
 #ifdef VWOLF_PLATFORM_MACOS
 #include <vector>

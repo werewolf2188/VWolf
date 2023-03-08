@@ -3,7 +3,7 @@
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "DirectX12Graphics.h"
 #include "VWolf/Core/Render/RenderItem.h"
-#include "VWolf/Core/Math/Math.h"
+#include "VWolf/Core/Math/VMath.h"
 
 #include "VWolf/Platform/DirectX12/DirectX12Driver.h"
 
@@ -203,20 +203,18 @@ namespace VWolf {
 		uint32_t count = indices.size();
 
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->DrawIndexedInstanced(
-			count, // Change later
+			count,
 			1, 0, 0, 0);
 		free(material1);
-		shapes++; // TEST
+		shapes++;
 	}
 
-	// TODO: Rework to follow a consistent flow with the command list and command allocator
 	void DirectX12Graphics::ClearColorImpl(Color color)
 	{
 		auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->ClearRenderTargetView(rtv->GetHandle().GetCPUAddress(), value_ptr(color), 0, nullptr);
 	}
 
-	// TODO: Rework to follow a consistent flow with the command list and command allocator
 	void DirectX12Graphics::ClearImpl()
 	{
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()

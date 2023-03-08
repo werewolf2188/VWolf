@@ -13,6 +13,7 @@
 
 namespace VWolf {
 
+	// TODO: Should I leave this here?
 	bool UseDescriptorTable = true;
 
 	static UINT CalcConstantBufferByteSize(UINT byteSize)
@@ -406,13 +407,6 @@ namespace VWolf {
 		}
 
 		void BuildRootSignature(bool useDescriptorTables) {
-			// Shader programs typically require resources as input (constant buffers,
-			// textures, samplers).  The root signature defines the resources the shader
-			// programs expect.  If we think of the shader programs as a function, and
-			// the input resources as function parameters, then the root signature can be
-			// thought of as defining the function signature.  
-
-			// Root parameter can be a table, root descriptor or root constants.
 			std::vector<CD3DX12_ROOT_PARAMETER> slotRootParameter(constantBuffers.size());
 
 			for (auto [key,value] : constantBuffers) {
@@ -425,11 +419,9 @@ namespace VWolf {
 				}				
 			}
 
-			// A root signature is an array of root parameters.
 			CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(slotRootParameter.size(), slotRootParameter.data(), 0, nullptr,
 				D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-			// create a root signature with a single slot which points to a descriptor range consisting of a single constant buffer
 			Microsoft::WRL::ComPtr<ID3DBlob> serializedRootSig = nullptr;
 			Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = nullptr;
 			HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
@@ -649,6 +641,7 @@ namespace VWolf {
 
 	void HLSLShader::SetData(const void* data, const char* name, uint32_t size, uint32_t offset) {
 		// TODO: The names of the constant buffers should be the same as the names of the uniform buffers in OpenGL
+		// TODO: Rename the variables
 		Ref<HLConstantBuffer> cb = m_program->GetConstantBuffers()[std::string("cbPer") + std::string(name)];
 		if (!cb) return;
 
