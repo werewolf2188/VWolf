@@ -66,12 +66,12 @@ namespace VWolf {
 			Time::Tick();
 			if (!m_minimized) {
 				OnUpdate();
-				Graphics::BeginFrame(); // ??
+				Graphics::BeginFrame();
 				OnDraw();				
 				UIManager::GetDefault()->NewFrame();
                 OnGUI();
 				UIManager::GetDefault()->Render();
-				Graphics::EndFrame(); // ??
+				Graphics::EndFrame();
 			}			
 
 			driver->OnUpdate();

@@ -7,7 +7,7 @@
 #include "Material.h"
 #include "RenderStructs.h"
 
-#include "VWolf/Core/Math/Math.h"
+#include "VWolf/Core/Math/VMath.h"
 #include "VWolf/Core/Time.h"
 
 namespace VWolf {

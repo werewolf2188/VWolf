@@ -13,6 +13,9 @@
 
 namespace VWolf {
 
+	// TODO: Should I leave this here?
+	bool UseDescriptorTable = true;
+
 	static UINT CalcConstantBufferByteSize(UINT byteSize)
 	{
 		// Constant buffers must be a multiple of the minimum hardware
@@ -212,11 +215,29 @@ namespace VWolf {
 			return uploadBuffer->GetResource();
 		}
 
-		void CreateUploadBuffer(UINT size) {
+		void CreateUploadBuffer(UINT size, UINT items, bool useDescriptorTable) {
 			DX12BufferResourceInfo info;
 			info.CreateBufferResourceDescription(true);
 			uploadBuffer = CreateRef<DX12BufferResource>(info);
-			uploadBuffer->CreateBuffer(DirectX12Driver::GetCurrent()->GetDevice(), size);
+			uploadBuffer->CreateBuffer(DirectX12Driver::GetCurrent()->GetDevice(), CalcConstantBufferByteSize(size) * items);
+
+			if (useDescriptorTable) {
+				handles.resize(items);
+				
+				for (int index = 0; index < items; index++) {
+
+					D3D12_GPU_VIRTUAL_ADDRESS cbAddress = uploadBuffer->GetResource()->GetGPUVirtualAddress();
+					cbAddress += index * CalcConstantBufferByteSize(size);
+
+					D3D12_CONSTANT_BUFFER_VIEW_DESC* cbvDesc = new D3D12_CONSTANT_BUFFER_VIEW_DESC;
+					cbvDesc->BufferLocation = cbAddress;
+					cbvDesc->SizeInBytes = CalcConstantBufferByteSize(size);
+
+					handles[index] = DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap()->Allocate();
+
+					DirectX12Driver::GetCurrent()->GetDevice()->GetDevice()->CreateConstantBufferView(cbvDesc, handles[index].GetCPUAddress());
+				}
+			}
 		}
 
 		void SetData(const void* data, uint32_t size, uint32_t offset) {
@@ -235,12 +256,17 @@ namespace VWolf {
 		std::vector<HLConstantBufferVariable> GetVariables() {
 			return variables;
 		}
+
+		DX12DescriptorHandle& GetHandle(UINT index) {
+			return handles[index];
+		}
 	private:
 		std::string name;
 		size_t size;
 		UINT bindingIndex;
 
 		Ref<DX12BufferResource> uploadBuffer;
+		std::vector<DX12DescriptorHandle> handles;
 
 		std::vector<HLConstantBufferVariable> variables;
 	};
@@ -257,7 +283,7 @@ namespace VWolf {
 				ReflectHLSL(blob);
 				shaderBlobs[source.type] = blob;
 			}
-			BuildRootSignature();
+			BuildRootSignature(UseDescriptorTable);
 			BuildPSO(shaderBlobs, configuration);
 		}
 	public:
@@ -380,31 +406,22 @@ namespace VWolf {
 			}
 		}
 
-		void BuildRootSignature() {
-			// Shader programs typically require resources as input (constant buffers,
-			// textures, samplers).  The root signature defines the resources the shader
-			// programs expect.  If we think of the shader programs as a function, and
-			// the input resources as function parameters, then the root signature can be
-			// thought of as defining the function signature.  
-
-			// Root parameter can be a table, root descriptor or root constants.
+		void BuildRootSignature(bool useDescriptorTables) {
 			std::vector<CD3DX12_ROOT_PARAMETER> slotRootParameter(constantBuffers.size());
 
-			// Create a single descriptor table of CBVs.
-			//CD3DX12_DESCRIPTOR_RANGE cbvTable;
-			//cbvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
-			//slotRootParameter[0].InitAsDescriptorTable(1, &cbvTable);
-			// Instead, create a root descriptor
 			for (auto [key,value] : constantBuffers) {
-				slotRootParameter[value->GetBindingIndex()].InitAsConstantBufferView(value->GetBindingIndex());
+				if (useDescriptorTables) {
+					CD3DX12_DESCRIPTOR_RANGE* cbRange = new CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, value->GetBindingIndex());
+					slotRootParameter[value->GetBindingIndex()].InitAsDescriptorTable(1, cbRange);
+				}
+				else {
+					slotRootParameter[value->GetBindingIndex()].InitAsConstantBufferView(value->GetBindingIndex());
+				}				
 			}
-				
 
-			// A root signature is an array of root parameters.
 			CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(slotRootParameter.size(), slotRootParameter.data(), 0, nullptr,
 				D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-			// create a root signature with a single slot which points to a descriptor range consisting of a single constant buffer
 			Microsoft::WRL::ComPtr<ID3DBlob> serializedRootSig = nullptr;
 			Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = nullptr;
 			HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
@@ -601,27 +618,11 @@ namespace VWolf {
 		m_program = CreateRef<HLProgram>(name, otherShaders, configuration);
 
 		// Constant Buffers
-		uint32_t expectedObjects = 1000; // TODO: This is an expected amount, but I'm not satisfied with this.
+		uint32_t expectedObjects = 100; // TODO: This is an expected amount, but I'm not satisfied with this.
 		for (std::pair<std::string, Ref<HLConstantBuffer>> param : m_program->GetConstantBuffers()) {
 			Ref<HLConstantBuffer> cb = param.second;
-			cb->CreateUploadBuffer(CalcConstantBufferByteSize(cb->GetSize()) * expectedObjects);
-			VWOLF_CORE_ASSERT(cb->GetUploadBuffer());
-
-			// This is if I want to go back to descriptor table
-			/*UINT objCBByteSize = CalcConstantBufferByteSize(param.size);
-		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = cb->mUploadBuffer.Get()->GetGPUVirtualAddress();
-		int boxCBufIndex = 0;
-		cbAddress += boxCBufIndex * objCBByteSize;
-
-		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-		cbvDesc.BufferLocation = cbAddress;
-		cbvDesc.SizeInBytes = CalcConstantBufferByteSize(param.size);
-
-		dx12InitializeDescriptorHeap(context->md3dDevice, cb->mSrvHeap, 1, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-
-		context->md3dDevice->CreateConstantBufferView(
-			&cbvDesc,
-			cb->mSrvHeap->GetCPUDescriptorHandleForHeapStart());*/
+			cb->CreateUploadBuffer(cb->GetSize(), expectedObjects, UseDescriptorTable);
+			VWOLF_CORE_ASSERT(cb->GetUploadBuffer());			
 		}
 	}
 
@@ -640,16 +641,20 @@ namespace VWolf {
 
 	void HLSLShader::SetData(const void* data, const char* name, uint32_t size, uint32_t offset) {
 		// TODO: The names of the constant buffers should be the same as the names of the uniform buffers in OpenGL
+		// TODO: Rename the variables
 		Ref<HLConstantBuffer> cb = m_program->GetConstantBuffers()[std::string("cbPer") + std::string(name)];
 		if (!cb) return;
 
 		cb->SetData(data, size, offset);
 
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootConstantBufferView(cb->GetBindingIndex(), cb->GetUploadBuffer().Get()->GetGPUVirtualAddress() + (offset * CalcConstantBufferByteSize(size)));
-
-		// Attach descriptor table via descriptor heap
-		/*dx12SetDescriptorHeaps(m_context, m_cbContext->mSrvHeap);
-		m_context->mCommandList->SetGraphicsRootDescriptorTable(0, m_cbContext->mSrvHeap->GetGPUDescriptorHandleForHeapStart());*/
+		if (UseDescriptorTable) 
+		{
+			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootDescriptorTable(cb->GetBindingIndex(), cb->GetHandle(offset).GetGPUAddress());
+		}
+		else 
+		{
+			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootConstantBufferView(cb->GetBindingIndex(), cb->GetUploadBuffer().Get()->GetGPUVirtualAddress() + (offset * CalcConstantBufferByteSize(size)));
+		}
 	}
 
 	std::vector<Ref<ShaderInput>> HLSLShader::GetMaterialInputs() const

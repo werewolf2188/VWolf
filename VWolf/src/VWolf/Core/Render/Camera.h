@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VWolf/Core/Math/Math.h"
+#include "VWolf/Core/Math/VMath.h"
 
 // TODO: Move this as part of the component system later on.
 namespace VWolf {

@@ -6,9 +6,10 @@
 #include "VWolf/Core/EntryPoint.h"
 
 #include <array>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #ifdef VWOLF_PLATFORM_WINDOWS
-# define M_PI           3.14159265358979323846  /* pi TODO: Move later*/
 #define DRIVER_TYPE VWolf::DriverType::DirectX12 
 #else
 #define DRIVER_TYPE VWolf::DriverType::OpenGL
@@ -38,9 +39,7 @@ public:
         return false;
     }
 
-    void OnUpdate() {
-        // TODO: Change the input to be more universal. Middle button does not work in laptops
-        
+    void OnUpdate() {        
         // Left shift: Pan
         // Left alt: Rotate
         // Left ctrl: Zoom
@@ -292,8 +291,6 @@ public:
     VWolf::MeshData pointMesh, directionalMesh, spotMesh;
 
     VWolf::Ref<CameraController> controller;
-    
-    const char *materialName = "Material";
 public:
     RendererSandboxApplication(): Application(DRIVER_TYPE, { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
         camera = VWolf::CreateRef<VWolf::Camera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);

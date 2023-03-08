@@ -12,10 +12,6 @@
 #define TOP 1
 #define BOTTOM -1
 
-#ifdef VWOLF_PLATFORM_WINDOWS
-# define M_PI           3.14159265358979323846  /* pi */
-#endif
-
 namespace VWolf {
     MeshData ShapeHelper::CreateBox(float width, float height, float depth, std::uint32_t numSubdivisions) {
         MeshData meshData;
