@@ -246,6 +246,9 @@ namespace VWolf {
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
 			->OMSetRenderTargets(1, &rtv->GetHandle().GetCPUAddress(), FALSE, &DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress());
 
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
+			->SetDescriptorHeaps(1, DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap()->GetHeap().GetAddressOf());
+
 		lights.clear();
 		shapes = 0;
 	}

@@ -56,9 +56,6 @@ namespace VWolf {
 	void DirectX12UIManager::Render()
 	{	
 		ImGui::Render();
-
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
-			->SetDescriptorHeaps(1, DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap()->GetHeap().GetAddressOf());
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList().Get());
 	}
 	void DirectX12UIManager::NewFrame()
