@@ -41,6 +41,7 @@ namespace VWolf {
         virtual void DrawGridImpl() = 0;
         virtual void BeginFrameImpl() = 0;
         virtual void EndFrameImpl() = 0;
+        virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) = 0;
     protected:
         // TODO: Think about how to deal with render textures
         Ref<RenderTexture> renderTexture;

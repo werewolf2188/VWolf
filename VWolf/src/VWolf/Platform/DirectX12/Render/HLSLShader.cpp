@@ -35,7 +35,7 @@ namespace VWolf {
 	class HLAttribute {
 	public:
 		HLAttribute() = default;
-		HLAttribute(D3D11_SIGNATURE_PARAMETER_DESC desc, UINT index, UINT offset): 
+		HLAttribute(D3D12_SIGNATURE_PARAMETER_DESC desc, UINT index, UINT offset): 
 			index(index), offset(offset), elementType(desc.ComponentType) {
 			this->name = desc.SemanticName;
 			BYTE oneElement = 1, twoElement = 3, threeElement = 7, fourElement = 15;
@@ -115,18 +115,18 @@ namespace VWolf {
 	class HLConstantBufferVariable {
 	public:
 		HLConstantBufferVariable() = default;
-		HLConstantBufferVariable(ID3D11ShaderReflectionVariable* vCb, UINT index): index(index) {
+		HLConstantBufferVariable(ID3D12ShaderReflectionVariable* vCb, UINT index): index(index) {
 			// if NULL, throw exception
-			ID3D11ShaderReflectionType* vCbType = vCb->GetType();
+			ID3D12ShaderReflectionType* vCbType = vCb->GetType();
 
-			D3D11_SHADER_VARIABLE_DESC vCbDesc;
-			ZeroMemory(&vCbDesc, sizeof(D3D11_SHADER_VARIABLE_DESC));
+			D3D12_SHADER_VARIABLE_DESC vCbDesc;
+			ZeroMemory(&vCbDesc, sizeof(D3D12_SHADER_VARIABLE_DESC));
 			vCb->GetDesc(&vCbDesc);
 
 			//VWOLF_CORE_DEBUG("Constant buffer variable %s in index :%d, offset %d, size %d", vCbDesc.Name, index, vCbDesc.StartOffset, vCbDesc.Size);
 
-			D3D11_SHADER_TYPE_DESC vTypeCbDesc;
-			ZeroMemory(&vTypeCbDesc, sizeof(D3D11_SHADER_TYPE_DESC));
+			D3D12_SHADER_TYPE_DESC vTypeCbDesc;
+			ZeroMemory(&vTypeCbDesc, sizeof(D3D12_SHADER_TYPE_DESC));
 			vCbType->GetDesc(&vTypeCbDesc);
 			/*VWOLF_CORE_DEBUG("Constant buffer variable type %s is type %d, class %d, rows %d, columns, %d, elements %d, members %d, offset %d",
 				vTypeCbDesc.Name, vTypeCbDesc.Class, vTypeCbDesc.Type, vTypeCbDesc.Rows, vTypeCbDesc.Columns, vTypeCbDesc.Elements, vTypeCbDesc.Members, vTypeCbDesc.Offset);*/
@@ -192,13 +192,14 @@ namespace VWolf {
 		UINT offset;
 		UINT index;
 
-		D3D11_SHADER_VARIABLE_DESC desc;
-		D3D11_SHADER_TYPE_DESC typeDesc;
+		D3D12_SHADER_VARIABLE_DESC desc;
+		D3D12_SHADER_TYPE_DESC typeDesc;
 	};
+
 	class HLConstantBuffer {
 	public:
 		HLConstantBuffer() = default;
-		HLConstantBuffer(D3D11_SHADER_BUFFER_DESC desc, UINT bindingIndex): 
+		HLConstantBuffer(D3D12_SHADER_BUFFER_DESC desc, UINT bindingIndex): 
 			name(desc.Name), size(desc.Size), bindingIndex(bindingIndex) {}
 
 		std::string GetName() {
@@ -271,6 +272,74 @@ namespace VWolf {
 		std::vector<HLConstantBufferVariable> variables;
 	};
 
+	class HLTexture {
+	public:
+		HLTexture(): name(""), bindingIndex(0), returnType(D3D_RETURN_TYPE_UNORM), dimension(D3D_SRV_DIMENSION_UNKNOWN) {
+
+		}
+		HLTexture(D3D12_SHADER_INPUT_BIND_DESC& desc): 
+			name(desc.Name), bindingIndex(desc.BindPoint), returnType(desc.ReturnType), dimension(desc.Dimension) { }
+		~HLTexture() {
+
+		}
+	public:
+		std::string GetName() { return name; }
+
+		UINT GetBindingIndex() { return bindingIndex; }
+
+		D3D_RESOURCE_RETURN_TYPE GetReturnType() { return returnType; }
+
+		D3D_SRV_DIMENSION GetDimension() { return dimension; }
+
+		ShaderDataType GetShaderDataType() {
+			switch (returnType) {
+			case D3D_RETURN_TYPE_FLOAT: {
+				switch (dimension) {
+				case D3D_SRV_DIMENSION_TEXTURE1D: return ShaderDataType::Float;
+				case D3D_SRV_DIMENSION_TEXTURE2D: return ShaderDataType::Float2;
+				case D3D_SRV_DIMENSION_TEXTURE3D: return ShaderDataType::Float3;
+				}				
+			}
+			case D3D_RETURN_TYPE_SINT: {
+				switch (dimension) {
+				case D3D_SRV_DIMENSION_TEXTURE1D: return ShaderDataType::Int;
+				case D3D_SRV_DIMENSION_TEXTURE2D: return ShaderDataType::Int2;
+				case D3D_SRV_DIMENSION_TEXTURE3D: return ShaderDataType::Int3;
+				}
+			}
+			case D3D_RETURN_TYPE_UNORM: return ShaderDataType::Bool;
+			}
+			return ShaderDataType::None;
+		}
+	private:
+		std::string name;
+		UINT bindingIndex = 0;
+		D3D_RESOURCE_RETURN_TYPE returnType;
+		D3D_SRV_DIMENSION dimension;
+	};
+
+	class HLSampler {
+	public:
+		HLSampler() : name(""), bindingIndex(0), numSamples(0) {
+
+		}
+		HLSampler(D3D12_SHADER_INPUT_BIND_DESC& desc) :
+			name(desc.Name), bindingIndex(desc.BindPoint), numSamples(desc.NumSamples) { }
+		~HLSampler() {
+
+		}
+	public:
+		std::string GetName() { return name; }
+
+		UINT GetBindingIndex() { return bindingIndex; }
+
+		UINT GetNumSamples() { return numSamples; }
+	private:
+		std::string name;
+		UINT bindingIndex = 0;
+		UINT numSamples = 0;
+	};
+
 	class HLProgram {
 	public:
 		HLProgram(const char* name,
@@ -291,6 +360,14 @@ namespace VWolf {
 			return constantBuffers;
 		}
 
+		std::map<std::string, HLTexture>& GetTextures() {
+			return textures;
+		}
+
+		std::map<std::string, HLSampler>& GetSamplers() {
+			return samplers;
+		}
+
 		Microsoft::WRL::ComPtr<ID3D12RootSignature>& GetRootSignature() {
 			return mRootSignature;
 		}
@@ -302,13 +379,13 @@ namespace VWolf {
 		void ReflectHLSL(Microsoft::WRL::ComPtr<ID3DBlob> byteCode) {
 			// Decompiling
 			HRESULT hr = S_OK;
-			ID3D11ShaderReflection* pReflector = NULL;
-			hr = D3DReflect(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
+			ID3D12ShaderReflection* pReflector = NULL;			
+			hr = D3DReflect(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), IID_ID3D12ShaderReflection, (void**)&pReflector);
 			DXThrowIfFailed(hr);
 
 			// Getting description
-			D3D11_SHADER_DESC desc;
-			ZeroMemory(&desc, sizeof(D3D11_SHADER_DESC));
+			D3D12_SHADER_DESC desc;
+			ZeroMemory(&desc, sizeof(D3D12_SHADER_DESC));
 			hr = pReflector->GetDesc(&desc);
 			DXThrowIfFailed(hr);
 
@@ -316,8 +393,8 @@ namespace VWolf {
 			UINT offset = 0;
 			if (attributes.size() == 0) { // TODO: Change the condition
 				for (UINT index = 0; index < desc.InputParameters; index++) {
-					D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
-					ZeroMemory(&paramDesc, sizeof(D3D11_SIGNATURE_PARAMETER_DESC));
+					D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
+					ZeroMemory(&paramDesc, sizeof(D3D12_SIGNATURE_PARAMETER_DESC));
 					hr = pReflector->GetInputParameterDesc(index, &paramDesc);
 					DXThrowIfFailed(hr);
 
@@ -329,21 +406,21 @@ namespace VWolf {
 
 			// Constant buffer
 			for (UINT index = 0; index < desc.ConstantBuffers; index++) {
-				ID3D11ShaderReflectionConstantBuffer* cb = pReflector->GetConstantBufferByIndex(index);
-				D3D11_SHADER_BUFFER_DESC cbDesc;
-				ZeroMemory(&cbDesc, sizeof(D3D11_SHADER_BUFFER_DESC));
+				ID3D12ShaderReflectionConstantBuffer* cb = pReflector->GetConstantBufferByIndex(index);
+				D3D12_SHADER_BUFFER_DESC cbDesc;
+				ZeroMemory(&cbDesc, sizeof(D3D12_SHADER_BUFFER_DESC));
 				cb->GetDesc(&cbDesc);
 
 				if (constantBuffers.count(cbDesc.Name)) continue;
 
-				D3D11_SHADER_INPUT_BIND_DESC bindingDesc;
-				ZeroMemory(&bindingDesc, sizeof(D3D11_SHADER_INPUT_BIND_DESC));
+				D3D12_SHADER_INPUT_BIND_DESC bindingDesc;
+				ZeroMemory(&bindingDesc, sizeof(D3D12_SHADER_INPUT_BIND_DESC));
 				pReflector->GetResourceBindingDescByName(cbDesc.Name, &bindingDesc);
 
 				// Variables
 				std::vector<HLConstantBufferVariable> variables;
 				for (UINT cbIndex = 0; cbIndex < cbDesc.Variables; cbIndex++) {
-					ID3D11ShaderReflectionVariable* vCb = cb->GetVariableByIndex(cbIndex);
+					ID3D12ShaderReflectionVariable* vCb = cb->GetVariableByIndex(cbIndex);
 					HLConstantBufferVariable variable(vCb, cbIndex);
 					variables.push_back(variable);
 				}
@@ -353,6 +430,30 @@ namespace VWolf {
 				constantBuffers[cbDesc.Name] = cBuffer;
 			}
 
+			// Shader resource (textures) and samplers
+			if (desc.TextureNormalInstructions > 0) { // This could be more than sampling
+				for (UINT index = 0; index < desc.BoundResources; index++) {
+					D3D12_SHADER_INPUT_BIND_DESC bindingDesc;
+					pReflector->GetResourceBindingDesc(index, &bindingDesc);
+					switch (bindingDesc.Type) {
+					case D3D_SIT_TEXTURE: 
+						{
+							HLTexture texture(bindingDesc);
+							textures[bindingDesc.Name] = texture;
+						}
+						break;
+					case D3D_SIT_SAMPLER:
+						{
+							HLSampler sampler(bindingDesc);
+							samplers[bindingDesc.Name] = sampler;
+						}
+						break;
+					default: continue;
+					}					
+				}
+			}
+			
+
 			pReflector->Release();
 		}
 
@@ -361,7 +462,7 @@ namespace VWolf {
 			const D3D_SHADER_MACRO* defines = nullptr;
 			UINT compileFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)  
-			compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+			compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_SKIP_VALIDATION;
 #endif
 
 			HRESULT hr = S_OK;
@@ -407,7 +508,8 @@ namespace VWolf {
 		}
 
 		void BuildRootSignature(bool useDescriptorTables) {
-			std::vector<CD3DX12_ROOT_PARAMETER> slotRootParameter(constantBuffers.size());
+			std::vector<CD3DX12_ROOT_PARAMETER> slotRootParameter(constantBuffers.size() + textures.size());
+			std::vector<CD3DX12_STATIC_SAMPLER_DESC> samplersRootParameter(samplers.size());
 
 			for (auto [key,value] : constantBuffers) {
 				if (useDescriptorTables) {
@@ -419,7 +521,16 @@ namespace VWolf {
 				}				
 			}
 
-			CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(slotRootParameter.size(), slotRootParameter.data(), 0, nullptr,
+			for (auto [key, value] : textures) {
+				CD3DX12_DESCRIPTOR_RANGE* cbRange = new CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, value.GetBindingIndex());
+				slotRootParameter[value.GetBindingIndex()].InitAsDescriptorTable(1, cbRange);
+			}
+
+			for (auto [key, value] : samplers) {
+				samplersRootParameter[value.GetBindingIndex()].Init(value.GetBindingIndex(), D3D12_FILTER_MIN_MAG_MIP_POINT);
+			}
+
+			CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(slotRootParameter.size(), slotRootParameter.data(), samplersRootParameter.size(), samplersRootParameter.data(),
 				D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 			Microsoft::WRL::ComPtr<ID3DBlob> serializedRootSig = nullptr;
@@ -606,6 +717,9 @@ namespace VWolf {
 		std::string name;
 		std::map<std::string, HLAttribute> attributes;
 		std::map<std::string, Ref<HLConstantBuffer>> constantBuffers;
+		std::map<std::string, HLTexture> textures;
+		std::map<std::string, HLSampler> samplers;
+
 
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> mPSO = nullptr;
@@ -683,7 +797,16 @@ namespace VWolf {
 	}
 
 	std::vector<ShaderInput> HLSLShader::GetTextureInputs() const {
-		return std::vector<ShaderInput>();
+		std::vector<ShaderInput> inputs;
+
+		for (auto variable : m_program->GetTextures()) {
+			inputs.push_back(ShaderInput(variable.second.GetName(),
+				variable.second.GetShaderDataType(),
+				variable.second.GetBindingIndex(),
+				1,
+				0));
+		}
+		return inputs;
 	}
 	
 	const char* HLSLShader::GetName() const

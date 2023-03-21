@@ -251,4 +251,9 @@ namespace VWolf {
     void OpenGLGraphics::EndFrameImpl()
     {
     }
+
+    void OpenGLGraphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture)
+    {
+        this->renderTexture = renderTexture;
+    }
 }

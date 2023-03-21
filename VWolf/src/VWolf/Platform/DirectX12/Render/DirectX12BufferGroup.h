@@ -20,8 +20,6 @@ namespace VWolf {
 		const Ref<DirectX12VertexBuffer>& GetVertexBuffers() const { return m_vBuffer; }
 		const Ref<DirectX12IndexBuffer>& GetIndexBuffer() const { return m_indexBuffer; }
 	private:
-		DirectX12Context* m_context;
-
 		Ref<DirectX12VertexBuffer> m_vBuffer;
 		Ref<DirectX12IndexBuffer> m_indexBuffer;
 	};

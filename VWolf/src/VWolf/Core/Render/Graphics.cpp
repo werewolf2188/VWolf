@@ -47,7 +47,7 @@ namespace VWolf {
 
     void Graphics::SetRenderTexture(Ref<RenderTexture> renderTexture) {
         if (graphicsImpl) {
-            graphicsImpl->renderTexture = renderTexture;
+            graphicsImpl->SetRenderTextureImpl(renderTexture);
         }
     }
 

@@ -3,12 +3,6 @@
 #include "VWolf/Core/Render/RenderStructs.h"
 
 #ifdef VWOLF_PLATFORM_WINDOWS
-
-struct HWND__;
-struct HINSTANCE__;
-
-struct DirectX12Context;
-
 namespace VWolf {
 
 	struct VertexContext;

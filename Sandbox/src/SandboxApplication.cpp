@@ -348,28 +348,26 @@ public:
         material_1.SetColor("u_diffuseColor", { 1.0f, 1.0f, 1.0f, 1.0f });
         material_1.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
         material_1.SetFloat("u_shinines", 20);
-        if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
-            material_2.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
-            material_2.SetColor("u_diffuseColor", { 1.0f, 1.0f, 1.0f, 1.0f });
-        }
-        else {
-            material_2.SetColor("u_ambientColor", { 1.0f, 0.3f, 0.2f, 1.0f });
-            material_2.SetColor("u_diffuseColor", { 0.2f, 0.3f, 0.5f, 1.0f });
-        }
+        material_2.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
+        material_2.SetColor("u_diffuseColor", { 1.0f, 1.0f, 1.0f, 1.0f });
         material_2.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
         material_2.SetFloat("u_shinines", 20);
         if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
-//            testTexture = VWolf::Texture::LoadTexture2D(512, 512);
 #ifdef VWOLF_PLATFORM_WINDOWS
             testTexture = VWolf::Texture::LoadTexture2D("src/assets/textExample.png");
 #else
             testTexture = VWolf::Texture::LoadTexture2D("../../../Sandbox/src/assets/textExample.png");
-#endif
-
-            renderTexture = VWolf::Texture::LoadRenderTexture(SCREENWIDTH, SCREENHEIGHT);            
+#endif            
             material_2.SetTexture("u_texture", testTexture);
         }
-
+#ifdef VWOLF_PLATFORM_WINDOWS
+        else {
+            //testTexture = VWolf::Texture::LoadTexture2D(512, 512);
+            testTexture = VWolf::Texture::LoadTexture2D("src/assets/textExample2.png");
+            material_2.SetTexture("gDiffuseMap", testTexture);
+        }
+#endif
+        renderTexture = VWolf::Texture::LoadRenderTexture(SCREENWIDTH, SCREENHEIGHT);
         gameObjects1.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), "0" ));
         gameObjects1.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateSphere(2, 32, 32), "1" ));
         gameObjects1.push_back(VWolf::CreateRef<GameObject>(VWolf::ShapeHelper::CreateGrid(2, 2, 16, 16), "2" ));
@@ -410,8 +408,9 @@ public:
 
         if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
             VWolf::Graphics::Clear();
-            VWolf::Graphics::SetRenderTexture(renderTexture);
+           
         }
+        VWolf::Graphics::SetRenderTexture(renderTexture);
         VWolf::Graphics::ClearColor({ 0.2f, 0.3f, 0.3f, 1.0f });
         VWolf::Graphics::Clear();
 
@@ -438,9 +437,7 @@ public:
         }
         
         // VWolf::Graphics::DrawGrid();
-        if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
-            VWolf::Graphics::SetRenderTexture(nullptr);
-        }
+        VWolf::Graphics::SetRenderTexture(nullptr);
     }
 
     void OnGUI() override {
@@ -519,15 +516,16 @@ public:
         ImGui::PopID();
         ImGui::End();
 
-        if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
-            ImGui::Begin("Texture");
-            ImGui::Image(testTexture->GetHandler(), ImVec2(128, 128));
-            ImGui::End();
+        ImGui::Begin("Texture");
+        ImGui::Image(testTexture->GetHandler(), ImVec2(128, 128));
+        ImGui::End();
 
-            ImGui::Begin("Render Texture", nullptr, ImGuiWindowFlags_NoMouseInputs);
+        ImGui::Begin("Render Texture", nullptr, ImGuiWindowFlags_NoMouseInputs);
+        if (DRIVER_TYPE == VWolf::DriverType::OpenGL)
             ImGui::Image(renderTexture->GetHandler(), ImVec2(800, 600), ImVec2(0, 1), ImVec2(1, 0));
-            ImGui::End();
-        }
+        else 
+            ImGui::Image(renderTexture->GetHandler(), ImVec2(800, 600));
+        ImGui::End();
     }
 
     bool OnWindowResize(VWolf::WindowResizeEvent& e) {

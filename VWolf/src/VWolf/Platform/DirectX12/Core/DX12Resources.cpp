@@ -91,6 +91,7 @@ namespace VWolf {
 		result.Transition.Subresource = subresource;
 	
 		commands->GetCommandList()->ResourceBarrier(1, &result);
+		this->current = after;
 	}
 
 	DX12TextureResource::DX12TextureResource(DXGI_FORMAT format): format(format)
@@ -139,7 +140,8 @@ namespace VWolf {
 		if (info.shaderResourceDescription) {
 			handle = heap->Allocate();
 			device->GetDevice()->CreateShaderResourceView(resource.Get(), info.shaderResourceDescription, handle.GetCPUAddress());
-		}				
+		}		
+		current = info.newResourceState;
 	}
 
 	void DX12TextureResourceInfo::CreateDepthStencilInformation(Ref<DX12Device> device, UINT width, UINT height)
@@ -169,6 +171,30 @@ namespace VWolf {
 		newResourceClearValue.DepthStencil.Stencil = 0;
 
 		newResourceState = D3D12_RESOURCE_STATE_DEPTH_WRITE; //D3D12_RESOURCE_STATE_COMMON; // Why do I have to start it as common if I'm, not reading it?
+	}
+
+	void DX12TextureResourceInfo::CreateRenderTargetInformation(Ref<DX12Device> device, UINT width, UINT height) {
+		newResourceDescription = new D3D12_RESOURCE_DESC;
+		newResourceDescription->Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		newResourceDescription->Alignment = 0;
+		newResourceDescription->Width = width;
+		newResourceDescription->Height = height;
+		newResourceDescription->DepthOrArraySize = 1;
+		newResourceDescription->MipLevels = 1;
+		newResourceDescription->Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		newResourceDescription->SampleDesc.Count = 1; // device->GetMSAAQuality() ? 4 : 1;
+		newResourceDescription->SampleDesc.Quality = 0; // device->GetMSAAQuality() ? (device->GetMSAAQuality() - 1) : 0;
+		newResourceDescription->Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		newResourceDescription->Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+		newResourceClearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		newResourceClearValue.Color[0] = 0.0f;
+		newResourceClearValue.Color[1] = 0.0f;
+		newResourceClearValue.Color[2] = 0.0f;
+		newResourceClearValue.Color[3] = 1.0f;
+
+		newResourceState = D3D12_RESOURCE_STATE_RENDER_TARGET; //D3D12_RESOURCE_STATE_COMMON; // Why do I have to start it as common if I'm, not reading it?
 	}
 
 	DX12DepthBufferResource::~DX12DepthBufferResource()
@@ -235,6 +261,65 @@ namespace VWolf {
 		info.newResourceDescription->Height = height;
 	}
 
+	DX12RenderTargetResource::~DX12RenderTargetResource()
+	{
+	}
+
+	void DX12RenderTargetResource::Create(Ref<DX12Device> device, Ref<DX12DescriptorHeap> heap)
+	{
+		VWOLF_CORE_ASSERT(info.newResourceDescription);		
+		if (texture.GetResource().Get())
+			texture.GetResource().Reset();
+		else {
+			rtvHandle = heap->Allocate();
+		}
+		texture.CreateTextureResource(info, device, nullptr);
+
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;//info.newResourceDescription->Format; // This should be decided by different formats
+		rtvDesc.Texture2D.MipSlice = 0;
+
+		device->GetDevice()->CreateRenderTargetView(texture.GetResource().Get(), &rtvDesc, rtvHandle.GetCPUAddress());
+	}
+
+	void DX12RenderTargetResource::CreateWithShaderResource(Ref<DX12Device> device, Ref<DX12DescriptorHeap> rtvHeap, Ref<DX12DescriptorHeap> srvHeap)
+	{
+		VWOLF_CORE_ASSERT(info.newResourceDescription);
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceDescription;
+		shaderResourceDescription.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		shaderResourceDescription.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		shaderResourceDescription.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceDescription.Texture2D.MipLevels = 1;
+		shaderResourceDescription.Texture2D.MostDetailedMip = 0;
+		shaderResourceDescription.Texture2D.PlaneSlice = 0;
+		shaderResourceDescription.Texture2D.ResourceMinLODClamp = 0;
+		VWOLF_CORE_ASSERT(!info.shaderResourceDescription && !info.resource);
+		info.shaderResourceDescription = &shaderResourceDescription;
+
+		if (texture.GetResource().Get())
+			texture.GetResource().Reset();
+		else {
+			rtvHandle = rtvHeap->Allocate();
+		}
+		texture.CreateTextureResource(info, device, srvHeap);
+
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //info.newResourceDescription->Format; // This should be decided by different formats
+		rtvDesc.Texture2D.MipSlice = 0;
+		rtvDesc.Texture2D.PlaneSlice = 0;
+
+		device->GetDevice()->CreateRenderTargetView(texture.GetResource().Get(), &rtvDesc, rtvHandle.GetCPUAddress());
+	}
+
+	void DX12RenderTargetResource::SetSize(UINT width, UINT height)
+	{
+		info.newResourceDescription->Width = width;
+		info.newResourceDescription->Height = height;
+	}
+
 	void DX12BufferResourceInfo::CreateBufferResourceDescription(bool isCPUVisible, D3D12_RESOURCE_FLAGS flags)
 	{
 		this->isCPUVisible = isCPUVisible;
@@ -261,6 +346,7 @@ namespace VWolf {
 
 	void DX12BufferResource::CreateBuffer(Ref<DX12Device> device, size_t size, const void* data)
 	{
+		current = info.newResourceState;
 		if (info.existingHeap) {
 			DXThrowIfFailed(device->GetDevice()->CreatePlacedResource(info.existingHeap, info.heapOffset, info.newResourceDescription,
 				info.newResourceState, nullptr, IID_PPV_ARGS(resource.GetAddressOf())));
@@ -291,6 +377,7 @@ namespace VWolf {
 	}
 	void DX12BufferResource::CreateBuffer(Ref<DX12Device> device, size_t size)
 	{
+		current = info.newResourceState;
 		if (info.existingHeap) {
 			DXThrowIfFailed(device->GetDevice()->CreatePlacedResource(info.existingHeap, info.heapOffset, info.newResourceDescription,
 				info.newResourceState, nullptr, IID_PPV_ARGS(resource.GetAddressOf())));

@@ -71,8 +71,11 @@ namespace VWolf {
 		void TransitionResource(Ref<DX12Command> commands, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after,
 			UINT subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
 			D3D12_RESOURCE_BARRIER_FLAGS flags = D3D12_RESOURCE_BARRIER_FLAG_NONE);
+
+		D3D12_RESOURCE_STATES GetCurrentState() const { return current; }
 	protected:
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+		D3D12_RESOURCE_STATES current;
 	};
 
 	struct DX12TextureResourceInfo {
@@ -92,6 +95,7 @@ namespace VWolf {
 		D3D12_SHADER_RESOURCE_VIEW_DESC* shaderResourceDescription {nullptr};
 
 		void CreateDepthStencilInformation(Ref<DX12Device> device, UINT width, UINT height);
+		void CreateRenderTargetInformation(Ref<DX12Device> device, UINT width, UINT height);
 	};
 
 	struct DX12BufferResourceInfo {
@@ -132,6 +136,23 @@ namespace VWolf {
 	private:
 		DXGI_FORMAT format;
 		DX12DescriptorHandle handle; // SRV handle
+	};
+
+	class DX12RenderTargetResource {
+	public:
+		DX12RenderTargetResource(DX12TextureResourceInfo info) : info(info), texture(info.newResourceDescription->Format) {}
+		~DX12RenderTargetResource();
+	public:
+		void Create(Ref<DX12Device> device, Ref<DX12DescriptorHeap> heap);
+		void CreateWithShaderResource(Ref<DX12Device> device, Ref<DX12DescriptorHeap> rtvHeap, Ref<DX12DescriptorHeap> srvHeap);
+
+		void SetSize(UINT width, UINT height);
+		DX12DescriptorHandle& GetHandle() { return rtvHandle; }
+		DX12TextureResource& GetTexture() { return texture; }
+	private:
+		DX12TextureResourceInfo info;
+		DX12TextureResource texture;
+		DX12DescriptorHandle rtvHandle;
 	};
 
 	class DX12DepthBufferResource {
