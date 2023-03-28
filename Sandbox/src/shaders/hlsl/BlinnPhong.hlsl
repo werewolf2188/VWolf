@@ -43,6 +43,10 @@ cbuffer cbPerLight : register(b2) {
 	LightInfo light[LIGHTS_MAX];
 };
 
+Texture2D gDiffuseMap : register(t4);
+
+SamplerState gsamPointWrap : register(s0);
+
 struct VertexIn
 {
 	float3 PosL  : a_Position;
@@ -57,6 +61,7 @@ struct VertexOut
 	float4 PosH  : SV_POSITION;
 	float3 PosL : a_Position;
 	float3 Normal  : a_Normal;
+	float2 TexC    : TEXCOORD;
 };
 
 
@@ -179,12 +184,13 @@ VertexOut VS(VertexIn vin)
 	vout.PosL = mul(u_Transform, float4(vin.PosL, 1.0f)).xyz;
 	vout.PosL = mul(u_View, float4(vout.PosL, 1.0f)).xyz;
 	vout.Normal = normalize(mul(normalMatrix, vin.Normal));
+	vout.TexC = vin.TexCoord;
 	
 	return vout;
 }
 
 float4 PS(VertexOut pin) : SV_Target
 {
-
-	return float4(ComputeBlinnPhongLightColor(pin.PosL, normalize(pin.Normal)), 1.0);
+	float4 sampleTexture = gDiffuseMap.Sample(gsamPointWrap, pin.TexC);
+	return sampleTexture * float4(ComputeBlinnPhongLightColor(pin.PosL, normalize(pin.Normal)), 1.0);
 }

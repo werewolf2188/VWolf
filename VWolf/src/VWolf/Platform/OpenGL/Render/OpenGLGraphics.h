@@ -31,6 +31,7 @@ namespace VWolf {
         virtual void DrawGridImpl() override;
         virtual void BeginFrameImpl() override;
         virtual void EndFrameImpl() override;
+        virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) override;
     private:
         void BindToRenderTexture();
         void UnbindToRenderTexture();

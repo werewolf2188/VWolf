@@ -6,9 +6,6 @@
 #include "VWolf/Platform/DirectX12/Core/DX12Resources.h"
 
 struct HWND__;
-struct HINSTANCE__;
-
-struct DirectX12Context;
 
 namespace VWolf {
 
@@ -25,7 +22,6 @@ namespace VWolf {
 		LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	private:
 		HWND__* m_window;
-		//Ref<DX12DescriptorHeap> heap;
 	};
 }
 #endif

@@ -7,6 +7,8 @@
 
 #include "VWolf/Platform/DirectX12/DirectX12Driver.h"
 
+#include "VWolf/Platform/DirectX12/Render/DirectX12Texture.h"
+
 #include "VWolf/Platform/DirectX12/Core/DX12Command.h"
 #include "VWolf/Platform/DirectX12/Core/DX12Surface.h"
 #include "VWolf/Platform/DirectX12/Core/DX12Resources.h"
@@ -200,6 +202,13 @@ namespace VWolf {
 		shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), shapes);
 		shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
 		shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
+		// Adding textures
+		for (auto textureInput : shader->GetTextureInputs()) {
+			D3D12_GPU_DESCRIPTOR_HANDLE handle;
+			handle.ptr = (UINT64)material.GetTexture(textureInput.GetName())->GetHandler();
+			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootDescriptorTable(textureInput.GetIndex(), handle);
+		}
+		//
 		uint32_t count = indices.size();
 
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->DrawIndexedInstanced(
@@ -213,6 +222,10 @@ namespace VWolf {
 	{
 		auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->ClearRenderTargetView(rtv->GetHandle().GetCPUAddress(), value_ptr(color), 0, nullptr);
+		if (renderTexture) {
+			auto directX12Rtv = (DirectX12RenderTexture*)renderTexture.get();
+			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->ClearRenderTargetView(directX12Rtv->GetTexture()->GetHandle().GetCPUAddress(), value_ptr(color), 0, nullptr);
+		}
 	}
 
 	void DirectX12Graphics::ClearImpl()
@@ -229,6 +242,21 @@ namespace VWolf {
 	void DirectX12Graphics::DrawGridImpl()
 	{
 	}
+
+	void DirectX12Graphics::BindToRenderTexture() {
+		auto rtv = (DirectX12RenderTexture*)renderTexture.get();
+
+		rtv->Bind();
+	}
+
+	void DirectX12Graphics::UnbindToRenderTexture() {
+
+		auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
+
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
+			->OMSetRenderTargets(1, &rtv->GetHandle().GetCPUAddress(), FALSE, &DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress());
+	}
+
 	void DirectX12Graphics::BeginFrameImpl()
 	{		
 		// Reset command list and allocator
@@ -275,6 +303,20 @@ namespace VWolf {
 		ClearResources(false);
 
 		frame++;
+	}
+
+	void DirectX12Graphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture)
+	{
+		this->renderTexture = renderTexture;
+
+		if (renderTexture) // Setting a render texture
+		{
+			BindToRenderTexture();
+		}
+		else 
+		{
+			UnbindToRenderTexture();
+		}
 	}
 }
 #endif

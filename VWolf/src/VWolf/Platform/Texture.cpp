@@ -10,6 +10,9 @@
 #include "VWolf/Core/Application.h"
 
 #include "VWolf/Platform/OpenGL/Render/OpenGLTexture.h"
+#ifdef VWOLF_PLATFORM_WINDOWS
+#include "VWolf/Platform/DirectX12/Render/DirectX12Texture.h"
+#endif
 
 namespace VWolf {
 
@@ -19,6 +22,11 @@ namespace VWolf {
             case DriverType::OpenGL:
                 texture = CreateRef<OpenGLTexture2D>(width, height, options);
                 break;
+#ifdef VWOLF_PLATFORM_WINDOWS
+            case DriverType::DirectX12:
+                texture = CreateRef<DirectX12Texture2D>(width,  height, options);
+                break;
+#endif
             default:
                 VWOLF_CORE_ASSERT(false, "Texture: Not yet implemented");
         }
@@ -31,6 +39,11 @@ namespace VWolf {
             case DriverType::OpenGL:
                 texture = CreateRef<OpenGLTexture2D>(filePath, options);
                 break;
+#ifdef VWOLF_PLATFORM_WINDOWS
+            case DriverType::DirectX12:
+                texture = CreateRef<DirectX12Texture2D>(filePath, options);
+                break;
+#endif
             default:
                 VWOLF_CORE_ASSERT(false, "Texture: Not yet implemented");
         }
@@ -43,8 +56,13 @@ namespace VWolf {
             case DriverType::OpenGL:
                 texture = CreateRef<OpenGLRenderTexture>(width, height, options);
                 break;
+#ifdef VWOLF_PLATFORM_WINDOWS
+            case DriverType::DirectX12:
+                texture = CreateRef<DirectX12RenderTexture>(width, height, options);
+                break;
+#endif
             default:
-                VWOLF_CORE_ASSERT(false, "Renderm Texture: Not yet implemented");
+                VWOLF_CORE_ASSERT(false, "Render Texture: Not yet implemented");
         }
         return texture;
     }

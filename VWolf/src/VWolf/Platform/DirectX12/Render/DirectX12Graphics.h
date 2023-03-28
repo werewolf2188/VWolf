@@ -6,11 +6,6 @@
 #include "DirectX12Buffer.h"
 #include "DirectX12BufferGroup.h"
 
-struct HWND__;
-struct HINSTANCE__;
-
-struct DirectX12Context;
-
 namespace VWolf {
     class DirectX12Graphics : public Graphics {
     public:
@@ -29,9 +24,10 @@ namespace VWolf {
         virtual void DrawGridImpl() override;
         virtual void BeginFrameImpl() override;
         virtual void EndFrameImpl() override;
-    /*private:
+        virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) override;
+    private:
         void BindToRenderTexture();
-        void UnbindToRenderTexture();*/       
+        void UnbindToRenderTexture();       
     private:
         std::deque<std::pair<UINT64, Ref<DirectX12BufferGroup>>> groups;
         // TODO: Plan later
