@@ -2,7 +2,7 @@
 
 Project inspired by the [Game engine series](https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT) by [The Cherno](https://www.youtube.com/@TheCherno), this repo contains code to make a game engine core and a demo app to test its implementation. 
 
-![Demo](Demo.gif)
+![Demo](VWolf_renderer.gif)
 
 ## Objective
 
@@ -33,6 +33,8 @@ This project pretends to have a basic render with the required capabilities like
     - Material system
     - Multiple lights
 - Shader examples
+- Texture system
+- Render Texture
 
 ## Dependencies
 
@@ -43,6 +45,7 @@ This project pretends to have a basic render with the required capabilities like
 - DirectX 12
 - Windows.h
 - Boost
+- STB Image
 
 ## Installation mode
 
@@ -65,10 +68,8 @@ This projects requires premake5 to be included in your local machine. Right now 
     - Event queue
     - Multithreading
 - Render
-    - Texture system
     - Shadows
     - Skybox
-    - Framebuffer (Image buffer)
 - Expand driver integration
     - Cocoa and Metal
     - GLFW and Vulkan
