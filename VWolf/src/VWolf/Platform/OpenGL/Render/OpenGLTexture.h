@@ -39,10 +39,12 @@ namespace VWolf {
     public:
         void Bind();
         void Unbind();
+
+        void Invalidate();
     private:
-        GLuint m_colorTextureID;
-        GLuint m_depthTextureID;
-        GLuint m_frameBufferID;
+        GLuint m_colorTextureID = 0;
+        GLuint m_depthTextureID = 0;
+        GLuint m_frameBufferID = 0;
 //        GLenum m_internalDataFormat, m_dataFormat;
     };
 }

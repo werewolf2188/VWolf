@@ -519,12 +519,18 @@ public:
         ImGui::Begin("Texture");
         ImGui::Image(testTexture->GetHandler(), ImVec2(128, 128));
         ImGui::End();
-
-        ImGui::Begin("Render Texture", nullptr, ImGuiWindowFlags_NoMouseInputs);
+        
+        bool noMove = VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftShift) ||
+        VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftAlt) ||
+        VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftControl);
+        ImGui::Begin("Render Texture", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
+                     (noMove ? ImGuiWindowFlags_NoMove: 0));
+        ImVec2 windowSize = ImGui::GetWindowSize();
+        renderTexture->Resize((uint32_t)windowSize.x, (uint32_t)windowSize.y);
         if (DRIVER_TYPE == VWolf::DriverType::OpenGL)
-            ImGui::Image(renderTexture->GetHandler(), ImVec2(800, 600), ImVec2(0, 1), ImVec2(1, 0));
-        else 
-            ImGui::Image(renderTexture->GetHandler(), ImVec2(800, 600));
+            ImGui::Image(renderTexture->GetHandler(), windowSize, ImVec2(0, 1), ImVec2(1, 0));
+        else
+            ImGui::Image(renderTexture->GetHandler(), windowSize);
         ImGui::End();
     }
 

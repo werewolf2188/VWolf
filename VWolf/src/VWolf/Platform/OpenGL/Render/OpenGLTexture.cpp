@@ -181,6 +181,18 @@ namespace VWolf {
 
     OpenGLRenderTexture::OpenGLRenderTexture(uint32_t width, uint32_t height, TextureOptions options):
     RenderTexture(width, height, options) {
+        if (width <= 0 || height <= 0) {
+            VWOLF_CORE_ASSERT(false,  "Render texture cannot have a size less or equal than 0");
+        }
+        Invalidate();
+    }
+
+    void OpenGLRenderTexture::Invalidate() {
+        if (m_frameBufferID) {
+            GLThrowIfFailed(glDeleteFramebuffers(1, &m_frameBufferID));
+            GLThrowIfFailed(glDeleteTextures(1, &m_colorTextureID));
+            GLThrowIfFailed(glDeleteTextures(1, &m_depthTextureID));
+        }
         GLThrowIfFailed(glGenFramebuffers(1, &m_frameBufferID));
         GLThrowIfFailed(glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferID));
 
@@ -190,7 +202,7 @@ namespace VWolf {
         GLThrowIfFailed(glGenTextures(1, &m_colorTextureID));
         GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_colorTextureID));
           
-        GLThrowIfFailed(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
+        GLThrowIfFailed(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
 
         GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
         GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
@@ -211,7 +223,7 @@ namespace VWolf {
         GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_depthTextureID));
 
         GLThrowIfFailed(glTexImage2D(
-          GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0,
+          GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, m_width, m_height, 0,
           GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL
         ));
 
@@ -231,7 +243,7 @@ namespace VWolf {
         GLThrowIfFailed(glDrawBuffer(GL_COLOR_ATTACHMENT0));
         VWOLF_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Render texture complete");
         
-        GLThrowIfFailed(glBindFramebuffer(GL_FRAMEBUFFER, 0)); ;
+        GLThrowIfFailed(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     }
 
     OpenGLRenderTexture::~OpenGLRenderTexture() {
@@ -253,6 +265,9 @@ namespace VWolf {
     }
 
     void OpenGLRenderTexture::Resize(uint32_t width, uint32_t height) {
-
+        if (width == this->m_width && height == this->m_height) return;
+        this->m_width = width;
+        this->m_height = height;
+        Invalidate();
     }
 }
