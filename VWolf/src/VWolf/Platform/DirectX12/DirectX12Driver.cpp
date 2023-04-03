@@ -101,6 +101,7 @@ namespace VWolf {
 		graphics = CreateRef<DirectX12Graphics>();
 		Graphics::SetGraphicsImpl(graphics);
 		initialized = true;
+		graphics->Build();
 	}
 
 	void DirectX12Driver::OnUpdate() {

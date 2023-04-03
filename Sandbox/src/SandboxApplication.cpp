@@ -436,7 +436,7 @@ public:
                 VWolf::Graphics::RenderMesh(spotMesh, lightInfo.lightMatrix, material_1);
         }
         
-        // VWolf::Graphics::DrawGrid();
+        VWolf::Graphics::DrawGrid();
         VWolf::Graphics::SetRenderTexture(nullptr);
     }
 

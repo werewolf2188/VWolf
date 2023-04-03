@@ -732,7 +732,9 @@ namespace VWolf {
 		m_program = CreateRef<HLProgram>(name, otherShaders, configuration);
 
 		// Constant Buffers
-		uint32_t expectedObjects = 100; // TODO: This is an expected amount, but I'm not satisfied with this.
+		// TODO: This is an expected amount, but I'm not satisfied with this.
+		// TODO: I should be able to let resources grow and shrink
+		uint32_t expectedObjects = strcmp(name, "Grid") == 0 ? 1: 100; 
 		for (std::pair<std::string, Ref<HLConstantBuffer>> param : m_program->GetConstantBuffers()) {
 			Ref<HLConstantBuffer> cb = param.second;
 			cb->CreateUploadBuffer(cb->GetSize(), expectedObjects, UseDescriptorTable);
