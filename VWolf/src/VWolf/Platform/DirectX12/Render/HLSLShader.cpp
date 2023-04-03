@@ -646,19 +646,21 @@ namespace VWolf {
 			{
 				psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
-				psoDesc.BlendState.RenderTarget[0].BlendEnable = configuration.blend.enabled;
-				psoDesc.BlendState.RenderTarget[0].SrcBlend = GetBlendFunction(configuration.blend.sourceFunction);
-				psoDesc.BlendState.RenderTarget[0].DestBlend = GetBlendFunction(configuration.blend.destinationFunction);
-				psoDesc.BlendState.RenderTarget[0].BlendOp = GetBlendOp(configuration.blend.equation);
+				D3D12_RENDER_TARGET_BLEND_DESC rtBlendDesc;
 
-				/*transparencyBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
-				transparencyBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
-				transparencyBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+				rtBlendDesc.BlendEnable = configuration.blend.enabled;
+				rtBlendDesc.LogicOpEnable = false;
+				rtBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;//GetBlendFunction(configuration.blend.sourceFunction);
+				rtBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;//GetBlendFunction(configuration.blend.destinationFunction);
+				rtBlendDesc.BlendOp = GetBlendOp(configuration.blend.equation);
 
-				transparencyBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;*/
+				rtBlendDesc.SrcBlendAlpha = GetBlendFunction(configuration.blend.sourceFunction);
+				rtBlendDesc.DestBlendAlpha = GetBlendFunction(configuration.blend.destinationFunction);
+				rtBlendDesc.BlendOpAlpha = GetBlendOp(configuration.blend.equation);
+				rtBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+				rtBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
-				psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-				//psoDesc.BlendState.RenderTarget[0] = transparencyBlendDesc;
+				psoDesc.BlendState.RenderTarget[0] = rtBlendDesc;
 			}
 
 			// Depth/Stencil 
