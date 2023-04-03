@@ -601,7 +601,7 @@ namespace VWolf {
         GLuint sourceFunction, destinationFunction;
         sourceFunction = GetBlendFunction(m_configuration.blend.sourceFunction);
         destinationFunction = GetBlendFunction(m_configuration.blend.destinationFunction);
-        GLThrowIfFailed(glBlendFunc(sourceFunction, destinationFunction));
+        GLThrowIfFailed(glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, sourceFunction, destinationFunction));
         
         switch (m_configuration.blend.equation) {
             case ShaderConfiguration::Blend::Equation::Add:

@@ -26,8 +26,11 @@ IncludeDir["GLFW"] = "%{wks.location}/VWolf/vendor/GLFW/include"
 IncludeDir["Glad"] = "%{wks.location}/VWolf/vendor/Glad/include"
 IncludeDir["boost"] = boost
 IncludeDir["ImGui"] = "%{wks.location}/VWolf/vendor/imgui"
+IncludeDir["ImGuizmo"] = "%{wks.location}/VWolf/vendor/imguizmo"
 IncludeDir["glm"] = "%{wks.location}/VWolf/vendor/glm"
 IncludeDir["stb_image"] = "%{wks.location}/VWolf/vendor/stb_image"
+IncludeDir["entt"] = "%{wks.location}/VWolf/vendor/entt/src"
+IncludeDir["yaml_cpp"] = "%{wks.location}/VWolf/vendor/yaml_cpp/include"
 
 LibDir = {}
 LibDir["boost"] = "%{boost}/stage/lib"
@@ -36,6 +39,8 @@ group "Dependencies"
    include "VWolf/vendor/GLFW"
    include "VWolf/vendor/Glad"
    include "VWolf/vendor/imgui"
+   include "VWolf/vendor/imguizmo"
+   include "VWolf/vendor/yaml_cpp"
 group ""
 
 include "VWolf"
