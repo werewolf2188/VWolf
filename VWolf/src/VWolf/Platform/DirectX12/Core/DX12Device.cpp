@@ -28,8 +28,8 @@ namespace VWolf {
 			//info_queue->SetMuteDebugOutput(true);
 			
 			// Filtering certain warning messages that are not needed.
-			D3D12_MESSAGE_CATEGORY cats[] = { D3D12_MESSAGE_CATEGORY_EXECUTION };
-			D3D12_MESSAGE_SEVERITY sevs[] = { D3D12_MESSAGE_SEVERITY_WARNING };
+			/*D3D12_MESSAGE_CATEGORY cats[] = { D3D12_MESSAGE_CATEGORY_EXECUTION };
+			D3D12_MESSAGE_SEVERITY sevs[] = { D3D12_MESSAGE_SEVERITY_WARNING };*/
 			D3D12_MESSAGE_ID ids[] = { D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE };
 
 			D3D12_INFO_QUEUE_FILTER filter;
@@ -37,10 +37,10 @@ namespace VWolf {
 
 			// To set the type of messages to allow, 
 			// set filter.AllowList as follows:
-			filter.DenyList.NumCategories = _countof(cats);
-			filter.DenyList.pCategoryList = cats;
-			filter.DenyList.NumSeverities = _countof(sevs);
-			filter.DenyList.pSeverityList = sevs;
+			filter.DenyList.NumCategories = 0;
+			//filter.DenyList.pCategoryList = cats;
+			filter.DenyList.NumSeverities = 0;
+			//filter.DenyList.pSeverityList = sevs;
 			filter.DenyList.NumIDs = _countof(ids);
 			filter.DenyList.pIDList = ids;
 			//DXThrowIfFailed(info_queue->AddRetrievalFilterEntries(&filter));
