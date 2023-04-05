@@ -26,3 +26,13 @@ packages/WinPixEventRuntime.1.0.220810001/Include/WinPixEventRuntime/pix3_win.h
 packages/WinPixEventRuntime.1.0.220810001/Include/WinPixEventRuntime/PIXEvents.h
 packages/WinPixEventRuntime.1.0.220810001/Include/WinPixEventRuntime/PIXEventsCommon.h
 VWolf/packages.config
+packages/WinPixEventRuntime.1.0.230302001/.signature.p7s
+packages/WinPixEventRuntime.1.0.230302001/license.txt
+packages/WinPixEventRuntime.1.0.230302001/ThirdPartyNotices.txt
+packages/WinPixEventRuntime.1.0.230302001/WinPixEventRuntime.1.0.230302001.nupkg
+packages/WinPixEventRuntime.1.0.230302001/WinPixEventRuntimeIcon.png
+packages/WinPixEventRuntime.1.0.230302001/build/WinPixEventRuntime.targets
+packages/WinPixEventRuntime.1.0.230302001/Include/WinPixEventRuntime/pix3.h
+packages/WinPixEventRuntime.1.0.230302001/Include/WinPixEventRuntime/pix3_win.h
+packages/WinPixEventRuntime.1.0.230302001/Include/WinPixEventRuntime/PIXEvents.h
+packages/WinPixEventRuntime.1.0.230302001/Include/WinPixEventRuntime/PIXEventsCommon.h

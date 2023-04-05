@@ -121,7 +121,7 @@ float computeLinearDepth(float3 pos) {
 PixelOut PS(VertexOut vin) {
     float t = -vin.nearPoint.y / (vin.farPoint.y - vin.nearPoint.y);
     float3 fragPos3D = (vin.nearPoint + t * (vin.farPoint - vin.nearPoint)).xyz;
-    float4 outColor = grid(fragPos3D, 10, true) * float(t > 0); // opacity = 1 when t > 0, opacity = 0 otherwise
+    float4 outColor = (grid(fragPos3D, 10, true) + grid(fragPos3D, 1, true)) * float(t > 0); // opacity = 1 when t > 0, opacity = 0 otherwise
 
     float linearDepth = computeLinearDepth(fragPos3D);
     float fading = max(0, (0.5 - linearDepth));
