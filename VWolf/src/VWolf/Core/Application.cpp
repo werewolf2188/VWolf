@@ -47,6 +47,7 @@ namespace VWolf {
 		EventQueue::defaultQueue->Subscribe<WindowCloseEvent>(VWOLF_BIND_EVENT_FN(Application::OnWindowClose));
 		EventQueue::defaultQueue->Subscribe<WindowResizeEvent>(VWOLF_BIND_EVENT_FN(Application::OnWindowResize));
 #endif
+        UIManager::GetDefault()->Initialize();
 	}
 
 	Application::~Application()
@@ -57,8 +58,6 @@ namespace VWolf {
 	}
 
 	void Application::Run() {
-		UIManager::GetDefault()->Initialize();
-
 		VWOLF_CORE_INFO("Running core application");
 		m_running = true;
 		
@@ -69,6 +68,7 @@ namespace VWolf {
 				Graphics::BeginFrame();
 				OnDraw();				
 				UIManager::GetDefault()->NewFrame();
+                ImGui::NewFrame();
                 OnGUI();
 				UIManager::GetDefault()->Render();
 				Graphics::EndFrame();
