@@ -1,0 +1,33 @@
+//
+//  LightComponent.cpp
+//  VWolf
+//
+//  Created by Enrique Ricalde on 4/14/23.
+//
+
+#include "vwpch.h"
+#include "TransformComponent.h"
+#include "LightComponent.h"
+
+namespace VWolf {
+    LightComponent::LightComponent(): Component("Light") {
+        // TODO: Testing
+        light.color = { 1.0f, 1.0f, 0.0f, 1.0f };
+        light.strength = { 0.5f, 0.5f, 0.5f, 0.5f };
+        light.cutOff = radians(15.0f);
+        light.exponent = 50.0f;
+        light.position = { 0.0f, 0.0f, 0.0f, 1.0f };
+        light.direction = { 0.0f, 0.0f, 0.0f, 0.0f };
+    }
+    LightComponent::~LightComponent() {}
+
+    Light& LightComponent::GetLight(TransformComponent component) {
+        return light;
+    }
+
+    void LightComponent::OnInspector() {
+        LightComponent::componentInspector->OnInspector(this);
+    }
+
+    VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(LightComponent);
+}

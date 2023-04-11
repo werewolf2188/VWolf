@@ -207,8 +207,12 @@ namespace VWolf {
         std::vector<std::uint32_t> indices;
 
         static BufferLayout Layout;
+    
+        inline std::string GetName() { return name; }
+        inline void SetName(std::string name) { this->name = name; }
     private:
         std::vector<float> _vertices;
+        std::string name;
     };
 
     inline BufferLayout MeshData::Layout = {

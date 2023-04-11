@@ -15,6 +15,7 @@
 namespace VWolf {
     MeshData ShapeHelper::CreateBox(float width, float height, float depth, std::uint32_t numSubdivisions) {
         MeshData meshData;
+        meshData.SetName("Box");
         Vertex v[24];
 
         float w2 = 0.5f*width;
@@ -96,7 +97,7 @@ namespace VWolf {
 
     MeshData ShapeHelper::CreateSphere(float radius, std::uint32_t sliceCount, std::uint32_t stackCount) {
         MeshData meshData;
-
+        meshData.SetName("Sphere");
         //
         // Compute the vertices stating at the top pole and moving down the stacks.
         //
@@ -207,7 +208,7 @@ namespace VWolf {
 
     MeshData ShapeHelper::CreateGeosphere(float radius, std::uint32_t numSubdivisions) {
         MeshData meshData;
-
+        meshData.SetName("Geosphere");
         // Put a cap on the number of subdivisions.
         numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
 
@@ -280,7 +281,7 @@ namespace VWolf {
 
     MeshData ShapeHelper::CreateCylinder(float bottomRadius, float topRadius, float height, uint32 sliceCount, uint32 stackCount) {
         MeshData meshData;
-
+        meshData.SetName("Cylinder");
         //
         // Build Stacks.
         //
@@ -353,7 +354,7 @@ namespace VWolf {
 
     MeshData ShapeHelper::CreateGrid(float width, float depth, std::uint32_t m, std::uint32_t n) {
         MeshData meshData;
-
+        meshData.SetName("Grid");
         std::uint32_t vertexCount = m * n;
         std::uint32_t faceCount = (m - 1) * (n - 1) * 2;
 
@@ -418,7 +419,7 @@ namespace VWolf {
 
     MeshData ShapeHelper::CreateQuad(float x, float y, float w, float h, float depth) {
         MeshData meshData;
-
+        meshData.SetName("Quad");
         meshData.vertices.resize(4);
         meshData.indices.resize(6);
 
@@ -461,7 +462,7 @@ namespace VWolf {
     MeshData ShapeHelper::CreateTriangle()
     {
         MeshData meshData;
-
+        meshData.SetName("Triangle");
         meshData.vertices.resize(3);
         meshData.indices.resize(3);
 

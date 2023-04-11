@@ -45,3 +45,4 @@ group ""
 
 include "VWolf"
 include "Sandbox"
+include "VWolfPup"

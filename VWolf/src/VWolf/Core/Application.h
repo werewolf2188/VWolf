@@ -28,6 +28,7 @@ namespace VWolf {
 		virtual void OnGUI() = 0;
 	public:
 		void Run();
+        void Quit() { m_running = false; }
 		Ref<Window> GetWindow();
 		std::vector<std::string> GetArguments();
         DriverType GetDriverType() { return m_type; }

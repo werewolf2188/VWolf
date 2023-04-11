@@ -28,6 +28,11 @@
 #include <boost/core/null_deleter.hpp>
 #include <boost/lexical_cast.hpp>
 
+// BOOST UUID
+#include <boost/uuid/uuid.hpp>            // uuid class
+#include <boost/uuid/uuid_generators.hpp> // generators
+#include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
+
 // BOOST LOG
 #include <boost/log/core.hpp>
 #include <boost/log/common.hpp>
