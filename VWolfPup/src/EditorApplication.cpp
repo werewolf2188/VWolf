@@ -24,6 +24,7 @@
 #include "UI/Inspector.h"
 #include "UI/SceneViewer.h"
 #include "UI/SceneSettings.h"
+#include "UI/FileBrowser.h"
 
 #define NUMSHADERS 2
 std::array<std::string, NUMSHADERS> shaderNames = { { "Flat Color", "Blinn Phon" } };
@@ -78,23 +79,22 @@ public:
     VWolf::Material material_2;
     VWolf::Ref<VWolf::Texture2D> testTexture;
 
-    VWolf::MeshData pointMesh, directionalMesh, spotMesh;
-
     VWolf::Ref<VWolfPup::CameraController> controller;
 
     // UI
     VWolfPup::ContainerView* containerView;
-    VWolfPup::MenuItem * quit;
+    VWolfPup::MenuItem *quit, *save, *open;
     VWolfPup::Menu * file;
     VWolfPup::MenuBar * menuBar;
     VWolfPup::SceneHierarchy *sceneHierarchy;
     VWolfPup::Inspector *inspector;
     VWolfPup::SceneViewer *sceneViewer;
     VWolfPup::SceneSettings* sceneSettings;
+    VWolfPup::FileBrowser *saveBrowser, *openBrowser;
 
     // Scene Management
     VWolf::Ref<VWolf::Scene> testScene;
-    VWolf::Ref<VWolf::GameObject> cylinder, sphere, grid, geosphere, box, light1, light2;
+//    VWolf::Ref<VWolf::GameObject> cylinder, sphere, grid, geosphere, box, light1, light2;
 public:
     RendererSandboxApplication(): Application(DRIVER_TYPE, { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
         VWolfPup::InitializeEditor();
@@ -104,17 +104,17 @@ public:
 
         // Scene
         testScene = VWolf::CreateRef<VWolf::Scene>("Test");
-        cylinder = testScene->CreateGameObject("Cylinder");
-        sphere = testScene->CreateGameObject("Sphere");
-        grid = testScene->CreateGameObject("Grid");
-        geosphere = testScene->CreateGameObject("Geosphere");
-        box = testScene->CreateGameObject("Box");
-
-        light1 = testScene->CreateGameObject("Light 1");
-        light2 = testScene->CreateGameObject("Light 2");
-
-        light1->AddComponent<VWolf::LightComponent>();
-        light2->AddComponent<VWolf::LightComponent>();
+//        cylinder = testScene->CreateGameObject("Cylinder");
+//        sphere = testScene->CreateGameObject("Sphere");
+//        grid = testScene->CreateGameObject("Grid");
+//        geosphere = testScene->CreateGameObject("Geosphere");
+//        box = testScene->CreateGameObject("Box");
+//
+//        light1 = testScene->CreateGameObject("Light 1");
+//        light2 = testScene->CreateGameObject("Light 2");
+//
+//        light1->AddComponent<VWolf::LightComponent>();
+//        light2->AddComponent<VWolf::LightComponent>();
         //
 
         // UI
@@ -122,14 +122,20 @@ public:
         quit = new VWolfPup::MenuItem("Quit", [this](std::string title) {
             this->Quit();
         });
-        file = new VWolfPup::Menu("File", { quit });
+        open = new VWolfPup::MenuItem("Open Scene", [this](std::string title) {
+            openBrowser->Open();
+        });
+        save = new VWolfPup::MenuItem("Save Scene", [this](std::string title) {
+            saveBrowser->Open();
+        });
+        file = new VWolfPup::Menu("File", { open, save, new VWolfPup::MenuItem(), quit });
         menuBar = new VWolfPup::MenuBar("MenuBar", { file });
         containerView->SetMenuBar(menuBar);
 
         inspector = new VWolfPup::Inspector();
         containerView->AddView(inspector);
 
-        sceneViewer = new VWolfPup::SceneViewer(testScene.get(), camera, DRIVER_TYPE, (uint32_t)SCREENWIDTH, (uint32_t)SCREENHEIGHT);
+        sceneViewer = new VWolfPup::SceneViewer(camera, DRIVER_TYPE, (uint32_t)SCREENWIDTH, (uint32_t)SCREENHEIGHT);
         containerView->AddView(sceneViewer);
 
         sceneSettings = new VWolfPup::SceneSettings(testScene.get());
@@ -140,6 +146,19 @@ public:
             sceneViewer->SetSelectedObject(gameObject);
         });
         containerView->AddView(sceneHierarchy);
+
+        saveBrowser = new VWolfPup::FileBrowser(VWolfPup::FileBrowserMode::Save, [this](std::filesystem::path path){
+            VWOLF_CLIENT_INFO("Saving file %s", path.string().c_str());
+            VWolf::SceneSerializer::Serialize(testScene, path);
+        });
+        containerView->AddView(saveBrowser);
+        openBrowser = new VWolfPup::FileBrowser(VWolfPup::FileBrowserMode::Open, [this](std::filesystem::path path){
+            VWOLF_CLIENT_INFO("Opening file %s", path.string().c_str());
+            testScene = VWolf::SceneSerializer::Deserialize(path);
+            sceneHierarchy->SetScene(testScene.get());
+            sceneSettings->SetScene(testScene.get());
+        });
+        containerView->AddView(openBrowser);
         //
         LoadShaderNames(DRIVER_TYPE);
         
@@ -147,8 +166,9 @@ public:
             VWolf::ShaderLibrary::LoadShader(shaderNames[i].c_str(), { vsFiles[i], psFiles[i] });
         }
 
-        material_1 = VWolf::Material(shaderNames[0].c_str());
-        material_2 = VWolf::Material(shaderNames[1].c_str());
+        new (&material_1) VWolf::Material(shaderNames[0].c_str());
+        new (&material_2) VWolf::Material(shaderNames[1].c_str());
+
         material_1.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
         material_1.SetColor("u_diffuseColor", { 1.0f, 1.0f, 1.0f, 1.0f });
         material_1.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
@@ -173,19 +193,14 @@ public:
         }
 #endif
 
-        pointMesh = VWolf::ShapeHelper::CreateSphere(1, 32, 32);
-        directionalMesh = VWolf::ShapeHelper::CreateBox(1, 1, 1, 0);
-        spotMesh = VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 32);
-
-        //
-        cylinder->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), material_2);
-        sphere->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateSphere(2, 32, 32), material_2);
-        grid->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateGrid(2, 2, 16, 16), material_2);
-        geosphere->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateGeosphere(1, 4), material_2);
-        box->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateBox(1, 1, 1, 0), material_2);
-
-        light1->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateSphere(1, 32, 32), material_1);
-        light2->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateBox(1, 1, 1, 0), material_1);
+//        cylinder->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), material_2);
+//        sphere->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateSphere(2, 32, 32), material_2);
+//        grid->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateGrid(2, 2, 16, 16), material_2);
+//        geosphere->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateGeosphere(1, 4), material_2);
+//        box->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateBox(1, 1, 1, 0), material_2);
+//
+//        light1->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateSphere(1, 32, 32), material_1);
+//        light2->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateBox(1, 1, 1, 0), material_1);
     }
 
     ~RendererSandboxApplication() {
@@ -217,7 +232,6 @@ public:
         ImGui::Begin("Texture");
         ImGui::Image(testTexture->GetHandler(), ImVec2(128, 128));
         ImGui::End();
-
     }
 
     bool OnWindowResize(VWolf::WindowResizeEvent& e) {

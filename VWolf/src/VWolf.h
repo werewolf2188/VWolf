@@ -19,6 +19,7 @@
 #include "VWolf/Core/UI/UIManager.h"
 
 #include "VWolf/Core/SceneManagement/Scene.h"
+#include "VWolf/Core/SceneManagement/SceneSerializer.h"
 
 #include "VWolf/Core/Components/Components.h"
 #include "VWolf/Core/Components/GameObject.h"

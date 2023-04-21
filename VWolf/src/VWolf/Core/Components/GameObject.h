@@ -17,13 +17,17 @@ namespace VWolf {
 
     class GameObject {
     public:
+        GameObject() = default;
         GameObject(std::string name);
         GameObject(std::string name, entt::entity handle, Scene* scene);
+        GameObject(GameObject& gameObject);
+        GameObject(GameObject&& gameObject) = default;
         ~GameObject();
     public:
         TransformComponent& GetTransform();
     public:
         std::string GetName() const { return name; }
+        void SetName(std::string name) { this->name = name; }
     public:
         template<typename T, typename... Args>
         T& AddComponent(Args&&... args)
@@ -63,8 +67,9 @@ namespace VWolf {
             VWOLF_CLIENT_ASSERT(HasComponent<T>(), "Entity does not have component!");
             scene->m_registry.remove<T>(handle);
         }
-
+    public:
         void OnInspector();
+        void AttachToScene(Scene* scene);
     private:
         entt::entity handle { entt::null };
         Scene* scene;

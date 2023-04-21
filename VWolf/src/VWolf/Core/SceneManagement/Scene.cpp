@@ -15,10 +15,44 @@
 
 namespace VWolf {
 
-    SceneBackground::SceneBackground(): backgroundColor({ 0.2f, 0.3f, 0.3f, 1.0f }) {}
+    // ---------------- SCENE BACKGROUND ----------------
+    SceneBackground::SceneBackground(): backgroundColor({ 0.0f, 0.0f, 0.0f, 1.0f }) {}
+
+    SceneBackground::SceneBackground(SceneBackground& scene): backgroundColor(scene.backgroundColor) {}
+    
+
     SceneBackground::~SceneBackground() {}
 
+    SceneBackground& SceneBackground::operator=(SceneBackground& t) {
+        this->backgroundColor = t.backgroundColor;
+        return *this;
+    }
+
+    // --------------- SCENE ----------------------------
     Scene::Scene(std::string name): name(name) {
+    }
+
+    Scene::Scene(Scene& scene) {
+        this->name = scene.name;
+        this->sceneBackGround = scene.sceneBackGround;
+        this->m_registry = std::move(scene.m_registry);
+        this->gameObjects = scene.gameObjects;
+        for (auto gameObject: this->gameObjects) {
+            gameObject->AttachToScene(this);
+        }
+    }
+
+    Scene::Scene(Scene&& scene) {
+        this->name = scene.name;
+        this->sceneBackGround = scene.sceneBackGround;
+        this->m_registry = std::move(scene.m_registry);
+        this->gameObjects = scene.gameObjects;
+        for (auto gameObject: this->gameObjects) {
+            gameObject->AttachToScene(this);
+        }
+
+        scene.name = std::string();
+        scene.gameObjects.clear();
     }
 
     Scene::~Scene() {
@@ -30,6 +64,10 @@ namespace VWolf {
         gameObject->AddComponent<TransformComponent>();
         gameObjects.push_back(gameObject);
         return gameObject;
+    }
+
+    void Scene::AddExistingGameObject(Ref<GameObject> gameObject) {
+        gameObjects.push_back(gameObject);
     }
     
     void Scene::UpdateEditor() {

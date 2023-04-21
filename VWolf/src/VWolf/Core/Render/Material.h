@@ -45,6 +45,17 @@ namespace VWolf {
         std::map<std::string, Ref<Texture>> textures;
         std::vector<Ref<ShaderInput>> inputs;
     };
+
+#ifdef VWOLF_CORE
+    class MaterialLibrary {
+    public:
+        static Material* GetMaterial(std::string name);
+        static Material* Default();
+        static void SetMaterial(std::string name, Material* material);
+    private:
+        static std::map<std::string, Material*> materials;
+    };
+#endif
 }
 
 /* Material_hpp */

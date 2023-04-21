@@ -18,6 +18,8 @@ namespace VWolfPup {
         SceneHierarchy(VWolf::Scene *scene, std::function<void(VWolf::Ref<VWolf::GameObject>)> onTapped);
         ~SceneHierarchy();
     public:
+        void SetScene(VWolf::Scene* scene) { this->scene = scene; }
+    public:
         void OnGui() override;
     private:
         VWolf::Scene *scene;

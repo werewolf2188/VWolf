@@ -13,6 +13,31 @@
 #define BOTTOM -1
 
 namespace VWolf {
+    MeshData ShapeHelper::Create(const char* name) {
+        if (strcmp("Box", name) == 0) {
+            return ShapeHelper::CreateBox(1, 1, 1, 0);
+        }
+        else if (strcmp("Sphere", name) == 0) {
+            return ShapeHelper::CreateSphere(2, 32, 32);
+        }
+        else if (strcmp("Geosphere", name) == 0) {
+            return ShapeHelper::CreateGeosphere(1, 4);
+        }
+        else if (strcmp("Cylinder", name) == 0) {
+            return ShapeHelper::CreateCylinder(1, 1, 3, 32, 8);
+        }
+        else if (strcmp("Grid", name) == 0) {
+            return ShapeHelper::CreateGrid(2, 2, 16, 16);
+        }
+        else if (strcmp("Quad", name) == 0) {
+            return ShapeHelper::CreateQuad(50, 50, 100, 100, 10);
+        }
+        else if (strcmp("Triangle", name) == 0) {
+            return ShapeHelper::CreateTriangle();
+        }
+        return MeshData();
+    }
+
     MeshData ShapeHelper::CreateBox(float width, float height, float depth, std::uint32_t numSubdivisions) {
         MeshData meshData;
         meshData.SetName("Box");

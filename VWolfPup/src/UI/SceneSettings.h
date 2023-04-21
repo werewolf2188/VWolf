@@ -16,6 +16,8 @@ namespace VWolfPup {
         SceneSettings(VWolf::Scene *scene);
         ~SceneSettings();
     public:
+        void SetScene(VWolf::Scene* scene) { this->scene = scene; }
+    public:
         void OnGui() override;
     private:
         VWolf::Scene *scene;

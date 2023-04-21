@@ -10,8 +10,8 @@
 #include <ImGuizmo/ImGuizmo.h>
 
 namespace VWolfPup {
-    SceneViewer::SceneViewer(VWolf::Scene *scene, VWolf::Ref<VWolf::Camera> camera, VWolf::DriverType driverType, uint32_t width, uint32_t height):
-    scene(scene), camera(camera), renderTexture(VWolf::Texture::LoadRenderTexture(width, height)), driverType(driverType), View("Scene") { }
+    SceneViewer::SceneViewer(VWolf::Ref<VWolf::Camera> camera, VWolf::DriverType driverType, uint32_t width, uint32_t height):
+    camera(camera), renderTexture(VWolf::Texture::LoadRenderTexture(width, height)), driverType(driverType), View("Scene") { }
     SceneViewer::~SceneViewer() {
         
     }

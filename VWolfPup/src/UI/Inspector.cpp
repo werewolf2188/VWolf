@@ -54,23 +54,35 @@ namespace VWolfPup {
         }
     };
 
-    class ShapeRendererComponent: public VWolf::ComponentInspector<VWolf::ShapeRendererComponent> {
+    class ShapeRendererComponentInspector: public VWolf::ComponentInspector<VWolf::ShapeRendererComponent> {
     public:
-        ShapeRendererComponent() {}
-        ~ShapeRendererComponent() {}
+        ShapeRendererComponentInspector() {}
+        ~ShapeRendererComponentInspector() {}
     public:
         virtual void OnInspector(VWolf::ShapeRendererComponent* component) override {
             ImGui::LabelText(component->GetName().c_str(), "");
 
-            ImGui::LabelText("Shape", "%s", component->GetData().GetName().c_str());
+            auto lambda = [component](const char* name) {
+                return strcmp(component->GetData().GetName().c_str(), name) == 0;
+            };
+            
+            auto value = std::find_if(items.begin(), items.end(), lambda);
+            selection = (int)std::distance(items.begin(), value);
 
+            if (ImGui::Combo("Shape", &selection, items.data(), (int)items.size())) {
+                
+                component->SetData(VWolf::ShapeHelper::Create(items[selection]));
+            }
         }
+    private:
+        int selection = 0;
+        std::array<const char*, 6> items = { "Box", "Sphere", "Geosphere", "Cylinder", "Grid", "Triangle" };
     };
 
     Inspector::Inspector(): View("Inspector") {
         VWolf::TransformComponent::SetComponentInspector(new TransformComponentInspector());
         VWolf::LightComponent::SetComponentInspector(new LightComponentInspector());
-        VWolf::ShapeRendererComponent::SetComponentInspector(new ShapeRendererComponent());
+        VWolf::ShapeRendererComponent::SetComponentInspector(new ShapeRendererComponentInspector());
     }
     Inspector::~Inspector() {
         

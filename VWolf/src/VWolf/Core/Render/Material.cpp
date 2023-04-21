@@ -16,6 +16,7 @@ namespace VWolf {
         size = shader->GetMaterialSize();
 
         name = std::string(shader->GetName());
+        MaterialLibrary::SetMaterial(name.c_str(), this);
         for (auto input: inputs) {
             switch (input->GetType()) {
                 case ShaderDataType::Float4:
@@ -109,4 +110,22 @@ namespace VWolf {
     size_t Material::GetSize() const {
         return size;
     }
+
+#ifdef VWOLF_CORE
+    std::map<std::string, Material*> MaterialLibrary::materials = {
+        { std::string("Default"), new Material() }
+    };
+
+    Material* MaterialLibrary::GetMaterial(std::string name) {
+        return MaterialLibrary::materials[name];
+    }
+
+    Material* MaterialLibrary::Default() {
+        return MaterialLibrary::GetMaterial("Default");
+    }
+
+    void MaterialLibrary::SetMaterial(std::string name, Material* material) {
+        MaterialLibrary::materials[name] = material;
+    }
+#endif
 }

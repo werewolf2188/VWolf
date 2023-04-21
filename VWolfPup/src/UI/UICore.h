@@ -29,12 +29,14 @@ namespace VWolfPup {
 
     class MenuItem: public View {
     public:
+        MenuItem();
         MenuItem(std::string title, std::function<void(std::string title)> onPressed);
         ~MenuItem();
     public:
         void OnGui() override;
     protected:
         bool currentValue = false;
+        bool isSeparator = false;
         std::function<void(std::string title)> onPressed;
     };
 

@@ -19,7 +19,17 @@ namespace VWolf {
         light.position = { 0.0f, 0.0f, 0.0f, 1.0f };
         light.direction = { 0.0f, 0.0f, 0.0f, 0.0f };
     }
+
+    LightComponent::LightComponent(LightComponent& light): Component("Light"), light(light.light) {}
+
+    LightComponent::LightComponent(LightComponent&& light): Component("Light"), light(std::move(light.light)) {}
+
     LightComponent::~LightComponent() {}
+
+    LightComponent& LightComponent::operator=(LightComponent& light) {
+        this->light = light.light;
+        return *this;
+    }
 
     Light& LightComponent::GetLight(TransformComponent component) {
         return light;

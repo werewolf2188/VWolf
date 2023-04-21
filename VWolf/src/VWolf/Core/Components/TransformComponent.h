@@ -15,6 +15,8 @@ namespace VWolf {
     class TransformComponent: public Component {
     public:
         TransformComponent();
+        TransformComponent(TransformComponent& transform);
+        TransformComponent(TransformComponent&& transform);
         ~TransformComponent();
     public:
         Vector3Float& GetPosition() { return position; }
@@ -32,6 +34,8 @@ namespace VWolf {
         void Apply();
     public:
         virtual void OnInspector() override;
+    public:
+        TransformComponent& operator=(TransformComponent t);
     private:
         Vector3Float position;
         Vector3Float eulerAngles;

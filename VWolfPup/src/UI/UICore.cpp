@@ -20,15 +20,21 @@ namespace VWolfPup {
 
     View::~View() {}
 
+    MenuItem::MenuItem(): View("Separator"), isSeparator(true) {}
     MenuItem::MenuItem(std::string title, std::function<void(std::string title)> onPressed): View(title), onPressed(onPressed) {}
 
     MenuItem::~MenuItem() {}
 
     void MenuItem::OnGui() {
-        ImGui::MenuItem(title.c_str(), nullptr, &currentValue);
-        if (currentValue) {
-            onPressed(title);
-            currentValue = false;
+        if (isSeparator) {
+            ImGui::Separator();
+        }
+        else {
+            ImGui::MenuItem(title.c_str(), nullptr, &currentValue);
+            if (currentValue) {
+                onPressed(title);
+                currentValue = false;
+            }
         }
     }
 

@@ -14,6 +14,34 @@ namespace VWolf {
         eulerAngles = Vector3Float(0, 0, 0);
         localScale = Vector3Float(1, 1, 1);
     }
+
+    TransformComponent::TransformComponent(TransformComponent& transform): Component("Transform") {
+        this->position = transform.position;
+        this->eulerAngles = transform.eulerAngles;
+        this->localScale = transform.localScale;
+        this->SetGameObject(transform.GetGameObject());
+    }
+
+    TransformComponent::TransformComponent(TransformComponent&& transform): Component("Transform") {
+        this->position = transform.position;
+        this->eulerAngles = transform.eulerAngles;
+        this->localScale = transform.localScale;
+        this->SetGameObject(transform.GetGameObject());
+
+        transform.position = Vector3Float(0, 0, 0);
+        transform.eulerAngles = Vector3Float(0, 0, 0);
+        transform.localScale = Vector3Float(1, 1, 1);
+        transform.SetGameObject(nullptr);
+    }
+
+    TransformComponent& TransformComponent::operator=(TransformComponent t) {
+        this->position = t.position;
+        this->eulerAngles = t.eulerAngles;
+        this->localScale = t.localScale;
+        this->SetGameObject(t.GetGameObject());
+        return *this;
+    }
+
     TransformComponent::~TransformComponent() {}
 
     void TransformComponent::Apply() {

@@ -11,7 +11,7 @@
 
 namespace VWolfPup {
     void DrawGameObject(VWolf::Ref<VWolf::GameObject> object, std::function<void(VWolf::Ref<VWolf::GameObject>)> onTapped) {
-        if (ImGui::Button(object->GetName().c_str())) {
+        if (ImGui::Selectable(object->GetName().c_str())) {
             onTapped(object);
         }
     }

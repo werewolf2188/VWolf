@@ -14,6 +14,10 @@ namespace VWolf {
 
     GameObject::GameObject(std::string name, entt::entity handle, Scene* scene): name(name), handle(handle), scene(scene) { }
 
+    GameObject::GameObject(GameObject& gameObject) {
+        this->name = gameObject.name;
+    }
+
     GameObject::~GameObject() { }
 
     TransformComponent& GameObject::GetTransform() {
@@ -24,5 +28,11 @@ namespace VWolf {
         for (auto component: currentComponents) {
             component->OnInspector();
         }
+    }
+
+    void GameObject::AttachToScene(Scene* scene) {
+        if (this->handle == entt::null)
+            this->handle = scene->m_registry.create();
+        this->scene = scene;
     }
 }
