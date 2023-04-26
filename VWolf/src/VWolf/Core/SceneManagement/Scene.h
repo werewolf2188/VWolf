@@ -56,6 +56,7 @@ namespace VWolf {
         std::vector<Ref<GameObject>> gameObjects;
 
         SceneBackground sceneBackGround;
+        MeshData emptyMeshData;
         friend class GameObject;
     };
 }

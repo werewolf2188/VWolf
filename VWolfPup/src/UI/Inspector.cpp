@@ -93,9 +93,31 @@ namespace VWolfPup {
         if (this->gameObject) {
             ImGui::LabelText(this->gameObject->GetName().c_str(), "");
             this->gameObject->OnInspector();
-        }
-        DrawMaterial();
+            if (ImGui::Button("Add Component")) {
+                ImGui::OpenPopup("Component List");
+            }
+            DrawComponentList();
+            DrawMaterial();
+        }        
         ImGui::End();
+    }
+
+    void Inspector::DrawComponentList() {
+        if (ImGui::BeginPopup("Component List", ImGuiPopupFlags_AnyPopupId))
+        {
+            if (ImGui::MenuItem("Light Component"))
+            {
+                if (!gameObject->HasComponent<VWolf::LightComponent>())
+                    gameObject->AddComponent<VWolf::LightComponent>();
+            }
+            if (ImGui::MenuItem("Shape Renderer Component"))
+            {
+                if (!gameObject->HasComponent<VWolf::ShapeRendererComponent>())
+                    gameObject->AddComponent<VWolf::ShapeRendererComponent>();
+            }
+
+            ImGui::EndPopup();
+        }
     }
 
     void Inspector::DrawMaterial() {

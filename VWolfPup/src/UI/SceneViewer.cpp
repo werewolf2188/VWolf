@@ -52,7 +52,9 @@ namespace VWolfPup {
 
             const VWolf::MatrixFloat4x4& projection = camera->GetProjection();
             VWolf::MatrixFloat4x4 view = camera->GetViewMatrix();
-            VWolf::MatrixFloat4x4 transform = selectedObject->GetTransform().GetWorldMatrix();
+            VWolf::TransformComponent& tComponent = selectedObject->GetTransform();
+            tComponent.Apply();
+            VWolf::MatrixFloat4x4& transform = tComponent.GetWorldMatrix();
             if (((ImGuizmo::OPERATION)operation) == ImGuizmo::OPERATION::ROTATE) {
                 transform = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), selectedObject->GetTransform().GetPosition());
                 VWolf::Vector3Float rota(0);

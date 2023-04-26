@@ -13,6 +13,8 @@
 
 #include "VWolf/Core/Render/Graphics.h"
 
+#include "VWolf/Core/Debug/ShapeHelper.h"
+
 namespace VWolf {
 
     // ---------------- SCENE BACKGROUND ----------------
@@ -30,6 +32,7 @@ namespace VWolf {
 
     // --------------- SCENE ----------------------------
     Scene::Scene(std::string name): name(name) {
+        emptyMeshData = ShapeHelper::CreateEmpty();
     }
 
     Scene::Scene(Scene& scene) {
@@ -40,9 +43,11 @@ namespace VWolf {
         for (auto gameObject: this->gameObjects) {
             gameObject->AttachToScene(this);
         }
+        emptyMeshData = ShapeHelper::CreateEmpty();
     }
 
     Scene::Scene(Scene&& scene) {
+        emptyMeshData = ShapeHelper::CreateEmpty();
         this->name = scene.name;
         this->sceneBackGround = scene.sceneBackGround;
         this->m_registry = std::move(scene.m_registry);
@@ -60,6 +65,16 @@ namespace VWolf {
     }
 
     Ref<GameObject> Scene::CreateGameObject(std::string name) {
+        auto fun = [name](Ref<GameObject> object) {
+            return object->GetName() == name;
+        };
+        auto res = std::find_if(gameObjects.begin(), gameObjects.end(), fun);
+        if (res != gameObjects.end()) {
+            std::stringstream st;
+            st << "(" << gameObjects.size() << ")";
+            name += st.str();
+        }
+
         Ref<GameObject> gameObject = CreateRef<GameObject>( name, m_registry.create(), this );
         gameObject->AddComponent<TransformComponent>();
         gameObjects.push_back(gameObject);
@@ -98,6 +113,20 @@ namespace VWolf {
             Graphics::RenderMesh(shapeRenderer.GetData(),
                                  transform.GetWorldMatrix(),
                                  shapeRenderer.GetMaterial());
+        }
+
+
+        auto transformComponents = m_registry.view<TransformComponent>();
+        for (auto transformEntity : transformComponents)
+        {
+            // TODO: Should it be a renderer component? We just want to know if it has more than one component
+            if (m_registry.try_get<ShapeRendererComponent>(transformEntity)) continue;
+            auto transform = transformComponents
+                .get<TransformComponent>(transformEntity);
+            transform.Apply();
+            Graphics::RenderMesh(emptyMeshData,
+                                 transform.GetWorldMatrix(),
+                                 *MaterialLibrary::Default());
         }
         VWolf::Graphics::DrawGrid();
     }

@@ -484,6 +484,22 @@ namespace VWolf {
         return meshData;
     }
 
+    MeshData ShapeHelper::CreateEmpty() {
+        MeshData meshData;
+        meshData.SetName("Empty");
+        meshData.vertices.resize(1);
+        meshData.indices.resize(1);
+        
+
+        meshData.vertices[0] = Vertex(0.0f, 0.0f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 1.0f);
+        meshData.indices[0] = 0;
+        return meshData;
+    }
+
     MeshData ShapeHelper::CreateTriangle()
     {
         MeshData meshData;

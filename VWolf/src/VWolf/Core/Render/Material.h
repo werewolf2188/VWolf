@@ -24,6 +24,7 @@ namespace VWolf {
         void SetVector3(std::string name, Vector3Float vector);
         void SetFloat(std::string name, float floatNumber);
         void SetTexture(std::string name, Ref<Texture> texture);
+        void SetAsDefault();
 
         Color& GetColor(std::string name);
         Vector3Float& GetVector3(std::string name);
@@ -51,6 +52,7 @@ namespace VWolf {
     public:
         static Material* GetMaterial(std::string name);
         static Material* Default();
+        static void SetDefault(Material *);
         static void SetMaterial(std::string name, Material* material);
     private:
         static std::map<std::string, Material*> materials;

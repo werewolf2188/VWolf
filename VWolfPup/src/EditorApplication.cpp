@@ -154,6 +154,8 @@ public:
         containerView->AddView(saveBrowser);
         openBrowser = new VWolfPup::FileBrowser(VWolfPup::FileBrowserMode::Open, [this](std::filesystem::path path){
             VWOLF_CLIENT_INFO("Opening file %s", path.string().c_str());
+            sceneViewer->SetSelectedObject(nullptr);
+            inspector->SetGameObject(nullptr);
             testScene = VWolf::SceneSerializer::Deserialize(path);
             sceneHierarchy->SetScene(testScene.get());
             sceneSettings->SetScene(testScene.get());
@@ -169,6 +171,7 @@ public:
         new (&material_1) VWolf::Material(shaderNames[0].c_str());
         new (&material_2) VWolf::Material(shaderNames[1].c_str());
 
+        material_2.SetAsDefault();
         material_1.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
         material_1.SetColor("u_diffuseColor", { 1.0f, 1.0f, 1.0f, 1.0f });
         material_1.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
@@ -209,6 +212,7 @@ public:
     void OnEvent(VWolf::Event& evt) override {
         VWolf::Application::OnEvent(evt);
         controller->OnEvent(evt);
+        sceneHierarchy->OnEvent(evt);
         VWolf::Dispatch<VWolf::WindowResizeEvent>(evt, VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowResize));
     }
 

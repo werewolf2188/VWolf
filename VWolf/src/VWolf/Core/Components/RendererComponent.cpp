@@ -7,6 +7,7 @@
 
 #include "vwpch.h"
 #include "RendererComponent.h"
+#include "VWolf/Core/Debug/ShapeHelper.h"
 
 namespace VWolf {
     RendererComponent::RendererComponent(): Component("Renderer") {}
@@ -16,7 +17,7 @@ namespace VWolf {
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(RendererComponent);
 
     ShapeRendererComponent::ShapeRendererComponent():
-    RendererComponent("Shape Renderer"), material(MaterialLibrary::Default()) {}
+    RendererComponent("Shape Renderer"), material(MaterialLibrary::Default()), data(ShapeHelper::CreateTriangle()) {}
 
     ShapeRendererComponent::ShapeRendererComponent(MeshData data, Material& material):
     RendererComponent("Shape Renderer"), data(data), material(&material) {}

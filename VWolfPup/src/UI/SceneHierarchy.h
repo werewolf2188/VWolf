@@ -21,7 +21,11 @@ namespace VWolfPup {
         void SetScene(VWolf::Scene* scene) { this->scene = scene; }
     public:
         void OnGui() override;
+        void OnEvent(VWolf::Event& evt);
     private:
+        bool OnMouseButtonReleasedEvent(VWolf::MouseButtonReleasedEvent& e);
+    private:
+        bool showDialog = false;
         VWolf::Scene *scene;
         std::function<void(VWolf::Ref<VWolf::GameObject>)> onTapped;
     };

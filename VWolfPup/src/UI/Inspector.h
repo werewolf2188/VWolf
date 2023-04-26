@@ -23,6 +23,7 @@ namespace VWolfPup {
         void SetGameObject(VWolf::Ref<VWolf::GameObject> gameObject);
     private:
         void DrawMaterial();
+        void DrawComponentList();
     private:
         VWolf::Ref<VWolf::GameObject> gameObject;
     };

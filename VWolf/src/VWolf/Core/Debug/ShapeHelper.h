@@ -22,6 +22,7 @@ namespace VWolf {
         static MeshData CreateGrid(float width, float depth, std::uint32_t m, std::uint32_t n);
         static MeshData CreateQuad(float x, float y, float w, float h, float depth);
         static MeshData CreateTriangle();
+        static MeshData CreateEmpty();
         static MeshData Create(const char* name);
     private:
     private:

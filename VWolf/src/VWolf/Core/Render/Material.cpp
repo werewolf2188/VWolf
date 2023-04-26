@@ -111,9 +111,15 @@ namespace VWolf {
         return size;
     }
 
+    void Material::SetAsDefault() {
+        MaterialLibrary::SetDefault(this);
+    }
+
 #ifdef VWOLF_CORE
+    const std::string defaultKey = "Default";
+
     std::map<std::string, Material*> MaterialLibrary::materials = {
-        { std::string("Default"), new Material() }
+        { std::string(defaultKey), new Material() }
     };
 
     Material* MaterialLibrary::GetMaterial(std::string name) {
@@ -121,7 +127,11 @@ namespace VWolf {
     }
 
     Material* MaterialLibrary::Default() {
-        return MaterialLibrary::GetMaterial("Default");
+        return MaterialLibrary::GetMaterial(defaultKey);
+    }
+
+    void MaterialLibrary::SetDefault(Material* material) {
+        SetMaterial(defaultKey, material);
     }
 
     void MaterialLibrary::SetMaterial(std::string name, Material* material) {

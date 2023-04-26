@@ -31,6 +31,29 @@ namespace VWolfPup {
             }
             ImGui::TreePop();
         }
+        if (showDialog) {
+            if (ImGui::BeginPopupContextWindow("Options"))
+            {
+                if (ImGui::MenuItem("Add New Game Object"))
+                {
+                    showDialog = false;
+                    scene->CreateGameObject("Untitled");
+                }
+
+                ImGui::EndPopup();
+            }
+        }
         ImGui::End();
+    }
+
+    void SceneHierarchy::OnEvent(VWolf::Event& evt) {
+        VWolf::Dispatch<VWolf::MouseButtonReleasedEvent>(evt, VWOLF_BIND_EVENT_FN(SceneHierarchy::OnMouseButtonReleasedEvent));
+    }
+
+    bool SceneHierarchy::OnMouseButtonReleasedEvent(VWolf::MouseButtonReleasedEvent& e) {
+        if (e.GetMouseButton() == VWolf::MouseCode::Right) {
+            showDialog = true;
+        }
+        return true;
     }
 }
