@@ -21,10 +21,15 @@ namespace VWolfPup {
         void OnGui() override;
     public:
         void SetGameObject(VWolf::Ref<VWolf::GameObject> gameObject);
+    protected:
+        virtual void SetInContainer() override;
+        virtual void AfterSetInContainer() override;
     private:
         void DrawMaterial();
         void DrawComponentList();
     private:
         VWolf::Ref<VWolf::GameObject> gameObject;
+        char inputBuf[255];
+        bool inputIsActive = false;
     };
 }

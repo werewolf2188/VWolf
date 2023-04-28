@@ -17,14 +17,29 @@ namespace VWolfPup {
 
     void InitializeEditor();
 
+    class ContainerView;
+
     class View {
     public:
         View(std::string title);
         ~View();
     public:
         virtual void OnGui() = 0;
+        
+    public:
+        View* GetParent() { return parent; }
+        ContainerView* GetContainer() { return container; }
+        std::string& GetTitle() { return title; }
     protected:
         std::string title;
+    protected:
+        virtual void SetInContainer() { }
+        virtual void AfterSetInContainer() { }
+    private:
+        View* parent;
+        ContainerView* container;
+        
+        friend class ContainerView;
     };
 
     class MenuItem: public View {
@@ -60,17 +75,62 @@ namespace VWolfPup {
         std::vector<Menu *> menus;
     };
 
+    struct ContainerTree {
+    private:
+        ContainerTree(unsigned int splitId, int side, ContainerTree *parent = nullptr);
+    public:
+        ContainerTree* Create(int side);
+        ContainerTree* Get(int side);
+        bool Contains(int side);
+        void Install(View * view);
+        void Install(View * view, int side);
+    public:
+        bool operator==(ContainerTree& tree);
+    private:
+        ContainerTree* parent = nullptr;
+        unsigned int splitId = 0;
+        int side = 0;
+        std::vector<ContainerTree*> children;
+
+        friend class ContainerView;
+    };
+
     class ContainerView: public View {
     public:
         ContainerView(std::string title, std::initializer_list<View *> views);
         ~ContainerView();
     public:
-        void SetMenuBar(MenuBar* menuBar) { this->menuBar = menuBar; };
-        void AddView(View* view) { views.push_back(view); }
+        void SetMenuBar(MenuBar* menuBar) {
+            this->menuBar = menuBar;
+            SetContainerAndParent(menuBar);
+        };
+        void AddView(View* view) {
+            views.push_back(view);
+            SetContainerAndParent(view);
+        }
+        bool IsInitializing() { return initializing; }
+        ContainerTree* GetRoot() { return root; }
+    public:
+        void SaveIniFile();
     public:
         void OnGui() override;
+    public:
+        static ContainerView* GetMainView();
+    private:
+        void SetContainerAndParent(View* view) {
+            view->parent = this;
+            view->container = this;
+        }
+        void LoadIniFile();
     private:
         std::vector<View *> views;
         MenuBar* menuBar;
+        unsigned int dockspace_id;
+        bool initializing = true;
+        bool starting = true;
+        const char *dockName;
+        ContainerTree* root;
+    private:
+        static ContainerView* mainView;
     };
 }

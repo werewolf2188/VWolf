@@ -25,10 +25,18 @@ namespace VWolfPup {
         if (fileDialog.HasSelected()) {
             onSelect(fileDialog.GetSelected());
             fileDialog.ClearSelected();
+            isOpen = false;
+        } else if (!fileDialog.IsOpened()) {
+            isOpen = false;
         }
     }
 
     void FileBrowser::Open() {
+        isOpen = true;
         fileDialog.Open();
+    }
+
+    bool FileBrowser::IsOpen() {
+        return isOpen;
     }
 }

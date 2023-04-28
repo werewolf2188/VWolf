@@ -16,12 +16,17 @@ namespace VWolfPup {
         
     }
 
+    void SceneViewer::SetInContainer() {
+        GetContainer()->GetRoot()->Install(this);
+    }
+
     void SceneViewer::OnGui() {
         bool noMove = VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftShift) ||
         VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftAlt) ||
         VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftControl);
         ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
                      (noMove ? ImGuiWindowFlags_NoMove: 0));
+        isHovering = ImGui::IsWindowHovered();
         ImVec2 windowSize = ImGui::GetWindowSize();
         renderTexture->Resize((uint32_t)windowSize.x, (uint32_t)windowSize.y);
         if (driverType == VWolf::DriverType::OpenGL)

@@ -65,7 +65,19 @@ namespace VWolf {
         void RemoveComponent()
         {
             VWOLF_CLIENT_ASSERT(HasComponent<T>(), "Entity does not have component!");
+            auto name = GetComponent<T>().GetName();
             scene->m_registry.remove<T>(handle);
+            // Need to remove it from currentComponents
+            int i = 0;
+            bool found = false;
+            for(; i < currentComponents.size(); i++) {
+                if (currentComponents[i]->GetName() == name) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found)
+                currentComponents.erase(currentComponents.begin() + i);
         }
     public:
         void OnInspector();

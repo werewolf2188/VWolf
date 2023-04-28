@@ -19,6 +19,8 @@ namespace VWolfPup {
         void SetScene(VWolf::Scene* scene) { this->scene = scene; }
     public:
         void OnGui() override;
+    protected:
+        virtual void SetInContainer() override;
     private:
         VWolf::Scene *scene;
     };

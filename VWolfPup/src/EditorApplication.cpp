@@ -71,6 +71,25 @@ void LoadShaderNames(VWolf::DriverType driverType) {
 #endif
 }
 
+class TextureView: public VWolfPup::View {
+public:
+    TextureView(VWolf::Ref<VWolf::Texture2D> testTexture):
+    View("Texture"), testTexture(testTexture) {}
+    ~TextureView() {}
+public:
+    virtual void OnGui() override {
+        ImGui::Begin(title.c_str());
+        ImGui::Image(testTexture->GetHandler(), ImVec2(128, 128));
+        ImGui::End();
+    }
+protected:
+    virtual void SetInContainer() override {
+        GetContainer()->GetRoot()->Install(this, ImGuiDir_Down);
+    }
+private:
+    VWolf::Ref<VWolf::Texture2D> testTexture;
+};
+
 class RendererSandboxApplication: public VWolf::Application {
 public:
     
@@ -91,6 +110,7 @@ public:
     VWolfPup::SceneViewer *sceneViewer;
     VWolfPup::SceneSettings* sceneSettings;
     VWolfPup::FileBrowser *saveBrowser, *openBrowser;
+    TextureView* textureView;
 
     // Scene Management
     VWolf::Ref<VWolf::Scene> testScene;
@@ -120,6 +140,7 @@ public:
         // UI
         containerView = new VWolfPup::ContainerView("Test", {});
         quit = new VWolfPup::MenuItem("Quit", [this](std::string title) {
+            this->containerView->SaveIniFile();
             this->Quit();
         });
         open = new VWolfPup::MenuItem("Open Scene", [this](std::string title) {
@@ -148,12 +169,12 @@ public:
         containerView->AddView(sceneHierarchy);
 
         saveBrowser = new VWolfPup::FileBrowser(VWolfPup::FileBrowserMode::Save, [this](std::filesystem::path path){
-            VWOLF_CLIENT_INFO("Saving file %s", path.string().c_str());
+//            VWOLF_CLIENT_INFO("Saving file %s", path.string().c_str());
             VWolf::SceneSerializer::Serialize(testScene, path);
         });
         containerView->AddView(saveBrowser);
         openBrowser = new VWolfPup::FileBrowser(VWolfPup::FileBrowserMode::Open, [this](std::filesystem::path path){
-            VWOLF_CLIENT_INFO("Opening file %s", path.string().c_str());
+//            VWOLF_CLIENT_INFO("Opening file %s", path.string().c_str());
             sceneViewer->SetSelectedObject(nullptr);
             inspector->SetGameObject(nullptr);
             testScene = VWolf::SceneSerializer::Deserialize(path);
@@ -195,7 +216,8 @@ public:
             material_2.SetTexture("gDiffuseMap", testTexture);
         }
 #endif
-
+        textureView = new TextureView(testTexture);
+        containerView->AddView(textureView);
 //        cylinder->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), material_2);
 //        sphere->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateSphere(2, 32, 32), material_2);
 //        grid->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateGrid(2, 2, 16, 16), material_2);
@@ -206,19 +228,32 @@ public:
 //        light2->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateBox(1, 1, 1, 0), material_1);
     }
 
-    ~RendererSandboxApplication() {
-    }
+    ~RendererSandboxApplication() {}
 
     void OnEvent(VWolf::Event& evt) override {
         VWolf::Application::OnEvent(evt);
-        controller->OnEvent(evt);
-        sceneHierarchy->OnEvent(evt);
         VWolf::Dispatch<VWolf::WindowResizeEvent>(evt, VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowResize));
+        VWolf::Dispatch<VWolf::WindowCloseEvent>(evt, VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowClose));
+
+        if (openBrowser->IsOpen() || saveBrowser->IsOpen()) return;
+        if (sceneViewer->IsHovering()) {
+            controller->OnEvent(evt);
+        }
+        
+        sceneHierarchy->OnEvent(evt);
+    }
+
+    bool OnWindowClose(VWolf::WindowCloseEvent& e) {
+        this->containerView->SaveIniFile();
+        return true;
     }
 
     void OnUpdate() override {
+        if (openBrowser->IsOpen() || saveBrowser->IsOpen()) return;
         testScene->UpdateEditor();
-        controller->OnUpdate();
+        if (sceneViewer->IsHovering()) {
+            controller->OnUpdate();
+        }
     }
 
     void OnDraw() override {
@@ -233,9 +268,6 @@ public:
 
     void OnGUI() override {
         containerView->OnGui();
-        ImGui::Begin("Texture");
-        ImGui::Image(testTexture->GetHandler(), ImVec2(128, 128));
-        ImGui::End();
     }
 
     bool OnWindowResize(VWolf::WindowResizeEvent& e) {

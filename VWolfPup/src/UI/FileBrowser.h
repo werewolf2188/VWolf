@@ -22,8 +22,10 @@ namespace VWolfPup {
     public:
         void OnGui() override;
         void Open();
+        bool IsOpen();
     private:
         ImGui::FileBrowser fileDialog;
         std::function<void(std::filesystem::path)> onSelect;
+        bool isOpen = false;
     };
 }
