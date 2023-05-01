@@ -28,6 +28,7 @@ namespace VWolf {
     public:
         std::string GetName() const { return name; }
         void SetName(std::string name) { this->name = name; }
+        entt::entity GetHandle() { return handle; }
     public:
         template<typename T, typename... Args>
         T& AddComponent(Args&&... args)

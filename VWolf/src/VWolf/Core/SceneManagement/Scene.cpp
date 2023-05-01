@@ -84,6 +84,17 @@ namespace VWolf {
     void Scene::AddExistingGameObject(Ref<GameObject> gameObject) {
         gameObjects.push_back(gameObject);
     }
+
+    void Scene::RemoveGameObject(std::string name) {
+        auto fun = [name](Ref<GameObject> object) {
+            return object->GetName() == name;
+        };
+        auto res = std::find_if(gameObjects.begin(), gameObjects.end(), fun);
+        if (res != gameObjects.end()) {
+            m_registry.destroy((*res)->GetHandle());
+            gameObjects.erase(res);
+        }
+    }
     
     void Scene::UpdateEditor() {
     }

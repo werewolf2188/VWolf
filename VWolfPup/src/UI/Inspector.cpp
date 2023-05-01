@@ -461,6 +461,7 @@ namespace VWolfPup {
 
     void Inspector::SetGameObject(VWolf::Ref<VWolf::GameObject> gameObject) {
         this->gameObject = gameObject;
-        strcpy(inputBuf, gameObject->GetName().c_str());
+        if (gameObject)
+            strcpy(inputBuf, gameObject->GetName().c_str());
     }
 }

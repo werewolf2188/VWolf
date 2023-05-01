@@ -43,6 +43,7 @@ namespace VWolf {
         void UpdateEditor();
         void DrawEditor(Ref<Camera> editorCamera);
         void AddExistingGameObject(Ref<GameObject> gameObject);
+        void RemoveGameObject(std::string name);
     public:
         std::vector<Ref<GameObject>> GetGameObjects() const { return gameObjects; }
         std::string GetName() const { return name; }

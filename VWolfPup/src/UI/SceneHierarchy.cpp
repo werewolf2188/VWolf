@@ -77,7 +77,8 @@ namespace VWolfPup {
                 }
                 else if (!selectedName.empty() && ImGui::MenuItem("Delete Selected")) {
                     // Here I can delete the selected one
-                    VWOLF_CLIENT_INFO("Test");
+                    onTapped(nullptr);
+                    scene->RemoveGameObject(selectedName);
                 }
 
                 ImGui::EndPopup();
