@@ -198,7 +198,8 @@ namespace VWolf {
         shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
         shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
         shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
-        shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
+        if (lights)
+            shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
         group->Bind();
         vertices->Bind();
         index->Bind();

@@ -65,6 +65,12 @@ namespace VWolf {
 	{
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
+
+    template<typename T>
+    constexpr Ref<T> CreateFromRef(T& t)
+    {
+        return std::make_shared<T>(std::forward<T>(t));
+    }
 }
 
 #include "Assert.h"

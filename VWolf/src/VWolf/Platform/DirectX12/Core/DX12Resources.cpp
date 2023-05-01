@@ -94,6 +94,14 @@ namespace VWolf {
 		this->current = after;
 	}
 
+	void DX12Resource::Release() {
+		// TODO: To write
+	}
+
+	void DX12Resource::Name(const char* name) {
+		DXNAME_D3D12_OBJECT_WITH_NAME_VARIABLE(resource, name);
+	}
+
 	DX12TextureResource::DX12TextureResource(DXGI_FORMAT format): format(format)
 	{
 	}

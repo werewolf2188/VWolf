@@ -28,8 +28,18 @@
 obj->SetName(L##name);\
 VWOLF_CORE_DEBUG("DirectX 12 Object name: %s", name);
 
+#define DXNAME_D3D12_OBJECT_WITH_NAME_VARIABLE(obj, name)\
+std::wstring wname = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(name); \
+obj->SetName(wname.c_str());\
+VWOLF_CORE_DEBUG("DirectX 12 Object name: %s", name);
+
 #define DXNAME_D3D12_OBJECT_INDEXED(obj, name, i)\
 obj->SetName(L##name);\
+VWOLF_CORE_DEBUG("DirectX 12 Object name: %s %d", name, i);
+
+#define DXNAME_D3D12_OBJECT_INDEXED__WITH_NAME_VARIABLE(obj, name, i)\
+std::wstring wname = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(name); \
+obj->SetName(wname.c_str());\
 VWOLF_CORE_DEBUG("DirectX 12 Object name: %s %d", name, i);
 
 #else

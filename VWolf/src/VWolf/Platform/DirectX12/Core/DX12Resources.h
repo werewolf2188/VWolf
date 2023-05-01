@@ -71,6 +71,8 @@ namespace VWolf {
 		void TransitionResource(Ref<DX12Command> commands, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after,
 			UINT subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
 			D3D12_RESOURCE_BARRIER_FLAGS flags = D3D12_RESOURCE_BARRIER_FLAG_NONE);
+		void Release();
+		void Name(const char* name);
 
 		D3D12_RESOURCE_STATES GetCurrentState() const { return current; }
 	protected:
@@ -147,6 +149,8 @@ namespace VWolf {
 		void CreateWithShaderResource(Ref<DX12Device> device, Ref<DX12DescriptorHeap> rtvHeap, Ref<DX12DescriptorHeap> srvHeap);
 
 		void SetSize(UINT width, UINT height);
+		void Release() { texture.Release(); }
+		void Name(const char* name) { texture.Name(name); }
 		DX12DescriptorHandle& GetHandle() { return rtvHandle; }
 		DX12TextureResource& GetTexture() { return texture; }
 	private:
@@ -164,6 +168,7 @@ namespace VWolf {
 		void CreateWithShaderResource(Ref<DX12Device> device, Ref<DX12DescriptorHeap> dsvHeap, Ref<DX12DescriptorHeap> srvHeap);
 
 		void SetSize(UINT width, UINT height);
+		void Name(const char* name) { texture.Name(name); }
 		DX12DescriptorHandle& GetHandle() { return dsvHandle; }
 		DX12TextureResource& GetTexture() { return texture; }
 	private:

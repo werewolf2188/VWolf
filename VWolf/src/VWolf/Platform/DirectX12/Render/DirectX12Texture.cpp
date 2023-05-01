@@ -420,17 +420,12 @@ namespace VWolf {
 
 	DirectX12RenderTexture::DirectX12RenderTexture(uint32_t width, uint32_t height, TextureOptions options): RenderTexture(width, height, options)
 	{
-		DX12TextureResourceInfo info;
-		info.CreateRenderTargetInformation(DirectX12Driver::GetCurrent()->GetDevice(), width, height);
-
-		rtvTexture = CreateRef<DX12RenderTargetResource>(info);
-		rtvTexture->CreateWithShaderResource(DirectX12Driver::GetCurrent()->GetDevice(),
-			DirectX12Driver::GetCurrent()->GetRenderTargetViewDescriptorHeap(),
-			DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap());
+		Initialize();
 	}
 
 	DirectX12RenderTexture::~DirectX12RenderTexture()
 	{
+
 	}
 
 	void* DirectX12RenderTexture::GetHandler()
@@ -445,6 +440,19 @@ namespace VWolf {
 
 	void DirectX12RenderTexture::Resize(uint32_t width, uint32_t height)
 	{
+		if (this->m_width == width && this->m_height == height) return;
+		//Initialize();
+	}
+
+	void DirectX12RenderTexture::Initialize() {
+		DX12TextureResourceInfo info;
+		info.CreateRenderTargetInformation(DirectX12Driver::GetCurrent()->GetDevice(), m_width, m_height);
+
+		rtvTexture = CreateRef<DX12RenderTargetResource>(info);
+		rtvTexture->CreateWithShaderResource(DirectX12Driver::GetCurrent()->GetDevice(),
+			DirectX12Driver::GetCurrent()->GetRenderTargetViewDescriptorHeap(),
+			DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap());
+		rtvTexture->Name("Render texture");
 	}
 
 	void DirectX12RenderTexture::Bind()

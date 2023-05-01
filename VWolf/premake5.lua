@@ -18,14 +18,16 @@ project "VWolf"
       "vendor/glm/glm/**.hpp",
 	  "vendor/glm/glm/**.inl",
 	  "vendor/stb_image/**.h",
-	  "vendor/stb_image/**.cpp"
+	  "vendor/stb_image/**.cpp",
+	  "vendor/entt/src/**.hpp"
 
    }
-   removefiles { "vendor/imgui/**" }
+   removefiles { "vendor/imgui/**", "vendor/imguizmo/**" }
   
    defines
    {
-      "_CRT_SECURE_NO_WARNINGS"
+      "_CRT_SECURE_NO_WARNINGS",
+      "YAML_CPP_STATIC_DEFINE"
    }
 
    includedirs
@@ -37,6 +39,8 @@ project "VWolf"
 	  "%{IncludeDir.ImGui}",
       "%{IncludeDir.glm}",
       "%{IncludeDir.stb_image}",
+      "%{IncludeDir.entt}",
+      "%{IncludeDir.yaml_cpp}",
    }
 
    libdirs 
@@ -49,6 +53,8 @@ project "VWolf"
       "GLFW",
 	  "Glad",
 	  "ImGui",
+	  "ImGuizmo",
+	  "yaml-cpp",
 	  "opengl32.lib"
 	}
    
@@ -82,6 +88,8 @@ project "VWolf"
 	"%{IncludeDir.Glad}",
         "%{IncludeDir.glm}",
         "%{IncludeDir.ImGui}",
+	"%{IncludeDir.ImGuizmo}",
+	"%{IncludeDir.yaml_cpp}"
     }
 
    defines

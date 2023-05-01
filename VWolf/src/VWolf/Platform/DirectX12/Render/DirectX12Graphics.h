@@ -13,7 +13,7 @@ namespace VWolf {
         virtual ~DirectX12Graphics() override {};
     public:
         void ClearResources(bool forceRelease);
-        //void Build();
+        void Build();
     protected:
         virtual void DrawMeshImpl(MeshData & mesh, Vector4Float position, Vector4Float rotation, Material & material, Ref<Camera> camera = nullptr) override;
         virtual void RenderMeshImpl(MeshData & mesh, MatrixFloat4x4 transform, Material & material, Ref<Camera> camera = nullptr) override;
@@ -34,5 +34,6 @@ namespace VWolf {
         std::vector<Light> lights;       
         int frame = 0;
         int shapes = 0;
+        Ref<HLSLShader> gridShader;
     };
 }

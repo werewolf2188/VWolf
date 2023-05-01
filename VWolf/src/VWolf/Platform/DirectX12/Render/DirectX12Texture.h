@@ -35,6 +35,7 @@ namespace VWolf {
 
 		virtual void Resize(uint32_t width, uint32_t height) override;
 	public:
+		void Initialize();
 		void Bind();
 		Ref<DX12RenderTargetResource> GetTexture() const { return rtvTexture; }
 	private:

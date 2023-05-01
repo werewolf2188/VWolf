@@ -13,8 +13,34 @@
 #define BOTTOM -1
 
 namespace VWolf {
+    MeshData ShapeHelper::Create(const char* name) {
+        if (strcmp("Box", name) == 0) {
+            return ShapeHelper::CreateBox(1, 1, 1, 0);
+        }
+        else if (strcmp("Sphere", name) == 0) {
+            return ShapeHelper::CreateSphere(2, 32, 32);
+        }
+        else if (strcmp("Geosphere", name) == 0) {
+            return ShapeHelper::CreateGeosphere(1, 4);
+        }
+        else if (strcmp("Cylinder", name) == 0) {
+            return ShapeHelper::CreateCylinder(1, 1, 3, 32, 8);
+        }
+        else if (strcmp("Grid", name) == 0) {
+            return ShapeHelper::CreateGrid(2, 2, 16, 16);
+        }
+        else if (strcmp("Quad", name) == 0) {
+            return ShapeHelper::CreateQuad(50, 50, 100, 100, 10);
+        }
+        else if (strcmp("Triangle", name) == 0) {
+            return ShapeHelper::CreateTriangle();
+        }
+        return MeshData();
+    }
+
     MeshData ShapeHelper::CreateBox(float width, float height, float depth, std::uint32_t numSubdivisions) {
         MeshData meshData;
+        meshData.SetName("Box");
         Vertex v[24];
 
         float w2 = 0.5f*width;
@@ -96,7 +122,7 @@ namespace VWolf {
 
     MeshData ShapeHelper::CreateSphere(float radius, std::uint32_t sliceCount, std::uint32_t stackCount) {
         MeshData meshData;
-
+        meshData.SetName("Sphere");
         //
         // Compute the vertices stating at the top pole and moving down the stacks.
         //
@@ -207,7 +233,7 @@ namespace VWolf {
 
     MeshData ShapeHelper::CreateGeosphere(float radius, std::uint32_t numSubdivisions) {
         MeshData meshData;
-
+        meshData.SetName("Geosphere");
         // Put a cap on the number of subdivisions.
         numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
 
@@ -280,7 +306,7 @@ namespace VWolf {
 
     MeshData ShapeHelper::CreateCylinder(float bottomRadius, float topRadius, float height, uint32 sliceCount, uint32 stackCount) {
         MeshData meshData;
-
+        meshData.SetName("Cylinder");
         //
         // Build Stacks.
         //
@@ -353,7 +379,7 @@ namespace VWolf {
 
     MeshData ShapeHelper::CreateGrid(float width, float depth, std::uint32_t m, std::uint32_t n) {
         MeshData meshData;
-
+        meshData.SetName("Grid");
         std::uint32_t vertexCount = m * n;
         std::uint32_t faceCount = (m - 1) * (n - 1) * 2;
 
@@ -418,7 +444,7 @@ namespace VWolf {
 
     MeshData ShapeHelper::CreateQuad(float x, float y, float w, float h, float depth) {
         MeshData meshData;
-
+        meshData.SetName("Quad");
         meshData.vertices.resize(4);
         meshData.indices.resize(6);
 
@@ -458,10 +484,26 @@ namespace VWolf {
         return meshData;
     }
 
+    MeshData ShapeHelper::CreateEmpty() {
+        MeshData meshData;
+        meshData.SetName("Empty");
+        meshData.vertices.resize(1);
+        meshData.indices.resize(1);
+        
+
+        meshData.vertices[0] = Vertex(0.0f, 0.0f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 1.0f);
+        meshData.indices[0] = 0;
+        return meshData;
+    }
+
     MeshData ShapeHelper::CreateTriangle()
     {
         MeshData meshData;
-
+        meshData.SetName("Triangle");
         meshData.vertices.resize(3);
         meshData.indices.resize(3);
 
