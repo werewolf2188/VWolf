@@ -1,19 +1,19 @@
 [submodule "VWolf/vendor/GLFW"]
 	path = VWolf/vendor/GLFW
-	url = https://github.com/glfw/glfw.git
+	url = git@github.com:werewolf2188/glfw.git
 [submodule "VWolf/vendor/imgui"]
 	path = VWolf/vendor/imgui
-	url = https://github.com/ocornut/imgui.git
+	url = git@github.com:werewolf2188/imgui.git
 	branch = docking
 [submodule "VWolf/vendor/glm"]
 	path = VWolf/vendor/glm
-	url = https://github.com/g-truc/glm.git
+	url = git@github.com:werewolf2188/glm.git
 [submodule "VWolf/vendor/entt"]
 	path = VWolf/vendor/entt
-	url = https://github.com/skypjack/entt.git
+	url = git@github.com:werewolf2188/entt.git
 [submodule "VWolf/vendor/imguizmo"]
 	path = VWolf/vendor/imguizmo
-	url = https://github.com/CedricGuillemet/ImGuizmo.git
+	url = git@github.com:werewolf2188/ImGuizmo.git
 [submodule "VWolf/vendor/yaml_cpp"]
 	path = VWolf/vendor/yaml_cpp
-	url = https://github.com/jbeder/yaml-cpp.git
+	url = git@github.com:werewolf2188/yaml-cpp.git
