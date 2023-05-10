@@ -60,13 +60,13 @@ void LoadShaderNames(VWolf::DriverType driverType) {
 #else
 
     vsFiles = { {
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.vert.glsl" , "main" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/BlinnPhong.vert.glsl" , "main" }
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.vert.glsl" , "main" },
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.vert.glsl" , "main" }
         } };
 
     psFiles = { {
-        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/FlatColor.frag.glsl" , "main" },
-        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "../../../Sandbox/src/shaders/glsl/BlinnPhong.frag.glsl" , "main" }
+        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.frag.glsl" , "main" },
+        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.frag.glsl" , "main" }
     } };
 #endif
 }

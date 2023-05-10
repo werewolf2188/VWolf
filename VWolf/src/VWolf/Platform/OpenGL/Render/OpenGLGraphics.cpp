@@ -19,8 +19,8 @@ namespace VWolf {
         const char *vertexShaderText = "src/shaders/glsl/Grid.vert.glsl";
         const char *fragmentShaderText = "src/shaders/glsl/Grid.frag.glsl";
 #else
-        const char *vertexShaderText = "../../../Sandbox/src/shaders/glsl/Grid.vert.glsl";
-        const char *fragmentShaderText = "../../../Sandbox/src/shaders/glsl/Grid.frag.glsl";
+        const char *vertexShaderText = "shaders/glsl/Grid.vert.glsl";
+        const char *fragmentShaderText = "shaders/glsl/Grid.frag.glsl";
 #endif
 
         ShaderSource vertexSource = { ShaderType::Vertex, ShaderSourceType::File, vertexShaderText };
