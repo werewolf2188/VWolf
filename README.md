@@ -43,6 +43,7 @@ Editor project that will help the user to create the project/scenes to make a ga
 - Scene hierarchy (Add and delete game objects)
 - Game object inspector (Add and delete components)
 - Scene viewer (Guizmo controllers)
+- Scene settings
 - Open/Save scenes.
 
 ## Dependencies
