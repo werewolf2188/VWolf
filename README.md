@@ -74,7 +74,7 @@ Download Boost and compile it. Create static libraries.
 ### Steps
 
 - Pull the project with the dependencies (recursive)
-- Download premake5 for your OS
+- Download premake5 for your OS and put it inside the *bin* folder.
 - Change the variables **boostversion** and **boost** inside the **premake5.lua** file in the root directory with your own.
 - Run the *generate* script inside the **scripts/{OS}** folder.
 - Open project file.
