@@ -32,42 +32,31 @@ std::array<VWolf::ShaderSource, NUMSHADERS> vsFiles;
 std::array<VWolf::ShaderSource, NUMSHADERS> psFiles;
 
 void LoadShaderNames(VWolf::DriverType driverType) {
-#ifdef VWOLF_PLATFORM_WINDOWS
-    if (driverType == VWolf::DriverType::DirectX12) {
+    if (driverType == VWolf::DriverType::OpenGL) {
 
         vsFiles = { {
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/hlsl/FlatColor.hlsl" , "VS" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/hlsl/BlinnPhong.hlsl" , "VS" }
-        } };
-
-        psFiles = { {
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/hlsl/FlatColor.hlsl" , "PS" },
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/hlsl/BlinnPhong.hlsl" , "PS" }
-        } };
-    }
-    else if (driverType == VWolf::DriverType::OpenGL) {
-
-        vsFiles = { {
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.vert.glsl" , "main" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "src/shaders/glsl/BlinnPhong.vert.glsl" , "main" }
-        } };
-
-        psFiles = { {
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/glsl/FlatColor.frag.glsl" , "main" },
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "src/shaders/glsl/BlinnPhong.frag.glsl" , "main" }
-        } };
-    }
-#else
-
-    vsFiles = { {
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.vert.glsl" , "main" },
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.vert.glsl" , "main" }
         } };
 
-    psFiles = { {
-        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.frag.glsl" , "main" },
-        { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.frag.glsl" , "main" }
-    } };
+        psFiles = { {
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.frag.glsl" , "main" },
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.frag.glsl" , "main" }
+        } };
+    }
+#ifdef VWOLF_PLATFORM_WINDOWS   
+    else  if (driverType == VWolf::DriverType::DirectX12) {
+
+        vsFiles = { {
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/FlatColor.hlsl" , "VS" },
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/BlinnPhong.hlsl" , "VS" }
+        } };
+
+        psFiles = { {
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/FlatColor.hlsl" , "PS" },
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/BlinnPhong.hlsl" , "PS" }
+        } };
+    }
 #endif
 }
 
@@ -202,17 +191,13 @@ public:
         material_2.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
         material_2.SetFloat("u_shinines", 20);
         if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
-#ifdef VWOLF_PLATFORM_WINDOWS
-            testTexture = VWolf::Texture::LoadTexture2D("src/assets/textExample.png");
-#else
-            testTexture = VWolf::Texture::LoadTexture2D("../../../Sandbox/src/assets/textExample.png");
-#endif            
+            testTexture = VWolf::Texture::LoadTexture2D("assets/textExample.png");
             material_2.SetTexture("u_texture", testTexture);
         }
 #ifdef VWOLF_PLATFORM_WINDOWS
-        else {
+        else if (DRIVER_TYPE == VWolf::DriverType::DirectX12) {
             //testTexture = VWolf::Texture::LoadTexture2D(512, 512);
-            testTexture = VWolf::Texture::LoadTexture2D("src/assets/textExample2.png");
+            testTexture = VWolf::Texture::LoadTexture2D("assets/textExample2.png");
             material_2.SetTexture("gDiffuseMap", testTexture);
         }
 #endif

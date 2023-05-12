@@ -15,13 +15,8 @@
 
 namespace VWolf {
     void OpenGLGraphics::Build() {
-#ifdef VWOLF_PLATFORM_WINDOWS
-        const char *vertexShaderText = "src/shaders/glsl/Grid.vert.glsl";
-        const char *fragmentShaderText = "src/shaders/glsl/Grid.frag.glsl";
-#else
-        const char *vertexShaderText = "shaders/glsl/Grid.vert.glsl";
-        const char *fragmentShaderText = "shaders/glsl/Grid.frag.glsl";
-#endif
+        const char* vertexShaderText = "shaders/glsl/Grid.vert.glsl";
+        const char* fragmentShaderText = "shaders/glsl/Grid.frag.glsl";
 
         ShaderSource vertexSource = { ShaderType::Vertex, ShaderSourceType::File, vertexShaderText };
         ShaderSource fragmentSource = { ShaderType::Fragment, ShaderSourceType::File, fragmentShaderText };
