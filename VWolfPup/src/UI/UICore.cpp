@@ -26,11 +26,7 @@ namespace VWolfPup {
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
         ImGui::StyleColorsDark();
         ImGuiStyle& style = ImGui::GetStyle();
-#ifdef VWOLF_PLATFORM_WINDOWS
-        std::string folder = "src/assets/Open_Sans/static/";
-#else
-        std::string folder = "../../../VWolfPup/src/assets/Open_Sans/static/";
-#endif
+        std::string folder = "assets/Open_Sans/static/";
         
         float fontSize = 18.0f;// *2.0f;
         io.Fonts->AddFontFromFileTTF((folder + std::string("OpenSans-Bold.ttf")).c_str(), fontSize);

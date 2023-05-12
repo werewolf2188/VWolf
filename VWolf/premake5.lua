@@ -92,6 +92,11 @@ project "VWolf"
 	"%{IncludeDir.yaml_cpp}"
     }
 
+   xcodebuildsettings 
+   { 
+      ["OTHER_LIBTOOLFLAGS"] = "-lboost_log_setup -lboost_thread -lboost_log"
+   }
+
    defines
    {
       "GLFW_INCLUDE_NONE"

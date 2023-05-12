@@ -28,8 +28,8 @@ namespace VWolf {
 
 	void DirectX12Graphics::Build() {
 
-		const char* vertexShaderText = "src/shaders/hlsl/Grid.hlsl";
-		const char* fragmentShaderText = "src/shaders/hlsl/Grid.hlsl";
+		const char* vertexShaderText = "shaders/hlsl/Grid.hlsl";
+		const char* fragmentShaderText = "shaders/hlsl/Grid.hlsl";
 
 		ShaderSource vertexSource = { ShaderType::Vertex, ShaderSourceType::File, vertexShaderText, "VS" };
 		ShaderSource fragmentSource = { ShaderType::Fragment, ShaderSourceType::File, fragmentShaderText, "PS" };

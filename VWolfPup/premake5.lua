@@ -35,6 +35,14 @@ project "VWolfPup"
       "VWolf"
    }
 
+   prebuildcommands
+   {
+	"{RMDIR} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/shaders",
+	"{COPYDIR} src/shaders %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/shaders",
+	"{RMDIR} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/assets",
+	"{COPYDIR} src/assets %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/assets"
+   }
+
    filter "system:macosx"
    systemversion "latest"
 

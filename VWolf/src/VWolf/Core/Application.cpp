@@ -34,6 +34,11 @@ namespace VWolf {
 
 	Application::Application(DriverType type, InitConfiguration config) : m_type(type), driver(Driver::GetDriver(type))
 	{
+        std::filesystem::path currentPath = CommandLineArguments::GetArguments()[0];
+        currentPath = currentPath.remove_filename();
+        if (std::filesystem::current_path() != currentPath)
+            std::filesystem::current_path(currentPath);
+
 		VWOLF_CORE_ASSERT(config.width > 0);
 		VWOLF_CORE_ASSERT(config.height > 0);
 
