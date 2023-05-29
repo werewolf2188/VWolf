@@ -50,7 +50,6 @@ namespace VWolf {
 			glfwTerminate();
 		}
 		window->Initialize();
-        graphics->Build();
 #ifdef DEBUG        
         if (OPENGL_MINOR_VERSION > 5) {
             GLThrowIfFailed(glEnable(GL_DEBUG_OUTPUT));

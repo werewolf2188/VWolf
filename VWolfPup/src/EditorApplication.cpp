@@ -26,8 +26,8 @@
 #include "UI/SceneSettings.h"
 #include "UI/FileBrowser.h"
 
-#define NUMSHADERS 2
-std::array<std::string, NUMSHADERS> shaderNames = { { "Flat Color", "Blinn Phon" } };
+#define NUMSHADERS 3
+std::array<std::string, NUMSHADERS> shaderNames = { { "Flat Color", "Blinn Phon", "Grid" } };
 std::array<VWolf::ShaderSource, NUMSHADERS> vsFiles;
 std::array<VWolf::ShaderSource, NUMSHADERS> psFiles;
 
@@ -36,12 +36,14 @@ void LoadShaderNames(VWolf::DriverType driverType) {
 
         vsFiles = { {
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.vert.glsl" , "main" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.vert.glsl" , "main" }
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.vert.glsl" , "main" },
+            { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/Grid.vert.glsl" , "main" }
         } };
 
         psFiles = { {
             { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.frag.glsl" , "main" },
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.frag.glsl" , "main" }
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.frag.glsl" , "main" },
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/Grid.frag.glsl" , "main" }
         } };
     }
 #ifdef VWOLF_PLATFORM_WINDOWS   
@@ -49,12 +51,14 @@ void LoadShaderNames(VWolf::DriverType driverType) {
 
         vsFiles = { {
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/FlatColor.hlsl" , "VS" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/BlinnPhong.hlsl" , "VS" }
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/BlinnPhong.hlsl" , "VS" },
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/Grid.hlsl" , "VS" }
         } };
 
         psFiles = { {
             { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/FlatColor.hlsl" , "PS" },
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/BlinnPhong.hlsl" , "PS" }
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/BlinnPhong.hlsl" , "PS" },
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/Grid.hlsl" , "PS" }
         } };
     }
 #endif
@@ -79,13 +83,30 @@ private:
     VWolf::Ref<VWolf::Texture2D> testTexture;
 };
 
+VWolf::MeshData CreateGrid() {
+    VWolf::MeshData meshData;
+    meshData.SetName("Empty");
+    meshData.vertices.resize(6);
+    meshData.indices.resize(6);
+
+    meshData.indices[0] = 0;
+    meshData.indices[1] = 1;
+    meshData.indices[2] = 2;
+    meshData.indices[3] = 3;
+    meshData.indices[4] = 4;
+    meshData.indices[5] = 5;
+    return meshData;
+}
+
 class RendererSandboxApplication: public VWolf::Application {
 public:
     
     VWolf::Ref<VWolf::Camera> camera;
     VWolf::Material material_1;
     VWolf::Material material_2;
+    VWolf::Material materialGrid;
     VWolf::Ref<VWolf::Texture2D> testTexture;
+    VWolf::MeshData gridData = CreateGrid();
 
     VWolf::Ref<VWolfPup::CameraController> controller;
 
@@ -180,6 +201,7 @@ public:
 
         new (&material_1) VWolf::Material(shaderNames[0].c_str());
         new (&material_2) VWolf::Material(shaderNames[1].c_str());
+        new (&materialGrid) VWolf::Material(shaderNames[2].c_str());
 
         material_2.SetAsDefault();
         material_1.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
@@ -247,7 +269,8 @@ public:
            
         }
         VWolf::Graphics::SetRenderTexture(sceneViewer->GetRenderTexture());
-        testScene->DrawEditor(camera);        
+        testScene->DrawEditor(camera);
+        VWolf::Graphics::RenderMesh(gridData, VWolf::MatrixFloat4x4(), materialGrid);
         VWolf::Graphics::SetRenderTexture(nullptr);
     }
 

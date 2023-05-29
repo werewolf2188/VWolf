@@ -15,29 +15,6 @@
 
 namespace VWolf {
 
-	struct ViewUniforms {
-		MatrixFloat4x4 view;
-		MatrixFloat4x4 proj;
-		Vector3Float pos;
-	};
-
-	struct NearFarPoint {
-		float fNear;
-		float fFar;
-	};
-
-	void DirectX12Graphics::Build() {
-
-		const char* vertexShaderText = "shaders/hlsl/Grid.hlsl";
-		const char* fragmentShaderText = "shaders/hlsl/Grid.hlsl";
-
-		ShaderSource vertexSource = { ShaderType::Vertex, ShaderSourceType::File, vertexShaderText, "VS" };
-		ShaderSource fragmentSource = { ShaderType::Fragment, ShaderSourceType::File, fragmentShaderText, "PS" };
-
-		std::initializer_list<ShaderSource> otherShaders = { vertexSource, fragmentSource };
-		gridShader = CreateRef<HLSLShader>("Grid", otherShaders);
-	}
-
 	//void DirectX12Renderer::ProcessItems()
 	//{
 	//	if (frame != context->mCurrBackBuffer) {
@@ -263,38 +240,6 @@ namespace VWolf {
 	void DirectX12Graphics::AddLightImpl(Light& light)
 	{
 		lights.push_back(light);
-	}
-
-	void DirectX12Graphics::DrawGridImpl()
-	{
-		auto pso = gridShader->GetPipeline();
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetPipelineState(pso.Get());
-		gridShader->Bind();
-		
-		auto view = Camera::main->GetViewMatrix();
-        auto projection = Camera::main->GetProjection();
-        auto position = Camera::main->GetPosition();
-        auto nearZ = Camera::main->GetNearZ();
-        auto farZ = Camera::main->GetFarZ();
-
-		ViewUniforms viewUniform = {
-			view, projection, position
-		};
-
-		NearFarPoint nearFarPoint = {
-			nearZ, farZ
-		};
-        
-        gridShader->Bind();
-        gridShader->SetData(&viewUniform, "ViewUniforms", sizeof(ViewUniforms), 0);
-        gridShader->SetData(&nearFarPoint, "NearFarPoint", sizeof(NearFarPoint), 0);
-		
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		/*float factor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->OMSetBlendFactor(factor);*/
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->DrawInstanced(6, 1, 0, 0);
-		
 	}
 
 	void DirectX12Graphics::BindToRenderTexture() {

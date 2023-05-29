@@ -1,14 +1,18 @@
-cbuffer cbPerViewUniforms : register(b0)
+cbuffer cbPerCamera : register(b0)
 {
-	float4x4 view;
-	float4x4 proj;
-	float3 pos;
-};
-
-cbuffer cbPerNearFarPoint : register(b1)
-{
-	float near; //0.01
-	float far; //100
+	float4x4 u_View;
+	float4x4 u_InvView;
+	float4x4 u_Proj;
+	float4x4 u_InvProj;
+	float4x4 u_ViewProjection;
+	float4x4 u_InvViewProjection;
+	float3 u_EyePosition;
+	float2 u_RenderTargetSize;
+	float2 u_InvRenderTargetSize;
+	float u_NearZ;
+	float u_FarZ;
+	float u_TotalTime;
+	float u_DeltaTime;
 };
 
 struct VertexOut {
@@ -82,8 +86,8 @@ VertexOut VS(uint vertexId : SV_VertexID)
 	/*p = mul(view, p);
 	p = mul(proj, p);*/
     vOut.position = p;
-    vOut.nearPoint = float4(UnprojectPoint(p.x, p.y, 0.0, view, proj).xyz, 1);
-    vOut.farPoint = float4(UnprojectPoint(p.x, p.y, 1.0, view, proj), 1);
+    vOut.nearPoint = float4(UnprojectPoint(p.x, p.y, 0.0, u_View, u_Proj).xyz, 1);
+    vOut.farPoint = float4(UnprojectPoint(p.x, p.y, 1.0, u_View, u_Proj), 1);
 	return vOut;
 }
 
@@ -114,8 +118,8 @@ float computeLinearDepth(float3 pos) {
     float4x4 projView = mul(proj, view);
     float4 clip_space_pos = mul(projView, float4(pos.xyz, 1.0));
     float clip_space_depth = (clip_space_pos.z / clip_space_pos.w) * 2.0 - 1.0; // put back between -1 and 1
-    float linearDepth = (2.0 * near * far) / (far + near - clip_space_depth * (far - near)); // get linear value between 0.01 and 100
-    return linearDepth / far; // normalize
+    float linearDepth = (2.0 * u_NearZ * u_FarZ) / (u_FarZ + u_NearZ - clip_space_depth * (far - near)); // get linear value between 0.01 and 100
+    return linearDepth / u_FarZ; // normalize
 }
 
 PixelOut PS(VertexOut vin) {

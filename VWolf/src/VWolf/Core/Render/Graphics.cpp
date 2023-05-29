@@ -39,12 +39,6 @@ namespace VWolf {
         }
     }
 
-    void Graphics::DrawGrid() {
-        if (graphicsImpl) {
-            graphicsImpl->DrawGridImpl();
-        }
-    }
-
     void Graphics::SetRenderTexture(Ref<RenderTexture> renderTexture) {
         if (graphicsImpl) {
             graphicsImpl->SetRenderTextureImpl(renderTexture);

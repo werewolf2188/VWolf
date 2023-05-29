@@ -139,6 +139,5 @@ namespace VWolf {
                                  transform.GetWorldMatrix(),
                                  *MaterialLibrary::Default());
         }
-        VWolf::Graphics::DrawGrid();
     }
 }

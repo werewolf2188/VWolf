@@ -384,7 +384,9 @@ namespace VWolf {
             auto lambda = [name](std::pair<std::string, Ref<GLUniformBuffer>> it) {
                 return strcmp(it.first.c_str(), name) == 0;
             };
-            ubBlock = std::find_if(uniformBuffers.begin(), uniformBuffers.end(), lambda)->second;
+            auto ubPair = std::find_if(uniformBuffers.begin(), uniformBuffers.end(), lambda);
+            if (ubPair->first == "") return;
+            ubBlock = ubPair->second;
             ubBlock->SetData(data, size, offset);
         }
 
@@ -655,7 +657,11 @@ namespace VWolf {
         Ref<GLUniformBuffer> material = std::find_if(container.begin(),
                                                      container.end(),
                                                      lambda)->second;
+       
         std::vector<Ref<ShaderInput>> inputs;
+        if (material == nullptr) {
+            return inputs;
+        }
         for (std::pair<std::string, Ref<GLUniform>> uniform: material->GetUniforms()) {
             if (uniform.second->GetShaderDataType() == ShaderDataType::None) continue;
             inputs.push_back(CreateRef<ShaderInput>(uniform.second->GetName(),
