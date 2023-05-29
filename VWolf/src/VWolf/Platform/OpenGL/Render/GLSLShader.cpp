@@ -385,6 +385,7 @@ namespace VWolf {
                 return strcmp(it.first.c_str(), name) == 0;
             };
             auto ubPair = std::find_if(uniformBuffers.begin(), uniformBuffers.end(), lambda);
+            if (ubPair == uniformBuffers.end()) return;
             if (ubPair->first == "") return;
             ubBlock = ubPair->second;
             ubBlock->SetData(data, size, offset);
@@ -649,16 +650,19 @@ namespace VWolf {
     }
 
     std::vector<Ref<ShaderInput>> GLSLShader::GetMaterialInputs() const {
+        std::vector<Ref<ShaderInput>> inputs;
         const char * _materialName = materialName.c_str();
         auto lambda = [_materialName](std::pair<std::string, Ref<GLUniformBuffer>> it) {
             return strcmp(it.first.c_str(), _materialName) == 0;
         };
         auto container = m_program->GetUniformBuffers();
-        Ref<GLUniformBuffer> material = std::find_if(container.begin(),
-                                                     container.end(),
-                                                     lambda)->second;
-       
-        std::vector<Ref<ShaderInput>> inputs;
+        auto mat = std::find_if(container.begin(),
+                                container.end(),
+                                lambda);
+        if (mat == container.end()) return inputs;
+
+        Ref<GLUniformBuffer> material = mat->second;       
+        
         if (material == nullptr) {
             return inputs;
         }
@@ -680,6 +684,10 @@ namespace VWolf {
             return strcmp(it.first.c_str(), _materialName) == 0;
         };
         auto container = m_program->GetUniformBuffers();
+        auto mat = std::find_if(container.begin(),
+                                container.end(),
+                                lambda);
+        if (mat == container.end()) return 0;
         return std::find_if(container.begin(),
                             container.end(),
                             lambda)->second->GetSize();

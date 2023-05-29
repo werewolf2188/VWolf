@@ -37,7 +37,7 @@ void LoadShaderNames(VWolf::DriverType driverType) {
         vsFiles = { {
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.vert.glsl" , "main" },
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.vert.glsl" , "main" },
-            { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/Grid.vert.glsl" , "main" }
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/Grid.vert.glsl" , "main" }
         } };
 
         psFiles = { {

@@ -109,16 +109,16 @@ float4 grid(float3 fragPos3D, float scale, bool drawAxis) {
 }
 
 float computeDepth(float3 pos) {
-    float4x4 projView = mul(proj, view);
+    float4x4 projView = mul(u_Proj, u_View);
     float4 clip_space_pos = mul(projView, float4(pos.xyz, 1.0));
     return (clip_space_pos.z / clip_space_pos.w);
 }
 
 float computeLinearDepth(float3 pos) {
-    float4x4 projView = mul(proj, view);
+    float4x4 projView = mul(u_Proj, u_View);
     float4 clip_space_pos = mul(projView, float4(pos.xyz, 1.0));
     float clip_space_depth = (clip_space_pos.z / clip_space_pos.w) * 2.0 - 1.0; // put back between -1 and 1
-    float linearDepth = (2.0 * u_NearZ * u_FarZ) / (u_FarZ + u_NearZ - clip_space_depth * (far - near)); // get linear value between 0.01 and 100
+    float linearDepth = (2.0 * u_NearZ * u_FarZ) / (u_FarZ + u_NearZ - clip_space_depth * (u_FarZ - u_NearZ)); // get linear value between 0.01 and 100
     return linearDepth / u_FarZ; // normalize
 }
 
