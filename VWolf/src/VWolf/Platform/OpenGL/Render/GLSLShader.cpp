@@ -183,6 +183,7 @@ namespace VWolf {
         bool IsTexture() {
             switch (type) {
                 case GL_SAMPLER_2D: return true;
+                case GL_SAMPLER_CUBE: return true;
             }
             return false;
         }
@@ -632,6 +633,33 @@ namespace VWolf {
         }
         else {
             GLThrowIfFailed(glDisable(GL_DEPTH_TEST));
+        }
+
+        switch(m_configuration.depthStencil.depthFunction) {
+            case ShaderConfiguration::DepthStencil::DepthFunction::Never:
+                GLThrowIfFailed(glDepthFunc(GL_NEVER));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::Less:
+                GLThrowIfFailed(glDepthFunc(GL_LESS));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::LEqual:
+                GLThrowIfFailed(glDepthFunc(GL_LEQUAL));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::Equal:
+                GLThrowIfFailed(glDepthFunc(GL_EQUAL));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::NotEqual:
+                GLThrowIfFailed(glDepthFunc(GL_NOTEQUAL));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::GEqual:
+                GLThrowIfFailed(glDepthFunc(GL_GEQUAL));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::Greater:
+                GLThrowIfFailed(glDepthFunc(GL_GREATER));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::Always:
+                GLThrowIfFailed(glDepthFunc(GL_ALWAYS));
+                break;
         }
     }
 

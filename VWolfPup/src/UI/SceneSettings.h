@@ -16,12 +16,17 @@ namespace VWolfPup {
         SceneSettings(VWolf::Scene *scene);
         ~SceneSettings();
     public:
-        void SetScene(VWolf::Scene* scene) { this->scene = scene; }
+        void SetScene(VWolf::Scene* scene) {
+            this->scene = scene;
+            selection = (int)scene->GetSceneBackground().GetType();
+        }
     public:
         void OnGui() override;
     protected:
         virtual void SetInContainer() override;
     private:
         VWolf::Scene *scene;
+        std::array<const char*, 2> items = { "Color", "Skybox" };
+        int selection = 0;
     };
 }

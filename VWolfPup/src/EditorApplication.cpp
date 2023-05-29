@@ -26,10 +26,11 @@
 #include "UI/SceneSettings.h"
 #include "UI/FileBrowser.h"
 
-#define NUMSHADERS 3
-std::array<std::string, NUMSHADERS> shaderNames = { { "Flat Color", "Blinn Phon", "Grid" } };
+#define NUMSHADERS 4
+std::array<std::string, NUMSHADERS> shaderNames = { { "Flat Color", "Blinn Phon", "Grid", "Skybox" } };
 std::array<VWolf::ShaderSource, NUMSHADERS> vsFiles;
 std::array<VWolf::ShaderSource, NUMSHADERS> psFiles;
+std::array<VWolf::ShaderConfiguration, NUMSHADERS> configurations;
 
 void LoadShaderNames(VWolf::DriverType driverType) {
     if (driverType == VWolf::DriverType::OpenGL) {
@@ -37,13 +38,15 @@ void LoadShaderNames(VWolf::DriverType driverType) {
         vsFiles = { {
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.vert.glsl" , "main" },
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.vert.glsl" , "main" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/Grid.vert.glsl" , "main" }
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/Grid.vert.glsl" , "main" },
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/Skybox.vert.glsl" , "main" }
         } };
 
         psFiles = { {
             { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.frag.glsl" , "main" },
             { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.frag.glsl" , "main" },
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/Grid.frag.glsl" , "main" }
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/Grid.frag.glsl" , "main" },
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/Skybox.frag.glsl" , "main" }
         } };
     }
 #ifdef VWOLF_PLATFORM_WINDOWS   
@@ -62,6 +65,12 @@ void LoadShaderNames(VWolf::DriverType driverType) {
         } };
     }
 #endif
+    configurations = { {
+        VWolf::ShaderConfiguration(),
+        VWolf::ShaderConfiguration(),
+        VWolf::ShaderConfiguration(),
+        { VWolf::ShaderConfiguration::Rasterization(), { true, VWolf::ShaderConfiguration::DepthStencil::DepthFunction::LEqual }, VWolf::ShaderConfiguration::Blend() }
+    } };
 }
 
 class TextureView: public VWolfPup::View {
@@ -85,7 +94,7 @@ private:
 
 VWolf::MeshData CreateGrid() {
     VWolf::MeshData meshData;
-    meshData.SetName("Empty");
+    meshData.SetName("Grid");
     meshData.vertices.resize(6);
     meshData.indices.resize(6);
 
@@ -101,14 +110,16 @@ VWolf::MeshData CreateGrid() {
 class RendererSandboxApplication: public VWolf::Application {
 public:
     
-    VWolf::Ref<VWolf::Camera> camera;
+    VWolf::Ref<VWolf::Camera> camera, skyBoxCamera;
     VWolf::Material material_1;
     VWolf::Material material_2;
     VWolf::Material materialGrid;
+    // TODO: I still don't like to have the default materiaal for the skybox living here.
+    VWolf::Material materialSkybox;
     VWolf::Ref<VWolf::Texture2D> testTexture;
     VWolf::MeshData gridData = CreateGrid();
 
-    VWolf::Ref<VWolfPup::CameraController> controller;
+    VWolf::Ref<VWolfPup::CameraController> controller, skyBoxController;
 
     // UI
     VWolfPup::ContainerView* containerView;
@@ -130,7 +141,10 @@ public:
         VWolfPup::InitializeEditor();
         
         camera = VWolf::CreateRef<VWolf::Camera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
+        skyBoxCamera = VWolf::CreateRef<VWolf::Camera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
         controller = VWolf::CreateRef<VWolfPup::CameraController>(camera);
+        skyBoxController = VWolf::CreateRef<VWolfPup::CameraController>(skyBoxCamera);
+        skyBoxController->SetUseDistanceAndFocalForPositionCalculation(false);
 
         // Scene
         testScene = VWolf::CreateRef<VWolf::Scene>("Test");
@@ -188,6 +202,8 @@ public:
             sceneViewer->SetSelectedObject(nullptr);
             inspector->SetGameObject(nullptr);
             testScene = VWolf::SceneSerializer::Deserialize(path);
+            testScene->GetSceneBackground().SetSkyboxMaterial(materialSkybox);
+            testScene->GetSceneBackground().SetCamera(skyBoxCamera);
             sceneHierarchy->SetScene(testScene.get());
             sceneSettings->SetScene(testScene.get());
         });
@@ -196,12 +212,13 @@ public:
         LoadShaderNames(DRIVER_TYPE);
         
         for (int i = 0; i < NUMSHADERS; i++) {
-            VWolf::ShaderLibrary::LoadShader(shaderNames[i].c_str(), { vsFiles[i], psFiles[i] });
+            VWolf::ShaderLibrary::LoadShader(shaderNames[i].c_str(), { vsFiles[i], psFiles[i] }, configurations[i]);
         }
 
         new (&material_1) VWolf::Material(shaderNames[0].c_str());
         new (&material_2) VWolf::Material(shaderNames[1].c_str());
         new (&materialGrid) VWolf::Material(shaderNames[2].c_str());
+        new (&materialSkybox) VWolf::Material(shaderNames[3].c_str());
 
         material_2.SetAsDefault();
         material_1.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
@@ -223,6 +240,16 @@ public:
             material_2.SetTexture("gDiffuseMap", testTexture);
         }
 #endif
+//        materialSkybox.SetTexture("skybox", VWolf::Texture::LoadCubemap(512));
+        materialSkybox.SetTexture("skybox",
+                                  VWolf::Texture::LoadCubemap({ "assets/skybox/right.png",
+                                                                "assets/skybox/left.png",
+                                                                "assets/skybox/top.png",
+                                                                "assets/skybox/bottom.png",
+                                                                "assets/skybox/front.png",
+                                                                "assets/skybox/back.png" }));
+        testScene->GetSceneBackground().SetSkyboxMaterial(materialSkybox);
+        testScene->GetSceneBackground().SetCamera(skyBoxCamera);
         textureView = new TextureView(testTexture);
         containerView->AddView(textureView);
 //        cylinder->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), material_2);
@@ -245,6 +272,7 @@ public:
         if (openBrowser->IsOpen() || saveBrowser->IsOpen()) return;
         if (sceneViewer->IsHovering()) {
             controller->OnEvent(evt);
+            skyBoxController->OnEvent(evt);
         }
         
         sceneHierarchy->OnEvent(evt);
@@ -260,16 +288,16 @@ public:
         testScene->UpdateEditor();
         if (sceneViewer->IsHovering()) {
             controller->OnUpdate();
+            skyBoxController->OnUpdate();
         }
     }
 
     void OnDraw() override {
-        if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
-            VWolf::Graphics::Clear();
-           
-        }
+        
         VWolf::Graphics::SetRenderTexture(sceneViewer->GetRenderTexture());
+
         testScene->DrawEditor(camera);
+        
         VWolf::Graphics::RenderMesh(gridData, VWolf::MatrixFloat4x4(), materialGrid);
         VWolf::Graphics::SetRenderTexture(nullptr);
     }

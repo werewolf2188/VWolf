@@ -179,6 +179,11 @@ namespace VWolf {
                 texture->Bind(index);
                 GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
             }
+            OpenGLCubemap* cubeMap = dynamic_cast<OpenGLCubemap*>(material.GetTexture(textures[index].GetName()).get());
+            if (cubeMap != nullptr) {
+                cubeMap->Bind(index);
+                GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
+            }
         }
         shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
         shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
@@ -200,6 +205,10 @@ namespace VWolf {
             OpenGLTexture2D* texture = dynamic_cast<OpenGLTexture2D*>(material.GetTexture(textures[index].GetName()).get());
             if (texture != nullptr) {
                 texture->Unbind(index);
+            }
+            OpenGLCubemap* cubeMap = dynamic_cast<OpenGLCubemap*>(material.GetTexture(textures[index].GetName()).get());
+            if (cubeMap != nullptr) {
+                cubeMap->Unbind(index);
             }
         }
         shader->Unbind();

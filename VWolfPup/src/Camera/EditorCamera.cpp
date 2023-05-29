@@ -127,7 +127,8 @@ namespace VWolfPup {
 
     VWolf::Vector3Float CameraController::CalculatePosition() const
     {
-        return m_FocalPoint - GetForwardDirection() * m_Distance;
+        return (useDistanceAndFocalPointForPositionCalculation ? m_FocalPoint: VWolf::Vector3Float(0.0f, 0.0f, 0.0f)) -
+        GetForwardDirection() * (useDistanceAndFocalPointForPositionCalculation ? m_Distance: 1.0f); //<--- For the skybox, the distance should not be changed
     }
 
     VWolf::Vector3Float CameraController::GetUpDirection() const

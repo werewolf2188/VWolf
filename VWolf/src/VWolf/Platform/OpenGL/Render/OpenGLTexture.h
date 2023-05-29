@@ -7,6 +7,7 @@
 
 #pragma once
 #include "VWolf/Core/Render/Texture.h"
+#include "VWolf/Core/Math/VMath.h"
 
 namespace VWolf {
     class OpenGLTexture2D: public Texture2D {
@@ -46,5 +47,24 @@ namespace VWolf {
         GLuint m_depthTextureID = 0;
         GLuint m_frameBufferID = 0;
 //        GLenum m_internalDataFormat, m_dataFormat;
+    };
+
+    class OpenGLCubemap: public Cubemap {
+    public:
+        OpenGLCubemap(uint32_t size, TextureOptions options = {});
+        OpenGLCubemap(std::array<std::string, 6> paths, TextureOptions options = {});
+        virtual ~OpenGLCubemap();
+        virtual void* GetHandler() override;
+    public:
+        void Bind(uint32_t base);
+        void Unbind(uint32_t base);
+    #if defined(DEBUG) || defined(_DEBUG)
+    private:
+        void PopulateTest(GLuint id, int checkIndex, Vector4Float otherColor);
+        void PopulateTest();
+    #endif
+    private:
+        GLuint m_textureID;
+        GLenum m_internalDataFormat, m_dataFormat;
     };
 }

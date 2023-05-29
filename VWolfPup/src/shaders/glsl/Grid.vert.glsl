@@ -46,7 +46,7 @@ void main() {
     nearPoint = UnprojectPoint(p.x, p.y, 0.0, u_View, u_Proj).xyz; // unprojecting on the near plane
     farPoint = UnprojectPoint(p.x, p.y, 1.0, u_View, u_Proj).xyz; // unprojecting on the far plane
     fragView = u_View;
-    fragProj = u_View;
+    fragProj = u_Proj;
     near = u_NearZ;
     far = u_FarZ;
     gl_Position = vec4(p, 1.0); // using directly the clipped coordinates
