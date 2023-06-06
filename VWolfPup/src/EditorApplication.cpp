@@ -12,7 +12,7 @@
 #ifdef VWOLF_PLATFORM_WINDOWS
 #define DRIVER_TYPE VWolf::DriverType::DirectX12 
 #else
-#define DRIVER_TYPE VWolf::DriverType::OpenGL
+#define DRIVER_TYPE VWolf::DriverType::OpenGL 
 #endif
 
 #define SCREENWIDTH 1280.0f
@@ -55,13 +55,15 @@ void LoadShaderNames(VWolf::DriverType driverType) {
         vsFiles = { {
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/FlatColor.hlsl" , "VS" },
              { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/BlinnPhong.hlsl" , "VS" },
-             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/Grid.hlsl" , "VS" }
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/Grid.hlsl" , "VS" },
+             { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/Skybox.hlsl" , "VS" }
         } };
 
         psFiles = { {
             { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/FlatColor.hlsl" , "PS" },
             { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/BlinnPhong.hlsl" , "PS" },
-            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/Grid.hlsl" , "PS" }
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/Grid.hlsl" , "PS" },
+            { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/Skybox.hlsl" , "PS" }
         } };
     }
 #endif

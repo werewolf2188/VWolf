@@ -298,6 +298,8 @@ namespace VWolf {
 				case D3D_SRV_DIMENSION_TEXTURE1D: return ShaderDataType::Float;
 				case D3D_SRV_DIMENSION_TEXTURE2D: return ShaderDataType::Float2;
 				case D3D_SRV_DIMENSION_TEXTURE3D: return ShaderDataType::Float3;
+				case D3D_SRV_DIMENSION_TEXTURECUBE: 
+					return ShaderDataType::Float3;
 				}				
 			}
 			case D3D_RETURN_TYPE_SINT: {
@@ -305,6 +307,8 @@ namespace VWolf {
 				case D3D_SRV_DIMENSION_TEXTURE1D: return ShaderDataType::Int;
 				case D3D_SRV_DIMENSION_TEXTURE2D: return ShaderDataType::Int2;
 				case D3D_SRV_DIMENSION_TEXTURE3D: return ShaderDataType::Int3;
+				case D3D_SRV_DIMENSION_TEXTURECUBE: 
+					return ShaderDataType::Int3;
 				}
 			}
 			case D3D_RETURN_TYPE_UNORM: return ShaderDataType::Bool;
@@ -667,6 +671,33 @@ namespace VWolf {
 			{
 				psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 				psoDesc.DepthStencilState.DepthEnable = configuration.depthStencil.depthTest;
+				switch (configuration.depthStencil.depthFunction) {
+				case ShaderConfiguration::DepthStencil::DepthFunction::Never:
+					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_NEVER;
+					break;
+				case ShaderConfiguration::DepthStencil::DepthFunction::Less:
+					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+					break;
+				case ShaderConfiguration::DepthStencil::DepthFunction::LEqual:
+					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+					break;
+				case ShaderConfiguration::DepthStencil::DepthFunction::Equal:
+					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_EQUAL;
+					break;
+				case ShaderConfiguration::DepthStencil::DepthFunction::NotEqual:
+					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_NOT_EQUAL;
+					break;
+				case ShaderConfiguration::DepthStencil::DepthFunction::GEqual:
+					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+					break;
+				case ShaderConfiguration::DepthStencil::DepthFunction::Greater:
+					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+					break;
+				case ShaderConfiguration::DepthStencil::DepthFunction::Always:
+					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+					break;
+				}
+
 			}
 
 			psoDesc.SampleMask = UINT_MAX;
@@ -736,7 +767,7 @@ namespace VWolf {
 		// Constant Buffers
 		// TODO: This is an expected amount, but I'm not satisfied with this.
 		// TODO: I should be able to let resources grow and shrink
-		uint32_t expectedObjects = strcmp(name, "Grid") == 0 ? 1: 100; 
+		uint32_t expectedObjects = 100; 
 		for (std::pair<std::string, Ref<HLConstantBuffer>> param : m_program->GetConstantBuffers()) {
 			Ref<HLConstantBuffer> cb = param.second;
 			cb->CreateUploadBuffer(cb->GetSize(), expectedObjects, UseDescriptorTable);

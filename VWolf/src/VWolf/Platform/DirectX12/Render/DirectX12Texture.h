@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VWolf/Core/Render/Texture.h"
+#include "VWolf/Core/Math/VMath.h" 
 #ifdef VWOLF_PLATFORM_WINDOWS
 namespace VWolf {
 	class DX12RenderTargetResource;
@@ -40,6 +41,28 @@ namespace VWolf {
 		Ref<DX12RenderTargetResource> GetTexture() const { return rtvTexture; }
 	private:
 		Ref<DX12RenderTargetResource> rtvTexture;
+	};
+
+	class DirectX12Cubemap : public Cubemap {
+	public:
+		DirectX12Cubemap(uint32_t size, TextureOptions options = {});
+		DirectX12Cubemap(std::array<std::string, 6> paths, TextureOptions options = {});
+		virtual ~DirectX12Cubemap();
+		virtual void* GetHandler() override;
+#if defined(DEBUG) || defined(_DEBUG)
+	private:
+		//void PopulateTest(GLuint id, int checkIndex, Vector4Float otherColor);
+		void PopulateTest();
+		void* PopulateTest(int checkIndex, Vector4Float otherColor);
+#endif
+		void Initialize(uint32_t size, DXGI_FORMAT format, TextureOptions options = {});
+	private:
+		Ref<DX12TextureResource> m_texture;
+		Ref<DX12BufferResource> m_textureUpload;
+		bool hasBeenUpload = false;
+		size_t numBytes = 0, rowBytes = 0, numRows = 0;
+		std::array<void*, 6> m_data;
+		uint32_t numberOfSides = 6;
 	};
 }
 #endif

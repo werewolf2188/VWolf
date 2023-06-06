@@ -73,11 +73,11 @@ namespace VWolf {
             case DriverType::OpenGL:
                 texture = CreateRef<OpenGLCubemap>(size, options);
                 break;
-//#ifdef VWOLF_PLATFORM_WINDOWS
-//            case DriverType::DirectX12:
-//                texture = CreateRef<DirectX12Texture2D>(width,  height, options);
-//                break;
-//#endif
+#ifdef VWOLF_PLATFORM_WINDOWS
+            case DriverType::DirectX12:
+                texture = CreateRef<DirectX12Cubemap>(size, options);
+                break;
+#endif
             default:
                 VWOLF_CORE_ASSERT(false, "Texture: Not yet implemented");
         }
@@ -90,11 +90,11 @@ namespace VWolf {
             case DriverType::OpenGL:
                 texture = CreateRef<OpenGLCubemap>(paths, options);
                 break;
-//#ifdef VWOLF_PLATFORM_WINDOWS
-//            case DriverType::DirectX12:
-//                texture = CreateRef<DirectX12Texture2D>(width,  height, options);
-//                break;
-//#endif
+#ifdef VWOLF_PLATFORM_WINDOWS
+            case DriverType::DirectX12:
+                texture = CreateRef<DirectX12Cubemap>(paths, options);
+                break;
+#endif
             default:
                 VWOLF_CORE_ASSERT(false, "Texture: Not yet implemented");
         }
