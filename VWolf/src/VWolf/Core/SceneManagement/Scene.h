@@ -10,6 +10,7 @@
 #include "entt/entt.hpp"
 
 #include "VWolf/Core/Render/Camera.h"
+#include "VWolf/Core/Render/Material.h"
 
 #include "VWolf/Core/Math/VMath.h"
 
@@ -18,6 +19,9 @@ namespace VWolf {
 
     class SceneBackground {
     public:
+        enum class Type: unsigned int {
+            Color, Skybox
+        };
         SceneBackground();
         SceneBackground(SceneBackground& scene);
         SceneBackground(SceneBackground&& scene) = default;
@@ -25,10 +29,21 @@ namespace VWolf {
     public:
         Vector4Float& GetBackgroundColor() { return backgroundColor; }
         void SetBackgroundColor(Vector4Float backgroundColor) { this->backgroundColor = backgroundColor; }
+        void SetSkyboxMaterial(Material& material) { this->materialSkybox = &material; }
+        MeshData& GetSkyboxMeshData() { return skybox; }
+        Material& GetSkyboxMaterial() { return *this->materialSkybox; }
+        void SetCamera(Ref<Camera> camera) { this->camera = camera; }
+        Ref<Camera> GetCamera() { return this->camera; }
+        Type GetType() { return type; }
+        void SetType(Type type) { this->type = type; }
     public:
         SceneBackground& operator=(SceneBackground& t);
     private:
         Vector4Float backgroundColor;
+        Type type = Type::Color;
+        MeshData skybox;
+        Material* materialSkybox;
+        Ref<Camera> camera;
     };
 
     class Scene {

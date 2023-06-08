@@ -24,7 +24,6 @@ namespace VWolf {
         static void Clear();
         // TODO: Not sure about this one
         static void AddLight(Light& light);
-        static void DrawGrid();
 #ifdef VWOLF_CORE
         static void SetGraphicsImpl(Ref<Graphics> graphics) { graphicsImpl = graphics; }
         static Ref<Graphics> SetGraphicsImpl() { return graphicsImpl; }
@@ -38,7 +37,6 @@ namespace VWolf {
         virtual void ClearImpl() = 0;
         // TODO: Not sure about this one
         virtual void AddLightImpl(Light& light) = 0;
-        virtual void DrawGridImpl() = 0;
         virtual void BeginFrameImpl() = 0;
         virtual void EndFrameImpl() = 0;
         virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) = 0;

@@ -47,6 +47,18 @@ namespace VWolf {
 
         struct DepthStencil {
             bool depthTest = true;
+            enum class DepthFunction {
+                Never,
+                Less,
+                Equal,
+                LEqual,
+                Greater,
+                NotEqual,
+                GEqual,
+                Always
+            };
+
+            DepthFunction depthFunction = DepthFunction::Less;
         };
 
         struct Blend {

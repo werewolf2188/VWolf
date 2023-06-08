@@ -66,4 +66,38 @@ namespace VWolf {
         }
         return texture;
     }
+
+    Ref<Cubemap> Texture::LoadCubemap(uint32_t size, TextureOptions options) {
+        Ref<Cubemap> texture;
+        switch(Application::GetApplication()->GetDriverType()) {
+            case DriverType::OpenGL:
+                texture = CreateRef<OpenGLCubemap>(size, options);
+                break;
+#ifdef VWOLF_PLATFORM_WINDOWS
+            case DriverType::DirectX12:
+                texture = CreateRef<DirectX12Cubemap>(size, options);
+                break;
+#endif
+            default:
+                VWOLF_CORE_ASSERT(false, "Texture: Not yet implemented");
+        }
+        return texture;
+    }
+
+    Ref<Cubemap> Texture::LoadCubemap(std::array<std::string, 6> paths, TextureOptions options) {
+        Ref<Cubemap> texture;
+        switch(Application::GetApplication()->GetDriverType()) {
+            case DriverType::OpenGL:
+                texture = CreateRef<OpenGLCubemap>(paths, options);
+                break;
+#ifdef VWOLF_PLATFORM_WINDOWS
+            case DriverType::DirectX12:
+                texture = CreateRef<DirectX12Cubemap>(paths, options);
+                break;
+#endif
+            default:
+                VWOLF_CORE_ASSERT(false, "Texture: Not yet implemented");
+        }
+        return texture;
+    }
 }

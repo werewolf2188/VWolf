@@ -17,10 +17,65 @@
 
 namespace VWolf {
 
-    // ---------------- SCENE BACKGROUND ----------------
-    SceneBackground::SceneBackground(): backgroundColor({ 0.0f, 0.0f, 0.0f, 1.0f }) {}
+    MeshData CreateSkyBox() {
+        MeshData meshData;
+        meshData.SetName("SkyBox");
+        meshData.vertices.resize(8);
+        
+        /*
+         
+         float skyboxVertices[] =
+         {
+             //   Coordinates
+             -1.0f, -1.0f,  1.0f,//        7--------6
+              1.0f, -1.0f,  1.0f,//       /|       /|
+              1.0f, -1.0f, -1.0f,//      4--------5 |
+             -1.0f, -1.0f, -1.0f,//      | |      | |
+             -1.0f,  1.0f,  1.0f,//      | 3------|-2
+              1.0f,  1.0f,  1.0f,//      |/       |/
+              1.0f,  1.0f, -1.0f,//      0--------1
+             -1.0f,  1.0f, -1.0f
+         };
+         */
 
-    SceneBackground::SceneBackground(SceneBackground& scene): backgroundColor(scene.backgroundColor) {}
+        meshData.vertices[0].position = VWolf::Vector3Float(-1.0f, -1.0f,  1.0f);
+        meshData.vertices[1].position = VWolf::Vector3Float(1.0f, -1.0f,  1.0f);
+        meshData.vertices[2].position = VWolf::Vector3Float(1.0f, -1.0f, -1.0f);
+        meshData.vertices[3].position = VWolf::Vector3Float(-1.0f, -1.0f, -1.0f);
+        meshData.vertices[4].position = VWolf::Vector3Float(-1.0f,  1.0f,  1.0f);
+        meshData.vertices[5].position = VWolf::Vector3Float(1.0f,  1.0f,  1.0f);
+        meshData.vertices[6].position = VWolf::Vector3Float(1.0f,  1.0f, -1.0f);
+        meshData.vertices[7].position = VWolf::Vector3Float(-1.0f,  1.0f, -1.0f);
+
+        unsigned int skyboxIndices[] =
+        {
+            // Right
+            1, 2, 6,
+            6, 5, 1,
+            // Left
+            0, 4, 7,
+            7, 3, 0,
+            // Top
+            4, 5, 6,
+            6, 7, 4,
+            // Bottom
+            0, 3, 2,
+            2, 1, 0,
+            // Back
+            0, 1, 5,
+            5, 4, 0,
+            // Front
+            3, 7, 6,
+            6, 2, 3
+        };
+        meshData.indices.assign(&skyboxIndices[0], &skyboxIndices[36]);
+        return meshData;
+    }
+
+    // ---------------- SCENE BACKGROUND ----------------
+    SceneBackground::SceneBackground(): backgroundColor({ 0.0f, 0.0f, 0.0f, 1.0f }), skybox(CreateSkyBox()) {}
+
+    SceneBackground::SceneBackground(SceneBackground& scene): backgroundColor(scene.backgroundColor), skybox(CreateSkyBox()) {}
     
 
     SceneBackground::~SceneBackground() {}
@@ -102,6 +157,14 @@ namespace VWolf {
     void Scene::DrawEditor(Ref<Camera> editorCamera) {
         Graphics::ClearColor(sceneBackGround.GetBackgroundColor());
         Graphics::Clear();
+
+        if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
+            Graphics::RenderMesh(sceneBackGround.GetSkyboxMeshData(),
+                                 VWolf::MatrixFloat4x4(),
+                                 sceneBackGround.GetSkyboxMaterial(),
+                                 sceneBackGround.GetCamera());
+        }
+
         auto lightsAndTransformComponents = m_registry.view<LightComponent, TransformComponent>();
         
         for (auto lightAndTransformEntity : lightsAndTransformComponents)
@@ -139,6 +202,5 @@ namespace VWolf {
                                  transform.GetWorldMatrix(),
                                  *MaterialLibrary::Default());
         }
-        VWolf::Graphics::DrawGrid();
     }
 }

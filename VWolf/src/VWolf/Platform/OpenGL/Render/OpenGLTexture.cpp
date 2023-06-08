@@ -8,8 +8,6 @@
 #include "vwpch.h"
 #include "OpenGLTexture.h"
 
-#include "VWolf/Core/Math/VMath.h"
-
 #include "stb_image/stb_image.h"
 
 #include "VWolf/Platform/OpenGL/Core/GLCore.h"
@@ -269,5 +267,154 @@ namespace VWolf {
         this->m_width = width;
         this->m_height = height;
         Invalidate();
+    }
+
+    OpenGLCubemap::OpenGLCubemap(uint32_t size, TextureOptions options): Cubemap(size, options) {
+        m_internalDataFormat = GL_RGBA32F;
+        m_dataFormat = GL_RGBA;
+
+        GLThrowIfFailed(glGenTextures(1, &m_textureID));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, m_textureID));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+        // These are very important to prevent seams
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                                  m_options.GetWrapModeW())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                                  m_options.GetWrapModeU())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                                  m_options.GetWrapModeV())));
+
+        PopulateTest();
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+        GLThrowIfFailed(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
+    }
+
+    OpenGLCubemap::OpenGLCubemap(std::array<std::string, 6> paths, TextureOptions options): Cubemap(paths, options) {
+        m_internalDataFormat = GL_RGBA32F;
+        m_dataFormat = GL_RGBA;
+
+        GLThrowIfFailed(glGenTextures(1, &m_textureID));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, m_textureID));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+        // These are very important to prevent seams
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                                  m_options.GetWrapModeW())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                                  m_options.GetWrapModeU())));
+        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                                  m_options.GetWrapModeV())));
+
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            int width, height, nrChannels;
+            unsigned char* data = stbi_load(paths[i].c_str(), &width, &height, &nrChannels, 0);
+            if (nrChannels == 4)
+            {
+                m_internalDataFormat = GL_RGBA8;
+                m_dataFormat = GL_RGBA;
+            }
+            else if (nrChannels == 3)
+            {
+                m_internalDataFormat = GL_RGB8;
+                m_dataFormat = GL_RGB;
+            }
+            if (data)
+            {
+                stbi_set_flip_vertically_on_load(false);
+                GLThrowIfFailed(glTexImage2D
+                (
+                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                 0,
+                 m_internalDataFormat,
+                 width,
+                 height,
+                 0,
+                 m_dataFormat,
+                 GL_UNSIGNED_BYTE,
+                 data
+                 ));
+                stbi_image_free(data);
+            }
+            else
+            {
+                VWOLF_CORE_ERROR("Failed to load texture: %s", paths[i].c_str());
+                stbi_image_free(data);
+            }
+        }
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+        GLThrowIfFailed(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
+    }
+
+    OpenGLCubemap::~OpenGLCubemap() {
+        GLThrowIfFailed(glDeleteTextures(1, &m_textureID));
+    }
+
+    void* OpenGLCubemap::GetHandler() {
+        return (void *)(intptr_t)m_textureID;
+    }
+
+    void OpenGLCubemap::Bind(uint32_t base) {
+        GLThrowIfFailed(glActiveTexture(GL_TEXTURE0 + base));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, m_textureID));
+    }
+
+    void OpenGLCubemap::Unbind(uint32_t base) {
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+    }
+
+    void OpenGLCubemap::PopulateTest() {
+        std::array<Vector4Float, 6> colors = {
+            Vector4Float(1, 0, 0, 1),
+            Vector4Float(0, 1, 0, 1),
+            Vector4Float(0, 0, 1, 1),
+            Vector4Float(1, 1, 0, 1),
+            Vector4Float(1, 0, 1, 1),
+            Vector4Float(0, 1, 1, 1)
+        };
+        
+        std::array<int, 6> indicesToCheck = {
+            1,
+            2,
+            0,
+            2,
+            1,
+            0
+        };
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            PopulateTest(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, indicesToCheck[i],colors[i]);
+        }
+    }
+
+    void OpenGLCubemap::PopulateTest(GLuint id, int checkIndex, Vector4Float otherColor) {
+        size_t size = sizeof(Vector4Float) * m_size * m_size;
+        Vector4Float* data = (Vector4Float*)malloc(size);
+        memset(data, 0, size);
+        uint32_t index = 0;
+        Vector4Float white(1, 1, 1, 1);
+        Vector4Float value = white;
+        for (uint32_t column = 0; column < m_size; column++) {
+            if (column % 32 == 0) {
+                if (value[checkIndex] == 1)
+                    value = otherColor;
+                else if (value[checkIndex] == 0)
+                    value = white;
+            }
+            for (uint32_t row = 0; row < m_size; row++) {
+                if (row % 32 == 0) {
+                    if (value[checkIndex] == 1)
+                        value = otherColor;
+                    else if (value[checkIndex] == 0)
+                        value = white;
+                }
+                index = (column * m_size) + row;
+                data[index] = value;
+            }
+        }
+        
+        GLThrowIfFailed(glTexImage2D(id, 0, m_internalDataFormat, m_size, m_size, 0, m_dataFormat, GL_FLOAT, data));
+        delete[] data;
     }
 }

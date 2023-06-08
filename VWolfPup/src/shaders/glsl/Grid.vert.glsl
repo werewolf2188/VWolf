@@ -1,15 +1,25 @@
 #version 400 core
-// Shared set between most vertex shaders
-layout(std140) uniform ViewUniforms {
-    mat4 view;
-    mat4 proj;
-    vec3 pos;
-} view;
 
-layout (std140) uniform NearFarPoint {
-    float near; //0.01
-    float far; //100
-} nfPoint;
+layout(std140) uniform Camera
+{
+    /*
+        TODO: I don't know what this value does
+         float cbPerObjectPad1;
+     */
+    mat4 u_View;
+    mat4 u_InvView;
+    mat4 u_Proj;
+    mat4 u_InvProj;
+    mat4 u_ViewProjection;
+    mat4 u_InvViewProjection;
+    vec3 u_EyePosition;
+    vec2 u_RenderTargetSize;
+    vec2 u_InvRenderTargetSize;
+    float u_NearZ;
+    float u_FarZ;
+    float u_TotalTime;
+    float u_DeltaTime;
+};
 
 out vec3 nearPoint;
 out vec3 farPoint;
@@ -33,11 +43,11 @@ vec3 gridPlane[6] = vec3[](
 // normal vertice projection
 void main() {
     vec3 p = gridPlane[gl_VertexID].xyz;
-    nearPoint = UnprojectPoint(p.x, p.y, 0.0, view.view, view.proj).xyz; // unprojecting on the near plane
-    farPoint = UnprojectPoint(p.x, p.y, 1.0, view.view, view.proj).xyz; // unprojecting on the far plane
-    fragView = view.view;
-    fragProj = view.proj;
-    near = nfPoint.near;
-    far = nfPoint.far;
+    nearPoint = UnprojectPoint(p.x, p.y, 0.0, u_View, u_Proj).xyz; // unprojecting on the near plane
+    farPoint = UnprojectPoint(p.x, p.y, 1.0, u_View, u_Proj).xyz; // unprojecting on the far plane
+    fragView = u_View;
+    fragProj = u_Proj;
+    near = u_NearZ;
+    far = u_FarZ;
     gl_Position = vec4(p, 1.0); // using directly the clipped coordinates
 }

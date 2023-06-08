@@ -14,16 +14,6 @@
 #include "VWolf/Platform/OpenGL/Core/GLCore.h"
 
 namespace VWolf {
-    void OpenGLGraphics::Build() {
-        const char* vertexShaderText = "shaders/glsl/Grid.vert.glsl";
-        const char* fragmentShaderText = "shaders/glsl/Grid.frag.glsl";
-
-        ShaderSource vertexSource = { ShaderType::Vertex, ShaderSourceType::File, vertexShaderText };
-        ShaderSource fragmentSource = { ShaderType::Fragment, ShaderSourceType::File, fragmentShaderText };
-
-        std::initializer_list<ShaderSource> otherShaders = { vertexSource, fragmentSource };
-        gridShader = CreateRef<GLSLShader>("Grid", otherShaders);
-    }
 // TODO: For the future on how to create render queue
 //    void OpenGLRenderer::ProcessItems() {
 //        
@@ -189,6 +179,11 @@ namespace VWolf {
                 texture->Bind(index);
                 GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
             }
+            OpenGLCubemap* cubeMap = dynamic_cast<OpenGLCubemap*>(material.GetTexture(textures[index].GetName()).get());
+            if (cubeMap != nullptr) {
+                cubeMap->Bind(index);
+                GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
+            }
         }
         shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
         shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
@@ -211,34 +206,14 @@ namespace VWolf {
             if (texture != nullptr) {
                 texture->Unbind(index);
             }
+            OpenGLCubemap* cubeMap = dynamic_cast<OpenGLCubemap*>(material.GetTexture(textures[index].GetName()).get());
+            if (cubeMap != nullptr) {
+                cubeMap->Unbind(index);
+            }
         }
         shader->Unbind();
         
         free(material1);
-    }
-
-    void OpenGLGraphics::DrawGridImpl() {
-        // Shader requires a vertex array
-        Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>();
-        
-        auto view = Camera::main->GetViewMatrix();
-        auto projection = Camera::main->GetProjection();
-        auto position = Camera::main->GetPosition();
-        auto nearZ = Camera::main->GetNearZ();
-        auto farZ = Camera::main->GetFarZ();
-        
-        gridShader->Bind();
-        gridShader->SetData(&view, "ViewUniforms", sizeof(MatrixFloat4x4), 0);
-        gridShader->SetData(&projection, "ViewUniforms", sizeof(MatrixFloat4x4), sizeof(MatrixFloat4x4));
-        gridShader->SetData(&position, "ViewUniforms", sizeof(Vector3Float), sizeof(MatrixFloat4x4) * 2);
-        gridShader->SetData(&nearZ, "NearFarPoint", sizeof(float), 0);
-        gridShader->SetData(&farZ, "NearFarPoint", sizeof(float), sizeof(float));
-        group->Bind();
-        BindToRenderTexture();
-        GLThrowIfFailed(glDrawArrays(GL_TRIANGLES, 0, 6));
-        UnbindToRenderTexture();
-        group->Unbind();
-        gridShader->Unbind();
     }
 
     void OpenGLGraphics::BeginFrameImpl()

@@ -8,7 +8,7 @@
 #pragma once
 
 enum class SceneObjectsConstantKeys {
-    Scene, SceneName, SceneBackground, BackgroundColor, GameObjects
+    Scene, SceneName, SceneBackground, BackgroundColor, BackgroundType, GameObjects
 };
 
 static std::map<SceneObjectsConstantKeys, const char*> sceneKeys = {
@@ -16,6 +16,7 @@ static std::map<SceneObjectsConstantKeys, const char*> sceneKeys = {
     { SceneObjectsConstantKeys::SceneName, "Name" },
     { SceneObjectsConstantKeys::SceneBackground, "Scene_Background" },
     { SceneObjectsConstantKeys::BackgroundColor, "Background_color" },
+    { SceneObjectsConstantKeys::BackgroundType, "Background_type" },
     { SceneObjectsConstantKeys::GameObjects, "Game_Objects" },
 };
 
@@ -60,6 +61,10 @@ namespace YAML {
                 return false;
 
             rhs.SetBackgroundColor(node[sceneKeys[SceneObjectsConstantKeys::BackgroundColor]].as<VWolf::Vector4Float>());
+            if (node[sceneKeys[SceneObjectsConstantKeys::BackgroundType]]) {
+                rhs.SetType((VWolf::SceneBackground::Type)node[sceneKeys[SceneObjectsConstantKeys::SceneBackground]]
+                                       .as<int>());
+            } else rhs.SetType(VWolf::SceneBackground::Type::Color);
             
             return true;
         }
@@ -73,6 +78,7 @@ namespace VWolf {
         out << YAML::Key << sceneKeys[SceneObjectsConstantKeys::SceneBackground];
         out << YAML::BeginMap;
         out << YAML::Key << sceneKeys[SceneObjectsConstantKeys::BackgroundColor] << YAML::Value << v.GetBackgroundColor();
+        out << YAML::Key << sceneKeys[SceneObjectsConstantKeys::BackgroundType] << YAML::Value << (int)v.GetType();
         out << YAML::EndMap;
         return out;
     }

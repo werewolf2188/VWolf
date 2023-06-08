@@ -10,6 +10,7 @@
 namespace VWolf {
     class Texture2D;
     class RenderTexture;
+    class Cubemap;
 
     enum class TextureWrapMode {
         None, Repeat, Clamp, Mirror, MirrorOnce
@@ -50,6 +51,8 @@ namespace VWolf {
         static Ref<Texture2D> LoadTexture2D(uint32_t width, uint32_t height, TextureOptions options = {});
         static Ref<Texture2D> LoadTexture2D(const std::string filePath, TextureOptions options = {});
         static Ref<RenderTexture> LoadRenderTexture(uint32_t width, uint32_t height, TextureOptions options = {});
+        static Ref<Cubemap> LoadCubemap(uint32_t size, TextureOptions options = {});
+        static Ref<Cubemap> LoadCubemap(std::array<std::string, 6> paths, TextureOptions options = {});
     public:
         TextureOptions GetOptions() { return m_options; }
     protected:
@@ -81,6 +84,17 @@ namespace VWolf {
     protected:
         uint32_t m_width;
         uint32_t m_height;
+    };
+
+    class Cubemap: public Texture {
+    public:
+        Cubemap(uint32_t size, TextureOptions options = {}): m_size(size), Texture(options) {}
+        Cubemap(std::array<std::string, 6> paths, TextureOptions options = {}): Texture(options) {}
+        virtual ~Cubemap() = default;
+    public:
+        uint32_t GetSize() { return m_size; }
+    protected:
+        uint32_t m_size;
     };
 }
 

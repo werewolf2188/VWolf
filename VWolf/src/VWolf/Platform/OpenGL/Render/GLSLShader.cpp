@@ -183,6 +183,7 @@ namespace VWolf {
         bool IsTexture() {
             switch (type) {
                 case GL_SAMPLER_2D: return true;
+                case GL_SAMPLER_CUBE: return true;
             }
             return false;
         }
@@ -384,7 +385,10 @@ namespace VWolf {
             auto lambda = [name](std::pair<std::string, Ref<GLUniformBuffer>> it) {
                 return strcmp(it.first.c_str(), name) == 0;
             };
-            ubBlock = std::find_if(uniformBuffers.begin(), uniformBuffers.end(), lambda)->second;
+            auto ubPair = std::find_if(uniformBuffers.begin(), uniformBuffers.end(), lambda);
+            if (ubPair == uniformBuffers.end()) return;
+            if (ubPair->first == "") return;
+            ubBlock = ubPair->second;
             ubBlock->SetData(data, size, offset);
         }
 
@@ -630,6 +634,33 @@ namespace VWolf {
         else {
             GLThrowIfFailed(glDisable(GL_DEPTH_TEST));
         }
+
+        switch(m_configuration.depthStencil.depthFunction) {
+            case ShaderConfiguration::DepthStencil::DepthFunction::Never:
+                GLThrowIfFailed(glDepthFunc(GL_NEVER));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::Less:
+                GLThrowIfFailed(glDepthFunc(GL_LESS));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::LEqual:
+                GLThrowIfFailed(glDepthFunc(GL_LEQUAL));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::Equal:
+                GLThrowIfFailed(glDepthFunc(GL_EQUAL));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::NotEqual:
+                GLThrowIfFailed(glDepthFunc(GL_NOTEQUAL));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::GEqual:
+                GLThrowIfFailed(glDepthFunc(GL_GEQUAL));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::Greater:
+                GLThrowIfFailed(glDepthFunc(GL_GREATER));
+                break;
+            case ShaderConfiguration::DepthStencil::DepthFunction::Always:
+                GLThrowIfFailed(glDepthFunc(GL_ALWAYS));
+                break;
+        }
     }
 
 	void GLSLShader::Unbind() const
@@ -647,15 +678,22 @@ namespace VWolf {
     }
 
     std::vector<Ref<ShaderInput>> GLSLShader::GetMaterialInputs() const {
+        std::vector<Ref<ShaderInput>> inputs;
         const char * _materialName = materialName.c_str();
         auto lambda = [_materialName](std::pair<std::string, Ref<GLUniformBuffer>> it) {
             return strcmp(it.first.c_str(), _materialName) == 0;
         };
         auto container = m_program->GetUniformBuffers();
-        Ref<GLUniformBuffer> material = std::find_if(container.begin(),
-                                                     container.end(),
-                                                     lambda)->second;
-        std::vector<Ref<ShaderInput>> inputs;
+        auto mat = std::find_if(container.begin(),
+                                container.end(),
+                                lambda);
+        if (mat == container.end()) return inputs;
+
+        Ref<GLUniformBuffer> material = mat->second;       
+        
+        if (material == nullptr) {
+            return inputs;
+        }
         for (std::pair<std::string, Ref<GLUniform>> uniform: material->GetUniforms()) {
             if (uniform.second->GetShaderDataType() == ShaderDataType::None) continue;
             inputs.push_back(CreateRef<ShaderInput>(uniform.second->GetName(),
@@ -674,6 +712,10 @@ namespace VWolf {
             return strcmp(it.first.c_str(), _materialName) == 0;
         };
         auto container = m_program->GetUniformBuffers();
+        auto mat = std::find_if(container.begin(),
+                                container.end(),
+                                lambda);
+        if (mat == container.end()) return 0;
         return std::find_if(container.begin(),
                             container.end(),
                             lambda)->second->GetSize();

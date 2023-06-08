@@ -5,8 +5,6 @@
 
 #include "stb_image/stb_image.h"
 
-#include "VWolf/Core/Math/VMath.h"
-
 #include "VWolf/Platform/DirectX12/DirectX12Driver.h"
 
 #include "VWolf/Platform/DirectX12/Core/DX12Core.h"
@@ -463,6 +461,158 @@ namespace VWolf {
 		}
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
 			->OMSetRenderTargets(1, &rtvTexture->GetHandle().GetCPUAddress(), FALSE, &DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress());
+	}
+
+	DirectX12Cubemap::DirectX12Cubemap(uint32_t size, TextureOptions options): Cubemap(size, options)
+	{
+		Initialize(size, DXGI_FORMAT_R32G32B32A32_FLOAT, options);
+		PopulateTest();
+		GetSurfaceInfo(size, size, DXGI_FORMAT_R32G32B32A32_FLOAT, &numBytes, &rowBytes, &numRows);
+	}
+
+	DirectX12Cubemap::DirectX12Cubemap(std::array<std::string, 6> paths, TextureOptions options): Cubemap(paths, options)
+	{
+		int channels, width, height;
+		for (int index = 0; index < numberOfSides; index++) {
+			auto img = stbi_load(paths[index].c_str(), &width, &height, &channels, 0);
+			m_data[index] = img;
+		}
+		
+		m_size = width;
+		m_size = height;
+		DXGI_FORMAT format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+		if (channels == 4)
+		{
+			format = DXGI_FORMAT_R8G8B8A8_UNORM; // GL_RGBA8;
+		}
+		// TODO: What to do when there are only 3 channels?
+		//else if (channels == 3)
+		//{
+		//	format = DXGI_FORMAT_R32G32B32_UINT; // GL_RGB8;
+		//}
+		Initialize(m_size, format, options);
+		GetSurfaceInfo(m_size, m_size, format, &numBytes, &rowBytes, &numRows);
+	}
+
+	DirectX12Cubemap::~DirectX12Cubemap()
+	{
+	}
+
+	void* DirectX12Cubemap::GetHandler()
+	{
+		if (!hasBeenUpload) {
+			m_texture->TransitionResource(DirectX12Driver::GetCurrent()->GetCommands(),
+				m_texture->GetCurrentState(), D3D12_RESOURCE_STATE_COPY_DEST);
+			D3D12_SUBRESOURCE_DATA data[6];
+			for (int i = 0; i < numberOfSides; i++) {
+				data[i].pData = m_data[i];
+				data[i].RowPitch = static_cast<UINT>(rowBytes);
+				data[i].SlicePitch = static_cast<UINT>(numBytes);
+			}
+			
+			// TODO: I can't load anything beyond 512x512 Pixels
+			UpdateSubresources(DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList().Get(), m_texture->GetResource().Get(), m_textureUpload->GetResource().Get(), 0, 0, numberOfSides, data);
+			m_texture->TransitionResource(DirectX12Driver::GetCurrent()->GetCommands(),
+				m_texture->GetCurrentState(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			hasBeenUpload = true;
+		}
+		return (void*)m_texture->GetHandle().GetGPUAddress().ptr;
+	}
+
+	void DirectX12Cubemap::PopulateTest()
+	{
+		std::array<Vector4Float, 6> colors = {
+		   Vector4Float(1, 0, 0, 1),
+		   Vector4Float(0, 1, 0, 1),
+		   Vector4Float(0, 0, 1, 1),
+		   Vector4Float(1, 1, 0, 1),
+		   Vector4Float(1, 0, 1, 1),
+		   Vector4Float(0, 1, 1, 1)
+		};
+
+		std::array<int, 6> indicesToCheck = {
+			1,
+			2,
+			0,
+			2,
+			1,
+			0
+		};
+		for (unsigned int i = 0; i < numberOfSides; i++)
+		{
+			m_data[i] = PopulateTest(indicesToCheck[i], colors[i]);
+		}
+	}
+
+	void* DirectX12Cubemap::PopulateTest(int checkIndex, Vector4Float otherColor)
+	{
+		size_t size = sizeof(Vector4Float) * m_size * m_size;
+		Vector4Float* data = (Vector4Float*)malloc(size);
+		memset(data, 0, size);
+		uint32_t index = 0;
+		Vector4Float white(1, 1, 1, 1);
+		Vector4Float value = white;
+		for (uint32_t column = 0; column < m_size; column++) {
+			if (column % 32 == 0) {
+				if (value[checkIndex] == 1)
+					value = otherColor;
+				else if (value[checkIndex] == 0)
+					value = white;
+			}
+			for (uint32_t row = 0; row < m_size; row++) {
+				if (row % 32 == 0) {
+					if (value[checkIndex] == 1)
+						value = otherColor;
+					else if (value[checkIndex] == 0)
+						value = white;
+				}
+				index = (column * m_size) + row;
+				data[index] = value;
+			}
+		}
+		return data;
+	}
+
+	void DirectX12Cubemap::Initialize(uint32_t size, DXGI_FORMAT format, TextureOptions options)
+	{
+		DX12TextureResourceInfo info;
+		info.newResourceDescription = new D3D12_RESOURCE_DESC;
+		info.newResourceDescription->Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		info.newResourceDescription->Alignment = 0;
+		info.newResourceDescription->Width = size;
+		info.newResourceDescription->Height = size;
+		info.newResourceDescription->DepthOrArraySize = numberOfSides;
+		info.newResourceDescription->MipLevels = 1;
+		info.newResourceDescription->Format = format;
+
+		info.shaderResourceDescription = new D3D12_SHADER_RESOURCE_VIEW_DESC;
+		info.shaderResourceDescription->Format = format;
+		info.shaderResourceDescription->Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		info.shaderResourceDescription->ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+		info.shaderResourceDescription->TextureCube.MipLevels = 1;
+		info.shaderResourceDescription->TextureCube.MostDetailedMip = 0;
+		info.shaderResourceDescription->TextureCube.ResourceMinLODClamp = 0;
+
+		info.newResourceDescription->SampleDesc.Count = 1; // device->GetMSAAQuality() ? 4 : 1;
+		info.newResourceDescription->SampleDesc.Quality = 0; // device->GetMSAAQuality() ? (device->GetMSAAQuality() - 1) : 0;
+		info.newResourceDescription->Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		info.newResourceDescription->Flags = D3D12_RESOURCE_FLAG_NONE;
+
+		info.newResourceState = D3D12_RESOURCE_STATE_COMMON; //D3D12_RESOURCE_STATE_COMMON;
+
+		m_texture = CreateRef<DX12TextureResource>(format);
+		m_texture->CreateTextureResource(info,
+			DirectX12Driver::GetCurrent()->GetDevice(),
+			DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap());
+
+		DX12BufferResourceInfo bInfo;
+		bInfo.CreateBufferResourceDescription(true);
+		bInfo.newResourceDescription->Width = sizeof(Vector4Float) * size * size * numberOfSides;
+
+		m_textureUpload = CreateRef<DX12BufferResource>(bInfo);
+		auto requiredSize = GetRequiredIntermediateSize(m_texture->GetResource().Get(), 0, numberOfSides);
+		m_textureUpload->CreateBuffer(DirectX12Driver::GetCurrent()->GetDevice(), requiredSize);
 	}
 }
 #endif
