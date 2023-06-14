@@ -19,7 +19,8 @@ project "VWolf"
 	  "vendor/glm/glm/**.inl",
 	  "vendor/stb_image/**.h",
 	  "vendor/stb_image/**.cpp",
-	  "vendor/entt/src/**.hpp"
+	  "vendor/entt/src/**.hpp",
+	  "vendor/obj_loader/obj_loader/Source/**.h"
 
    }
    removefiles { "vendor/imgui/**", "vendor/imguizmo/**" }

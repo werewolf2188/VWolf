@@ -308,7 +308,7 @@ namespace VWolfPup {
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
                 if (ImGui::Combo("##ShapeSelector", &selection, items.data(), (int)items.size())) {
                     
-                    component.SetData(VWolf::ShapeHelper::Create(items[selection]));
+                    component.SetData(GetMeshData());
                 }
                 ImGui::PopStyleVar();
                 ImGui::PopItemWidth();
@@ -320,8 +320,30 @@ namespace VWolfPup {
                 component->GetGameObject()->RemoveComponent<VWolf::ShapeRendererComponent>();
         }
     private:
+        VWolf::MeshData GetMeshData() {
+            if (strcmp(items[selection], "Box") == 0) {
+                return VWolf::OBJLoader::Load("assets/basic_shapes/Box.obj", items[selection]);
+            }
+            else if (strcmp(items[selection], "Sphere") == 0) {
+                return VWolf::OBJLoader::Load("assets/basic_shapes/Sphere.obj", items[selection]);
+            }
+            else if (strcmp(items[selection], "Geosphere") == 0) {
+                return VWolf::OBJLoader::Load("assets/basic_shapes/Geosphere.obj", items[selection]);
+            }
+            else if (strcmp(items[selection], "Cylinder") == 0) {
+                return VWolf::OBJLoader::Load("assets/basic_shapes/Cylinder.obj", items[selection]);
+            }
+            else if (strcmp(items[selection], "Grid") == 0) {
+                return VWolf::OBJLoader::Load("assets/basic_shapes/Grid.obj", items[selection]);
+            }
+            else if (strcmp(items[selection], "Monkey") == 0) {
+                return VWolf::OBJLoader::Load("assets/basic_shapes/Monkey.obj", items[selection]);
+            }
+            return VWolf::ShapeHelper::Create(items[selection]);
+        }
+    private:
         int selection = 0;
-        std::array<const char*, 6> items = { "Box", "Sphere", "Geosphere", "Cylinder", "Grid", "Triangle" };
+        std::array<const char*, 7> items = { "Box", "Sphere", "Geosphere", "Cylinder", "Grid", "Monkey", "Triangle" };
     };
 
     Inspector::Inspector(): View("Inspector") {

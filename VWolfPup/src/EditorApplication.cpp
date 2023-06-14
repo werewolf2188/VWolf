@@ -142,8 +142,8 @@ public:
     RendererSandboxApplication(): Application(DRIVER_TYPE, { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
         VWolfPup::InitializeEditor();
         
-        camera = VWolf::CreateRef<VWolf::Camera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
-        skyBoxCamera = VWolf::CreateRef<VWolf::Camera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
+        camera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
+        skyBoxCamera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
         controller = VWolf::CreateRef<VWolfPup::CameraController>(camera);
         skyBoxController = VWolf::CreateRef<VWolfPup::CameraController>(skyBoxCamera);
         skyBoxController->SetUseDistanceAndFocalForPositionCalculation(false);

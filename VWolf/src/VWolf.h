@@ -32,3 +32,4 @@
 #include "VWolf/Core/Math/VMath.h"
 
 #include "VWolf/Core/Utils/File.h"
+#include "VWolf/Core/Utils/OBJLoader.h"
