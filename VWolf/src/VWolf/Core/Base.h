@@ -50,6 +50,21 @@ namespace VWolf {
 		return "Null Driver. Please use a driver already implemented.";
 	}
 
+    inline DriverType GetDriverType(const char* type) {
+#ifdef VWOLF_PLATFORM_WINDOWS
+        if (strcmp(type, "DirectX 12") == 0)
+        {
+            return DriverType::DirectX12;
+        }
+#endif
+        if (strcmp(type, "OpenGL") == 0)
+        {
+            return DriverType::OpenGL;
+        }
+        
+        throw std::invalid_argument("");
+    }
+
 	template<typename T>
 	using Scope = std::unique_ptr<T>;
 	template<typename T, typename ... Args>

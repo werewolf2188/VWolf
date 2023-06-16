@@ -108,6 +108,7 @@ namespace VWolfPup {
             views.push_back(view);
             SetContainerAndParent(view);
         }
+        void RemoveView(View* view);
         bool IsInitializing() { return initializing; }
         ContainerTree* GetRoot() { return root; }
     public:

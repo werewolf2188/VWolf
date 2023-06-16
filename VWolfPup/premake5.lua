@@ -11,15 +11,18 @@ project "VWolfPup"
 
    files { 
       "src/**.h", 
-	  "src/**.cpp"
+      "src/**.hpp", 
+	   "src/**.cpp"
    }
 
    includedirs
    {
 	  "%{wks.location}/VWolf/src",
 	  "%{wks.location}/VWolf/vendor",
+     "%{wks.location}/VWolfPup/src/ThirdParty",
       "%{IncludeDir.entt}",
-      "%{IncludeDir.glm}",	
+      "%{IncludeDir.glm}",
+	"%{IncludeDir.yaml_cpp}",	
 	--    "%{IncludeDir.GLFW}",
 	--    "%{IncludeDir.Glad}",
 	--    "%{IncludeDir.ImGui}",
@@ -50,8 +53,10 @@ project "VWolfPup"
     {
 	"%{wks.location}/VWolf/src",
 	 "%{wks.location}/VWolf/vendor",
+    "%{wks.location}/VWolfPup/src/ThirdParty",
          "%{IncludeDir.glm}",
 	 "%{IncludeDir.entt}",
+	"%{IncludeDir.yaml_cpp}",
     }
 
    links { "Cocoa.framework", "CoreVideo.framework", "IOKit.framework", "OpenGL.framework" }
