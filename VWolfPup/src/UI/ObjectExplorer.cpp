@@ -14,8 +14,8 @@
 namespace VWolfPup {
     static const std::string MAIN_STATIC_ASSETS_LIBRARY = "assets";
 
-    ObjectExplorer::ObjectExplorer(std::string extension):
-    View(std::string("List of .") + extension + std::string(" files")), extension(extension) {
+    ObjectExplorer::ObjectExplorer(std::string extension, std::function<void(std::filesystem::path)> onSelection):
+    View(std::string("List of .") + extension + std::string(" files")), extension(extension), onSelection(onSelection) {
         FindObjects();
     }
 
@@ -31,7 +31,9 @@ namespace VWolfPup {
         ImGui::Begin(title.c_str(), &isOpen, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoSavedSettings);
         for (auto entry: files) {
             if (ImGui::Selectable(entry.second.c_str())) {
-                VWOLF_CLIENT_INFO("Selected: %s", entry.second.c_str());
+//                VWOLF_CLIENT_INFO("Selected: %s", entry.second.c_str());
+                onSelection(entry.first);
+                isOpen = false;
             }
         }
         ImGui::End();

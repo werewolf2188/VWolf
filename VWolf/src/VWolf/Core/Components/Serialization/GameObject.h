@@ -29,6 +29,8 @@ enum class GameObjectConstantKeys {
     Name, Components,
     COMPONENT_KEY(TransformComponent),
     COMPONENT_KEY(ShapeRendererComponent),
+    COMPONENT_KEY(MeshFilterComponent),
+    COMPONENT_KEY(MeshRendererComponent),
     COMPONENT_KEY(LightComponent),
 };
 
@@ -37,6 +39,8 @@ static std::map<GameObjectConstantKeys, const char*> gameObjectKeys = {
     { GameObjectConstantKeys::Components, "Components" },
     COMPONENT_KEY_VALUE(TransformComponent),
     COMPONENT_KEY_VALUE(ShapeRendererComponent),
+    COMPONENT_KEY_VALUE(MeshFilterComponent),
+    COMPONENT_KEY_VALUE(MeshRendererComponent),
     COMPONENT_KEY_VALUE(LightComponent)
 };
 
@@ -58,6 +62,8 @@ namespace YAML {
 
                     DESERIALIZE_COMPONENT(TransformComponent)
                     DESERIALIZE_COMPONENT(ShapeRendererComponent)
+                    DESERIALIZE_COMPONENT(MeshFilterComponent)
+                    DESERIALIZE_COMPONENT(MeshRendererComponent)
                     DESERIALIZE_COMPONENT(LightComponent)
                 }
             }
@@ -76,6 +82,8 @@ namespace VWolf {
 
         SERIALIZE_COMPONENT(TransformComponent)
         SERIALIZE_COMPONENT(ShapeRendererComponent)
+        SERIALIZE_COMPONENT(MeshFilterComponent)
+        SERIALIZE_COMPONENT(MeshRendererComponent)
         SERIALIZE_COMPONENT(LightComponent)
 
         out << YAML::EndSeq;

@@ -194,7 +194,6 @@ namespace VWolfPup {
         }
         ImGui::EndChild();
         ImGui::PopStyleVar();
-
         
         ImGui::End();
     }

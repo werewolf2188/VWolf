@@ -21,6 +21,25 @@ namespace VWolf {
     VWOLF_COMPONENT_INSPECTOR_DEFINE(RendererComponent);
     };
 
+    class MeshRendererComponent: public RendererComponent {
+    public:
+        MeshRendererComponent();
+        MeshRendererComponent(Material& material);
+        MeshRendererComponent(MeshRendererComponent& component);
+        MeshRendererComponent(MeshRendererComponent&& component);
+        ~MeshRendererComponent();
+    public:
+        virtual void OnInspector() override;
+    public:
+        Material& GetMaterial() { return *material; }
+        void SetMaterial(Material* material) { this->material = material; }
+    public:
+        MeshRendererComponent& operator=(MeshRendererComponent t);
+    private:
+        Material* material;
+    VWOLF_COMPONENT_INSPECTOR_DEFINE(MeshRendererComponent);
+    };
+
     // TODO: Test. Will remove later
     class ShapeRendererComponent: public RendererComponent {
     public:

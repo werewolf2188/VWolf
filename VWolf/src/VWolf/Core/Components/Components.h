@@ -10,5 +10,6 @@
 #include "BaseComponent.h"
 #include "TransformComponent.h"
 #include "RendererComponent.h"
+#include "MeshFilterComponent.h"
 #include "LightComponent.h"
 

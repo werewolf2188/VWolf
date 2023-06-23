@@ -11,11 +11,12 @@
 
 #include <filesystem>
 #include <map>
+#include <functional>
 
 namespace VWolfPup {
     class ObjectExplorer: public View {
     public:
-        ObjectExplorer(std::string extension);
+        ObjectExplorer(std::string extension, std::function<void(std::filesystem::path)> onSelection);
         ~ObjectExplorer();
     public:
         void OnGui() override;
@@ -25,6 +26,7 @@ namespace VWolfPup {
     private:
         std::string extension;
         std::map<std::filesystem::path, std::string> files;
+        std::function<void(std::filesystem::path)> onSelection;
         bool isOpen = true;
     };
 }

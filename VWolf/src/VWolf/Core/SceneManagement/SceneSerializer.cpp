@@ -20,6 +20,8 @@ VWolf::Scene * currentScene = nullptr;
 #include "VWolf/Core/Components/Serialization/TransformComponent.h"
 #include "VWolf/Core/Components/Serialization/LightComponent.h"
 #include "VWolf/Core/Components/Serialization/ShapeRendererComponent.h"
+#include "VWolf/Core/Components/Serialization/MeshFilterComponent.h"
+#include "VWolf/Core/Components/Serialization/MeshRendererComponent.h"
 #include "VWolf/Core/Components/Serialization/GameObject.h"
 #include "Serialization/Scene.h"
 

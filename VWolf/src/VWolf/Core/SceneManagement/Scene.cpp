@@ -189,6 +189,19 @@ namespace VWolf {
                                  shapeRenderer.GetMaterial());
         }
 
+        auto meshFilterMeshRendererAndTransformComponents = m_registry
+            .view<MeshRendererComponent, MeshFilterComponent, TransformComponent>();
+        
+        for (auto meshFilterMeshRendererAndTransformEntity : meshFilterMeshRendererAndTransformComponents)
+        {
+            auto [meshRenderer, meshFilter, transform] = meshFilterMeshRendererAndTransformComponents
+                .get<MeshRendererComponent, MeshFilterComponent, TransformComponent>(meshFilterMeshRendererAndTransformEntity);
+            transform.Apply();
+            Graphics::RenderMesh(meshFilter.GetData(),
+                                 transform.GetWorldMatrix(),
+                                 meshRenderer.GetMaterial());
+        }
+
 
         auto transformComponents = m_registry.view<TransformComponent>();
         for (auto transformEntity : transformComponents)

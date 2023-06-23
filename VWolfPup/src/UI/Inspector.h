@@ -26,6 +26,7 @@ namespace VWolfPup {
         virtual void AfterSetInContainer() override;
     private:
         void DrawMaterial();
+        void DrawMaterial(VWolf::Material& material);
         void DrawComponentList();
     private:
         VWolf::Ref<VWolf::GameObject> gameObject;

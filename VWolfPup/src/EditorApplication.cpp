@@ -163,6 +163,7 @@ public:
         // UI
         containerView = new VWolfPup::ContainerView("Test", {});
         quit = new VWolfPup::MenuItem("Quit", [this](std::string title) {
+            // VWolfPup::Project::CurrentProject()->Save();
             this->containerView->SaveIniFile();
             this->Quit();
         });

@@ -16,6 +16,35 @@ namespace VWolf {
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(RendererComponent);
 
+    MeshRendererComponent::MeshRendererComponent():
+    RendererComponent("Mesh Renderer"), material(MaterialLibrary::Default()) {}
+
+    MeshRendererComponent::MeshRendererComponent(Material& material):
+    RendererComponent("Mesh Renderer"), material(&material) {}
+
+    MeshRendererComponent::MeshRendererComponent(MeshRendererComponent& component):
+    RendererComponent("Mesh Renderer"), material(component.material) {
+        this->SetGameObject(component.GetGameObject());
+    }
+    MeshRendererComponent::MeshRendererComponent(MeshRendererComponent&& component):
+    RendererComponent("Mesh Renderer"), material(component.material) {
+        this->SetGameObject(component.GetGameObject());
+    }
+    MeshRendererComponent::~MeshRendererComponent() {}
+
+    void MeshRendererComponent::OnInspector() {
+        MeshRendererComponent::componentInspector->OnInspector(this);
+    }
+
+    MeshRendererComponent& MeshRendererComponent::operator=(MeshRendererComponent t) {
+    //        this->material = t.material;
+        this->SetGameObject(t.GetGameObject());
+        return *this;
+    }
+
+    VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(MeshRendererComponent);
+
+    // TODO: Test. Will remove later
     ShapeRendererComponent::ShapeRendererComponent():
     RendererComponent("Shape Renderer"), material(MaterialLibrary::Default()), data(ShapeHelper::CreateTriangle()) {}
 
