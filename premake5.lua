@@ -29,6 +29,7 @@ IncludeDir["ImGui"] = "%{wks.location}/VWolf/vendor/imgui"
 IncludeDir["ImGuizmo"] = "%{wks.location}/VWolf/vendor/imguizmo"
 IncludeDir["glm"] = "%{wks.location}/VWolf/vendor/glm"
 IncludeDir["stb_image"] = "%{wks.location}/VWolf/vendor/stb_image"
+IncludeDir["obj_loader"] = "%{wks.location}/VWolf/vendor/obj_loader/obj_loader/Source"
 IncludeDir["entt"] = "%{wks.location}/VWolf/vendor/entt/src"
 IncludeDir["yaml_cpp"] = "%{wks.location}/VWolf/vendor/yaml_cpp/include"
 

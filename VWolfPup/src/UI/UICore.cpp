@@ -203,6 +203,11 @@ namespace VWolfPup {
 
     ContainerView::~ContainerView() {}
 
+    void ContainerView::RemoveView(View* view) {
+        auto foundView = std::find(views.begin(), views.end(), view);
+        views.erase(foundView);
+    }
+
     void ContainerView::OnGui() {
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoWindowMenuButton;
 

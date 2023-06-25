@@ -9,12 +9,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#ifdef VWOLF_PLATFORM_WINDOWS
-#define DRIVER_TYPE VWolf::DriverType::DirectX12 
-#else
-#define DRIVER_TYPE VWolf::DriverType::OpenGL 
-#endif
-
 #define SCREENWIDTH 1280.0f
 #define SCREENHEIGHT 720.0f
 
@@ -25,6 +19,9 @@
 #include "UI/SceneViewer.h"
 #include "UI/SceneSettings.h"
 #include "UI/FileBrowser.h"
+#include "UI/ProjectStructure.h"
+
+#include "ProjectManagement/Project.h"
 
 #define NUMSHADERS 4
 std::array<std::string, NUMSHADERS> shaderNames = { { "Flat Color", "Blinn Phon", "Grid", "Skybox" } };
@@ -75,24 +72,24 @@ void LoadShaderNames(VWolf::DriverType driverType) {
     } };
 }
 
-class TextureView: public VWolfPup::View {
-public:
-    TextureView(VWolf::Ref<VWolf::Texture2D> testTexture):
-    View("Texture"), testTexture(testTexture) {}
-    ~TextureView() {}
-public:
-    virtual void OnGui() override {
-        ImGui::Begin(title.c_str());
-        ImGui::Image(testTexture->GetHandler(), ImVec2(128, 128));
-        ImGui::End();
-    }
-protected:
-    virtual void SetInContainer() override {
-        GetContainer()->GetRoot()->Install(this, ImGuiDir_Down);
-    }
-private:
-    VWolf::Ref<VWolf::Texture2D> testTexture;
-};
+//class TextureView: public VWolfPup::View {
+//public:
+//    TextureView(VWolf::Ref<VWolf::Texture2D> testTexture):
+//    View("Texture"), testTexture(testTexture) {}
+//    ~TextureView() {}
+//public:
+//    virtual void OnGui() override {
+//        ImGui::Begin(title.c_str());
+//        ImGui::Image(testTexture->GetHandler(), ImVec2(128, 128));
+//        ImGui::End();
+//    }
+//protected:
+//    virtual void SetInContainer() override {
+//        GetContainer()->GetRoot()->Install(this, ImGuiDir_Down);
+//    }
+//private:
+//    VWolf::Ref<VWolf::Texture2D> testTexture;
+//};
 
 VWolf::MeshData CreateGrid() {
     VWolf::MeshData meshData;
@@ -133,17 +130,17 @@ public:
     VWolfPup::SceneViewer *sceneViewer;
     VWolfPup::SceneSettings* sceneSettings;
     VWolfPup::FileBrowser *saveBrowser, *openBrowser;
-    TextureView* textureView;
+    VWolfPup::ProjectStructure *projectStructure;
 
     // Scene Management
     VWolf::Ref<VWolf::Scene> testScene;
 //    VWolf::Ref<VWolf::GameObject> cylinder, sphere, grid, geosphere, box, light1, light2;
 public:
-    RendererSandboxApplication(): Application(DRIVER_TYPE, { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
+    RendererSandboxApplication(): Application(VWolfPup::LoadProject(), { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
         VWolfPup::InitializeEditor();
         
-        camera = VWolf::CreateRef<VWolf::Camera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
-        skyBoxCamera = VWolf::CreateRef<VWolf::Camera>(30.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
+        camera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
+        skyBoxCamera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
         controller = VWolf::CreateRef<VWolfPup::CameraController>(camera);
         skyBoxController = VWolf::CreateRef<VWolfPup::CameraController>(skyBoxCamera);
         skyBoxController->SetUseDistanceAndFocalForPositionCalculation(false);
@@ -166,6 +163,7 @@ public:
         // UI
         containerView = new VWolfPup::ContainerView("Test", {});
         quit = new VWolfPup::MenuItem("Quit", [this](std::string title) {
+            // VWolfPup::Project::CurrentProject()->Save();
             this->containerView->SaveIniFile();
             this->Quit();
         });
@@ -182,7 +180,7 @@ public:
         inspector = new VWolfPup::Inspector();
         containerView->AddView(inspector);
 
-        sceneViewer = new VWolfPup::SceneViewer(camera, DRIVER_TYPE, (uint32_t)SCREENWIDTH, (uint32_t)SCREENHEIGHT);
+        sceneViewer = new VWolfPup::SceneViewer(camera, VWolfPup::Project::CurrentProject()->GetType(), (uint32_t)SCREENWIDTH, (uint32_t)SCREENHEIGHT);
         containerView->AddView(sceneViewer);
 
         sceneSettings = new VWolfPup::SceneSettings(testScene.get());
@@ -210,8 +208,11 @@ public:
             sceneSettings->SetScene(testScene.get());
         });
         containerView->AddView(openBrowser);
+
+        projectStructure = new VWolfPup::ProjectStructure();
+        containerView->AddView(projectStructure);
         //
-        LoadShaderNames(DRIVER_TYPE);
+        LoadShaderNames(VWolfPup::Project::CurrentProject()->GetType());
         
         for (int i = 0; i < NUMSHADERS; i++) {
             VWolf::ShaderLibrary::LoadShader(shaderNames[i].c_str(), { vsFiles[i], psFiles[i] }, configurations[i]);
@@ -231,12 +232,12 @@ public:
         material_2.SetColor("u_diffuseColor", { 1.0f, 1.0f, 1.0f, 1.0f });
         material_2.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
         material_2.SetFloat("u_shinines", 20);
-        if (DRIVER_TYPE == VWolf::DriverType::OpenGL) {
+        if (VWolfPup::Project::CurrentProject()->GetType() == VWolf::DriverType::OpenGL) {
             testTexture = VWolf::Texture::LoadTexture2D("assets/textExample.png");
             material_2.SetTexture("u_texture", testTexture);
         }
 #ifdef VWOLF_PLATFORM_WINDOWS
-        else if (DRIVER_TYPE == VWolf::DriverType::DirectX12) {
+        else if (VWolfPup::Project::CurrentProject()->GetType() == VWolf::DriverType::DirectX12) {
             //testTexture = VWolf::Texture::LoadTexture2D(512, 512);
             testTexture = VWolf::Texture::LoadTexture2D("assets/textExample2.png");
             material_2.SetTexture("gDiffuseMap", testTexture);
@@ -252,8 +253,6 @@ public:
                                                                 "assets/skybox/back.png" }));
         testScene->GetSceneBackground().SetSkyboxMaterial(materialSkybox);
         testScene->GetSceneBackground().SetCamera(skyBoxCamera);
-        textureView = new TextureView(testTexture);
-        containerView->AddView(textureView);
 //        cylinder->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateCylinder(1, 1, 3, 32, 8), material_2);
 //        sphere->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateSphere(2, 32, 32), material_2);
 //        grid->AddComponent<VWolf::ShapeRendererComponent>(VWolf::ShapeHelper::CreateGrid(2, 2, 16, 16), material_2);
@@ -306,6 +305,7 @@ public:
 
     void OnGUI() override {
         containerView->OnGui();
+//        ImGui::ShowDemoWindow();
     }
 
     bool OnWindowResize(VWolf::WindowResizeEvent& e) {

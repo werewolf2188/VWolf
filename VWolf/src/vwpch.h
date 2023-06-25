@@ -14,6 +14,7 @@
 #include <functional>
 #include <filesystem>
 #include <mutex>
+#include <stdexcept>
 
 #include <string>
 #include <codecvt>

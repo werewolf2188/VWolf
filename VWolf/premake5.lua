@@ -19,7 +19,8 @@ project "VWolf"
 	  "vendor/glm/glm/**.inl",
 	  "vendor/stb_image/**.h",
 	  "vendor/stb_image/**.cpp",
-	  "vendor/entt/src/**.hpp"
+	  "vendor/entt/src/**.hpp",
+	  "vendor/obj_loader/obj_loader/Source/**.h"
 
    }
    removefiles { "vendor/imgui/**", "vendor/imguizmo/**" }
@@ -41,6 +42,7 @@ project "VWolf"
       "%{IncludeDir.stb_image}",
       "%{IncludeDir.entt}",
       "%{IncludeDir.yaml_cpp}",
+      "%{IncludeDir.obj_loader}"
    }
 
    libdirs 
@@ -89,7 +91,8 @@ project "VWolf"
         "%{IncludeDir.glm}",
         "%{IncludeDir.ImGui}",
 	"%{IncludeDir.ImGuizmo}",
-	"%{IncludeDir.yaml_cpp}"
+	"%{IncludeDir.yaml_cpp}",
+     "%{IncludeDir.obj_loader}"
     }
 
    xcodebuildsettings 
