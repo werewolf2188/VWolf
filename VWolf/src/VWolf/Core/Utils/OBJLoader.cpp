@@ -5,6 +5,7 @@
 //  Created by Enrique Ricalde on 6/13/23.
 //
 
+#include "vwpch.h"
 #include "OBJLoader.h"
 
 #include "OBJ_Loader.h"

@@ -27,7 +27,7 @@ namespace VWolfPup {
         public:
             VWolf::DriverType GetType() { return type; }
             void SetType(VWolf::DriverType type) { this->type = type; }
-            std::string GetProjectName() { return path.filename(); }
+            std::string GetProjectName() { return path.filename().string(); }
         public:
             void Save();
             void Load();

@@ -5,6 +5,7 @@
 //  Created by Enrique Ricalde on 6/23/23.
 //
 
+#include "vwpch.h"
 #include "MeshFilterComponent.h"
 #include "VWolf/Core/Debug/ShapeHelper.h"
 

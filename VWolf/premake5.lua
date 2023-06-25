@@ -42,6 +42,7 @@ project "VWolf"
       "%{IncludeDir.stb_image}",
       "%{IncludeDir.entt}",
       "%{IncludeDir.yaml_cpp}",
+      "%{IncludeDir.obj_loader}"
    }
 
    libdirs 
@@ -90,7 +91,8 @@ project "VWolf"
         "%{IncludeDir.glm}",
         "%{IncludeDir.ImGui}",
 	"%{IncludeDir.ImGuizmo}",
-	"%{IncludeDir.yaml_cpp}"
+	"%{IncludeDir.yaml_cpp}",
+     "%{IncludeDir.obj_loader}"
     }
 
    xcodebuildsettings 

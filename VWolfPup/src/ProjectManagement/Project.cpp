@@ -45,7 +45,11 @@ namespace VWolfPup {
             1.2.3. Create Project settings
          */
 //        std::string projectLocation = VWolf::CommandLineArguments::GetArguments()[1];
+#ifdef VWOLF_PLATFORM_WINDOWS   
+        std::string projectLocation = "C:\\Users\\jenri\\Projects\\Desktop\\Game_Project";
+#else 
         std::string projectLocation = "/Users/vn50tzy/Projects/Personal/Game_Project";
+#endif
         
         std::filesystem::path path(projectLocation);
         if (!ProjectExists(path)) {
@@ -98,7 +102,7 @@ namespace VWolfPup {
     projectPath(path),
     settings((path / path.filename()).concat(PROJECT_EXTENSION)) {
         watch = new filewatch::FileWatch<std::string> {
-            path,
+            path.string(),
             [this] (const std::string& path, const filewatch::Event event) {
                 for (const auto& kv : _observers) {
                     kv.second(path, event);

@@ -3,6 +3,8 @@
 #include "PlatformDetection.h"
 
 #include <memory>
+#include <stdexcept>
+
 
 namespace VWolf {
 

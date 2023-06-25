@@ -36,7 +36,7 @@ namespace VWolf {
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::MeshFilterComponent& v)
     {
         out << YAML::BeginMap;
-        out << YAML::Key << meshFilterKeys[MeshFilterComponentKeys::Path] << YAML::Value << v.GetPath();
+        out << YAML::Key << meshFilterKeys[MeshFilterComponentKeys::Path] << YAML::Value << v.GetPath().string();
         out << YAML::EndMap;
         return out;
     }

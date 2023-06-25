@@ -184,7 +184,7 @@ namespace VWolfPup {
         }
         ImGui::EndChild();
         ImGui::SameLine();
-        ImGui::InvisibleButton("vsplitter", ImVec2(8.0f,ImGui::GetWindowSize().y - minusSize));
+        ImGui::InvisibleButton("vsplitter", ImVec2(8.0f, ImGui::GetWindowSize().y - minusSize));
         if (ImGui::IsItemActive())
             startingWidth += ImGui::GetIO().MouseDelta.x;
         ImGui::SameLine();
