@@ -40,10 +40,20 @@ namespace VWolf {
                 default: return GL_REPEAT;
             }
         }
+    
+        Color Transform(TextureDefault textureDefault) {
+            switch(textureDefault) {
+                case TextureDefault::White: return Color(1, 1, 1, 1);
+                case TextureDefault::Bump: return Color(0.5f, 0.5f, 1, 0.5f);
+                case TextureDefault::Black: return Color(0, 0, 0, 1);
+                case TextureDefault::Gray: return Color(0.5f, 0.5f, 0.5f, 1);
+                case TextureDefault::Red: return Color(1, 0, 0, 1);
+            }
+        }
     }
 
-    OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, TextureOptions options):
-    Texture2D(width, height, options) {
+    OpenGLTexture2D::OpenGLTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options):
+    Texture2D(textureDefault, width, height, options) {
         m_internalDataFormat = GL_RGBA32F;
         m_dataFormat = GL_RGBA;
 
@@ -70,10 +80,7 @@ namespace VWolf {
                                                                                              m_options.GetWrapModeU())));
         GLThrowIfFailed(glSamplerParameteri(m_sampleID, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
                                                                                              m_options.GetWrapModeV())));
-#if defined(DEBUG) || defined(_DEBUG)
-        if (m_options.IsTestTexture())
-            PopulateTest();
-#endif
+        PopulateColor();
     }
 
     OpenGLTexture2D::OpenGLTexture2D(const std::string filePath, TextureOptions options):
@@ -162,6 +169,25 @@ namespace VWolf {
         delete[] data;
     }
 #endif
+
+    void OpenGLTexture2D::PopulateColor() {
+        size_t size = sizeof(Vector4Float) * m_width * m_height;
+        Vector4Float* data = (Vector4Float*)malloc(size);
+        memset(data, 0, size);
+        uint32_t index = 0;
+        Vector4Float value = Transform(m_textureDefault);
+        for (uint32_t column = 0; column < m_height; column++) {
+            for (uint32_t row = 0; row < m_width; row++) {                
+                index = (column * m_height) + row;
+                data[index] = value;
+            }
+        }
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_textureID));
+        GLThrowIfFailed(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_dataFormat, GL_FLOAT, data));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
+        delete[] data;
+    }
+
     void* OpenGLTexture2D::GetHandler() {
         return (void *)(intptr_t)m_textureID;
     }
@@ -269,7 +295,7 @@ namespace VWolf {
         Invalidate();
     }
 
-    OpenGLCubemap::OpenGLCubemap(uint32_t size, TextureOptions options): Cubemap(size, options) {
+    OpenGLCubemap::OpenGLCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options): Cubemap(textureDefault, size, options) {
         m_internalDataFormat = GL_RGBA32F;
         m_dataFormat = GL_RGBA;
 
@@ -285,7 +311,7 @@ namespace VWolf {
         GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
                                                                                                   m_options.GetWrapModeV())));
 
-        PopulateTest();
+        PopulateColor();
         GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
         GLThrowIfFailed(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
     }
@@ -384,7 +410,31 @@ namespace VWolf {
         };
         for (unsigned int i = 0; i < 6; i++)
         {
-            PopulateTest(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, indicesToCheck[i],colors[i]);
+            PopulateTest(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, indicesToCheck[i], colors[i]);
+        }
+    }
+
+    void OpenGLCubemap::PopulateColor(GLuint id) {
+        size_t size = sizeof(Vector4Float) * m_size * m_size;
+        Vector4Float* data = (Vector4Float*)malloc(size);
+        memset(data, 0, size);
+        uint32_t index = 0;
+        Vector4Float value = Transform(m_textureDefault);
+        for (uint32_t column = 0; column < m_size; column++) {
+            for (uint32_t row = 0; row < m_size; row++) {
+                index = (column * m_size) + row;
+                data[index] = value;
+            }
+        }
+        
+        GLThrowIfFailed(glTexImage2D(id, 0, m_internalDataFormat, m_size, m_size, 0, m_dataFormat, GL_FLOAT, data));
+        delete[] data;
+    }
+
+    void OpenGLCubemap::PopulateColor() {
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            PopulateColor(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
         }
     }
 

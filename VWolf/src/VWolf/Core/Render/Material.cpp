@@ -32,6 +32,12 @@ namespace VWolf {
             }
             properties[input->GetName()] = input->GetType();
         }
+        for (auto input: shader->GetTextureInputs()) {
+            if (input.GetSize() == (int)ShaderSamplerType::Sampler2D)
+                textures[input.GetName()] = Texture::LoadTexture2D();
+            if (input.GetSize() == (int)ShaderSamplerType::SamplerCube)
+                textures[input.GetName()] = Texture::LoadCubemap();
+        }
     }
 
     Material::~Material() {

@@ -17,7 +17,7 @@ namespace VWolf {
     const char* ShaderLibrary::ObjectBufferName = "Object";
     //
 
-    void ShaderLibrary::LoadShader(const char* name,
+    void ShaderLibrary::LoadShader(std::string name,
                                    std::initializer_list<ShaderSource> otherShaders,
                                    ShaderConfiguration configuration) {
         Ref<Shader> shader;

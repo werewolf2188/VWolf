@@ -16,11 +16,11 @@
 
 namespace VWolf {
 
-    Ref<Texture2D> Texture::LoadTexture2D(uint32_t width, uint32_t height, TextureOptions options) {
+    Ref<Texture2D> Texture::LoadTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options) {
         Ref<Texture2D> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
-                texture = CreateRef<OpenGLTexture2D>(width, height, options);
+                texture = CreateRef<OpenGLTexture2D>(textureDefault, width, height, options);
                 break;
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
@@ -67,11 +67,11 @@ namespace VWolf {
         return texture;
     }
 
-    Ref<Cubemap> Texture::LoadCubemap(uint32_t size, TextureOptions options) {
+    Ref<Cubemap> Texture::LoadCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options) {
         Ref<Cubemap> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
-                texture = CreateRef<OpenGLCubemap>(size, options);
+                texture = CreateRef<OpenGLCubemap>(textureDefault, size, options);
                 break;
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:

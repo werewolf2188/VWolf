@@ -15,7 +15,7 @@ namespace VWolf {
         GLShaderSource(ShaderSource source, bool compile = true) {
             switch (source.sourceType) {
                 case ShaderSourceType::File:
-                    sourceText = File::OpenTextFile(source.shader);
+                    sourceText = File::OpenTextFile(source.shader.c_str());
                     break;
                 case ShaderSourceType::Text:
                     sourceText = source.shader;
@@ -186,6 +186,15 @@ namespace VWolf {
                 case GL_SAMPLER_CUBE: return true;
             }
             return false;
+        }
+
+        int GetTextureSize() {
+            if (!IsTexture()) return 1;
+            switch (type) {
+                case GL_SAMPLER_2D: return (int)ShaderSamplerType::Sampler2D;
+                case GL_SAMPLER_CUBE: return (int)ShaderSamplerType::SamplerCube;
+                default: return 2;
+            }
         }
 
         GLuint GetOffset() {
@@ -502,7 +511,7 @@ namespace VWolf {
         std::map<std::string, Ref<GLAttribute>> attributes;
     };
 
-    GLSLShader::GLSLShader(const char* name,
+    GLSLShader::GLSLShader(std::string name,
                            std::initializer_list<ShaderSource> otherShaders,
                            ShaderConfiguration configuration): Shader(name,
                                                                       otherShaders,
@@ -668,7 +677,7 @@ namespace VWolf {
         m_program->Unbind();
 	}
 
-	const char* GLSLShader::GetName() const
+    std::string GLSLShader::GetName() const
 	{
 		return this->m_name;
 	}
@@ -730,7 +739,7 @@ namespace VWolf {
                 inputs.push_back(ShaderInput(uniform.second->GetName(),
                                              uniform.second->GetShaderDataType(),
                                              uniform.second->GetIndex(),
-                                             1,
+                                             uniform.second->GetTextureSize(),
                                              uniform.second->GetOffset()));
             }
         }
@@ -740,7 +749,7 @@ namespace VWolf {
             inputs.push_back(ShaderInput(uniform.second->GetName(),
                                          uniform.second->GetShaderDataType(),
                                          uniform.second->GetIndex(),
-                                         1,
+                                         uniform.second->GetTextureSize(),
                                          uniform.second->GetOffset()));
         }
         
