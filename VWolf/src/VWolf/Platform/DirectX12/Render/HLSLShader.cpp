@@ -289,6 +289,26 @@ namespace VWolf {
 
 		D3D_RESOURCE_RETURN_TYPE GetReturnType() { return returnType; }
 
+		int GetTextureType() {
+			switch (returnType) {
+				case D3D_RETURN_TYPE_FLOAT: {
+					switch (dimension) {
+					case D3D_SRV_DIMENSION_TEXTURE2D: return (int)ShaderSamplerType::Sampler2D;
+					case D3D_SRV_DIMENSION_TEXTURECUBE:
+						return (int)ShaderSamplerType::SamplerCube;
+					}
+				}
+				case D3D_RETURN_TYPE_SINT: {
+					switch (dimension) {
+					case D3D_SRV_DIMENSION_TEXTURE2D: return (int)ShaderSamplerType::Sampler2D;
+					case D3D_SRV_DIMENSION_TEXTURECUBE:
+						return (int)ShaderSamplerType::SamplerCube;
+					}
+				}									 
+			}
+			return -1;
+		}
+
 		D3D_SRV_DIMENSION GetDimension() { return dimension; }
 
 		ShaderDataType GetShaderDataType() {
@@ -346,7 +366,7 @@ namespace VWolf {
 
 	class HLProgram {
 	public:
-		HLProgram(const char* name,
+		HLProgram(std::string name,
 				  std::initializer_list<ShaderSource> otherShaders,
 				  ShaderConfiguration configuration = {}):
 		name(name) {
@@ -476,7 +496,7 @@ namespace VWolf {
 			switch (source.sourceType) {
 			case ShaderSourceType::Text:
 				{
-					hr = D3DCompile(source.shader, strlen(source.shader), nullptr, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+					hr = D3DCompile(source.shader.c_str(), strlen(source.shader.c_str()), nullptr, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 						source.mainFunction, ShaderTypeEquivalent(source.type).c_str(), compileFlags, 0, &byteCode, &errors);
 				}
 				break;
@@ -758,7 +778,7 @@ namespace VWolf {
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> mPSO = nullptr;
 	};
 
-	HLSLShader::HLSLShader(const char* name,
+	HLSLShader::HLSLShader(std::string name,
 						   std::initializer_list<ShaderSource> otherShaders,
 						   ShaderConfiguration configuration): Shader(name, otherShaders, configuration) {
 
@@ -838,13 +858,13 @@ namespace VWolf {
 			inputs.push_back(ShaderInput(variable.second.GetName(),
 				variable.second.GetShaderDataType(),
 				variable.second.GetBindingIndex(),
-				1,
+				variable.second.GetTextureType(),
 				0));
 		}
 		return inputs;
 	}
 	
-	const char* HLSLShader::GetName() const
+	std::string HLSLShader::GetName() const
 	{		
 		return m_name;
 	}

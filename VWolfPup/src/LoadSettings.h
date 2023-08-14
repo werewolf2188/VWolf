@@ -13,10 +13,6 @@
 #include <array>
 
 namespace VWolfPup {
-
-    // TODO: These variables will be removed
-    static std::array<std::string, NUMSHADERS> shaderNames = { { "FlatColor", "BlinnPhong", "Grid", "Skybox" } };
-
     // TODO: These variables will be moved eventually, but they are needed to
     // TODO: understand the initial values of the materials
     static const std::string DEFAULT_SHADER = "BlinnPhong";
@@ -26,6 +22,7 @@ namespace VWolfPup {
 
 // ----------------------------------------------- //
     void InitialLoad();
+    void CreateDefaultMaterial(VWolf::Material& material);
     void CreateGridMaterial(VWolf::Material& material);
     void CreateDefaultSkyboxMaterial(VWolf::Material& material);
 }

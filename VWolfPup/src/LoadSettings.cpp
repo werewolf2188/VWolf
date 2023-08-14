@@ -13,8 +13,6 @@
 #include "../ProjectManagement/Project.h"
 
 namespace VWolfPup {
-    std::array<VWolf::ShaderSource, NUMSHADERS> vsFiles;
-    std::array<VWolf::ShaderSource, NUMSHADERS> psFiles;
 
     VWolf::ShaderConfiguration GetInitialConfiguration(std::string name);
 
@@ -70,42 +68,26 @@ namespace VWolfPup {
         }
     }
 
-    void LoadShaderNames(VWolf::DriverType driverType) {
-        if (driverType == VWolf::DriverType::OpenGL) {
+    void LoadHLSLShaders() {
+        std::filesystem::path shaderPath = "shaders/hlsl/";
+        for (auto const& dir_entry : std::filesystem::directory_iterator(shaderPath)) {
+            std::string filename = dir_entry.path().string();
+            std::string name = dir_entry.path().stem().string();
+            VWolf::ShaderSource vs = {
+                VWolf::ShaderType::Vertex,
+                VWolf::ShaderSourceType::File,
+                filename,
+                "VS"
+            };
 
-            VWolfPup::vsFiles = { {
-                 { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.vert.glsl" , "main" },
-                 { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.vert.glsl" , "main" },
-                 { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/Grid.vert.glsl" , "main" },
-                 { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/glsl/Skybox.vert.glsl" , "main" }
-            } };
-
-            VWolfPup::psFiles = { {
-                { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/FlatColor.frag.glsl" , "main" },
-                { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/BlinnPhong.frag.glsl" , "main" },
-                { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/Grid.frag.glsl" , "main" },
-                { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/glsl/Skybox.frag.glsl" , "main" }
-            } };
+            VWolf::ShaderSource fs = {
+                VWolf::ShaderType::Fragment,
+                VWolf::ShaderSourceType::File,
+                filename,
+                "PS"
+            };
+            VWolf::ShaderLibrary::LoadShader(name, { vs, fs }, GetInitialConfiguration(name));
         }
-    #ifdef VWOLF_PLATFORM_WINDOWS
-        else  if (driverType == VWolf::DriverType::DirectX12) {
-
-            vsFiles = { {
-                 { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/FlatColor.hlsl" , "VS" },
-                 { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/BlinnPhong.hlsl" , "VS" },
-                 { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/Grid.hlsl" , "VS" },
-                 { VWolf::ShaderType::Vertex, VWolf::ShaderSourceType::File, "shaders/hlsl/Skybox.hlsl" , "VS" }
-            } };
-
-            psFiles = { {
-                { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/FlatColor.hlsl" , "PS" },
-                { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/BlinnPhong.hlsl" , "PS" },
-                { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/Grid.hlsl" , "PS" },
-                { VWolf::ShaderType::Fragment, VWolf::ShaderSourceType::File, "shaders/hlsl/Skybox.hlsl" , "PS" }
-            } };
-        }
-    #endif
-
     }
 // ----------------------------------------------- //
 
@@ -116,20 +98,23 @@ namespace VWolfPup {
         return VWolf::ShaderConfiguration();
     }
 
-    
-
     // MARK: Public
     void InitialLoad() {
-        if (VWolfPup::Project::CurrentProject()->GetType() == VWolf::DriverType::OpenGL) {
+        switch (VWolfPup::Project::CurrentProject()->GetType()) {
+        case VWolf::DriverType::OpenGL:
             LoadGLSLShaders();
-            return;
+            break;
+#ifdef VWOLF_PLATFORM_WINDOWS
+        case VWolf::DriverType::DirectX12:
+            LoadHLSLShaders();
+            break;
+#endif
         }
-        
-        LoadShaderNames(VWolfPup::Project::CurrentProject()->GetType());
-        for (int i = 0; i < NUMSHADERS; i++) {
-            VWolf::ShaderLibrary::LoadShader(shaderNames[i], { vsFiles[i], psFiles[i] }, GetInitialConfiguration(shaderNames[i]));
-        }
+    }
 
+    void CreateDefaultMaterial(VWolf::Material& material) {
+        new (&material) VWolf::Material(DEFAULT_SHADER.c_str());
+        material.SetAsDefault();
     }
 
     void CreateGridMaterial(VWolf::Material& material) {

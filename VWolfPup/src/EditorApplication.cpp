@@ -135,24 +135,21 @@ public:
         containerView->AddView(projectStructure);
         //
 
-        new (&material_2) VWolf::Material(VWolfPup::DEFAULT_SHADER.c_str());
+        VWolfPup::CreateDefaultMaterial(material_2);
 
-        material_2.SetAsDefault();
-        material_2.SetColor("u_ambientColor", { 1.0f, 1.0f, 1.0f, 1.0f });
-        material_2.SetColor("u_diffuseColor", { 1.0f, 1.0f, 1.0f, 1.0f });
-        material_2.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
-        material_2.SetFloat("u_shinines", 20);
+        //material_2.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
+        //material_2.SetFloat("u_shinines", 20);
 //        if (VWolfPup::Project::CurrentProject()->GetType() == VWolf::DriverType::OpenGL) {
 //            testTexture = VWolf::Texture::LoadTexture2D("assets/textExample.png");
 //            material_2.SetTexture("u_texture", testTexture);
 //        }
-#ifdef VWOLF_PLATFORM_WINDOWS
-        if (VWolfPup::Project::CurrentProject()->GetType() == VWolf::DriverType::DirectX12) {
-            //testTexture = VWolf::Texture::LoadTexture2D(512, 512);
-            testTexture = VWolf::Texture::LoadTexture2D("assets/textExample2.png");
-            material_2.SetTexture("gDiffuseMap", testTexture);
-        }
-#endif
+//#ifdef VWOLF_PLATFORM_WINDOWS
+//        if (VWolfPup::Project::CurrentProject()->GetType() == VWolf::DriverType::DirectX12) {
+//            //testTexture = VWolf::Texture::LoadTexture2D(512, 512);
+//            testTexture = VWolf::Texture::LoadTexture2D("assets/textExample2.png");
+//            material_2.SetTexture("gDiffuseMap", testTexture);
+//        }
+//#endif
 
         testScene->GetSceneBackground().SetSkyboxMaterial(materialSkybox);
         testScene->GetSceneBackground().SetCamera(skyBoxCamera);

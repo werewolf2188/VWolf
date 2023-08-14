@@ -290,11 +290,20 @@ namespace VWolf {
 		}
 	}
 
+	Color Transform(TextureDefault textureDefault) {
+		switch (textureDefault) {
+		case TextureDefault::White: return Color(1, 1, 1, 1);
+		case TextureDefault::Bump: return Color(0.5f, 0.5f, 1, 0.5f);
+		case TextureDefault::Black: return Color(0, 0, 0, 1);
+		case TextureDefault::Gray: return Color(0.5f, 0.5f, 0.5f, 1);
+		case TextureDefault::Red: return Color(1, 0, 0, 1);
+		}
+	}
 
-	DirectX12Texture2D::DirectX12Texture2D(uint32_t width, uint32_t height, TextureOptions options): Texture2D(width, height, options)
+	DirectX12Texture2D::DirectX12Texture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options): Texture2D(textureDefault, width, height, options)
 	{
 		Initialize(width, height, DXGI_FORMAT_R32G32B32A32_FLOAT, options);
-		m_data = PopulateTest();
+		PopulateColor();
 		GetSurfaceInfo(width, height, DXGI_FORMAT_R32G32B32A32_FLOAT, &numBytes, &rowBytes, &numRows);
 	}
 
@@ -324,6 +333,22 @@ namespace VWolf {
 	{
 		free(m_data);
 	}
+
+	void DirectX12Texture2D::PopulateColor() {
+		size_t size = sizeof(Vector4Float) * m_width * m_height;
+		Vector4Float* data = (Vector4Float*)malloc(size);
+		memset(data, 0, size);
+		uint32_t index = 0;
+		Vector4Float value = Transform(m_textureDefault);
+		for (uint32_t column = 0; column < m_height; column++) {			
+			for (uint32_t row = 0; row < m_width; row++) {
+				index = (column * m_height) + row;
+				data[index] = value;
+			}
+		}
+		m_data = data;
+	}
+
 #if defined(DEBUG) || defined(_DEBUG)
 	void* DirectX12Texture2D::PopulateTest() {
 		size_t size = sizeof(Vector4Float) * m_width * m_height;
@@ -463,10 +488,10 @@ namespace VWolf {
 			->OMSetRenderTargets(1, &rtvTexture->GetHandle().GetCPUAddress(), FALSE, &DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress());
 	}
 
-	DirectX12Cubemap::DirectX12Cubemap(uint32_t size, TextureOptions options): Cubemap(size, options)
+	DirectX12Cubemap::DirectX12Cubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options): Cubemap(textureDefault, size, options)
 	{
 		Initialize(size, DXGI_FORMAT_R32G32B32A32_FLOAT, options);
-		PopulateTest();
+		PopulateColor();
 		GetSurfaceInfo(size, size, DXGI_FORMAT_R32G32B32A32_FLOAT, &numBytes, &rowBytes, &numRows);
 	}
 
@@ -520,7 +545,7 @@ namespace VWolf {
 		return (void*)m_texture->GetHandle().GetGPUAddress().ptr;
 	}
 
-	void DirectX12Cubemap::PopulateTest()
+	void DirectX12Cubemap::PopulateColor()
 	{
 		std::array<Vector4Float, 6> colors = {
 		   Vector4Float(1, 0, 0, 1),
@@ -542,6 +567,25 @@ namespace VWolf {
 		for (unsigned int i = 0; i < numberOfSides; i++)
 		{
 			m_data[i] = PopulateTest(indicesToCheck[i], colors[i]);
+		}
+	}
+
+	void DirectX12Cubemap::PopulateTest()
+	{		
+		Vector4Float value  = Transform(m_textureDefault);
+		for (unsigned int i = 0; i < numberOfSides; i++)
+		{
+			size_t size = sizeof(Vector4Float) * m_size * m_size;
+			Vector4Float* data = (Vector4Float*)malloc(size);
+			memset(data, 0, size);
+			uint32_t index = 0;			
+			for (uint32_t column = 0; column < m_size; column++) {				
+				for (uint32_t row = 0; row < m_size; row++) {					
+					index = (column * m_size) + row;
+					data[index] = value;
+				}
+			}
+			m_data[i] = data;
 		}
 	}
 

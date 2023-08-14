@@ -10,10 +10,12 @@ namespace VWolf {
 
 	class DirectX12Texture2D : public Texture2D {
 	public:
-		DirectX12Texture2D(uint32_t width, uint32_t height, TextureOptions options = {});
+		DirectX12Texture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options = {});
 		DirectX12Texture2D(const std::string filePath, TextureOptions options = {});
 		virtual ~DirectX12Texture2D();
 		virtual void* GetHandler() override;
+	protected:
+		virtual void PopulateColor() override;
 #if defined(DEBUG) || defined(_DEBUG)
 	private:
 		void* PopulateTest();
@@ -45,10 +47,12 @@ namespace VWolf {
 
 	class DirectX12Cubemap : public Cubemap {
 	public:
-		DirectX12Cubemap(uint32_t size, TextureOptions options = {});
+		DirectX12Cubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
 		DirectX12Cubemap(std::array<std::string, 6> paths, TextureOptions options = {});
 		virtual ~DirectX12Cubemap();
 		virtual void* GetHandler() override;
+	protected:
+		virtual void PopulateColor() override;
 #if defined(DEBUG) || defined(_DEBUG)
 	private:
 		//void PopulateTest(GLuint id, int checkIndex, Vector4Float otherColor);
