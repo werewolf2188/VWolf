@@ -26,9 +26,11 @@ namespace VWolf {
         static void AddLight(Light& light);
 #ifdef VWOLF_CORE
         static void SetGraphicsImpl(Ref<Graphics> graphics) { graphicsImpl = graphics; }
-        static Ref<Graphics> SetGraphicsImpl() { return graphicsImpl; }
+        static Ref<Graphics> GetGraphicsImpl() { return graphicsImpl; }
         static void BeginFrame();
         static void EndFrame();
+        static void BeginScene();
+        static void EndScene();
 #endif
     protected:
         virtual void DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera = nullptr) = 0;
@@ -40,6 +42,12 @@ namespace VWolf {
         virtual void BeginFrameImpl() = 0;
         virtual void EndFrameImpl() = 0;
         virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) = 0;
+        virtual void BeginSceneImpl() = 0;
+        virtual void EndSceneImpl() = 0;
+    protected:
+        virtual void DrawShadowMap() = 0;
+        virtual void DrawQueue() = 0;
+        virtual void DrawPostProcess() = 0;
     protected:
         // TODO: Think about how to deal with render textures
         Ref<RenderTexture> renderTexture;

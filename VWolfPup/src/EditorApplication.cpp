@@ -153,6 +153,8 @@ public:
 
         testScene->GetSceneBackground().SetSkyboxMaterial(materialSkybox);
         testScene->GetSceneBackground().SetCamera(skyBoxCamera);
+
+        VWolf::Graphics::SetRenderTexture(sceneViewer->GetRenderTexture());
     }
 
     ~RendererSandboxApplication() {}
@@ -186,13 +188,8 @@ public:
     }
 
     void OnDraw() override {
-        
-        VWolf::Graphics::SetRenderTexture(sceneViewer->GetRenderTexture());
-
-        testScene->DrawEditor(camera);
-        
+        testScene->DrawEditor(camera);        
         VWolf::Graphics::RenderMesh(gridData, VWolf::MatrixFloat4x4(), materialGrid);
-        VWolf::Graphics::SetRenderTexture(nullptr);
     }
 
     void OnGUI() override {

@@ -10,6 +10,7 @@
 namespace VWolf {
 
     std::vector<Ref<Shader>> ShaderLibrary::m_shaders;
+    std::map<ShaderLibrary::ShaderSpecialty, std::string> ShaderLibrary::m_specialtiesShaders;
 
     // TODO: Remove
     const char* ShaderLibrary::CameraBufferName = "Camera";
@@ -42,7 +43,7 @@ namespace VWolf {
         m_shaders.push_back(shader);
     }
 
-    Ref<Shader> ShaderLibrary::GetShader(const char* name) {
+    Ref<Shader> ShaderLibrary::GetShader(std::string name) {
         for (auto shader: m_shaders) {
             std::string shaderName = shader->GetName();
             if (shaderName == name) {
@@ -50,5 +51,13 @@ namespace VWolf {
             }
         }
         return nullptr;
+    }
+
+    Ref<Shader> ShaderLibrary::GetShader(ShaderSpecialty type) {
+        return GetShader(m_specialtiesShaders[type]);
+    }
+
+    void ShaderLibrary::SetShaderSpecialty(std::string name, ShaderSpecialty type) {
+        m_specialtiesShaders[type] = name;
     }
 }

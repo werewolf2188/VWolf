@@ -137,6 +137,9 @@ namespace VWolf {
 
     class ShaderLibrary {
     public:
+        enum class ShaderSpecialty {
+            shadow
+        };
         // TODO: Not sure if this should live here.
         static const char* CameraBufferName;
         static const char* ObjectBufferName;
@@ -145,8 +148,11 @@ namespace VWolf {
                                std::initializer_list<ShaderSource> otherShaders,
                                ShaderConfiguration configuration = {});
 
-        static Ref<Shader> GetShader(const char* name);
+        static Ref<Shader> GetShader(std::string name);
+        static Ref<Shader> GetShader(ShaderSpecialty type);
+        static void SetShaderSpecialty(std::string name, ShaderSpecialty type);
     private:
         static std::vector<Ref<Shader>> m_shaders;
+        static std::map<ShaderSpecialty, std::string> m_specialtiesShaders;
     };
 }

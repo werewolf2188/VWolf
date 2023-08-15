@@ -59,13 +59,13 @@ namespace VWolf {
 //    }
 
     void OpenGLGraphics::BindToRenderTexture() {
-        if (renderTexture != nullptr) {
+        if (renderTexture != nullptr && useRenderTexture) {
             ((OpenGLRenderTexture*)renderTexture.get())->Bind();
         }
     }
 
     void OpenGLGraphics::UnbindToRenderTexture(){
-        if (renderTexture != nullptr) {
+        if (renderTexture != nullptr && useRenderTexture) {
             ((OpenGLRenderTexture*)renderTexture.get())->Unbind();
         }
     }
@@ -87,6 +87,7 @@ namespace VWolf {
         lights.push_back(light);
     }
 
+    // TODO: Better names. This is for immediate rendering
     void OpenGLGraphics::DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera) {
         auto data = mesh.vertices;
         auto indices = mesh.indices;
@@ -141,80 +142,9 @@ namespace VWolf {
         free(material1);
     }
 
+    // TODO: Better names. This is for lazy rendering
     void OpenGLGraphics::RenderMeshImpl(MeshData& mesh, MatrixFloat4x4 transform, Material& material, Ref<Camera> camera) {
-        auto data = mesh.vertices;
-        auto indices = mesh.indices;
-        Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(Vertex));
-        vertices->SetLayout(MeshData::Layout);
-        Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
-        Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices);
-        
-        Camera* cam = camera != nullptr ? camera.get(): Camera::main;
-
-        CameraPass cameraPass = {
-            cam->GetViewMatrix(),
-            inverse(cam->GetViewMatrix()),
-            cam->GetProjection(),
-            inverse(cam->GetProjection()),
-            cam->GetViewProjection(),
-            inverse(cam->GetViewProjection()),
-            cam->GetPosition(),
-            0,
-            cam->GetDisplaySize(),
-            { 1 / cam->GetDisplaySize().x, 1 / cam->GetDisplaySize().y },
-            cam->GetNearZ(),
-            cam->GetFarZ(),
-            Time::GetTotalTime(),
-            Time::GetDeltaTime()
-        };
-
-        Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
-        void* material1 = material.GetDataPointer();
-        Light* lights = this->lights.data();
-        std::vector<ShaderInput> textures = shader->GetTextureInputs();
-        shader->Bind();
-        for (GLuint index = 0; index < textures.size(); index++) {
-            OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
-            if (texture != nullptr) {
-                texture->Bind(index);
-                // TODO: Move this inside bind
-                GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
-            }
-//            OpenGLCubemap* cubeMap = dynamic_cast<OpenGLCubemap*>(material.GetTexture(textures[index].GetName()).get());
-//            if (cubeMap != nullptr) {
-//                cubeMap->Bind(index);
-//                GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
-//            }
-        }
-        shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
-        shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
-        shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
-        if (lights)
-            shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
-        group->Bind();
-        vertices->Bind();
-        index->Bind();
-        
-        uint32_t count = index->GetCount();
-        BindToRenderTexture();
-        GLThrowIfFailed(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr));
-        UnbindToRenderTexture();
-        vertices->Unbind();
-        index->Unbind();
-        group->Unbind();
-        for (GLuint index = 0; index < textures.size(); index++) {
-            OpenGLTexture2D* texture = dynamic_cast<OpenGLTexture2D*>(material.GetTexture(textures[index].GetName()).get());
-            if (texture != nullptr) {
-                texture->Unbind(index);
-            }
-            OpenGLCubemap* cubeMap = dynamic_cast<OpenGLCubemap*>(material.GetTexture(textures[index].GetName()).get());
-            if (cubeMap != nullptr) {
-                cubeMap->Unbind(index);
-            }
-        }
-        shader->Unbind();
-        
-        free(material1);
+        items.push_back(CreateRef<RenderItem>(mesh, material, transform, camera));
     }
 
     void OpenGLGraphics::BeginFrameImpl()
@@ -222,10 +152,114 @@ namespace VWolf {
     }
     void OpenGLGraphics::EndFrameImpl()
     {
+        
+    }
+
+    void OpenGLGraphics::BeginSceneImpl() {
+        useRenderTexture = true;
+        items.clear();
+    }
+
+    void OpenGLGraphics::EndSceneImpl() {
+        DrawShadowMap();
+        DrawQueue();
+        DrawPostProcess();
+        useRenderTexture = false;
     }
 
     void OpenGLGraphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture)
     {
         this->renderTexture = renderTexture;
+    }
+
+    void OpenGLGraphics::DrawShadowMap() {
+        
+    }
+
+    void OpenGLGraphics::DrawQueue() {
+        for(Ref<RenderItem> item: items) {
+            auto& mesh = item->data;
+            auto& material = item->material;
+            Ref<Camera> camera = item->camera;
+            MatrixFloat4x4 transform = item->transform;
+
+            auto data = mesh.vertices;
+            auto indices = mesh.indices;
+            Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(Vertex));
+            vertices->SetLayout(MeshData::Layout);
+            Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
+            Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices);
+            
+            Camera* cam = camera != nullptr ? camera.get(): Camera::main;
+
+            CameraPass cameraPass = {
+                cam->GetViewMatrix(),
+                inverse(cam->GetViewMatrix()),
+                cam->GetProjection(),
+                inverse(cam->GetProjection()),
+                cam->GetViewProjection(),
+                inverse(cam->GetViewProjection()),
+                cam->GetPosition(),
+                0,
+                cam->GetDisplaySize(),
+                { 1 / cam->GetDisplaySize().x, 1 / cam->GetDisplaySize().y },
+                cam->GetNearZ(),
+                cam->GetFarZ(),
+                Time::GetTotalTime(),
+                Time::GetDeltaTime()
+            };
+
+            Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
+            void* material1 = material.GetDataPointer();
+            Light* lights = this->lights.data();
+            std::vector<ShaderInput> textures = shader->GetTextureInputs();
+            shader->Bind();
+            for (GLuint index = 0; index < textures.size(); index++) {
+                OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
+                if (texture != nullptr) {
+                    texture->Bind(index);
+                    // TODO: Move this inside bind
+                    GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
+                }
+    //            OpenGLCubemap* cubeMap = dynamic_cast<OpenGLCubemap*>(material.GetTexture(textures[index].GetName()).get());
+    //            if (cubeMap != nullptr) {
+    //                cubeMap->Bind(index);
+    //                GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
+    //            }
+            }
+            shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
+            shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
+            shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
+            if (lights)
+                shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
+            group->Bind();
+            vertices->Bind();
+            index->Bind();
+            
+            uint32_t count = index->GetCount();
+            BindToRenderTexture();
+            GLThrowIfFailed(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr));
+            UnbindToRenderTexture();
+            vertices->Unbind();
+            index->Unbind();
+            group->Unbind();
+            for (GLuint index = 0; index < textures.size(); index++) {
+                OpenGLTexture2D* texture = dynamic_cast<OpenGLTexture2D*>(material.GetTexture(textures[index].GetName()).get());
+                if (texture != nullptr) {
+                    texture->Unbind(index);
+                }
+                OpenGLCubemap* cubeMap = dynamic_cast<OpenGLCubemap*>(material.GetTexture(textures[index].GetName()).get());
+                if (cubeMap != nullptr) {
+                    cubeMap->Unbind(index);
+                }
+            }
+            shader->Unbind();
+            
+            free(material1);
+        }
+    }
+
+    void OpenGLGraphics::DrawPostProcess() {
+        
     }
 }

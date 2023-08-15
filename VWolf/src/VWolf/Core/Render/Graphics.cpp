@@ -56,4 +56,15 @@ namespace VWolf {
             graphicsImpl->EndFrameImpl();
         }
     }
+
+    void Graphics::BeginScene() {
+        if (graphicsImpl) {
+            graphicsImpl->BeginSceneImpl();
+        }
+    }
+    void Graphics::EndScene() {
+        if (graphicsImpl) {
+            graphicsImpl->EndSceneImpl();
+        }
+    }
 }
