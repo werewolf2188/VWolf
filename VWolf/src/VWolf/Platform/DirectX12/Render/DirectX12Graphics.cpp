@@ -81,6 +81,7 @@ namespace VWolf {
 	//}
 
 	// TODO: Working as intended, but not happy with the implementation
+	// TODO: Better names. This is for immediate rendering
 	void DirectX12Graphics::DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera)
 	{
 		/*if (frame != DirectX12Driver::GetCurrent()->GetContext()->mCurrBackBuffer) {
@@ -154,71 +155,10 @@ namespace VWolf {
 	}
 
 	// TODO: Working as intended, but not happy with the implementation
+	// TODO: Better names. This is for lazy rendering
 	void DirectX12Graphics::RenderMeshImpl(MeshData& mesh, MatrixFloat4x4 transform, Material& material, Ref<Camera> camera)
 	{
-		auto data = mesh.vertices;
-		auto indices = mesh.indices;
-		Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex));
-		Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
-		Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
-		group->SetVertexBuffer(vertices);
-		group->SetIndexBuffer(index);
-
-		groups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), group);
-
-		vertices->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
-		index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
-
-		Camera* cam = camera != nullptr ? camera.get() : Camera::main;
-
-		CameraPass cameraPass = {
-			cam->GetViewMatrix(),
-			inverse(cam->GetViewMatrix()),
-			cam->GetProjection(),
-			inverse(cam->GetProjection()),
-			cam->GetViewProjection(),
-			inverse(cam->GetViewProjection()),
-			cam->GetPosition(),
-			0,
-			cam->GetDisplaySize(),
-			{ 1 / cam->GetDisplaySize().x, 1 / cam->GetDisplaySize().y },
-			cam->GetNearZ(),
-			cam->GetFarZ(),
-			Time::GetTotalTime(),
-			Time::GetDeltaTime()
-		};
-
-		Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
-		void* material1 = material.GetDataPointer();
-		if (this->lights.size() == 0) {
-			this->lights.push_back(Light());
-		}
-		Light* lights = this->lights.data();
-		
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		group->Bind(DirectX12Driver::GetCurrent()->GetCommands());
-		auto pso = ((HLSLShader*)shader.get())->GetPipeline();
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetPipelineState(pso.Get());
-		shader->Bind();
-		
-		shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
-		shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), shapes);
-		shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
-		shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
-		// Adding textures
-		for (auto textureInput : shader->GetTextureInputs()) {
-			D3D12_GPU_DESCRIPTOR_HANDLE handle;
-			handle.ptr = (UINT64)material.GetTexture(textureInput.GetName())->GetHandler();
-			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootDescriptorTable(textureInput.GetIndex(), handle);
-		}
-		//
-		uint32_t count = indices.size();
-
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->DrawIndexedInstanced(
-			count,
-			1, 0, 0, 0);
-		free(material1);
-		shapes++;
+		items.push_back(CreateRef<RenderItem>(mesh, material, transform, camera));		
 	}
 
 	void DirectX12Graphics::ClearColorImpl(Color color)
@@ -307,15 +247,102 @@ namespace VWolf {
 	void DirectX12Graphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture)
 	{
 		this->renderTexture = renderTexture;
+	}
 
-		if (renderTexture) // Setting a render texture
-		{
-			BindToRenderTexture();
+	void DirectX12Graphics::BeginSceneImpl()
+	{
+		items.clear();
+		BindToRenderTexture();
+	}
+
+	void DirectX12Graphics::EndSceneImpl()
+	{
+		DrawShadowMap();
+		DrawQueue();
+		DrawPostProcess();
+		UnbindToRenderTexture();
+	}
+
+	void DirectX12Graphics::DrawShadowMap()
+	{
+	}
+
+	void DirectX12Graphics::DrawQueue()
+	{
+		for (Ref<RenderItem> item : items) {
+			auto& mesh = item->data;
+			auto& material = item->material;
+			Ref<Camera> camera = item->camera;
+			MatrixFloat4x4 transform = item->transform;
+
+			auto data = mesh.vertices;
+			auto indices = mesh.indices;
+			Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex));
+			Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
+			Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
+			group->SetVertexBuffer(vertices);
+			group->SetIndexBuffer(index);
+
+			groups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), group);
+
+			vertices->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
+			index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
+
+			Camera* cam = camera != nullptr ? camera.get() : Camera::main;
+
+			CameraPass cameraPass = {
+				cam->GetViewMatrix(),
+				inverse(cam->GetViewMatrix()),
+				cam->GetProjection(),
+				inverse(cam->GetProjection()),
+				cam->GetViewProjection(),
+				inverse(cam->GetViewProjection()),
+				cam->GetPosition(),
+				0,
+				cam->GetDisplaySize(),
+				{ 1 / cam->GetDisplaySize().x, 1 / cam->GetDisplaySize().y },
+				cam->GetNearZ(),
+				cam->GetFarZ(),
+				Time::GetTotalTime(),
+				Time::GetDeltaTime()
+			};
+
+			Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
+			void* material1 = material.GetDataPointer();
+			if (this->lights.size() == 0) {
+				this->lights.push_back(Light());
+			}
+			Light* lights = this->lights.data();
+
+			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			group->Bind(DirectX12Driver::GetCurrent()->GetCommands());
+			auto pso = ((HLSLShader*)shader.get())->GetPipeline();
+			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetPipelineState(pso.Get());
+			shader->Bind();
+
+			shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
+			shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), shapes);
+			shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
+			shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
+			// Adding textures
+			for (auto textureInput : shader->GetTextureInputs()) {
+				D3D12_GPU_DESCRIPTOR_HANDLE handle;
+				handle.ptr = (UINT64)material.GetTexture(textureInput.GetName())->GetHandler();
+				DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootDescriptorTable(textureInput.GetIndex(), handle);
+			}
+			//
+			uint32_t count = indices.size();
+
+			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->DrawIndexedInstanced(
+				count,
+				1, 0, 0, 0);
+			free(material1);
+			shapes++;
 		}
-		else 
-		{
-			UnbindToRenderTexture();
-		}
+	}
+
+	void DirectX12Graphics::DrawPostProcess()
+	{
 	}
 }
 #endif

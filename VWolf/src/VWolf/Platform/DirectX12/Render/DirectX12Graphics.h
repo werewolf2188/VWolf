@@ -23,11 +23,18 @@ namespace VWolf {
         virtual void BeginFrameImpl() override;
         virtual void EndFrameImpl() override;
         virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) override;
+        virtual void BeginSceneImpl() override;
+        virtual void EndSceneImpl() override;
+    protected:
+        virtual void DrawShadowMap() override;
+        virtual void DrawQueue() override;
+        virtual void DrawPostProcess() override;
     private:
         void BindToRenderTexture();
         void UnbindToRenderTexture();       
     private:
         std::deque<std::pair<UINT64, Ref<DirectX12BufferGroup>>> groups;
+        std::vector<Ref<RenderItem>> items;
         // TODO: Plan later
         std::vector<Light> lights;       
         int frame = 0;
