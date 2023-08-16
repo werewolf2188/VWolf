@@ -19,6 +19,8 @@ namespace VWolf {
     public:
         OpenGLGraphics() = default;
         virtual ~OpenGLGraphics() override {};
+    public:
+        void Initialize();
     protected:
         virtual void DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera = nullptr) override;
         virtual void RenderMeshImpl(MeshData& mesh, MatrixFloat4x4 transform, Material& material, Ref<Camera> camera = nullptr) override;
@@ -41,6 +43,8 @@ namespace VWolf {
     private:
         std::vector<Ref<RenderItem>> items;
         bool useRenderTexture = false;
+        Ref<OpenGLRenderTexture> shadowMap;
+        Ref<OpenGLTexture2D> emptyShadowMap;
         // TODO: Plan later
         std::vector<Light> lights;
     };

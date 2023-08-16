@@ -32,7 +32,7 @@ namespace VWolf {
         TextureWrapMode GetWrapModeW() const { return wrapModeW; }
         TextureWrapMode GetWrapMode() const { return wrapMode; }
     private:
-        TextureFilterMode filterMode = TextureFilterMode::Point;
+        TextureFilterMode filterMode = TextureFilterMode::Bilinear;
         TextureWrapMode wrapModeU = TextureWrapMode::None;
         TextureWrapMode wrapModeV = TextureWrapMode::None;
         TextureWrapMode wrapModeW = TextureWrapMode::None;

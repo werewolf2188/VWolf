@@ -45,11 +45,35 @@ layout(std140) uniform Light {
     LightInfo light[LIGHTS_MAX];
 };
 
+struct LightSpaceInfo {
+    mat4 u_lightSpaceMatrix;
+};
+
+layout(std140) uniform LightSpace {
+    LightSpaceInfo lightSpaces[LIGHTS_MAX];
+};
+
+uniform sampler2D u_shadow;
+
 uniform sampler2D u_texture;
 
 in vec3 v_Position;
 in vec3 v_Normal;
 in vec2 v_TexCoord;
+in vec4 v_FragPosLightSpace[LIGHTS_MAX];
+
+float ShadowCalculation(vec4 fragPosLightSpace) {
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5;
+    float closestDepth = texture(u_shadow, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+    float bias = 0.005;
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+    if(projCoords.z > 1.0)
+        shadow = 0.0;
+
+    return shadow;
+}
 
 vec3 ComputeSpotBlinnPhongLightColor(vec4 v_LightPosition, vec4 v_LightDirection, int index, vec3 position, vec3 n) {
     // Ambient
@@ -78,7 +102,8 @@ vec3 ComputeSpotBlinnPhongLightColor(vec4 v_LightPosition, vec4 v_LightDirection
         }
     }
     
-    return ambient + spotScale * light[index].u_strength.xyz * (diffuse + spec);
+    float shadow = ShadowCalculation(v_FragPosLightSpace[index]);
+    return ambient + (1.0 - shadow) * spotScale * light[index].u_strength.xyz * (diffuse + spec);
 }
 
 vec3 ComputeDirectionalBlinnPhonLightColor(vec4 v_LightPosition, vec4 v_LightDirection, int index, vec3 position, vec3 n) {
@@ -99,7 +124,8 @@ vec3 ComputeDirectionalBlinnPhonLightColor(vec4 v_LightPosition, vec4 v_LightDir
         spec = u_specular * pow(max(dot(h,n), 0.0 ), u_shinines );
     }
 
-    return ambient + light[index].u_strength.xyz * (diffuse + spec);
+    float shadow = ShadowCalculation(v_FragPosLightSpace[index]);
+    return ambient + (1.0 - shadow) * light[index].u_strength.xyz * (diffuse + spec);
 }
 
 vec3 ComputePoitBlinnPhongLightColor(vec4 v_LightPosition, vec4 v_LightDirection, int index, vec3 position, vec3 n) {
@@ -120,7 +146,8 @@ vec3 ComputePoitBlinnPhongLightColor(vec4 v_LightPosition, vec4 v_LightDirection
         spec = u_specular * pow(max(dot(h,n), 0.0 ), u_shinines );
     }
 
-    return ambient + light[index].u_strength.xyz * (diffuse + spec);
+    float shadow = ShadowCalculation(v_FragPosLightSpace[index]);
+    return ambient +  (1.0 - shadow) * light[index].u_strength.xyz * (diffuse + spec);
 }
 
 vec3 ComputeBlinnPhongLightColor(vec3 position, vec3 n) {

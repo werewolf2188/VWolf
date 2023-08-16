@@ -10,6 +10,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #endif
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 namespace VWolf {
 	using namespace glm;

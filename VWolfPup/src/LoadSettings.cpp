@@ -95,6 +95,9 @@ namespace VWolfPup {
     VWolf::ShaderConfiguration GetInitialConfiguration(std::string name) {
         if (name == DEFAULT_SKYBOX)
             return { VWolf::ShaderConfiguration::Rasterization(), { true, VWolf::ShaderConfiguration::DepthStencil::DepthFunction::LEqual }, VWolf::ShaderConfiguration::Blend() };
+        // TODO: Work on these settings
+//        if (name == DEFAULT_GRID)
+//            return { VWolf::ShaderConfiguration::Rasterization(), { true, VWolf::ShaderConfiguration::DepthStencil::DepthFunction::LEqual }, VWolf::ShaderConfiguration::Blend() };
         return VWolf::ShaderConfiguration();
     }
 

@@ -54,7 +54,7 @@ namespace VWolf {
         Ref<RenderTexture> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
-                texture = CreateRef<OpenGLRenderTexture>(width, height, options);
+                texture = CreateRef<OpenGLRenderTexture>(width, height, false, options);
                 break;
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:

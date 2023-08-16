@@ -266,11 +266,26 @@ namespace VWolf {
         float padding; // Needed for OPENGL
 
     public:
+        MatrixFloat4x4 GetLightSpaceMatrix() {
+            Vector3Float rotation(direction.x, direction.y, direction.z);
+            Vector3Float eye(position.x, position.y, position.z);
+            Quat q = toQuat(orientate4(rotation));
+            Vector3Float up = rotate(q, { 0.0f, 1.0f, 0.0f });
+            Vector3Float center = rotate(q, { 0.0f, 0.0f, -1.0f });
+            MatrixFloat4x4 lightView = lookAt(eye, center, up);
+            float near_plane = 1.0f, far_plane = 100.0f;
+            MatrixFloat4x4 lightProjection = ortho(-30.0f, 30.0f, -30.0f, 30.0f, near_plane, far_plane);
+    
+            return lightProjection * lightView;
+        }
+    public:
         static const char* LightName;
+        static const char* LightSpaceName;
         static const int LightsMax;
     };
 
     inline const char* Light::LightName = "Light";
+    inline const char* Light::LightSpaceName = "LightSpace";
     inline const int Light::LightsMax = 8;    
 }
 

@@ -14,6 +14,10 @@
 #include "VWolf/Platform/OpenGL/Core/GLCore.h"
 
 namespace VWolf {
+    void OpenGLGraphics::Initialize() {
+        shadowMap = CreateRef<OpenGLRenderTexture>(1024, 1024, true, TextureOptions());
+        emptyShadowMap = CreateRef<OpenGLTexture2D>(TextureDefault::White, 1024, 1024, TextureOptions());
+    }
 // TODO: For the future on how to create render queue
 //    void OpenGLRenderer::ProcessItems() {
 //        
@@ -123,11 +127,33 @@ namespace VWolf {
         Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
         void* material1 = material.GetDataPointer();
         Light* lights = this->lights.data();
+        std::vector<ShaderInput> textures = shader->GetTextureInputs();
+        shader->Bind();
+        for (GLuint index = 0; index < textures.size(); index++) {
+            if (textures[index].GetName() == "u_shadow") {
+                emptyShadowMap->Bind(index);
+            } else {
+                OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
+                if (texture != nullptr) {
+                    texture->Bind(index);
+                    // TODO: Move this inside bind
+                    GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
+                }
+            }
+        }
         shader->Bind();
         shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
         shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
         shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
-        shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
+        if (lights) {
+            shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
+            std::vector<MatrixFloat4x4> spaces;
+            for(int i = 0; i < this->lights.size(); i++) {
+                spaces.push_back(lights[i].GetLightSpaceMatrix());
+            }
+            MatrixFloat4x4* spacesPointer = spaces.data();
+            shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(MatrixFloat4x4) * Light::LightsMax, 0);
+        }
         group->Bind();
         vertices->Bind();
         index->Bind();
@@ -138,6 +164,16 @@ namespace VWolf {
         vertices->Unbind();
         index->Unbind();
         group->Unbind();
+        for (GLuint index = 0; index < textures.size(); index++) {
+            if (textures[index].GetName() == "u_shadow") {
+                emptyShadowMap->Unbind(index);
+            } else {
+                OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
+                if (texture != nullptr) {
+                    texture->Unbind(index);
+                }
+            }
+        }
         shader->Unbind();
         free(material1);
     }
@@ -173,7 +209,42 @@ namespace VWolf {
     }
 
     void OpenGLGraphics::DrawShadowMap() {
-        
+        shadowMap->Bind();
+        GLThrowIfFailed(glClear(GL_DEPTH_BUFFER_BIT));
+        for (Light& light: lights) {
+            Ref<Shader> shader = ShaderLibrary::GetShader("Shadow"); // TODO: Organize this
+            for(Ref<RenderItem> item: items) {
+                auto& mesh = item->data;
+
+                auto data = mesh.vertices;
+                if (data.size() == 1) continue;; // It's a light
+                auto indices = mesh.indices;
+                Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(Vertex));
+                vertices->SetLayout(MeshData::Layout);
+                Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
+                Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices);
+
+                MatrixFloat4x4 viewProjection = light.GetLightSpaceMatrix();
+                MatrixFloat4x4 transform = item->transform;
+                
+                shader->Bind();
+                shader->SetData(&viewProjection, ShaderLibrary::CameraBufferName, sizeof(MatrixFloat4x4), 0);
+                shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
+
+                group->Bind();
+                vertices->Bind();
+                index->Bind();
+                
+                uint32_t count = index->GetCount();
+                GLThrowIfFailed(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr));
+
+                vertices->Unbind();
+                index->Unbind();
+                group->Unbind();
+                shader->Unbind();
+            }
+        }
+        shadowMap->Unbind();
     }
 
     void OpenGLGraphics::DrawQueue() {
@@ -215,23 +286,31 @@ namespace VWolf {
             std::vector<ShaderInput> textures = shader->GetTextureInputs();
             shader->Bind();
             for (GLuint index = 0; index < textures.size(); index++) {
-                OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
-                if (texture != nullptr) {
-                    texture->Bind(index);
-                    // TODO: Move this inside bind
+                if (textures[index].GetName() == "u_shadow") {
+                    shadowMap->DepthTextureBind(index);
                     GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
+                } else {
+                    OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
+                    if (texture != nullptr) {
+                        texture->Bind(index);
+                        // TODO: Move this inside bind
+                        GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
+                    }
                 }
-    //            OpenGLCubemap* cubeMap = dynamic_cast<OpenGLCubemap*>(material.GetTexture(textures[index].GetName()).get());
-    //            if (cubeMap != nullptr) {
-    //                cubeMap->Bind(index);
-    //                GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
-    //            }
             }
             shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
             shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
             shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
-            if (lights)
+            if (lights) {
                 shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
+                std::vector<MatrixFloat4x4> spaces;
+                for(int i = 0; i < this->lights.size(); i++) {
+                    spaces.push_back(lights[i].GetLightSpaceMatrix());
+                }
+                MatrixFloat4x4* spacesPointer = spaces.data();
+                shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(MatrixFloat4x4) * Light::LightsMax, 0);
+            }
+            
             group->Bind();
             vertices->Bind();
             index->Bind();
@@ -244,13 +323,13 @@ namespace VWolf {
             index->Unbind();
             group->Unbind();
             for (GLuint index = 0; index < textures.size(); index++) {
-                OpenGLTexture2D* texture = dynamic_cast<OpenGLTexture2D*>(material.GetTexture(textures[index].GetName()).get());
-                if (texture != nullptr) {
-                    texture->Unbind(index);
-                }
-                OpenGLCubemap* cubeMap = dynamic_cast<OpenGLCubemap*>(material.GetTexture(textures[index].GetName()).get());
-                if (cubeMap != nullptr) {
-                    cubeMap->Unbind(index);
+                if (textures[index].GetName() == "u_shadow") {
+                    shadowMap->DepthTextureUnbind(index);
+                } else {
+                    OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
+                    if (texture != nullptr) {
+                        texture->Unbind(index);
+                    }
                 }
             }
             shader->Unbind();

@@ -159,10 +159,12 @@ namespace VWolf {
         Graphics::Clear();
 
         if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
-            Graphics::RenderMesh(sceneBackGround.GetSkyboxMeshData(),
-                                 VWolf::MatrixFloat4x4(),
-                                 sceneBackGround.GetSkyboxMaterial(),
-                                 sceneBackGround.GetCamera());
+            // Immediate drawing so it does not belong to the queue
+            Graphics::DrawMesh(sceneBackGround.GetSkyboxMeshData(),
+                               VWolf::Vector4Float(),
+                               VWolf::Vector4Float(),
+                               sceneBackGround.GetSkyboxMaterial(),
+                               sceneBackGround.GetCamera());
         }
 
         auto lightsAndTransformComponents = m_registry.view<LightComponent, TransformComponent>();
