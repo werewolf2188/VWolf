@@ -58,7 +58,7 @@ namespace VWolf {
                 break;
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
-                texture = CreateRef<DirectX12RenderTexture>(width, height, options);
+                texture = CreateRef<DirectX12RenderTexture>(width, height, false, options);
                 break;
 #endif
             default:

@@ -142,11 +142,12 @@ namespace VWolf {
 
 	class DX12RenderTargetResource {
 	public:
-		DX12RenderTargetResource(DX12TextureResourceInfo info) : info(info), texture(info.newResourceDescription->Format) {}
+		DX12RenderTargetResource(DX12TextureResourceInfo info, bool isDepthOnly) : info(info), isDepthOnly(isDepthOnly),
+			texture(info.newResourceDescription->Format) {}
 		~DX12RenderTargetResource();
 	public:
 		void Create(Ref<DX12Device> device, Ref<DX12DescriptorHeap> heap);
-		void CreateWithShaderResource(Ref<DX12Device> device, Ref<DX12DescriptorHeap> rtvHeap, Ref<DX12DescriptorHeap> srvHeap);
+		void CreateWithShaderResource(Ref<DX12Device> device, Ref<DX12DescriptorHeap> rtvHeap,  Ref<DX12DescriptorHeap> srvHeap);
 
 		void SetSize(UINT width, UINT height);
 		void Release() { texture.Release(); }
@@ -157,6 +158,7 @@ namespace VWolf {
 		DX12TextureResourceInfo info;
 		DX12TextureResource texture;
 		DX12DescriptorHandle rtvHandle;
+		bool isDepthOnly = false;
 	};
 
 	class DX12DepthBufferResource {

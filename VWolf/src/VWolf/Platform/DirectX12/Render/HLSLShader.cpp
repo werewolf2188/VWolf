@@ -535,6 +535,10 @@ namespace VWolf {
 			std::vector<CD3DX12_ROOT_PARAMETER> slotRootParameter(constantBuffers.size() + textures.size());
 			std::vector<CD3DX12_STATIC_SAMPLER_DESC> samplersRootParameter(samplers.size());
 
+			/*if (name == "BlinnPhong") {
+				VWOLF_CORE_INFO("Test");
+			}*/
+
 			for (auto [key,value] : constantBuffers) {
 				if (useDescriptorTables) {
 					CD3DX12_DESCRIPTOR_RANGE* cbRange = new CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, value->GetBindingIndex());
@@ -551,7 +555,11 @@ namespace VWolf {
 			}
 
 			for (auto [key, value] : samplers) {
-				samplersRootParameter[value.GetBindingIndex()].Init(value.GetBindingIndex(), D3D12_FILTER_MIN_MAG_MIP_POINT);
+				// TODO: Move this somewhere else
+				if (key == "gsamShadow") {
+					samplersRootParameter[value.GetBindingIndex()].Init(value.GetBindingIndex(), D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT);
+				} else
+					samplersRootParameter[value.GetBindingIndex()].Init(value.GetBindingIndex(), D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR);
 			}
 
 			CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(slotRootParameter.size(), slotRootParameter.data(), samplersRootParameter.size(), samplersRootParameter.data(),
@@ -567,6 +575,7 @@ namespace VWolf {
 				VWOLF_CORE_ERROR((char*)errorBlob->GetBufferPointer());
 			}
 			DXThrowIfFailed(hr);
+			
 
 			DXThrowIfFailed(DirectX12Driver::GetCurrent()->GetDevice()->GetDevice()->CreateRootSignature(
 				0,
@@ -664,6 +673,11 @@ namespace VWolf {
 				}
 
 				psoDesc.RasterizerState.FrontCounterClockwise = configuration.rasterization.counterClockwise;
+				if (name == "Shadow") { // TODO: Move this 
+					psoDesc.RasterizerState.DepthBias = 100000;
+					psoDesc.RasterizerState.DepthBiasClamp = 0.0f;
+					psoDesc.RasterizerState.SlopeScaledDepthBias = 1.0f;
+				}
 
 			}
 			// Blend
@@ -722,8 +736,15 @@ namespace VWolf {
 
 			psoDesc.SampleMask = UINT_MAX;
 			psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-			psoDesc.NumRenderTargets = 1;
-			psoDesc.RTVFormats[0] = DirectX12Driver::GetCurrent()->GetSurface()->GetFormat();
+
+			if (name == "Shadow") { // TODO: Move this 
+				psoDesc.NumRenderTargets = 0;
+			}
+			else {
+				psoDesc.NumRenderTargets = 1;
+				psoDesc.RTVFormats[0] = DirectX12Driver::GetCurrent()->GetSurface()->GetFormat();
+			}
+			
 			psoDesc.SampleDesc.Count = 1; // DirectX12Driver::GetCurrent()->GetDevice()->GetMSAAQuality() ? 4 : 1;
 			psoDesc.SampleDesc.Quality = 0; // DirectX12Driver::GetCurrent()->GetDevice()->GetMSAAQuality() ? (DirectX12Driver::GetCurrent()->GetDevice()->GetMSAAQuality() - 1) : 0;
 			psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT; // FOR NOW //DirectX12Driver::GetCurrent()->GetContext()->mDepthStencilFormat;

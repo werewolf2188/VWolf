@@ -31,18 +31,21 @@ namespace VWolf {
 
 	class DirectX12RenderTexture : public RenderTexture {
 	public:
-		DirectX12RenderTexture(uint32_t width, uint32_t height, TextureOptions options = {});
+		DirectX12RenderTexture(uint32_t width, uint32_t height, bool isDepthOnly = false, TextureOptions options = {});
 		virtual ~DirectX12RenderTexture();
 
 		virtual void* GetHandler() override;
-
 		virtual void Resize(uint32_t width, uint32_t height) override;
 	public:
 		void Initialize();
 		void Bind();
+		void Transition(D3D12_RESOURCE_STATES);
 		Ref<DX12RenderTargetResource> GetTexture() const { return rtvTexture; }
 	private:
 		Ref<DX12RenderTargetResource> rtvTexture;
+		D3D12_VIEWPORT screenViewport;
+		D3D12_RECT scissorRect;
+		bool isDepthOnly = false;
 	};
 
 	class DirectX12Cubemap : public Cubemap {

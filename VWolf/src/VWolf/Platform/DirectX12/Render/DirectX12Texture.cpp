@@ -441,7 +441,7 @@ namespace VWolf {
 		return (void*)m_texture->GetHandle().GetGPUAddress().ptr;
 	}
 
-	DirectX12RenderTexture::DirectX12RenderTexture(uint32_t width, uint32_t height, TextureOptions options): RenderTexture(width, height, options)
+	DirectX12RenderTexture::DirectX12RenderTexture(uint32_t width, uint32_t height, bool isDepthOnly, TextureOptions options): RenderTexture(width, height, options), isDepthOnly(isDepthOnly)
 	{
 		Initialize();
 	}
@@ -453,11 +453,6 @@ namespace VWolf {
 
 	void* DirectX12RenderTexture::GetHandler()
 	{
-		if (rtvTexture->GetTexture().GetCurrentState() != D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE) {
-			rtvTexture->GetTexture().TransitionResource(DirectX12Driver::GetCurrent()->GetCommands(),
-				rtvTexture->GetTexture().GetCurrentState(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		}
-
 		return (void*)rtvTexture->GetTexture().GetHandle().GetGPUAddress().ptr;
 	}
 
@@ -468,24 +463,50 @@ namespace VWolf {
 	}
 
 	void DirectX12RenderTexture::Initialize() {
-		DX12TextureResourceInfo info;
+		DX12TextureResourceInfo info, depthInfo;
 		info.CreateRenderTargetInformation(DirectX12Driver::GetCurrent()->GetDevice(), m_width, m_height);
+		depthInfo.CreateDepthStencilInformation(DirectX12Driver::GetCurrent()->GetDevice(), m_width, m_height);
 
-		rtvTexture = CreateRef<DX12RenderTargetResource>(info);
+		rtvTexture = CreateRef<DX12RenderTargetResource>(isDepthOnly ? depthInfo: info, isDepthOnly);
 		rtvTexture->CreateWithShaderResource(DirectX12Driver::GetCurrent()->GetDevice(),
+			isDepthOnly ?
+			DirectX12Driver::GetCurrent()->GetDepthStencilViewDescriptorHeap() :
 			DirectX12Driver::GetCurrent()->GetRenderTargetViewDescriptorHeap(),
 			DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap());
 		rtvTexture->Name("Render texture");
+
+		screenViewport.TopLeftX = 0;
+		screenViewport.TopLeftY = 0;
+		screenViewport.Width = static_cast<float>(m_width);
+		screenViewport.Height = static_cast<float>(m_height);
+		screenViewport.MinDepth = 0.0f;
+		screenViewport.MaxDepth = 1.0f;
+
+		// Does it have to be long?
+		scissorRect = { 0, 0, static_cast<long>(m_width), static_cast<long>(m_height) };
 	}
 
 	void DirectX12RenderTexture::Bind()
 	{
-		if (rtvTexture->GetTexture().GetCurrentState() != D3D12_RESOURCE_STATE_RENDER_TARGET) {
-			rtvTexture->GetTexture().TransitionResource(DirectX12Driver::GetCurrent()->GetCommands(),
-				rtvTexture->GetTexture().GetCurrentState(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->RSSetViewports(1, &screenViewport);
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->RSSetScissorRects(1, &scissorRect);
+
+		if (!isDepthOnly) {
+			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
+				->OMSetRenderTargets(1, &rtvTexture->GetHandle().GetCPUAddress(), FALSE, &DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress());
 		}
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
-			->OMSetRenderTargets(1, &rtvTexture->GetHandle().GetCPUAddress(), FALSE, &DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress());
+		else {
+			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
+				->OMSetRenderTargets(0, nullptr, FALSE, &rtvTexture->GetHandle().GetCPUAddress());
+		}
+		
+	}
+
+	void DirectX12RenderTexture::Transition(D3D12_RESOURCE_STATES transition) {
+		if (rtvTexture->GetTexture().GetCurrentState() != transition) {
+			rtvTexture->GetTexture().TransitionResource(DirectX12Driver::GetCurrent()->GetCommands(),
+				rtvTexture->GetTexture().GetCurrentState(), transition);
+		}
 	}
 
 	DirectX12Cubemap::DirectX12Cubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options): Cubemap(textureDefault, size, options)

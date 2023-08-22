@@ -275,6 +275,11 @@ namespace VWolf {
             MatrixFloat4x4 lightView = lookAt(eye, center, up);
             float near_plane = 1.0f, far_plane = 100.0f;
             MatrixFloat4x4 lightProjection = ortho(-30.0f, 30.0f, -30.0f, 30.0f, near_plane, far_plane);
+
+            /*
+            float near_plane = 1, far_plane = 25.0f;
+            MatrixFloat4x4 lightProjection = ortho(-30.0f, 30.0f, 30.0f, -30.0f, near_plane, far_plane);
+            */
     
             return lightProjection * lightView;
         }

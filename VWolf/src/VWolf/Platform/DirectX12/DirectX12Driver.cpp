@@ -100,6 +100,7 @@ namespace VWolf {
 		Time::SetTimeImplementation(CreateRef<WindowsTime>());
 		graphics = CreateRef<DirectX12Graphics>();
 		Graphics::SetGraphicsImpl(graphics);
+		graphics->Initialize();
 		initialized = true;
 	}
 
