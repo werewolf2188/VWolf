@@ -10,10 +10,12 @@ namespace VWolf {
 
 	class DirectX12Texture2D : public Texture2D {
 	public:
-		DirectX12Texture2D(uint32_t width, uint32_t height, TextureOptions options = {});
+		DirectX12Texture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options = {});
 		DirectX12Texture2D(const std::string filePath, TextureOptions options = {});
 		virtual ~DirectX12Texture2D();
 		virtual void* GetHandler() override;
+	protected:
+		virtual void PopulateColor() override;
 #if defined(DEBUG) || defined(_DEBUG)
 	private:
 		void* PopulateTest();
@@ -29,26 +31,31 @@ namespace VWolf {
 
 	class DirectX12RenderTexture : public RenderTexture {
 	public:
-		DirectX12RenderTexture(uint32_t width, uint32_t height, TextureOptions options = {});
+		DirectX12RenderTexture(uint32_t width, uint32_t height, bool isDepthOnly = false, TextureOptions options = {});
 		virtual ~DirectX12RenderTexture();
 
 		virtual void* GetHandler() override;
-
 		virtual void Resize(uint32_t width, uint32_t height) override;
 	public:
 		void Initialize();
 		void Bind();
+		void Transition(D3D12_RESOURCE_STATES);
 		Ref<DX12RenderTargetResource> GetTexture() const { return rtvTexture; }
 	private:
 		Ref<DX12RenderTargetResource> rtvTexture;
+		D3D12_VIEWPORT screenViewport;
+		D3D12_RECT scissorRect;
+		bool isDepthOnly = false;
 	};
 
 	class DirectX12Cubemap : public Cubemap {
 	public:
-		DirectX12Cubemap(uint32_t size, TextureOptions options = {});
+		DirectX12Cubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
 		DirectX12Cubemap(std::array<std::string, 6> paths, TextureOptions options = {});
 		virtual ~DirectX12Cubemap();
 		virtual void* GetHandler() override;
+	protected:
+		virtual void PopulateColor() override;
 #if defined(DEBUG) || defined(_DEBUG)
 	private:
 		//void PopulateTest(GLuint id, int checkIndex, Vector4Float otherColor);

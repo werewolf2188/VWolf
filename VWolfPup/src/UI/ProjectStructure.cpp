@@ -150,7 +150,7 @@ namespace VWolfPup {
             this->Rebuild();
         });
         projectTree->Build(proj->GetAssetsPath());
-        VWOLF_CLIENT_INFO("Test");
+//        VWOLF_CLIENT_INFO("Test");
     }
 
     ProjectStructure::~ProjectStructure() {

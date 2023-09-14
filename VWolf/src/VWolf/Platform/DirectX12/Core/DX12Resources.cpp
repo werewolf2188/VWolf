@@ -293,33 +293,66 @@ namespace VWolf {
 
 	void DX12RenderTargetResource::CreateWithShaderResource(Ref<DX12Device> device, Ref<DX12DescriptorHeap> rtvHeap, Ref<DX12DescriptorHeap> srvHeap)
 	{
-		VWOLF_CORE_ASSERT(info.newResourceDescription);
+		if (!isDepthOnly) {
+			VWOLF_CORE_ASSERT(info.newResourceDescription);
 
-		D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceDescription;
-		shaderResourceDescription.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		shaderResourceDescription.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		shaderResourceDescription.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		shaderResourceDescription.Texture2D.MipLevels = 1;
-		shaderResourceDescription.Texture2D.MostDetailedMip = 0;
-		shaderResourceDescription.Texture2D.PlaneSlice = 0;
-		shaderResourceDescription.Texture2D.ResourceMinLODClamp = 0;
-		VWOLF_CORE_ASSERT(!info.shaderResourceDescription && !info.resource);
-		info.shaderResourceDescription = &shaderResourceDescription;
+			D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceDescription;
+			shaderResourceDescription.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			shaderResourceDescription.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			shaderResourceDescription.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			shaderResourceDescription.Texture2D.MipLevels = 1;
+			shaderResourceDescription.Texture2D.MostDetailedMip = 0;
+			shaderResourceDescription.Texture2D.PlaneSlice = 0;
+			shaderResourceDescription.Texture2D.ResourceMinLODClamp = 0;
+			VWOLF_CORE_ASSERT(!info.shaderResourceDescription && !info.resource);
+			info.shaderResourceDescription = &shaderResourceDescription;
 
-		if (texture.GetResource().Get())
-			texture.GetResource().Reset();
-		else {
-			rtvHandle = rtvHeap->Allocate();
+			if (texture.GetResource().Get())
+				texture.GetResource().Reset();
+			else {
+				rtvHandle = rtvHeap->Allocate();
+			}
+			texture.CreateTextureResource(info, device, srvHeap);
+
+			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+			rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+			rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //info.newResourceDescription->Format; // This should be decided by different formats
+			rtvDesc.Texture2D.MipSlice = 0;
+			rtvDesc.Texture2D.PlaneSlice = 0;
+
+			device->GetDevice()->CreateRenderTargetView(texture.GetResource().Get(), &rtvDesc, rtvHandle.GetCPUAddress());
 		}
-		texture.CreateTextureResource(info, device, srvHeap);
+		else 
+		{
+			VWOLF_CORE_ASSERT(info.newResourceDescription);
+			D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceDescription;
+			const DXGI_FORMAT dsvFormat = info.newResourceDescription->Format;
+			shaderResourceDescription.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+			shaderResourceDescription.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			shaderResourceDescription.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			shaderResourceDescription.Texture2D.MipLevels = 1;
+			shaderResourceDescription.Texture2D.MostDetailedMip = 0;
+			shaderResourceDescription.Texture2D.PlaneSlice = 0;
+			shaderResourceDescription.Texture2D.ResourceMinLODClamp = 0;
 
-		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
-		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //info.newResourceDescription->Format; // This should be decided by different formats
-		rtvDesc.Texture2D.MipSlice = 0;
-		rtvDesc.Texture2D.PlaneSlice = 0;
+			VWOLF_CORE_ASSERT(!info.shaderResourceDescription && !info.resource);
+			info.shaderResourceDescription = &shaderResourceDescription;
 
-		device->GetDevice()->CreateRenderTargetView(texture.GetResource().Get(), &rtvDesc, rtvHandle.GetCPUAddress());
+			if (texture.GetResource().Get())
+				texture.GetResource().Reset();
+			else {
+				rtvHandle = rtvHeap->Allocate();
+			}
+			texture.CreateTextureResource(info, device, srvHeap);
+
+			D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+			dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+			dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+			dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;// info.newResourceDescription->Format; // This should be decided by different formats
+			dsvDesc.Texture2D.MipSlice = 0;
+
+			device->GetDevice()->CreateDepthStencilView(texture.GetResource().Get(), &dsvDesc, rtvHandle.GetCPUAddress());
+		}
 	}
 
 	void DX12RenderTargetResource::SetSize(UINT width, UINT height)

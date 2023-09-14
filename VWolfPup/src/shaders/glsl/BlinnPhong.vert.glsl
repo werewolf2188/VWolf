@@ -32,9 +32,18 @@ layout(std140) uniform Camera
     float u_DeltaTime;
 };
 
+struct LightSpaceInfo {
+    mat4 u_lightSpaceMatrix;
+};
+
+layout(std140) uniform LightSpace {
+    LightSpaceInfo lightSpaces[LIGHTS_MAX];
+};
+
 out vec3 v_Position;
 out vec3 v_Normal;
 out vec2 v_TexCoord;
+out vec4 v_FragPosLightSpace[LIGHTS_MAX];
 
 void main()
 {
@@ -42,5 +51,9 @@ void main()
 	v_Position = (u_View * u_Transform * vec4(a_Position, 1.0)).xyz;
     v_Normal = normalize(normalMatrix * a_Normal);
     v_TexCoord = a_TexCoord;
+    vec4 fragPos = u_Transform * vec4(a_Position, 1.0);
+    for( int i = 0; i < LIGHTS_MAX; i++ ) {
+        v_FragPosLightSpace[i] = lightSpaces[i].u_lightSpaceMatrix * fragPos;
+    }
 	gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);	
 }

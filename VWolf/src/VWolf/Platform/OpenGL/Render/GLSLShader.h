@@ -10,7 +10,7 @@ namespace VWolf {
 	class GLSLShader : public Shader {
 	public:
         // TODO: Compute shader is the only one that is different.
-        GLSLShader(const char* name,
+        GLSLShader(std::string name,
                    std::initializer_list<ShaderSource> otherShaders,
                    ShaderConfiguration configuration = {});
 		virtual ~GLSLShader();
@@ -21,7 +21,7 @@ namespace VWolf {
         virtual size_t GetMaterialSize() const override;
         virtual std::vector<ShaderInput> GetTextureInputs() const override;
 
-		virtual const char* GetName() const override;
+		virtual std::string GetName() const override;
         virtual void SetData(const void* data, const char* name, uint32_t size, uint32_t offset = 0) override;
     private:
         void SetConfiguration() const;

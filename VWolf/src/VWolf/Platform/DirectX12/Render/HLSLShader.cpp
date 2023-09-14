@@ -289,6 +289,26 @@ namespace VWolf {
 
 		D3D_RESOURCE_RETURN_TYPE GetReturnType() { return returnType; }
 
+		int GetTextureType() {
+			switch (returnType) {
+				case D3D_RETURN_TYPE_FLOAT: {
+					switch (dimension) {
+					case D3D_SRV_DIMENSION_TEXTURE2D: return (int)ShaderSamplerType::Sampler2D;
+					case D3D_SRV_DIMENSION_TEXTURECUBE:
+						return (int)ShaderSamplerType::SamplerCube;
+					}
+				}
+				case D3D_RETURN_TYPE_SINT: {
+					switch (dimension) {
+					case D3D_SRV_DIMENSION_TEXTURE2D: return (int)ShaderSamplerType::Sampler2D;
+					case D3D_SRV_DIMENSION_TEXTURECUBE:
+						return (int)ShaderSamplerType::SamplerCube;
+					}
+				}									 
+			}
+			return -1;
+		}
+
 		D3D_SRV_DIMENSION GetDimension() { return dimension; }
 
 		ShaderDataType GetShaderDataType() {
@@ -346,7 +366,7 @@ namespace VWolf {
 
 	class HLProgram {
 	public:
-		HLProgram(const char* name,
+		HLProgram(std::string name,
 				  std::initializer_list<ShaderSource> otherShaders,
 				  ShaderConfiguration configuration = {}):
 		name(name) {
@@ -476,7 +496,7 @@ namespace VWolf {
 			switch (source.sourceType) {
 			case ShaderSourceType::Text:
 				{
-					hr = D3DCompile(source.shader, strlen(source.shader), nullptr, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+					hr = D3DCompile(source.shader.c_str(), strlen(source.shader.c_str()), nullptr, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 						source.mainFunction, ShaderTypeEquivalent(source.type).c_str(), compileFlags, 0, &byteCode, &errors);
 				}
 				break;
@@ -515,6 +535,10 @@ namespace VWolf {
 			std::vector<CD3DX12_ROOT_PARAMETER> slotRootParameter(constantBuffers.size() + textures.size());
 			std::vector<CD3DX12_STATIC_SAMPLER_DESC> samplersRootParameter(samplers.size());
 
+			/*if (name == "BlinnPhong") {
+				VWOLF_CORE_INFO("Test");
+			}*/
+
 			for (auto [key,value] : constantBuffers) {
 				if (useDescriptorTables) {
 					CD3DX12_DESCRIPTOR_RANGE* cbRange = new CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, value->GetBindingIndex());
@@ -531,7 +555,11 @@ namespace VWolf {
 			}
 
 			for (auto [key, value] : samplers) {
-				samplersRootParameter[value.GetBindingIndex()].Init(value.GetBindingIndex(), D3D12_FILTER_MIN_MAG_MIP_POINT);
+				// TODO: Move this somewhere else
+				if (key == "gsamShadow") {
+					samplersRootParameter[value.GetBindingIndex()].Init(value.GetBindingIndex(), D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT);
+				} else
+					samplersRootParameter[value.GetBindingIndex()].Init(value.GetBindingIndex(), D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR);
 			}
 
 			CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(slotRootParameter.size(), slotRootParameter.data(), samplersRootParameter.size(), samplersRootParameter.data(),
@@ -547,6 +575,7 @@ namespace VWolf {
 				VWOLF_CORE_ERROR((char*)errorBlob->GetBufferPointer());
 			}
 			DXThrowIfFailed(hr);
+			
 
 			DXThrowIfFailed(DirectX12Driver::GetCurrent()->GetDevice()->GetDevice()->CreateRootSignature(
 				0,
@@ -644,6 +673,11 @@ namespace VWolf {
 				}
 
 				psoDesc.RasterizerState.FrontCounterClockwise = configuration.rasterization.counterClockwise;
+				if (name == "Shadow") { // TODO: Move this 
+					psoDesc.RasterizerState.DepthBias = 100000;
+					psoDesc.RasterizerState.DepthBiasClamp = 0.0f;
+					psoDesc.RasterizerState.SlopeScaledDepthBias = 1.0f;
+				}
 
 			}
 			// Blend
@@ -702,8 +736,15 @@ namespace VWolf {
 
 			psoDesc.SampleMask = UINT_MAX;
 			psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-			psoDesc.NumRenderTargets = 1;
-			psoDesc.RTVFormats[0] = DirectX12Driver::GetCurrent()->GetSurface()->GetFormat();
+
+			if (name == "Shadow") { // TODO: Move this 
+				psoDesc.NumRenderTargets = 0;
+			}
+			else {
+				psoDesc.NumRenderTargets = 1;
+				psoDesc.RTVFormats[0] = DirectX12Driver::GetCurrent()->GetSurface()->GetFormat();
+			}
+			
 			psoDesc.SampleDesc.Count = 1; // DirectX12Driver::GetCurrent()->GetDevice()->GetMSAAQuality() ? 4 : 1;
 			psoDesc.SampleDesc.Quality = 0; // DirectX12Driver::GetCurrent()->GetDevice()->GetMSAAQuality() ? (DirectX12Driver::GetCurrent()->GetDevice()->GetMSAAQuality() - 1) : 0;
 			psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT; // FOR NOW //DirectX12Driver::GetCurrent()->GetContext()->mDepthStencilFormat;
@@ -758,7 +799,7 @@ namespace VWolf {
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> mPSO = nullptr;
 	};
 
-	HLSLShader::HLSLShader(const char* name,
+	HLSLShader::HLSLShader(std::string name,
 						   std::initializer_list<ShaderSource> otherShaders,
 						   ShaderConfiguration configuration): Shader(name, otherShaders, configuration) {
 
@@ -838,13 +879,13 @@ namespace VWolf {
 			inputs.push_back(ShaderInput(variable.second.GetName(),
 				variable.second.GetShaderDataType(),
 				variable.second.GetBindingIndex(),
-				1,
+				variable.second.GetTextureType(),
 				0));
 		}
 		return inputs;
 	}
 	
-	const char* HLSLShader::GetName() const
+	std::string HLSLShader::GetName() const
 	{		
 		return m_name;
 	}

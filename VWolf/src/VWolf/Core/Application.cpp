@@ -71,7 +71,9 @@ namespace VWolf {
 			if (!m_minimized) {
 				OnUpdate();
 				Graphics::BeginFrame();
-				OnDraw();				
+                Graphics::BeginScene();
+				OnDraw();
+                Graphics::EndScene();
 				UIManager::GetDefault()->NewFrame();
                 ImGui::NewFrame();
                 OnGUI();

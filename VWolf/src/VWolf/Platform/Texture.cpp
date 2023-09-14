@@ -16,15 +16,15 @@
 
 namespace VWolf {
 
-    Ref<Texture2D> Texture::LoadTexture2D(uint32_t width, uint32_t height, TextureOptions options) {
+    Ref<Texture2D> Texture::LoadTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options) {
         Ref<Texture2D> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
-                texture = CreateRef<OpenGLTexture2D>(width, height, options);
+                texture = CreateRef<OpenGLTexture2D>(textureDefault, width, height, options);
                 break;
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
-                texture = CreateRef<DirectX12Texture2D>(width,  height, options);
+                texture = CreateRef<DirectX12Texture2D>(textureDefault, width,  height, options);
                 break;
 #endif
             default:
@@ -54,11 +54,11 @@ namespace VWolf {
         Ref<RenderTexture> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
-                texture = CreateRef<OpenGLRenderTexture>(width, height, options);
+                texture = CreateRef<OpenGLRenderTexture>(width, height, false, options);
                 break;
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
-                texture = CreateRef<DirectX12RenderTexture>(width, height, options);
+                texture = CreateRef<DirectX12RenderTexture>(width, height, false, options);
                 break;
 #endif
             default:
@@ -67,15 +67,15 @@ namespace VWolf {
         return texture;
     }
 
-    Ref<Cubemap> Texture::LoadCubemap(uint32_t size, TextureOptions options) {
+    Ref<Cubemap> Texture::LoadCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options) {
         Ref<Cubemap> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
-                texture = CreateRef<OpenGLCubemap>(size, options);
+                texture = CreateRef<OpenGLCubemap>(textureDefault, size, options);
                 break;
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
-                texture = CreateRef<DirectX12Cubemap>(size, options);
+                texture = CreateRef<DirectX12Cubemap>(textureDefault, size, options);
                 break;
 #endif
             default:

@@ -37,13 +37,23 @@ namespace VWolf {
                 case TextureFilterMode::Point: return GL_NEAREST;
                 case TextureFilterMode::Bilinear: return GL_LINEAR;
                 case TextureFilterMode::Trilinear: return GL_LINEAR;
-                default: return GL_REPEAT;
+                default: return GL_NEAREST;
+            }
+        }
+    
+        Color Transform(TextureDefault textureDefault) {
+            switch(textureDefault) {
+                case TextureDefault::White: return Color(1, 1, 1, 1);
+                case TextureDefault::Bump: return Color(0.5f, 0.5f, 1, 0.5f);
+                case TextureDefault::Black: return Color(0, 0, 0, 1);
+                case TextureDefault::Gray: return Color(0.5f, 0.5f, 0.5f, 1);
+                case TextureDefault::Red: return Color(1, 0, 0, 1);
             }
         }
     }
 
-    OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, TextureOptions options):
-    Texture2D(width, height, options) {
+    OpenGLTexture2D::OpenGLTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options):
+    Texture2D(textureDefault, width, height, options) {
         m_internalDataFormat = GL_RGBA32F;
         m_dataFormat = GL_RGBA;
 
@@ -70,10 +80,7 @@ namespace VWolf {
                                                                                              m_options.GetWrapModeU())));
         GLThrowIfFailed(glSamplerParameteri(m_sampleID, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
                                                                                              m_options.GetWrapModeV())));
-#if defined(DEBUG) || defined(_DEBUG)
-        if (m_options.IsTestTexture())
-            PopulateTest();
-#endif
+        PopulateColor();
     }
 
     OpenGLTexture2D::OpenGLTexture2D(const std::string filePath, TextureOptions options):
@@ -162,6 +169,25 @@ namespace VWolf {
         delete[] data;
     }
 #endif
+
+    void OpenGLTexture2D::PopulateColor() {
+        size_t size = sizeof(Vector4Float) * m_width * m_height;
+        Vector4Float* data = (Vector4Float*)malloc(size);
+        memset(data, 0, size);
+        uint32_t index = 0;
+        Vector4Float value = Transform(m_textureDefault);
+        for (uint32_t column = 0; column < m_height; column++) {
+            for (uint32_t row = 0; row < m_width; row++) {                
+                index = (column * m_height) + row;
+                data[index] = value;
+            }
+        }
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_textureID));
+        GLThrowIfFailed(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_dataFormat, GL_FLOAT, data));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
+        delete[] data;
+    }
+
     void* OpenGLTexture2D::GetHandler() {
         return (void *)(intptr_t)m_textureID;
     }
@@ -177,8 +203,8 @@ namespace VWolf {
         GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
     }
 
-    OpenGLRenderTexture::OpenGLRenderTexture(uint32_t width, uint32_t height, TextureOptions options):
-    RenderTexture(width, height, options) {
+    OpenGLRenderTexture::OpenGLRenderTexture(uint32_t width, uint32_t height, bool isDepthOnly, TextureOptions options):
+    RenderTexture(width, height, options), isDepthOnly(isDepthOnly) {
         if (width <= 0 || height <= 0) {
             VWOLF_CORE_ASSERT(false,  "Render texture cannot have a size less or equal than 0");
         }
@@ -188,42 +214,51 @@ namespace VWolf {
     void OpenGLRenderTexture::Invalidate() {
         if (m_frameBufferID) {
             GLThrowIfFailed(glDeleteFramebuffers(1, &m_frameBufferID));
-            GLThrowIfFailed(glDeleteTextures(1, &m_colorTextureID));
+            if (!isDepthOnly)
+                GLThrowIfFailed(glDeleteTextures(1, &m_colorTextureID));
             GLThrowIfFailed(glDeleteTextures(1, &m_depthTextureID));
         }
         GLThrowIfFailed(glGenFramebuffers(1, &m_frameBufferID));
         GLThrowIfFailed(glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferID));
 
-        // TODO: Invalidate when resize
         // TODO: Declare attachments as outside of this block
         // Color attachment
-        GLThrowIfFailed(glGenTextures(1, &m_colorTextureID));
-        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_colorTextureID));
-          
-        GLThrowIfFailed(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
-
-        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
-        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
-
-        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
-                                                                                            m_options.GetWrapModeU())));
-        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
-                                                                                            m_options.GetWrapModeV())));
-        GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, TransformWrapMode(m_options.GetWrapMode(),
-                                                                                            m_options.GetWrapModeW())));
-
-        GLThrowIfFailed(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTextureID, 0));
-        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
+        if (!isDepthOnly) {
+            GLThrowIfFailed(glGenTextures(1, &m_colorTextureID));
+            GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_colorTextureID));
+            
+            GLThrowIfFailed(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
+            
+            GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+            GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
+            
+            GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                                m_options.GetWrapModeU())));
+            GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                                m_options.GetWrapModeV())));
+            GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, TransformWrapMode(m_options.GetWrapMode(),
+                                                                                                m_options.GetWrapModeW())));
+            
+            GLThrowIfFailed(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTextureID, 0));
+            GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
+        }
         //
         
         // Depth Attachment
         GLThrowIfFailed(glGenTextures(1, &m_depthTextureID));
         GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_depthTextureID));
 
-        GLThrowIfFailed(glTexImage2D(
-          GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, m_width, m_height, 0,
-          GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL
-        ));
+        if (!isDepthOnly) {
+            GLThrowIfFailed(glTexImage2D(
+                                         GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, m_width, m_height, 0,
+                                         GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL
+                                         ));
+        } else {
+            GLThrowIfFailed(glTexImage2D(
+                                         GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, m_width, m_height, 0,
+                                         GL_DEPTH_COMPONENT, GL_FLOAT, NULL
+                                         ));
+        }
 
         GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TransformFilterMode(m_options.GetFilterMode())));
         GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
@@ -234,19 +269,58 @@ namespace VWolf {
         GLThrowIfFailed(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
                                                                                             m_options.GetWrapModeV())));
     
-        GLThrowIfFailed(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_depthTextureID, 0));
+        if (!isDepthOnly) {
+            GLThrowIfFailed(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_depthTextureID, 0));
+        } else {
+            GLThrowIfFailed(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTextureID, 0));
+        }
         GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
         //
         
-        GLThrowIfFailed(glDrawBuffer(GL_COLOR_ATTACHMENT0));
-        VWOLF_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Render texture complete");
+        if (!isDepthOnly) {
+            GLThrowIfFailed(glDrawBuffer(GL_COLOR_ATTACHMENT0));
+        } else {
+            GLThrowIfFailed(glDrawBuffer(GL_NONE));
+            GLThrowIfFailed(glReadBuffer(GL_NONE));
+        }
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        switch (status) {
+            case GL_FRAMEBUFFER_UNDEFINED:
+                VWOLF_CORE_ERROR("Frame buffer undefined error");
+                break;
+            case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                VWOLF_CORE_ERROR("Frame buffer incomplete attachment");
+                break;
+            case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                VWOLF_CORE_ERROR("Frame buffer incomplete missing attachment");
+                break;
+            case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+                VWOLF_CORE_ERROR("Frame buffer draw buffer");
+                break;
+            case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+                VWOLF_CORE_ERROR("Frame buffer read buffer");
+                break;
+            case GL_FRAMEBUFFER_UNSUPPORTED:
+                VWOLF_CORE_ERROR("Frame buffer unsupported");
+                break;
+            case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                VWOLF_CORE_ERROR("Frame buffer incomplete multisample");
+                break;
+            case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+                VWOLF_CORE_ERROR("Frame buffer incomplete layer targets");
+                break;
+            default:
+                break;
+        }
+        VWOLF_CORE_ASSERT(status == GL_FRAMEBUFFER_COMPLETE, "Render texture complete");
         
         GLThrowIfFailed(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     }
 
     OpenGLRenderTexture::~OpenGLRenderTexture() {
         GLThrowIfFailed(glDeleteFramebuffers(1, &m_frameBufferID));
-        GLThrowIfFailed(glDeleteTextures(1, &m_colorTextureID));
+        if (!isDepthOnly)
+            GLThrowIfFailed(glDeleteTextures(1, &m_colorTextureID));
         GLThrowIfFailed(glDeleteTextures(1, &m_depthTextureID));
     }
 
@@ -258,8 +332,30 @@ namespace VWolf {
         GLThrowIfFailed(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     }
 
+    void OpenGLRenderTexture::ColorTextureBind(uint32_t base) {
+        GLThrowIfFailed(glActiveTexture(GL_TEXTURE0 + base));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_colorTextureID));
+    }
+
+    void OpenGLRenderTexture::ColorTextureUnbind(uint32_t base) {
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
+    }
+
+    void OpenGLRenderTexture::DepthTextureBind(uint32_t base) {
+        GLThrowIfFailed(glActiveTexture(GL_TEXTURE0 + base));
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, m_depthTextureID));
+    }
+
+    void OpenGLRenderTexture::DepthTextureUnbind(uint32_t base) {
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_2D, 0));
+    }
+
     void* OpenGLRenderTexture::GetHandler() {
         return (void *)(intptr_t)m_colorTextureID;
+    }
+
+    void* OpenGLRenderTexture::GetDepthHandler() {
+        return (void *)(intptr_t)m_depthTextureID;
     }
 
     void OpenGLRenderTexture::Resize(uint32_t width, uint32_t height) {
@@ -269,7 +365,7 @@ namespace VWolf {
         Invalidate();
     }
 
-    OpenGLCubemap::OpenGLCubemap(uint32_t size, TextureOptions options): Cubemap(size, options) {
+    OpenGLCubemap::OpenGLCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options): Cubemap(textureDefault, size, options) {
         m_internalDataFormat = GL_RGBA32F;
         m_dataFormat = GL_RGBA;
 
@@ -285,7 +381,7 @@ namespace VWolf {
         GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
                                                                                                   m_options.GetWrapModeV())));
 
-        PopulateTest();
+        PopulateColor();
         GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
         GLThrowIfFailed(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
     }
@@ -384,7 +480,31 @@ namespace VWolf {
         };
         for (unsigned int i = 0; i < 6; i++)
         {
-            PopulateTest(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, indicesToCheck[i],colors[i]);
+            PopulateTest(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, indicesToCheck[i], colors[i]);
+        }
+    }
+
+    void OpenGLCubemap::PopulateColor(GLuint id) {
+        size_t size = sizeof(Vector4Float) * m_size * m_size;
+        Vector4Float* data = (Vector4Float*)malloc(size);
+        memset(data, 0, size);
+        uint32_t index = 0;
+        Vector4Float value = Transform(m_textureDefault);
+        for (uint32_t column = 0; column < m_size; column++) {
+            for (uint32_t row = 0; row < m_size; row++) {
+                index = (column * m_size) + row;
+                data[index] = value;
+            }
+        }
+        
+        GLThrowIfFailed(glTexImage2D(id, 0, m_internalDataFormat, m_size, m_size, 0, m_dataFormat, GL_FLOAT, data));
+        delete[] data;
+    }
+
+    void OpenGLCubemap::PopulateColor() {
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            PopulateColor(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
         }
     }
 

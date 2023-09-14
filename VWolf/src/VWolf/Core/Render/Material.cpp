@@ -12,6 +12,7 @@ namespace VWolf {
     Material::Material(const char* shaderName): Material(ShaderLibrary::GetShader(shaderName)) { }
 
     Material::Material(Ref<Shader> shader) {
+        float floatValue = 0;
         inputs = shader->GetMaterialInputs();
         size = shader->GetMaterialSize();
 
@@ -20,17 +21,23 @@ namespace VWolf {
         for (auto input: inputs) {
             switch (input->GetType()) {
                 case ShaderDataType::Float4:
-                    colors[input->GetName()] = Color();
+                    colors[input->GetName()] = Color(1, 1, 1, 1);
                     break;
                 case ShaderDataType::Float3:
-                    vectors[input->GetName()] = Vector3Float();
+                    vectors[input->GetName()] = Vector3Float(1, 1, 1);
                     break;
-                case ShaderDataType::Float:
-                    floats[input->GetName()] = *(new float);
+                case ShaderDataType::Float:                    
+                    floats[input->GetName()] = floatValue;
                     break;
                 default: break;
             }
             properties[input->GetName()] = input->GetType();
+        }
+        for (auto input: shader->GetTextureInputs()) {
+            if (input.GetSize() == (int)ShaderSamplerType::Sampler2D)
+                textures[input.GetName()] = Texture::LoadTexture2D();
+            if (input.GetSize() == (int)ShaderSamplerType::SamplerCube)
+                textures[input.GetName()] = Texture::LoadCubemap();
         }
     }
 

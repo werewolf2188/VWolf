@@ -10,17 +10,25 @@
 #include "VWolf/Core/Math/VMath.h"
 
 namespace VWolf {
-    class OpenGLTexture2D: public Texture2D {
+    class OpenGLBindableTexture {
     public:
-        OpenGLTexture2D(uint32_t width, uint32_t height, TextureOptions options = {});
+        virtual void Bind(uint32_t base) = 0;
+        virtual void Unbind(uint32_t base) = 0;
+    };
+
+    class OpenGLTexture2D: public Texture2D, public OpenGLBindableTexture {
+    public:
+        OpenGLTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options = {});
         OpenGLTexture2D(const std::string filePath, TextureOptions options = {});
         virtual ~OpenGLTexture2D();
         virtual void* GetHandler() override;
     public:
-        void Bind(uint32_t base);
-        void Unbind(uint32_t base);
-#if defined(DEBUG) || defined(_DEBUG)
+        virtual void Bind(uint32_t base) override;
+        virtual void Unbind(uint32_t base) override;
+    protected:
+        virtual void PopulateColor() override;
     private:
+#if defined(DEBUG) || defined(_DEBUG)
         void PopulateTest();
 #endif
     private:
@@ -31,38 +39,47 @@ namespace VWolf {
 
     class OpenGLRenderTexture: public RenderTexture {
     public:
-        OpenGLRenderTexture(uint32_t width, uint32_t height, TextureOptions options = {});
+        OpenGLRenderTexture(uint32_t width, uint32_t height, bool isDepthOnly = false, TextureOptions options = {});
         virtual ~OpenGLRenderTexture();
 
         virtual void* GetHandler() override;
 
         virtual void Resize(uint32_t width, uint32_t height) override;
     public:
+        void ColorTextureBind(uint32_t base);
+        void ColorTextureUnbind(uint32_t base);
+        void DepthTextureBind(uint32_t base);
+        void DepthTextureUnbind(uint32_t base);
         void Bind();
         void Unbind();
+        void* GetDepthHandler();
 
         void Invalidate();
     private:
         GLuint m_colorTextureID = 0;
         GLuint m_depthTextureID = 0;
         GLuint m_frameBufferID = 0;
+        bool isDepthOnly = false;
 //        GLenum m_internalDataFormat, m_dataFormat;
     };
 
-    class OpenGLCubemap: public Cubemap {
+    class OpenGLCubemap: public Cubemap, public OpenGLBindableTexture {
     public:
-        OpenGLCubemap(uint32_t size, TextureOptions options = {});
+        OpenGLCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
         OpenGLCubemap(std::array<std::string, 6> paths, TextureOptions options = {});
         virtual ~OpenGLCubemap();
         virtual void* GetHandler() override;
     public:
-        void Bind(uint32_t base);
-        void Unbind(uint32_t base);
-    #if defined(DEBUG) || defined(_DEBUG)
+        virtual void Bind(uint32_t base) override;
+        virtual void Unbind(uint32_t base) override;
+    protected:
+        void PopulateColor(GLuint id);
+        virtual void PopulateColor() override;
     private:
+#if defined(DEBUG) || defined(_DEBUG)
         void PopulateTest(GLuint id, int checkIndex, Vector4Float otherColor);
         void PopulateTest();
-    #endif
+#endif
     private:
         GLuint m_textureID;
         GLenum m_internalDataFormat, m_dataFormat;

@@ -17,13 +17,16 @@ namespace VWolf {
         MeshData& data;
         Material& material;
         MatrixFloat4x4 transform;
+        Ref<Camera> camera;
 
         RenderItem(MeshData& data,
                    Material& material,
-                   MatrixFloat4x4 transform):
+                   MatrixFloat4x4 transform,
+                   Ref<Camera> camera):
         data(data),
         material(material),
-        transform(transform) {
+        transform(transform),
+        camera(camera) {
             
         }
     };

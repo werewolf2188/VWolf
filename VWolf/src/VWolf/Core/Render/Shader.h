@@ -27,10 +27,15 @@ namespace VWolf {
         Binary
     };
 
+    // TODO: Should we use this for samplers as well
+    enum class ShaderSamplerType: int {
+        Sampler2D, SamplerCube
+    };
+
     struct ShaderSource {
         ShaderType type;
         ShaderSourceType sourceType;
-        const char* shader;
+        std::string shader;
         const char* mainFunction = "main";
     };
 
@@ -106,7 +111,7 @@ namespace VWolf {
 
 	class Shader {
 	public:
-        Shader(const char* name,
+        Shader(std::string name,
                std::initializer_list<ShaderSource> otherShaders,
                ShaderConfiguration configuration):
         m_name(name),
@@ -121,27 +126,33 @@ namespace VWolf {
         virtual size_t GetMaterialSize() const = 0;
         virtual std::vector<ShaderInput> GetTextureInputs() const = 0;
 
-		virtual const char* GetName() const = 0;
+		virtual std::string GetName() const = 0;
 
         virtual void SetData(const void* data, const char* name, uint32_t size, uint32_t offset = 0) = 0;
 	protected:
-        const char* m_name;
+        std::string m_name;
         std::vector<ShaderSource> m_otherShaders;
         ShaderConfiguration m_configuration;
 	};
 
     class ShaderLibrary {
     public:
+        enum class ShaderSpecialty {
+            shadow
+        };
         // TODO: Not sure if this should live here.
         static const char* CameraBufferName;
         static const char* ObjectBufferName;
 
-        static void LoadShader(const char* name,
+        static void LoadShader(std::string name,
                                std::initializer_list<ShaderSource> otherShaders,
                                ShaderConfiguration configuration = {});
 
-        static Ref<Shader> GetShader(const char* name);
+        static Ref<Shader> GetShader(std::string name);
+        static Ref<Shader> GetShader(ShaderSpecialty type);
+        static void SetShaderSpecialty(std::string name, ShaderSpecialty type);
     private:
         static std::vector<Ref<Shader>> m_shaders;
+        static std::map<ShaderSpecialty, std::string> m_specialtiesShaders;
     };
 }
