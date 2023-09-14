@@ -17,7 +17,8 @@ VWolf is a library with basic functionality for making games. It includes the fo
 - Core: Core functionality that wraps code to help make games, such as:
     - Math
     - Render
-		- Skybox
+		- Skybox		
+		- Shadows
     - Scene management
 	- Project management
 	- Load 3d models
@@ -94,7 +95,6 @@ Download Boost and compile it. Create static libraries.
     - Event queue
     - Multithreading
 - Render
-    - Shadows
     - Multiple lights (remove the 8 light cap).
     - Postprocessing (Maybe??)
 - Scene management update
