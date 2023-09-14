@@ -60,9 +60,9 @@ namespace VWolf {
 
 		Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
 		void* material1 = material.GetDataPointer();
-		if (this->lights.size() == 0) {
+		/*if (this->lights.size() == 0) {
 			this->lights.push_back(Light());
-		}
+		}*/
 		Light* lights = this->lights.data();
 
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
