@@ -2,7 +2,7 @@
 
 Project inspired by the [Game engine series](https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT) by [The Cherno](https://www.youtube.com/@TheCherno), this repo contains code to make a game engine core and a demo app to test its implementation. 
 
-![Demo](WolfPup_Wolf.gif)
+![Demo](Cover.png)
 
 ## Objective
 
