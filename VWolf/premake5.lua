@@ -102,7 +102,7 @@ project "VWolf"
 
    defines
    {
-      "GLFW_INCLUDE_NONE"
+      "GLFW_INCLUDE_NONE", "_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION"
    }
 
 
