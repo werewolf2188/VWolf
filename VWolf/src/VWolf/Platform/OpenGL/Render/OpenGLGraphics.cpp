@@ -124,7 +124,7 @@ namespace VWolf {
         transform = VWolf::rotate(transform, rotation.y, { 0.0f, 1.0f, 0.0f });
         transform = VWolf::rotate(transform, rotation.z, { 0.0f, 0.0f, 1.0f });
 
-        Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
+        Ref<Shader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
         void* material1 = material.GetDataPointer();
         Light* lights = this->lights.data();
         std::vector<ShaderInput> textures = shader->GetTextureInputs();
@@ -280,7 +280,7 @@ namespace VWolf {
                 Time::GetDeltaTime()
             };
 
-            Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
+            Ref<Shader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
             void* material1 = material.GetDataPointer();
             Light* lights = this->lights.data();
             std::vector<ShaderInput> textures = shader->GetTextureInputs();

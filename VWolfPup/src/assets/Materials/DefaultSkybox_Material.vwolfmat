@@ -1,0 +1,9 @@
+Material:
+  Name: Skybox
+  ShaderName: Skybox
+  Colors:
+    []
+  Vectors:
+    []
+  Floats:
+    []

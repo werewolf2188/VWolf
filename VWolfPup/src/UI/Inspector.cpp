@@ -14,6 +14,11 @@
 
 #include "ObjectExplorer.h"
 
+#include "../LoadSettings.h"
+
+#include "../ProjectManagement/Project.h"
+#include "../ProjectManagement/Extensions.h"
+
 template<typename T, typename UIFunction>
 static bool DrawComponent(const std::string& name, T& component, UIFunction uiFunction)
 {
@@ -336,7 +341,7 @@ namespace VWolfPup {
             auto remove = DrawComponent<VWolf::MeshRendererComponent>(component->GetName(), *component, [this](VWolf::MeshRendererComponent& component) {
                 ImGui::PushID("Mesh Filter");
 
-                ImGui::Columns(2);
+                ImGui::Columns(3);
                 ImGui::SetColumnWidth(0, 100.0f);
                 ImGui::Text("%s", "Material");
                 ImGui::NextColumn();
@@ -345,7 +350,22 @@ namespace VWolfPup {
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
                 ImGui::Text("%s", component.GetMaterial().GetName().c_str());
                 ImGui::PopStyleVar();
-                
+                ImGui::NextColumn();
+                float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+                if (ImGui::Button("...", ImVec2{ lineHeight, lineHeight }))
+                {
+                    ContainerView::GetMainView()
+                    ->AddView(new ObjectExplorer(Extension::GetMaterialExtension(), [this, &component](auto path){
+        //                        VWOLF_CLIENT_INFO("Test");
+        //                comp->SetPath(path);
+                        auto material = Project::CurrentProject()->GetMaterial(path);
+                        if (material) {
+                            component.SetMaterial(material.get());
+                        } else {
+                            component.SetMaterial(Defaults::Get()->GetDefaultMaterial().get());                            
+                        }
+                    }));
+                }
                 
                 ImGui::Columns(1);
 
@@ -506,6 +526,7 @@ namespace VWolfPup {
     }
 
     void Inspector::DrawMaterial(VWolf::Material& material) {
+        bool isDefault = Defaults::Get()->IsDefault(material);
         ImGui::PushID("MaterialName");
 
         ImGui::Columns(2);
@@ -520,6 +541,8 @@ namespace VWolfPup {
         ImGui::Columns(1);
 
         ImGui::PopID();
+        if (isDefault)
+            ImGui::BeginDisabled();
         for (auto property : material.GetProperties()) {
             switch (property.second) {
             case VWolf::ShaderDataType::Float4:
@@ -562,7 +585,10 @@ namespace VWolfPup {
                 break;
             default: break;
             }
+            
         }
+        if (isDefault)
+            ImGui::EndDisabled();
     }
 
     void Inspector::DrawMaterial() {

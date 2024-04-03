@@ -82,6 +82,16 @@ namespace VWolf {
 
     SceneBackground& SceneBackground::operator=(SceneBackground& t) {
         this->backgroundColor = t.backgroundColor;
+        this->type = t.type;
+        return *this;
+    }
+
+    SceneBackground& SceneBackground::operator=(SceneBackground&& t) {
+        this->backgroundColor = t.backgroundColor;
+        this->type = t.type;
+
+        t.backgroundColor = Color();
+        t.type = Type::Color;
         return *this;
     }
 

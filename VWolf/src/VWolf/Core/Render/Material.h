@@ -17,6 +17,8 @@ namespace VWolf {
         Material() = default;
         Material(const char* shaderName);
         Material(Ref<Shader> shader);
+        Material(Material& material);
+        Material(Material&& material);
 
         ~Material();
 
@@ -32,12 +34,20 @@ namespace VWolf {
         Ref<Texture> GetTexture(std::string name);
         std::map<std::string, ShaderDataType> GetProperties();
         std::string GetName();
+        std::string GetShaderName();
 #ifdef VWOLF_CORE
         void * GetDataPointer() const;
         size_t GetSize() const;
+    
+        void Load(std::string name, std::string shaderName);
+    public:
+        inline std::map<std::string, Color> GetColors() { return colors; }
+        inline std::map<std::string, Vector3Float> GetVectors() { return vectors; }
+        inline std::map<std::string, float> GetFloats() { return floats; }
 #endif
     private:
         std::string name;
+        std::string shaderName;
         size_t size;
         std::map<std::string, Color> colors;
         std::map<std::string, Vector3Float> vectors;

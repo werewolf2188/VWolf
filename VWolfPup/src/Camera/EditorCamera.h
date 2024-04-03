@@ -27,6 +27,9 @@ namespace VWolfPup {
         float GetDistance() const;
         void SetDistance(float distance);
         void SetUseDistanceAndFocalForPositionCalculation(bool allow) { useDistanceAndFocalPointForPositionCalculation = allow; }
+    public:
+        inline void SetPitch(float pitch) { m_Pitch = pitch; }
+        inline void SetYaw(float yaw) { m_Yaw = yaw; }
     private:
         void MousePan(const VWolf::Vector2Float& delta);
         void MouseRotate(const VWolf::Vector2Float& delta);
@@ -45,8 +48,8 @@ namespace VWolfPup {
         // For position
         VWolf::Vector3Float m_Position = { 0.0f, 0.0f, 0.0f };
         // For rotation
-        float m_Pitch = 0.0f;
-        float m_Yaw = 0.0f;
+        float m_Pitch = 0.240f;
+        float m_Yaw = -0.451f;
         // For zoom
         VWolf::Vector3Float m_FocalPoint = { 0.0f, 0.0f, 0.0f };
         float m_Distance = 10.0f;
