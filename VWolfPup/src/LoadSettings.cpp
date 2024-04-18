@@ -11,9 +11,75 @@
 #include <vector>
 
 #include "../ProjectManagement/Project.h"
+#include "../ProjectManagement/Extensions.h"
+#include "../ProjectManagement/Folder.h"
+
+#include <yaml-cpp/yaml.h>
+#include "Serialization/DefaultSettings.h"
 
 namespace VWolfPup {
 
+    // MARK: Defaults
+    VWolf::Ref<Defaults> Defaults::defaults;
+
+    Defaults::Defaults(Defaults& defaults) {
+        this->defaultMaterial = defaults.defaultMaterial;
+        this->defaultGridMaterial = defaults.defaultGridMaterial;
+        this->defaultSkyBoxMaterial = defaults.defaultSkyBoxMaterial;
+    }
+
+    bool Defaults::IsDefault(VWolf::Material& material) {
+        for(auto defaultMaterial: materials) {
+            if (defaultMaterial.second->GetName() == material.GetName()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void Defaults::Load() {
+        constexpr const char * fileName = "defaults.ini";
+        YAML::Node data;
+        try
+        {
+            data = YAML::LoadFile(fileName);
+        }
+        catch (YAML::ParserException e)
+        {
+            VWOLF_CLIENT_ERROR("Failed to load .scene file '%s'\n     %s", fileName, e.what());
+        }
+
+        Defaults defaults = data.as<Defaults>();
+        Defaults::defaults = VWolf::CreateRef<Defaults>(defaults);
+        Defaults::defaults->PrepareMaterials();
+    }
+
+    void Defaults::PrepareMaterials() {
+        std::filesystem::path materialsPath = Folder::GetAssetsFolder() + "/Materials";
+        std::string materialExtension = Extension::GetMaterialExtension();
+
+        std::filesystem::path defaultMaterialPath = std::filesystem::current_path() / materialsPath / (defaultMaterial + materialExtension);
+        std::filesystem::path defaultMaterialGridPath = std::filesystem::current_path() / materialsPath / (defaultGridMaterial + materialExtension);
+        std::filesystem::path defaultMaterialSkyboxPath = std::filesystem::current_path() / materialsPath / (defaultSkyBoxMaterial + materialExtension);
+
+        auto dfMat = VWolf::MaterialSerializer::Deserialize(defaultMaterialPath);
+        dfMat->SetAsDefault();
+        materials[defaultMaterial] = dfMat;
+        auto dfgMat = VWolf::MaterialSerializer::Deserialize(defaultMaterialGridPath);
+        materials[defaultGridMaterial] = dfgMat;
+        auto dfskbMat = VWolf::MaterialSerializer::Deserialize(defaultMaterialSkyboxPath);
+        dfskbMat->SetTexture("skybox",
+                            VWolf::Texture::LoadCubemap({ "assets/skybox/right.png",
+                                                          "assets/skybox/left.png",
+                                                          "assets/skybox/top.png",
+                                                          "assets/skybox/bottom.png",
+                                                          "assets/skybox/front.png",
+                                                          "assets/skybox/back.png" }));
+        materials[defaultSkyBoxMaterial] = dfskbMat;
+        
+    }
+
+    std::vector<VWolf::Ref<VWolf::Material>> materials;
     VWolf::ShaderConfiguration GetInitialConfiguration(std::string name);
 
     void LoadGLSLShaders() {
@@ -93,6 +159,7 @@ namespace VWolfPup {
 
     // MARK: Private
     VWolf::ShaderConfiguration GetInitialConfiguration(std::string name) {
+        static const std::string DEFAULT_SKYBOX = "Skybox";
         if (name == DEFAULT_SKYBOX)
             return { VWolf::ShaderConfiguration::Rasterization(), { true, VWolf::ShaderConfiguration::DepthStencil::DepthFunction::LEqual }, VWolf::ShaderConfiguration::Blend() };
         // TODO: Work on these settings
@@ -113,26 +180,6 @@ namespace VWolfPup {
             break;
 #endif
         }
-    }
-
-    void CreateDefaultMaterial(VWolf::Material& material) {
-        new (&material) VWolf::Material(DEFAULT_SHADER.c_str());
-        material.SetAsDefault();
-    }
-
-    void CreateGridMaterial(VWolf::Material& material) {
-        new (&material) VWolf::Material(DEFAULT_GRID.c_str());
-    }
-
-    void CreateDefaultSkyboxMaterial(VWolf::Material& material) {
-        new (&material) VWolf::Material(DEFAULT_SKYBOX.c_str());
-        //        materialSkybox.SetTexture("skybox", VWolf::Texture::LoadCubemap(512));
-        material.SetTexture("skybox",
-                            VWolf::Texture::LoadCubemap({ "assets/skybox/right.png",
-                                                          "assets/skybox/left.png",
-                                                          "assets/skybox/top.png",
-                                                          "assets/skybox/bottom.png",
-                                                          "assets/skybox/front.png",
-                                                          "assets/skybox/back.png" }));
+        Defaults::Load();
     }
 }

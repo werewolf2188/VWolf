@@ -1,0 +1,14 @@
+Material:
+  Name: BlinnPhong
+  ShaderName: BlinnPhong
+  Colors:
+    - Name: u_ambientColor
+      Value: [1, 0, 0, 1]
+    - Name: u_diffuseColor
+      Value: [1, 1, 1, 1]
+  Vectors:
+    - Name: u_specular
+      Value: [1, 1, 1]
+  Floats:
+    - Name: u_shinines
+      Value: 0

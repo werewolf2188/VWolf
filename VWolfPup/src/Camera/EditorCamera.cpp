@@ -49,6 +49,8 @@ namespace VWolfPup {
         }
 
         camera->UpdateView(CalculatePosition(), GetOrientation());
+        
+//        VWOLF_CLIENT_DEBUG("Position (%.3f %.3f %.3f), Pitch (%.3f), Yaw (%.3f), Distance (%.3f)", m_Position.x, m_Position.y, m_Position.z, m_Pitch, m_Yaw, m_Distance);
     }
 
     VWolf::Vector2Float CameraController::GetMouseDelta() {

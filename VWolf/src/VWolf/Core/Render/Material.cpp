@@ -17,6 +17,7 @@ namespace VWolf {
         size = shader->GetMaterialSize();
 
         name = std::string(shader->GetName());
+        shaderName = std::string(shader->GetName()); // TODO: For now
         MaterialLibrary::SetMaterial(name.c_str(), this);
         for (auto input: inputs) {
             switch (input->GetType()) {
@@ -41,12 +42,82 @@ namespace VWolf {
         }
     }
 
+    Material::Material(Material& material) {
+        this->name = material.name;
+        this->shaderName = material.shaderName;
+        this->inputs = material.inputs;
+        this->size = material.size;
+        this->colors = material.colors;
+        this->vectors = material.vectors;
+        this->floats = material.floats;
+        this->textures = material.textures;
+        this->properties = material.properties;
+    }
+
+    Material::Material(Material&& material) {
+        this->name = material.name;
+        this->shaderName = material.shaderName;
+        this->inputs = material.inputs;
+        this->size = material.size;
+        this->colors = material.colors;
+        this->vectors = material.vectors;
+        this->floats = material.floats;
+        this->textures = material.textures;
+        this->properties = material.properties;
+
+        material.name = std::string();
+        material.shaderName = std::string();
+        material.size = 0;
+        material.inputs.clear();
+        material.inputs.clear();
+        material.colors.clear();
+        material.vectors.clear();
+        material.floats.clear();
+        material.textures.clear();
+        material.properties.clear();
+    }
+
     Material::~Material() {
-        
+
+    }
+
+    void Material::Load(std::string name, std::string shaderName) {
+        float floatValue = 0;
+        this->name = name;
+        this->shaderName = shaderName;
+        Ref<Shader> shader = ShaderLibrary::GetShader(shaderName);
+        inputs = shader->GetMaterialInputs();
+        size = shader->GetMaterialSize();
+
+        for (auto input: inputs) {
+            switch (input->GetType()) {
+                case ShaderDataType::Float4:
+                    colors[input->GetName()] = Color(1, 1, 1, 1);
+                    break;
+                case ShaderDataType::Float3:
+                    vectors[input->GetName()] = Vector3Float(1, 1, 1);
+                    break;
+                case ShaderDataType::Float:
+                    floats[input->GetName()] = floatValue;
+                    break;
+                default: break;
+            }
+            properties[input->GetName()] = input->GetType();
+        }
+        for (auto input: shader->GetTextureInputs()) {
+            if (input.GetSize() == (int)ShaderSamplerType::Sampler2D)
+                textures[input.GetName()] = Texture::LoadTexture2D();
+            if (input.GetSize() == (int)ShaderSamplerType::SamplerCube)
+                textures[input.GetName()] = Texture::LoadCubemap();
+        }
     }
 
     std::string Material::GetName() {
         return name;
+    }
+
+    std::string Material::GetShaderName() {
+        return shaderName;
     }
 
     void Material::SetColor(std::string name, Color color) {

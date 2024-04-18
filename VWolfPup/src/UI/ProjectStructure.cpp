@@ -7,6 +7,7 @@
 
 #include "ProjectStructure.h"
 #include "../ProjectManagement/Project.h"
+#include "../LoadSettings.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -108,6 +109,9 @@ namespace VWolfPup {
                 VWOLF_CLIENT_ERROR("Error %s", error.what());
             }
         }
+    public:
+        inline std::filesystem::path GetSelectedPath() { return selectedPath; }
+        inline std::filesystem::path GetDirectorySelectedPath() { return entry.path(); }
     private:
         bool isLeaf = true;
         bool isDirectory = false;
@@ -192,13 +196,54 @@ namespace VWolfPup {
         if (selectedEntry) {
             selectedEntry->OnFileExplorerGui();
         }
+        if (showDialog) {
+            if (ImGui::BeginPopupContextWindow("CreateMenu"))
+            {
+                didSelection = true;
+                if (ImGui::BeginMenu("Create")) {
+
+                    if (ImGui::MenuItem("Scene"))
+                    {
+                        showDialog = false;
+                        // TODO: Generate random name
+//                        VWolf::Ref<VWolf::Scene> scene = VWolf::CreateRef<VWolf::Scene>("Untitled");
+//                        VWolf::SceneSerializer::Serialize(scene, selectedEntry->GetDirectorySelectedPath() / (scene->GetName() + ".scene"));
+                    }
+                    if (ImGui::MenuItem("Material"))
+                    {
+                        showDialog = false;
+//                        Defaults::Get()->GetDefaultGridMaterial();
+//                        VWolf::Ref<VWolf::Material> newMaterial = VWolf::CreateRef<VWolf::Material>(Defaults::Get()->GetDefaultMaterial()->GetShaderName().c_str());
+//                        VWolf::MaterialSerializer::Serialize(*newMaterial, selectedEntry->GetDirectorySelectedPath() / ("Untitled.vwolfmat"));
+                    }
+                    ImGui::EndMenu();
+                }
+
+                ImGui::EndPopup();
+            }
+        }
         ImGui::EndChild();
         ImGui::PopStyleVar();
-        
+
         ImGui::End();
     }
 
     void ProjectStructure::SetInContainer() {
         GetContainer()->GetRoot()->Install(this, ImGuiDir_Down);
+    }
+
+    void ProjectStructure::OnEvent(VWolf::Event& evt) {
+        VWolf::Dispatch<VWolf::MouseButtonReleasedEvent>(evt, VWOLF_BIND_EVENT_FN(ProjectStructure::OnMouseButtonReleasedEvent));
+    }
+
+    bool ProjectStructure::OnMouseButtonReleasedEvent(VWolf::MouseButtonReleasedEvent& e) {
+        if (e.GetMouseButton() == VWolf::MouseCode::Right) {
+            showDialog = true;
+        }
+        else if (e.GetMouseButton() == VWolf::MouseCode::Left && !didSelection) {
+            selectedName = "";
+        }
+        didSelection = false;
+        return true;
     }
 }

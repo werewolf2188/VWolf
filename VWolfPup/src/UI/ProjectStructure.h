@@ -20,11 +20,16 @@ namespace VWolfPup {
         ProjectStructure();
         ~ProjectStructure();
     public:
+        void OnEvent(VWolf::Event& evt);
+    public:
         void OnGui() override;
         void SetInContainer() override;
     private:
         void Rebuild();
+        bool OnMouseButtonReleasedEvent(VWolf::MouseButtonReleasedEvent& e);
     private:
+        bool showDialog = false, didSelection = false;
+        std::string selectedName;
         float startingWidth = 200.0f;
         VWolf::Ref<ProjectTree> projectTree;
 

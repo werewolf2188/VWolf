@@ -43,10 +43,6 @@ class RendererSandboxApplication: public VWolf::Application {
 public:
     
     VWolf::Ref<VWolf::Camera> camera, skyBoxCamera;
-    VWolf::Material material_2;
-    VWolf::Material materialGrid;
-    // TODO: I still don't like to have the default material for the skybox living here.
-    VWolf::Material materialSkybox;
     VWolf::Ref<VWolf::Texture2D> testTexture;
     VWolf::MeshData gridData = CreateGrid();
 
@@ -54,7 +50,7 @@ public:
 
     // UI
     VWolfPup::ContainerView* containerView;
-    VWolfPup::MenuItem *quit, *save, *open;
+    VWolfPup::MenuItem *quit, *save;
     VWolfPup::Menu * file;
     VWolfPup::MenuBar * menuBar;
     VWolfPup::SceneHierarchy *sceneHierarchy;
@@ -69,8 +65,6 @@ public:
 public:
     RendererSandboxApplication(): Application(VWolfPup::LoadProject(), { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
         VWolfPup::InitialLoad();
-        VWolfPup::CreateGridMaterial(materialGrid);
-        VWolfPup::CreateDefaultSkyboxMaterial(materialSkybox);
         VWolfPup::InitializeEditor();
         
         camera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
@@ -79,23 +73,30 @@ public:
         skyBoxController = VWolf::CreateRef<VWolfPup::CameraController>(skyBoxCamera);
         skyBoxController->SetUseDistanceAndFocalForPositionCalculation(false);
 
+        VWolfPup::Project::CurrentProject()->GetSettings().GetEditorCameraSettings().SetCameraControllerInformation(controller);
+        VWolfPup::Project::CurrentProject()->GetSettings().GetEditorCameraSettings().SetCameraControllerInformation(skyBoxController);
+
         // Scene
-        testScene = VWolf::CreateRef<VWolf::Scene>("Test");
+        VWolfPup::Project::CurrentProject()->LoadAssets();
+        testScene =  VWolfPup::Project::CurrentProject()->GetCurrentScene();
+//        testScene =  VWolf::CreateRef<VWolf::Scene>("Test");
 
         // UI
         containerView = new VWolfPup::ContainerView("Test", {});
         quit = new VWolfPup::MenuItem("Quit", [this](std::string title) {
-            // VWolfPup::Project::CurrentProject()->Save();
+            VWolfPup::Project::CurrentProject()->GetSettings().GetEditorCameraSettings().GetCameraControllerInformation(controller);
+            VWolfPup::Project::CurrentProject()->Save();
             this->containerView->SaveIniFile();
             this->Quit();
         });
-        open = new VWolfPup::MenuItem("Open Scene", [this](std::string title) {
-            openBrowser->Open();
+//        open = new VWolfPup::MenuItem("Open Scene", [this](std::string title) {
+//            openBrowser->Open();
+//        });
+        save = new VWolfPup::MenuItem("Save", [this](std::string title) {
+            VWolfPup::Project::CurrentProject()->GetSettings().GetEditorCameraSettings().GetCameraControllerInformation(controller);
+            VWolfPup::Project::CurrentProject()->Save();
         });
-        save = new VWolfPup::MenuItem("Save Scene", [this](std::string title) {
-            saveBrowser->Open();
-        });
-        file = new VWolfPup::Menu("File", { open, save, new VWolfPup::MenuItem(), quit });
+        file = new VWolfPup::Menu("File", { save, new VWolfPup::MenuItem(), quit });
         menuBar = new VWolfPup::MenuBar("MenuBar", { file });
         containerView->SetMenuBar(menuBar);
 
@@ -105,10 +106,10 @@ public:
         sceneViewer = new VWolfPup::SceneViewer(camera, VWolfPup::Project::CurrentProject()->GetType(), (uint32_t)SCREENWIDTH, (uint32_t)SCREENHEIGHT);
         containerView->AddView(sceneViewer);
 
-        sceneSettings = new VWolfPup::SceneSettings(testScene.get());
+        sceneSettings = new VWolfPup::SceneSettings(VWolfPup::Project::CurrentProject()->GetCurrentScene().get());
         containerView->AddView(sceneSettings);
 
-        sceneHierarchy = new VWolfPup::SceneHierarchy(testScene.get(), [this](VWolf::Ref<VWolf::GameObject> gameObject) {
+        sceneHierarchy = new VWolfPup::SceneHierarchy(VWolfPup::Project::CurrentProject()->GetCurrentScene().get(), [this](VWolf::Ref<VWolf::GameObject> gameObject) {
             inspector->SetGameObject(gameObject);
             sceneViewer->SetSelectedObject(gameObject);
         });
@@ -116,26 +117,25 @@ public:
 
         saveBrowser = new VWolfPup::FileBrowser(VWolfPup::FileBrowserMode::Save, [this](std::filesystem::path path){
 //            VWOLF_CLIENT_INFO("Saving file %s", path.string().c_str());
-            VWolf::SceneSerializer::Serialize(testScene, path);
+//            VWolf::SceneSerializer::Serialize(VWolfPup::Project::CurrentProject()->GetCurrentScene(), path);
         });
         containerView->AddView(saveBrowser);
+        // TODO: This should not come from opening a scene anymore, but from double clicking on a scene file inside assets.
         openBrowser = new VWolfPup::FileBrowser(VWolfPup::FileBrowserMode::Open, [this](std::filesystem::path path){
-//            VWOLF_CLIENT_INFO("Opening file %s", path.string().c_str());
-            sceneViewer->SetSelectedObject(nullptr);
-            inspector->SetGameObject(nullptr);
-            testScene = VWolf::SceneSerializer::Deserialize(path);
-            testScene->GetSceneBackground().SetSkyboxMaterial(materialSkybox);
-            testScene->GetSceneBackground().SetCamera(skyBoxCamera);
-            sceneHierarchy->SetScene(testScene.get());
-            sceneSettings->SetScene(testScene.get());
+////            VWOLF_CLIENT_INFO("Opening file %s", path.string().c_str());
+//            sceneViewer->SetSelectedObject(nullptr);
+//            inspector->SetGameObject(nullptr);
+//            testScene = VWolf::SceneSerializer::Deserialize(path);
+//            testScene->GetSceneBackground().SetSkyboxMaterial(*VWolfPup::Defaults::Get()->GetDefaultSkyBoxMaterial());
+//            testScene->GetSceneBackground().SetCamera(skyBoxCamera);
+//            sceneHierarchy->SetScene(testScene.get());
+//            sceneSettings->SetScene(testScene.get());
         });
         containerView->AddView(openBrowser);
 
         projectStructure = new VWolfPup::ProjectStructure();
         containerView->AddView(projectStructure);
         //
-
-        VWolfPup::CreateDefaultMaterial(material_2);
 
         //material_2.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
         //material_2.SetFloat("u_shinines", 20);
@@ -151,7 +151,7 @@ public:
 //        }
 //#endif
 
-        testScene->GetSceneBackground().SetSkyboxMaterial(materialSkybox);
+        testScene->GetSceneBackground().SetSkyboxMaterial(*VWolfPup::Defaults::Get()->GetDefaultSkyBoxMaterial());
         testScene->GetSceneBackground().SetCamera(skyBoxCamera);
 
         VWolf::Graphics::SetRenderTexture(sceneViewer->GetRenderTexture());
@@ -171,6 +171,7 @@ public:
         }
         
         sceneHierarchy->OnEvent(evt);
+        projectStructure->OnEvent(evt);
     }
 
     bool OnWindowClose(VWolf::WindowCloseEvent& e) {
@@ -190,7 +191,7 @@ public:
     void OnDraw() override {
         testScene->DrawEditor(camera);
         // TODO: Draw mesh like this is not working. Maybe move some settings?
-        VWolf::Graphics::DrawMesh(gridData, VWolf::Vector4Float(), VWolf::Vector4Float(), materialGrid);
+        VWolf::Graphics::DrawMesh(gridData, VWolf::Vector4Float(), VWolf::Vector4Float(), *VWolfPup::Defaults::Get()->GetDefaultGridMaterial());
     }
 
     void OnGUI() override {

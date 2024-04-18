@@ -8,6 +8,7 @@
 #include "ObjectExplorer.h"
 
 #include "../ProjectManagement/Project.h"
+#include "../ProjectManagement/Folder.h"
 
 #include <imgui/imgui.h>
 

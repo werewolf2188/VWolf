@@ -58,7 +58,7 @@ namespace VWolf {
 		transform = VWolf::rotate(transform, rotation.y, { 0.0f, 1.0f, 0.0f });
 		transform = VWolf::rotate(transform, rotation.z, { 0.0f, 0.0f, 1.0f });
 
-		Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
+		Ref<Shader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
 		void* material1 = material.GetDataPointer();
 		/*if (this->lights.size() == 0) {
 			this->lights.push_back(Light());
@@ -326,7 +326,7 @@ namespace VWolf {
 				Time::GetDeltaTime()
 			};
 
-			Ref<Shader> shader = ShaderLibrary::GetShader(material.GetName().c_str());
+			Ref<Shader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
 			void* material1 = material.GetDataPointer();
 			if (this->lights.size() == 0) {
 				this->lights.push_back(Light());

@@ -38,6 +38,7 @@ namespace VWolf {
         void SetType(Type type) { this->type = type; }
     public:
         SceneBackground& operator=(SceneBackground& t);
+        SceneBackground& operator=(SceneBackground&& t);
     private:
         Vector4Float backgroundColor;
         Type type = Type::Color;
@@ -64,7 +65,7 @@ namespace VWolf {
         std::string GetName() const { return name; }
         void SetName(std::string name) { this->name = name; }
         SceneBackground& GetSceneBackground() { return sceneBackGround; }
-        void SetSceneBackground(SceneBackground sceneBackground) { this->sceneBackGround = sceneBackground; }
+        void SetSceneBackground(SceneBackground& sceneBackground) { this->sceneBackGround = sceneBackground; }
     private:
         std::string name;
         entt::registry m_registry;

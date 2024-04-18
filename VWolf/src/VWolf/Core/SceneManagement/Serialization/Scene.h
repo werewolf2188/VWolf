@@ -35,8 +35,9 @@ namespace YAML {
             rhs.SetName(node[sceneKeys[SceneObjectsConstantKeys::SceneName]].as<std::string>());
     
             if (node[sceneKeys[SceneObjectsConstantKeys::SceneBackground]]) {
-                rhs.SetSceneBackground(node[sceneKeys[SceneObjectsConstantKeys::SceneBackground]]
-                                       .as<VWolf::SceneBackground>());
+                auto background = node[sceneKeys[SceneObjectsConstantKeys::SceneBackground]]
+                    .as<VWolf::SceneBackground>();
+                rhs.SetSceneBackground(background);
             }
 
             if (node[sceneKeys[SceneObjectsConstantKeys::GameObjects]]) {
