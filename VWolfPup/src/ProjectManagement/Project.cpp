@@ -146,7 +146,7 @@ namespace VWolfPup {
         for(auto const& dir_entry : std::filesystem::directory_iterator(path)) {
             if (dir_entry.is_directory()){
                 LoadObjects(dir_entry.path(), sceneFiles);
-            } else if (Extension::HasExtension(dir_entry.path().extension())) {
+            } else if (Extension::HasExtension(dir_entry.path().extension().string())) {
                 if (Extension::GetSceneExtension() == dir_entry.path().extension()) {
                     sceneFiles.push_back(dir_entry.path());
                 } else  if (Extension::GetMaterialExtension() == dir_entry.path().extension()) {
