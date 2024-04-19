@@ -76,11 +76,23 @@ project "VWolf"
       "GLFW_INCLUDE_NONE"
    }
 
+   removefiles { "src/**.mm" }
+
    filter "system:macosx"
    systemversion "latest"
 
    pchheader "src/vwpch.h"
    pchsource "src/vwpch.cpp"
+
+   files { 
+	  "vendor/metal-cpp/**.hpp"
+
+   }
+
+   includedirs
+   {
+      "%{IncludeDir.metal_cpp}"
+   }
 
     sysincludedirs
     {
@@ -92,7 +104,8 @@ project "VWolf"
         "%{IncludeDir.ImGui}",
 	"%{IncludeDir.ImGuizmo}",
 	"%{IncludeDir.yaml_cpp}",
-     "%{IncludeDir.obj_loader}"
+     "%{IncludeDir.obj_loader}",
+     "%{IncludeDir.metal_cpp}"
     }
 
    xcodebuildsettings 

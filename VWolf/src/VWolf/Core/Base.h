@@ -39,7 +39,10 @@ namespace VWolf {
 #ifdef VWOLF_PLATFORM_WINDOWS
 		DirectX12,
 #endif
-		OpenGL
+		OpenGL,
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        Metal
+#endif
 	};
 
 	inline const char* DriverName(DriverType type) {
@@ -48,6 +51,9 @@ namespace VWolf {
 		case DriverType::DirectX12: return "DirectX 12";
 #endif
 		case DriverType::OpenGL: return "OpenGL";
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        case DriverType::Metal: return "Metal";
+#endif
 		}
 		return "Null Driver. Please use a driver already implemented.";
 	}
@@ -63,7 +69,12 @@ namespace VWolf {
         {
             return DriverType::OpenGL;
         }
-        
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        if (strcmp(type, "Metal") == 0)
+        {
+            return DriverType::Metal;
+        }
+#endif
         throw std::invalid_argument("");
     }
 

@@ -49,6 +49,11 @@ project "VWolfPup"
    filter "system:macosx"
    systemversion "latest"
 
+   includedirs
+   {
+      "%{IncludeDir.metal_cpp}"
+   }
+
     sysincludedirs
     {
 	"%{wks.location}/VWolf/src",
@@ -57,9 +62,10 @@ project "VWolfPup"
          "%{IncludeDir.glm}",
 	 "%{IncludeDir.entt}",
 	"%{IncludeDir.yaml_cpp}",
+   "%{IncludeDir.metal_cpp}"
     }
 
-   links { "Cocoa.framework", "CoreVideo.framework", "IOKit.framework", "OpenGL.framework" }
+   links { "Cocoa.framework", "CoreVideo.framework", "IOKit.framework", "OpenGL.framework", "MetalKit.framework", "AppKit.framework", "Metal.framework", "QuartzCore.framework", "GameController.framework" }
 
    filter "system:windows"
       systemversion "latest"

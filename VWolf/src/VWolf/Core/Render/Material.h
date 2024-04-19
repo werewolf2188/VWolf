@@ -45,6 +45,8 @@ namespace VWolf {
         inline std::map<std::string, Vector3Float> GetVectors() { return vectors; }
         inline std::map<std::string, float> GetFloats() { return floats; }
 #endif
+    public:
+        void operator=(const Material& material);
     private:
         std::string name;
         std::string shaderName;
