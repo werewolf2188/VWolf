@@ -14,6 +14,7 @@
 
 #include "VWolf/Core/Render/RenderItem.h"
 #include "VWolf/Platform/Metal/MetalDriver.h"
+#include "VWolf/Platform/Metal/Render/MetalTexture.h"
 
 #include "VWolf/Core/Debug/ShapeHelper.h"
 
@@ -32,10 +33,18 @@ namespace VWolf {
 
     void MetalGraphics::ClearColorImpl(Color color) {
         MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor()->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(color.r, color.g, color.b, color.a));
+        if (renderTexture) {
+            auto metalRenderTexture = (MetalRenderTexture*)renderTexture.get();
+            metalRenderTexture->GetRenderPassDescriptor()->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(color.r, color.g, color.b, color.a));
+        }
     }
 
     void MetalGraphics::ClearImpl() {
         MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor()->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
+        if (renderTexture) {
+            auto metalRenderTexture = (MetalRenderTexture*)renderTexture.get();
+            metalRenderTexture->GetRenderPassDescriptor()->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
+        }
     }
 
     void MetalGraphics::AddLightImpl(Light& light) {
@@ -45,6 +54,9 @@ namespace VWolf {
     void MetalGraphics::BeginFrameImpl() {
         pool = NS::AutoreleasePool::alloc()->init();
         commandBuffer =  MetalDriver::GetCurrent()->GetCommand()->GetCommandQueue()->commandBuffer();
+        if (renderTexture) {
+            ((MetalRenderTexture*)renderTexture.get())->Prepare();
+        }
         MetalDriver::GetCurrent()->GetSurface()->Begin();
 
         MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor()->colorAttachments()->object(0)->setTexture(MetalDriver::GetCurrent()->GetSurface()->GetCurrentDrawable()->texture());
@@ -61,6 +73,7 @@ namespace VWolf {
     }
 
     void MetalGraphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture) {
+        this->renderTexture = renderTexture;
         
     }
 
@@ -70,6 +83,10 @@ namespace VWolf {
 
     void MetalGraphics::EndSceneImpl() {
         encoder = commandBuffer->renderCommandEncoder(MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor());
+        MTL::RenderCommandEncoder* rtvEncoder = nullptr;
+        if (renderTexture) {
+            rtvEncoder = ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
+        }
 
         Camera* cam = Camera::main;
 
@@ -102,13 +119,23 @@ namespace VWolf {
 
         for (int index = 0; index < items.size(); index++) {
             Ref<Shader> shader = ShaderLibrary::GetShader(items[index]->material.GetShaderName());
-            ((MSLShader*)shader.get())->UseShader(encoder);
+            ((MSLShader*)shader.get())->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
             shader->Bind();
-            encoder->setVertexBuffer(*bufferGroups[index]->GetVertexBuffer(), 0, ((MSLShader*)shader.get())->GetVertexBufferIndex());
+            (rtvEncoder != nullptr ? rtvEncoder : encoder)->setVertexBuffer(*bufferGroups[index]->GetVertexBuffer(), 0, ((MSLShader*)shader.get())->GetVertexBufferIndex());
             shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), index);
             shader->SetData(&objectTransforms[index], ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), index);
+
+            for (auto textureInput : shader->GetTextureInputs()) {
+                Ref<Texture> texture = items[index]->material.GetTexture(textureInput.GetName());
+                if (texture != nullptr) {
+                    (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(texture->GetHandler()), textureInput.GetIndex());
+                }
+            }
             
-            encoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[index]->GetIndexBuffer()->GetCount(), bufferGroups[index]->GetIndexBuffer()->GetType(), *bufferGroups[index]->GetIndexBuffer(), 0);
+            (rtvEncoder != nullptr ? rtvEncoder : encoder)->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[index]->GetIndexBuffer()->GetCount(), bufferGroups[index]->GetIndexBuffer()->GetType(), *bufferGroups[index]->GetIndexBuffer(), 0);
+        }
+        if (rtvEncoder != nullptr) {
+            ((MetalRenderTexture*)renderTexture.get())->Commit();
         }
     }
 

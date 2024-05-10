@@ -23,6 +23,9 @@ namespace VWolf {
         CA::MetalDrawable* GetCurrentDrawable() { return drawable; }
         MTL::RenderPassDescriptor* GetRenderPassDescriptor() { return renderPassDescriptor; }
     public:
+        MTL::PixelFormat GetPixelFormat() { return MTL::PixelFormat::PixelFormatRGBA8Unorm_sRGB; }
+        MTL::PixelFormat GetDepthStencilPixelFormat() { return MTL::PixelFormat::PixelFormatDepth32Float_Stencil8; }
+    public:
         void Begin();
         void End();
     private:

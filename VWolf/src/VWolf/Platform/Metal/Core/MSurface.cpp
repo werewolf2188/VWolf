@@ -15,11 +15,18 @@ namespace VWolf {
     MSurface::MSurface(Ref<MDevice> device, int width, int height) {
         layer = CA::MetalLayer::layer();
         layer->setDevice(device->GetDevice());
-        layer->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+        layer->setPixelFormat(GetPixelFormat());
         layer->setFramebufferOnly(true);
         layer->setDrawableSize({static_cast<CGFloat>(width), static_cast<CGFloat>(height)});
 
         renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
+        renderPassDescriptor->depthAttachment()->setClearDepth(1.0f);
+        renderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadAction::LoadActionClear);
+        renderPassDescriptor->depthAttachment()->setStoreAction(MTL::StoreAction::StoreActionDontCare);
+        MTL::TextureDescriptor* depthBufferDescriptor = MTL::TextureDescriptor::texture2DDescriptor(GetDepthStencilPixelFormat(), width, height, false);
+        depthBufferDescriptor->setUsage(MTL::TextureUsageRenderTarget | MTL::TextureUsageShaderRead);
+        renderPassDescriptor->depthAttachment()->setTexture(device->GetDevice()->newTexture(depthBufferDescriptor));
+        renderPassDescriptor->stencilAttachment()->setTexture(renderPassDescriptor->depthAttachment()->texture());
     }
 
     MSurface::~MSurface() {

@@ -20,6 +20,7 @@ struct VertexIn
 struct VertexPayload {
     float4 position [[position]];
     float4 color;
+    float2 texCoord;
 };
 
 struct Object {
@@ -58,10 +59,16 @@ VertexPayload vertex vertexMain(
 
     payload.position = camera.u_ViewProjection * object.u_Transform * float4(vertexIn.position, 1.0);
     payload.color = vertexIn.color;
+    payload.texCoord = vertexIn.texCoord;
 
     return payload;
 }
 
-half4 fragment fragmentMain(VertexPayload frag [[stage_in]]) {
-    return half4(frag.color);
+half4 fragment fragmentMain(VertexPayload frag [[stage_in]],
+                            texture2d<float, access::sample> diffuseTexture [[texture(0)]]//,
+                            /*sampler samplr [[sampler(0)]])*/) {
+    constexpr sampler linearSampler(coord::normalized, min_filter::linear, mag_filter::linear, mip_filter::linear);
+    
+    float4 result = diffuseTexture.sample(linearSampler, float2(1.0f - frag.texCoord.x,frag.texCoord.y));
+    return half4(result) * half4(frag.color.x, frag.color.y, frag.color.z, 1.0);
 }
