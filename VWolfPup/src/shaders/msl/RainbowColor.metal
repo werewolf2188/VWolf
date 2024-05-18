@@ -100,9 +100,9 @@ half4 fragment fragmentMain(VertexPayload frag [[stage_in]],
                             constant PerLight &light [[buffer(2)]],
                             texture2d<float, access::sample> diffuseTexture [[texture(0)]]//,
                             /*sampler samplr [[sampler(0)]])*/) {
-    constexpr sampler linearSampler(coord::normalized, min_filter::linear, mag_filter::linear, mip_filter::linear);
-    
-    float4 result = diffuseTexture.sample(linearSampler, float2(1.0f - frag.texCoord.x,frag.texCoord.y));
-    half4 lightColor = half4(light.light[0].u_color.x, light.light[0].u_color.y, light.light[0].u_color.z, light.light[0].u_color.w);
-    return half4(result) * /*half4(frag.color.x, frag.color.y, frag.color.z, 1.0) **/ lightColor;
+//    constexpr sampler linearSampler(coord::normalized, min_filter::linear, mag_filter::linear, mip_filter::linear);
+//    
+//    float4 result = diffuseTexture.sample(linearSampler, float2(1.0f - frag.texCoord.x,frag.texCoord.y));
+//    half4 lightColor = half4(light.light[0].u_color.x, light.light[0].u_color.y, light.light[0].u_color.z, light.light[0].u_color.w);
+    return half4(frag.color.x, frag.color.y, frag.color.z, 1.0);
 }

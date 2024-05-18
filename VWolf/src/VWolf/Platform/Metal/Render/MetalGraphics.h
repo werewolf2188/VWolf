@@ -12,6 +12,7 @@
 #include "VWolf/Platform/Metal/Core/Core.h"
 
 #include "VWolf/Platform/Metal/Render/MetalBufferGroup.h"
+#include "VWolf/Platform/Metal/Render/MetalTexture.h"
 
 namespace VWolf {
     class MetalGraphics: public Graphics {
@@ -47,5 +48,9 @@ namespace VWolf {
         NS::AutoreleasePool* pool;
         MTL::CommandBuffer* commandBuffer;
         MTL::RenderCommandEncoder* encoder;
+        Ref<MetalTexture2D> emptyShadowMap;
+        // TODO: Plan later
+        std::vector<Light> lights;
+        std::vector<MatrixFloat4x4> spaces;
     };
 }

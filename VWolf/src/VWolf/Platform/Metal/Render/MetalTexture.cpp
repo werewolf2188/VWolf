@@ -258,7 +258,7 @@ namespace VWolf {
 #endif
 
     void MetalCubemap::Initialize(uint32_t size, MTL::PixelFormat format, TextureOptions options) {
-        MTL::TextureDescriptor* descriptor = MTL::TextureDescriptor::texture2DDescriptor(format, size, size, false);
+        MTL::TextureDescriptor* descriptor = MTL::TextureDescriptor::textureCubeDescriptor(format, size, false);
         texture = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newTexture(descriptor);
     }
 

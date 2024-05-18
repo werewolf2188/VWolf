@@ -20,7 +20,7 @@ struct VertexIn
 struct VertexPayload {
     float4 position [[position]];
     float4 color;
-    float2 texCoord;
+    float3 texCoord;
 };
 
 struct Object {
@@ -88,21 +88,21 @@ VertexPayload vertex vertexMain(
                                 ) {
     VertexPayload payload;
 
-    payload.position = camera.u_ViewProjection * object.u_Transform * float4(vertexIn.position, 1.0);
-    payload.color = vertexIn.color;
-    payload.texCoord = vertexIn.texCoord;
-
+    float4 pos = camera.u_View * float4(vertexIn.position, 1.0f);
+    pos = camera.u_Proj * pos;
+    payload.position = float4(pos.x, pos.y, pos.w, pos.w);
+    
+    payload.texCoord = float3(vertexIn.position.x, vertexIn.position.y, -vertexIn.position.z);
     return payload;
 }
 
 half4 fragment fragmentMain(VertexPayload frag [[stage_in]],
                             constant Material &material [[buffer(1)]],
                             constant PerLight &light [[buffer(2)]],
-                            texture2d<float, access::sample> diffuseTexture [[texture(0)]]//,
+                            texturecube<float, access::sample> skyTexture [[texture(0)]]//,
                             /*sampler samplr [[sampler(0)]])*/) {
     constexpr sampler linearSampler(coord::normalized, min_filter::linear, mag_filter::linear, mip_filter::linear);
-    
-    float4 result = diffuseTexture.sample(linearSampler, float2(1.0f - frag.texCoord.x,frag.texCoord.y));
-    half4 lightColor = half4(light.light[0].u_color.x, light.light[0].u_color.y, light.light[0].u_color.z, light.light[0].u_color.w);
-    return half4(result) * /*half4(frag.color.x, frag.color.y, frag.color.z, 1.0) **/ lightColor;
+    float4 color = skyTexture.sample(linearSampler, frag.texCoord);
+
+    return half4(color.x, color.y, color.z, 1.0);
 }

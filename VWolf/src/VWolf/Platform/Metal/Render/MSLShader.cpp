@@ -77,6 +77,17 @@ namespace VWolf {
         return -1;
     }
 
+    ShaderSamplerType SizeFrom(MTL::TextureType type) {
+        switch (type) {
+            case MTL::TextureType2D:
+                return ShaderSamplerType::Sampler2D;
+            case MTL::TextureTypeCube:
+                return ShaderSamplerType::SamplerCube;
+            default:
+                return ShaderSamplerType::Sampler2D;
+        }
+    }
+
     uint64_t SizeFrom(MTL::DataType format) {
         
         switch (format) {
@@ -136,7 +147,11 @@ namespace VWolf {
 
     class MLConstantBuffer {
     public:
-        MLConstantBuffer(MTL::Argument* argument) {
+        enum class MLConstantBufferType {
+            Vertex, Fragment, Both
+        };
+    public:
+        MLConstantBuffer(MTL::Argument* argument, MLConstantBufferType type): type(type) {
             name = argument->name()->utf8String();
             format = argument->bufferDataType();
             size = argument->bufferDataSize();
@@ -163,6 +178,8 @@ namespace VWolf {
         std::string GetName() { return name; }
         uint64_t GetSize() { return size; }
         std::map<std::string, Ref<MLConstantVariable>> GetConstantVariables() { return constantVariables; }
+        MLConstantBufferType GetType() { return type; }
+        void SetType(MLConstantBufferType type) { this->type = type; }
     public:
         void SetData(const void* data, uint32_t size, uint32_t index) {
             if (index >= uniforms.size()) {
@@ -182,6 +199,7 @@ namespace VWolf {
         uint64_t size;
         std::vector<MTL::Buffer*> uniforms;
         std::map<std::string, Ref<MLConstantVariable>> constantVariables;
+        MLConstantBufferType type;
     };
 
     class MLTexture {
@@ -200,6 +218,7 @@ namespace VWolf {
         std::string GetName() { return name; }
         MTL::DataType GetFormat() { return format; }
         MTL::TextureType GetTextureType() { return textureType; }
+        ShaderSamplerType GetTextureSize() { return SizeFrom(textureType); }
     private:
         MTL::TextureType textureType;
         MTL::DataType format;
@@ -405,7 +424,8 @@ namespace VWolf {
                 MTL::Argument* argument = (MTL::Argument*)vertexArguments->object(index);
                 if (argument->type() == MTL::ArgumentType::ArgumentTypeBuffer &&
                     argument->bufferStructType() != nullptr) {
-                    constantBuffers[argument->name()->utf8String()] = CreateRef<MLConstantBuffer>(argument);
+                    constantBuffers[argument->name()
+                                    ->utf8String()] = CreateRef<MLConstantBuffer>(argument, MLConstantBuffer::MLConstantBufferType::Vertex);
                 }
             }
             NS::Array* fragmentArguments = reflection->fragmentArguments();
@@ -416,7 +436,13 @@ namespace VWolf {
 
                 if (argument->type() == MTL::ArgumentType::ArgumentTypeBuffer &&
                     argument->bufferStructType() != nullptr) {
-                    constantBuffers[argument->name()->utf8String()] = CreateRef<MLConstantBuffer>(argument);
+                    if (constantBuffers.count(argument->name()->utf8String()) != 0) {
+                        constantBuffers[argument->name()->utf8String()]->SetType(MLConstantBuffer::MLConstantBufferType::Both);
+                    } else {
+                        constantBuffers[argument->name()
+                                        ->utf8String()] = CreateRef<MLConstantBuffer>(argument, MLConstantBuffer::MLConstantBufferType::Fragment);
+                    }
+                    
                 }
 
                 if (argument->type() == MTL::ArgumentType::ArgumentTypeTexture) {
@@ -548,7 +574,20 @@ namespace VWolf {
         Ref<MLConstantBuffer> constantBuffer = mlProgram->GetConstantBuffers()[strName];
         constantBuffer->SetData(data, size, offset);
         NS::UInteger uniformIndex = constantBuffer->GetIndex();
-        encoder->setVertexBuffer(constantBuffer->GetUniform(offset), 0, uniformIndex);
+
+        switch (constantBuffer->GetType()) {
+            case MLConstantBuffer::MLConstantBufferType::Vertex:
+                encoder->setVertexBuffer(constantBuffer->GetUniform(offset), 0, uniformIndex);
+                break;
+            case MLConstantBuffer::MLConstantBufferType::Fragment:
+                encoder->setFragmentBuffer(constantBuffer->GetUniform(offset), 0, uniformIndex);
+                break;
+            case MLConstantBuffer::MLConstantBufferType::Both:
+                encoder->setVertexBuffer(constantBuffer->GetUniform(offset), 0, uniformIndex);
+                encoder->setFragmentBuffer(constantBuffer->GetUniform(offset), 0, uniformIndex);
+                break;
+        }
+        
     }
 
     NS::UInteger MSLShader::GetIndex(const char* name) {
@@ -564,10 +603,12 @@ namespace VWolf {
     }
 
     std::vector<Ref<ShaderInput>> MSLShader::GetMaterialInputs() const {
-        if (mlProgram->GetConstantBuffers().count(materialName) != 0) {
+        std::string strName = materialName;
+        boost::to_lower(strName);
+        if (mlProgram->GetConstantBuffers().count(strName) != 0) {
             std::vector<Ref<ShaderInput>> materialInputs;
 
-            Ref<MLConstantBuffer> materialConstantBuffer = mlProgram->GetConstantBuffers()[materialName];
+            Ref<MLConstantBuffer> materialConstantBuffer = mlProgram->GetConstantBuffers()[strName];
 
             for (auto kv: materialConstantBuffer->GetConstantVariables()) {
                 Ref<MLConstantVariable> variable = kv.second;
@@ -580,13 +621,16 @@ namespace VWolf {
                                                                         );
                 materialInputs.push_back(materialInput);
             }
+            return materialInputs;
         }
         return std::vector<Ref<ShaderInput>>();
     }
 
     size_t MSLShader::GetMaterialSize() const {
-        if (mlProgram->GetConstantBuffers().count(materialName) != 0) {
-            Ref<MLConstantBuffer> materialConstantBuffer = mlProgram->GetConstantBuffers()[materialName];
+        std::string strName = materialName;
+        boost::to_lower(strName);
+        if (mlProgram->GetConstantBuffers().count(strName) != 0) {
+            Ref<MLConstantBuffer> materialConstantBuffer = mlProgram->GetConstantBuffers()[strName];
             return materialConstantBuffer->GetSize();
         }
         return 0;
@@ -599,7 +643,7 @@ namespace VWolf {
             inputs.push_back(ShaderInput(variable.second->GetName(),
                                          FromMLToVWolfDataType(variable.second->GetFormat()),
                                          (uint32_t)variable.second->GetIndex(),
-                                         (uint32_t)variable.second->GetTextureType(),
+                                         (uint32_t)variable.second->GetTextureSize(),
                                          0));
         }
 

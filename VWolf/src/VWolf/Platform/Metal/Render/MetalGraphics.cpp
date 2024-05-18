@@ -21,7 +21,9 @@
 namespace VWolf {
     MeshData box = ShapeHelper::CreateBox(10, 10, 10, 0);
 
-    void MetalGraphics::Initialize() {}
+    void MetalGraphics::Initialize() {
+        emptyShadowMap = CreateRef<MetalTexture2D>(TextureDefault::White, 1024, 1024, TextureOptions());
+    }
 
     void MetalGraphics::DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera) {
         
@@ -48,7 +50,8 @@ namespace VWolf {
     }
 
     void MetalGraphics::AddLightImpl(Light& light) {
-        
+        lights.push_back(light);
+        spaces.push_back(light.GetLightSpaceMatrix());
     }
 
     void MetalGraphics::BeginFrameImpl() {
@@ -60,6 +63,9 @@ namespace VWolf {
         MetalDriver::GetCurrent()->GetSurface()->Begin();
 
         MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor()->colorAttachments()->object(0)->setTexture(MetalDriver::GetCurrent()->GetSurface()->GetCurrentDrawable()->texture());
+
+        lights.clear();
+        spaces.clear();
     }
 
     void MetalGraphics::EndFrameImpl() {
@@ -83,6 +89,17 @@ namespace VWolf {
 
     void MetalGraphics::EndSceneImpl() {
         encoder = commandBuffer->renderCommandEncoder(MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor());
+        DrawShadowMap();
+        DrawQueue();
+        DrawPostProcess();
+    }
+
+    void MetalGraphics::DrawShadowMap() {
+        
+    }
+
+    void MetalGraphics::DrawQueue() {
+        
         MTL::RenderCommandEncoder* rtvEncoder = nullptr;
         if (renderTexture) {
             rtvEncoder = ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
@@ -117,34 +134,43 @@ namespace VWolf {
             }
         }
 
+        
+        if (this->lights.size() == 0) {
+            this->lights.push_back(Light());
+        }
+        Light* lights = this->lights.data();
+        MatrixFloat4x4* spacesPointer = spaces.data();
+
         for (int index = 0; index < items.size(); index++) {
+            void* material1 = items[index]->material.GetDataPointer();
             Ref<Shader> shader = ShaderLibrary::GetShader(items[index]->material.GetShaderName());
             ((MSLShader*)shader.get())->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
             shader->Bind();
             (rtvEncoder != nullptr ? rtvEncoder : encoder)->setVertexBuffer(*bufferGroups[index]->GetVertexBuffer(), 0, ((MSLShader*)shader.get())->GetVertexBufferIndex());
             shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), index);
             shader->SetData(&objectTransforms[index], ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), index);
+            shader->SetData(material1, materialName.c_str(), items[index]->material.GetSize(), index);
+            shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, index);
+            shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(MatrixFloat4x4) * Light::LightsMax, index);
 
             for (auto textureInput : shader->GetTextureInputs()) {
-                Ref<Texture> texture = items[index]->material.GetTexture(textureInput.GetName());
-                if (texture != nullptr) {
-                    (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(texture->GetHandler()), textureInput.GetIndex());
+                if (textureInput.GetName() == "Shadow") {
+                    (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(emptyShadowMap->GetHandler()), textureInput.GetIndex());
+                } else {
+                    Ref<Texture> texture = items[index]->material.GetTexture(textureInput.GetName());
+                    if (texture != nullptr) {
+                        (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(texture->GetHandler()), textureInput.GetIndex());
+                    }
                 }
+                
             }
             
             (rtvEncoder != nullptr ? rtvEncoder : encoder)->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[index]->GetIndexBuffer()->GetCount(), bufferGroups[index]->GetIndexBuffer()->GetType(), *bufferGroups[index]->GetIndexBuffer(), 0);
+            free(material1);
         }
         if (rtvEncoder != nullptr) {
             ((MetalRenderTexture*)renderTexture.get())->Commit();
         }
-    }
-
-    void MetalGraphics::DrawShadowMap() {
-        
-    }
-
-    void MetalGraphics::DrawQueue() {
-        
     }
 
     void MetalGraphics::DrawPostProcess() {

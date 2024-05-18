@@ -79,30 +79,62 @@ struct PerLightSpace {
     LightSpaceInfo lightSpaces[LIGHTS_MAX];
 };
 
+inline float3x3 tofloat3x3(float4x4 m) {
+    return float3x3(m[0].xyz, m[1].xyz, m[2].xyz);
+}
+inline half3x3 tohalf3x3(half4x4 m) {
+    return half3x3(m[0].xyz, m[1].xyz, m[2].xyz);
+}
+
+float4 ComputePhongLightColor(VertexIn vin, 
+                              constant Object &object,
+                              constant Camera &camera,
+                              constant Material &material,
+                              constant PerLight &light) {
+    float3x3 normalMatrix = tofloat3x3(camera.u_View * object.u_Transform);
+
+    float3 n = normalize(normalMatrix * vin.normal);
+
+    float4 camCoords = camera.u_View * object.u_Transform * float4(vin.position, 1.0f);
+
+    float4 ambient = material.u_ambientColor * light.light[0].u_color;
+    float4 lightPosition = camera.u_View * light.light[0].u_position;
+
+    float3 s = normalize((lightPosition - camCoords).xyz);
+    float sDotN = max(dot(s, n), 0.0);
+    float4 diffuse = light.light[0].u_color * material.u_diffuseColor * sDotN;
+
+    float3 spec = float3(0.0, 0.0, 0.0);
+    if (sDotN > 0.0) {
+        float3 v = normalize(-camCoords.xyz);
+        float3 r = reflect(-s, n);
+        float maximum = max(dot(r, v), 0.0);
+        float shiny = pow(maximum, material.u_shinines);
+        spec = light.light[0].u_color.xyz * material.u_specular * shiny;
+    }
+    return ambient + diffuse + float4(spec, 1.0);
+}
+
 VertexPayload vertex vertexMain(
 //                                uint vertexID [[vertex_id]],
                                 VertexIn vertexIn [[stage_in]],
                                 constant Object &object [[buffer(1)]],
                                 constant Camera &camera [[buffer(2)]],
-                                constant PerLightSpace& lightspace [[buffer(3)]]
+                                constant PerLightSpace& lightspace [[buffer(3)]],
+                                constant Material &material [[buffer(4)]],
+                                constant PerLight &light [[buffer(5)]]
                                 ) {
     VertexPayload payload;
 
     payload.position = camera.u_ViewProjection * object.u_Transform * float4(vertexIn.position, 1.0);
-    payload.color = vertexIn.color;
+    payload.color = ComputePhongLightColor(vertexIn, object, camera, material, light);
     payload.texCoord = vertexIn.texCoord;
 
     return payload;
 }
 
-half4 fragment fragmentMain(VertexPayload frag [[stage_in]],
-                            constant Material &material [[buffer(1)]],
-                            constant PerLight &light [[buffer(2)]],
-                            texture2d<float, access::sample> diffuseTexture [[texture(0)]]//,
-                            /*sampler samplr [[sampler(0)]])*/) {
-    constexpr sampler linearSampler(coord::normalized, min_filter::linear, mag_filter::linear, mip_filter::linear);
-    
-    float4 result = diffuseTexture.sample(linearSampler, float2(1.0f - frag.texCoord.x,frag.texCoord.y));
-    half4 lightColor = half4(light.light[0].u_color.x, light.light[0].u_color.y, light.light[0].u_color.z, light.light[0].u_color.w);
-    return half4(result) * /*half4(frag.color.x, frag.color.y, frag.color.z, 1.0) **/ lightColor;
+
+
+half4 fragment fragmentMain(VertexPayload frag [[stage_in]]) {
+    return half4(frag.color.x, frag.color.y, frag.color.z, 1.0);
 }
