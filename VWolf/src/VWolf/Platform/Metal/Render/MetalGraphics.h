@@ -49,6 +49,8 @@ namespace VWolf {
         MTL::CommandBuffer* commandBuffer;
         MTL::RenderCommandEncoder* encoder;
         Ref<MetalTexture2D> emptyShadowMap;
+        std::map<std::string, uint32_t> constantBufferIndexPerShader;
+        int itemsCount = 0;
         // TODO: Plan later
         std::vector<Light> lights;
         std::vector<MatrixFloat4x4> spaces;

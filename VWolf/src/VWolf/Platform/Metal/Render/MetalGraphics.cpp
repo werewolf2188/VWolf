@@ -26,7 +26,86 @@ namespace VWolf {
     }
 
     void MetalGraphics::DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera) {
+        MTL::RenderCommandEncoder* rtvEncoder = nullptr;
+
+        int shapes = constantBufferIndexPerShader.count(material.GetShaderName()) > 0 ? constantBufferIndexPerShader[material.GetShaderName()]: 0;
+        if (renderTexture) {
+            rtvEncoder = ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
+        }
+
+        if (this->lights.size() == 0) {
+            this->lights.push_back(Light());
+        }
+        if (this->spaces.size() == 0) {
+            this->spaces.push_back(MatrixFloat4x4());
+        }
+        Light* lights = this->lights.data();
+        MatrixFloat4x4* spacesPointer = spaces.data();
+
+        Camera* cam = nullptr;
+
+        MatrixFloat4x4 transform = translate(MatrixFloat4x4(1.0f), Vector3Float(position));
+        transform = VWolf::rotate(transform, rotation.x, { 1.0f, 0.0f, 0.0f });
+        transform = VWolf::rotate(transform, rotation.y, { 0.0f, 1.0f, 0.0f });
+        transform = VWolf::rotate(transform, rotation.z, { 0.0f, 0.0f, 1.0f });
+    
+        if (mesh.vertices.size() == 1) return;; // It's a light
+
+        cam = camera != nullptr ? camera.get(): Camera::main;
+
+        CameraPass cameraPass = {
+            cam->GetViewMatrix(),
+            inverse(cam->GetViewMatrix()),
+            cam->GetProjection(),
+            inverse(cam->GetProjection()),
+            cam->GetViewProjection(),
+            inverse(cam->GetViewProjection()),
+            cam->GetPosition(),
+            0,
+            cam->GetDisplaySize(),
+            { 1 / cam->GetDisplaySize().x, 1 / cam->GetDisplaySize().y },
+            cam->GetNearZ(),
+            cam->GetFarZ(),
+            Time::GetTotalTime(),
+            Time::GetDeltaTime()
+        };
+
+        if (itemsCount >= bufferGroups.size()) {
+            bufferGroups.push_back(CreateRef<MetalBufferGroup>(mesh));
+            objectTransforms.push_back(transform);
+        } else {
+            bufferGroups[itemsCount]->SetData(mesh);
+            objectTransforms[itemsCount] = transform;
+        }
+
+        void* material1 = material.GetDataPointer();
+        Ref<Shader> shader = ShaderLibrary::GetShader(material.GetShaderName());
+        ((MSLShader*)shader.get())->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
+        shader->Bind();
+        (rtvEncoder != nullptr ? rtvEncoder : encoder)->setVertexBuffer(*bufferGroups[itemsCount]->GetVertexBuffer(), 0, ((MSLShader*)shader.get())->GetVertexBufferIndex());
+        shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
+        shader->SetData(&objectTransforms[itemsCount], ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), shapes);
+        shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
+        shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
+        shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(MatrixFloat4x4) * Light::LightsMax, shapes);
+
+        for (auto textureInput : shader->GetTextureInputs()) {
+            if (textureInput.GetName() == "Shadow") {
+                (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(emptyShadowMap->GetHandler()), textureInput.GetIndex());
+            } else {
+                Ref<Texture> texture = material.GetTexture(textureInput.GetName());
+                if (texture != nullptr) {
+                    (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(texture->GetHandler()), textureInput.GetIndex());
+                }
+            }
+            
+        }
         
+        (rtvEncoder != nullptr ? rtvEncoder : encoder)->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[itemsCount]->GetIndexBuffer()->GetCount(), bufferGroups[itemsCount]->GetIndexBuffer()->GetType(), *bufferGroups[itemsCount]->GetIndexBuffer(), 0);
+        free(material1);
+
+        itemsCount++;
+        constantBufferIndexPerShader[material.GetShaderName()] = ++shapes;
     }
 
     void MetalGraphics::RenderMeshImpl(MeshData& mesh, MatrixFloat4x4 transform, Material& material, Ref<Camera> camera) {
@@ -66,10 +145,17 @@ namespace VWolf {
 
         lights.clear();
         spaces.clear();
+        constantBufferIndexPerShader.clear();
+        itemsCount = 0;
+        if (renderTexture) {
+            ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
+        }
     }
 
     void MetalGraphics::EndFrameImpl() {
-        
+        if (renderTexture) {
+            ((MetalRenderTexture*)renderTexture.get())->Commit();
+        }
         encoder->endEncoding();
         commandBuffer->presentDrawable(MetalDriver::GetCurrent()->GetSurface()->GetCurrentDrawable());
         commandBuffer->commit();
@@ -92,6 +178,7 @@ namespace VWolf {
         DrawShadowMap();
         DrawQueue();
         DrawPostProcess();
+        
     }
 
     void MetalGraphics::DrawShadowMap() {
@@ -105,59 +192,66 @@ namespace VWolf {
             rtvEncoder = ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
         }
 
-        Camera* cam = Camera::main;
-
-        CameraPass cameraPass = {
-            cam->GetViewMatrix(),
-            inverse(cam->GetViewMatrix()),
-            cam->GetProjection(),
-            inverse(cam->GetProjection()),
-            cam->GetViewProjection(),
-            inverse(cam->GetViewProjection()),
-            cam->GetPosition(),
-            0,
-            cam->GetDisplaySize(),
-            { 1 / cam->GetDisplaySize().x, 1 / cam->GetDisplaySize().y },
-            cam->GetNearZ(),
-            cam->GetFarZ(),
-            Time::GetTotalTime(),
-            Time::GetDeltaTime()
-        };
-
-        for (int index = 0; index < items.size(); index++) {
-            if (index >= bufferGroups.size()) {
-                bufferGroups.push_back(CreateRef<MetalBufferGroup>(items[index]->data));
-                objectTransforms.push_back(items[index]->transform);
-            } else {
-                bufferGroups[index]->SetData(items[index]->data);
-                objectTransforms[index] = items[index]->transform;
-            }
-        }
-
-        
         if (this->lights.size() == 0) {
             this->lights.push_back(Light());
+        }
+        if (this->spaces.size() == 0) {
+            this->spaces.push_back(MatrixFloat4x4());
         }
         Light* lights = this->lights.data();
         MatrixFloat4x4* spacesPointer = spaces.data();
 
-        for (int index = 0; index < items.size(); index++) {
-            void* material1 = items[index]->material.GetDataPointer();
-            Ref<Shader> shader = ShaderLibrary::GetShader(items[index]->material.GetShaderName());
+        Camera* cam = nullptr;
+
+        for (auto item: items) {
+    
+            int shapes = constantBufferIndexPerShader.count(item->material.GetShaderName()) > 0 ? constantBufferIndexPerShader[item->material.GetShaderName()]: 0;
+
+            if (item->data.vertices.size() == 1) continue;; // It's a light
+
+            cam = item->camera != nullptr ? item->camera.get(): Camera::main;
+
+            CameraPass cameraPass = {
+                cam->GetViewMatrix(),
+                inverse(cam->GetViewMatrix()),
+                cam->GetProjection(),
+                inverse(cam->GetProjection()),
+                cam->GetViewProjection(),
+                inverse(cam->GetViewProjection()),
+                cam->GetPosition(),
+                0,
+                cam->GetDisplaySize(),
+                { 1 / cam->GetDisplaySize().x, 1 / cam->GetDisplaySize().y },
+                cam->GetNearZ(),
+                cam->GetFarZ(),
+                Time::GetTotalTime(),
+                Time::GetDeltaTime()
+            };
+
+            if (itemsCount >= bufferGroups.size()) {
+                bufferGroups.push_back(CreateRef<MetalBufferGroup>(item->data));
+                objectTransforms.push_back(item->transform);
+            } else {
+                bufferGroups[itemsCount]->SetData(item->data);
+                objectTransforms[itemsCount] = item->transform;
+            }
+
+            void* material1 = item->material.GetDataPointer();
+            Ref<Shader> shader = ShaderLibrary::GetShader(item->material.GetShaderName());
             ((MSLShader*)shader.get())->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
             shader->Bind();
-            (rtvEncoder != nullptr ? rtvEncoder : encoder)->setVertexBuffer(*bufferGroups[index]->GetVertexBuffer(), 0, ((MSLShader*)shader.get())->GetVertexBufferIndex());
-            shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), index);
-            shader->SetData(&objectTransforms[index], ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), index);
-            shader->SetData(material1, materialName.c_str(), items[index]->material.GetSize(), index);
-            shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, index);
-            shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(MatrixFloat4x4) * Light::LightsMax, index);
+            (rtvEncoder != nullptr ? rtvEncoder : encoder)->setVertexBuffer(*bufferGroups[itemsCount]->GetVertexBuffer(), 0, ((MSLShader*)shader.get())->GetVertexBufferIndex());
+            shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
+            shader->SetData(&objectTransforms[itemsCount], ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), shapes);
+            shader->SetData(material1, materialName.c_str(), item->material.GetSize(), shapes);
+            shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
+            shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(MatrixFloat4x4) * Light::LightsMax, shapes);
 
             for (auto textureInput : shader->GetTextureInputs()) {
                 if (textureInput.GetName() == "Shadow") {
                     (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(emptyShadowMap->GetHandler()), textureInput.GetIndex());
                 } else {
-                    Ref<Texture> texture = items[index]->material.GetTexture(textureInput.GetName());
+                    Ref<Texture> texture = item->material.GetTexture(textureInput.GetName());
                     if (texture != nullptr) {
                         (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(texture->GetHandler()), textureInput.GetIndex());
                     }
@@ -165,11 +259,11 @@ namespace VWolf {
                 
             }
             
-            (rtvEncoder != nullptr ? rtvEncoder : encoder)->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[index]->GetIndexBuffer()->GetCount(), bufferGroups[index]->GetIndexBuffer()->GetType(), *bufferGroups[index]->GetIndexBuffer(), 0);
+            (rtvEncoder != nullptr ? rtvEncoder : encoder)->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[itemsCount]->GetIndexBuffer()->GetCount(), bufferGroups[itemsCount]->GetIndexBuffer()->GetType(), *bufferGroups[itemsCount]->GetIndexBuffer(), 0);
             free(material1);
-        }
-        if (rtvEncoder != nullptr) {
-            ((MetalRenderTexture*)renderTexture.get())->Commit();
+    
+            itemsCount++;
+            constantBufferIndexPerShader[item->material.GetShaderName()] = ++shapes;
         }
     }
 

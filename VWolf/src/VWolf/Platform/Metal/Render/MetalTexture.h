@@ -55,6 +55,7 @@ namespace VWolf {
         MTL::Texture* depthTexture = nullptr;
         MTL::RenderPassDescriptor* renderPassDescriptor;
         bool isDepthOnly = false;
+        bool startedEncoding = false;
     };
 
     class MetalCubemap : public Cubemap {

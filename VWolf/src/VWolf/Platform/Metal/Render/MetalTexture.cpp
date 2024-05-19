@@ -158,13 +158,16 @@ namespace VWolf {
     }
 
     MTL::RenderCommandEncoder* MetalRenderTexture::StartEncoder() {
+        if (startedEncoding) return rtvEncoder;
         rtvEncoder = rtvCommandBuffer->renderCommandEncoder(renderPassDescriptor);
+        startedEncoding = true;
         return rtvEncoder;
     }
 
     void MetalRenderTexture::Commit() {
         rtvEncoder->endEncoding();
         rtvCommandBuffer->commit();
+        startedEncoding = false;
     }
 
     MetalCubemap::MetalCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options): Cubemap(textureDefault, size, options) {

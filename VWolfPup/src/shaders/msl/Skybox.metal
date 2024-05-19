@@ -99,10 +99,15 @@ VertexPayload vertex vertexMain(
 half4 fragment fragmentMain(VertexPayload frag [[stage_in]],
                             constant Material &material [[buffer(1)]],
                             constant PerLight &light [[buffer(2)]],
-                            texturecube<float, access::sample> skyTexture [[texture(0)]]//,
+                            texturecube<float, access::sample> skybox [[texture(0)]]//,
                             /*sampler samplr [[sampler(0)]])*/) {
-    constexpr sampler linearSampler(coord::normalized, min_filter::linear, mag_filter::linear, mip_filter::linear);
-    float4 color = skyTexture.sample(linearSampler, frag.texCoord);
+    /**
+     
+     samplerDescriptor.minFilter = MTLSamplerMinMagFilterNearest;
+         samplerDescriptor.magFilter = MTLSamplerMinMagFilterLinear;
+     */
+    constexpr sampler linearSampler(address::repeat, min_filter::linear, mag_filter::linear, mip_filter::linear);
+    float4 color = skybox.sample(linearSampler, frag.texCoord);
 
     return half4(color.x, color.y, color.z, 1.0);
 }

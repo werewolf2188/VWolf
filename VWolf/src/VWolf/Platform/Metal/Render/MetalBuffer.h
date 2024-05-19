@@ -25,6 +25,7 @@ namespace VWolf {
     private:
         MTL::Buffer* vertexData;
         uint32_t size;
+        uint32_t maxSize;
     };
 
     class MetalIndexBuffer
@@ -43,5 +44,6 @@ namespace VWolf {
         MTL::Buffer* indexData;
         MTL::IndexType type;
         uint32_t count;
+        uint32_t maxCount;
     };
 }
