@@ -126,7 +126,7 @@ namespace VWolf {
     }
 
     void* MetalRenderTexture::GetHandler() {
-        return texture;
+        return isDepthOnly ? depthTexture: texture;
     }
 
     void MetalRenderTexture::Resize(uint32_t width, uint32_t height) {
@@ -134,10 +134,12 @@ namespace VWolf {
     }
 
     void MetalRenderTexture::Initialize() {
-        MTL::PixelFormat rtvFormat = MetalDriver::GetCurrent()->GetSurface()->GetPixelFormat();
-        MTL::TextureDescriptor* rtvDescriptor = MTL::TextureDescriptor::texture2DDescriptor(rtvFormat, m_width, m_height, false);
-        rtvDescriptor->setUsage(MTL::TextureUsageRenderTarget | MTL::TextureUsageShaderRead);
-        texture = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newTexture(rtvDescriptor);
+        if (!isDepthOnly) {
+            MTL::PixelFormat rtvFormat = MetalDriver::GetCurrent()->GetSurface()->GetPixelFormat();
+            MTL::TextureDescriptor* rtvDescriptor = MTL::TextureDescriptor::texture2DDescriptor(rtvFormat, m_width, m_height, false);
+            rtvDescriptor->setUsage(MTL::TextureUsageRenderTarget | MTL::TextureUsageShaderRead);
+            texture = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newTexture(rtvDescriptor);
+        }
 
         MTL::PixelFormat dsvFormat = MetalDriver::GetCurrent()->GetSurface()->GetDepthStencilPixelFormat();
         MTL::TextureDescriptor* dsvDescriptor = MTL::TextureDescriptor::texture2DDescriptor(dsvFormat, m_width, m_height, false);
@@ -145,10 +147,11 @@ namespace VWolf {
         depthTexture = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newTexture(dsvDescriptor);
 
         renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
-        renderPassDescriptor->colorAttachments()->object(0)->setTexture(texture);
+        if (!isDepthOnly)
+            renderPassDescriptor->colorAttachments()->object(0)->setTexture(texture);
         renderPassDescriptor->depthAttachment()->setClearDepth(1.0f);
         renderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadAction::LoadActionClear);
-        renderPassDescriptor->depthAttachment()->setStoreAction(MTL::StoreAction::StoreActionDontCare);
+        renderPassDescriptor->depthAttachment()->setStoreAction(isDepthOnly ? MTL::StoreAction::StoreActionStore : MTL::StoreAction::StoreActionDontCare);
         renderPassDescriptor->depthAttachment()->setTexture(depthTexture);
         renderPassDescriptor->stencilAttachment()->setTexture(depthTexture);
     }

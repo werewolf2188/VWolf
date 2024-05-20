@@ -83,8 +83,7 @@ VertexPayload vertex vertexMain(
 //                                uint vertexID [[vertex_id]],
                                 VertexIn vertexIn [[stage_in]],
                                 constant Object &object [[buffer(1)]],
-                                constant Camera &camera [[buffer(2)]],
-                                constant PerLightSpace& lightspace [[buffer(3)]]
+                                constant Camera &camera [[buffer(2)]]
                                 ) {
     VertexPayload payload;
 
@@ -98,7 +97,6 @@ VertexPayload vertex vertexMain(
 
 half4 fragment fragmentMain(VertexPayload frag [[stage_in]],
                             constant Material &material [[buffer(1)]],
-                            constant PerLight &light [[buffer(2)]],
                             texturecube<float, access::sample> skybox [[texture(0)]]//,
                             /*sampler samplr [[sampler(0)]])*/) {
     /**

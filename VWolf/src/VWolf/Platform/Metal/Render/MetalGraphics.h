@@ -43,12 +43,16 @@ namespace VWolf {
     private:
         std::vector<Ref<MetalBufferGroup>> bufferGroups;
         std::vector<MatrixFloat4x4> objectTransforms;
+
+        std::vector<Ref<MetalBufferGroup>> shadowBufferGroups;
+        std::vector<MatrixFloat4x4> shadowObjectTransforms;
         // MARK: Per frame
         std::vector<Ref<RenderItem>> items;
         NS::AutoreleasePool* pool;
         MTL::CommandBuffer* commandBuffer;
         MTL::RenderCommandEncoder* encoder;
         Ref<MetalTexture2D> emptyShadowMap;
+        Ref<MetalRenderTexture> shadowMap;
         std::map<std::string, uint32_t> constantBufferIndexPerShader;
         int itemsCount = 0;
         // TODO: Plan later

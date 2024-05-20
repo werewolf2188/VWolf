@@ -136,8 +136,7 @@ VertexPayload vertex vertexMain(
                                 uint vertexID [[vertex_id]],
                                 VertexIn vertexIn [[stage_in]],
                                 constant Object &object [[buffer(1)]],
-                                constant Camera &camera [[buffer(2)]],
-                                constant PerLightSpace& lightspace [[buffer(3)]]
+                                constant Camera &camera [[buffer(2)]]
                                 ) {
     float3 gridPlane[6] = {
         float3(1, 1, 0), float3(-1, -1, 0), float3(-1, 1, 0),
@@ -186,7 +185,6 @@ float computeLinearDepth(float3 pos, constant Camera &camera) {
 PixelOut fragment fragmentMain(VertexPayload frag [[stage_in]],
                             constant Material &material [[buffer(1)]],
                             constant Camera &camera [[buffer(2)]],
-                            constant PerLight &light [[buffer(3)]],
                             texture2d<float, access::sample> diffuseTexture [[texture(0)]]//,
                             /*sampler samplr [[sampler(0)]])*/) {
     float t = -frag.nearPoint.y / (frag.farPoint.y - frag.nearPoint.y);

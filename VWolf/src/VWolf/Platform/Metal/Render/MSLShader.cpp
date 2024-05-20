@@ -301,7 +301,12 @@ namespace VWolf {
                 }
             }
 
-            descriptor->colorAttachments()->object(0)->setPixelFormat(MetalDriver::GetCurrent()->GetSurface()->GetPixelFormat());
+            if (name == "Shadow") { // TODO: Move this
+                descriptor->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatInvalid);
+            } else {
+                descriptor->colorAttachments()->object(0)->setPixelFormat(MetalDriver::GetCurrent()->GetSurface()->GetPixelFormat());
+            }
+
             PrepareBlending(descriptor->colorAttachments()->object(0), configuration);
             descriptor->setDepthAttachmentPixelFormat(MetalDriver::GetCurrent()->GetSurface()->GetDepthStencilPixelFormat());
             descriptor->setStencilAttachmentPixelFormat(MetalDriver::GetCurrent()->GetSurface()->GetDepthStencilPixelFormat());

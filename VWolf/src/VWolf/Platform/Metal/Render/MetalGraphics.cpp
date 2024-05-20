@@ -23,6 +23,7 @@ namespace VWolf {
 
     void MetalGraphics::Initialize() {
         emptyShadowMap = CreateRef<MetalTexture2D>(TextureDefault::White, 1024, 1024, TextureOptions());
+        shadowMap = CreateRef<MetalRenderTexture>(1024, 1024, true);
     }
 
     void MetalGraphics::DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera) {
@@ -32,15 +33,6 @@ namespace VWolf {
         if (renderTexture) {
             rtvEncoder = ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
         }
-
-        if (this->lights.size() == 0) {
-            this->lights.push_back(Light());
-        }
-        if (this->spaces.size() == 0) {
-            this->spaces.push_back(MatrixFloat4x4());
-        }
-        Light* lights = this->lights.data();
-        MatrixFloat4x4* spacesPointer = spaces.data();
 
         Camera* cam = nullptr;
 
@@ -86,8 +78,6 @@ namespace VWolf {
         shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
         shader->SetData(&objectTransforms[itemsCount], ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), shapes);
         shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
-        shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
-        shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(MatrixFloat4x4) * Light::LightsMax, shapes);
 
         for (auto textureInput : shader->GetTextureInputs()) {
             if (textureInput.GetName() == "Shadow") {
@@ -118,6 +108,7 @@ namespace VWolf {
             auto metalRenderTexture = (MetalRenderTexture*)renderTexture.get();
             metalRenderTexture->GetRenderPassDescriptor()->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(color.r, color.g, color.b, color.a));
         }
+        shadowMap->GetRenderPassDescriptor()->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(color.r, color.g, color.b, color.a));
     }
 
     void MetalGraphics::ClearImpl() {
@@ -126,6 +117,7 @@ namespace VWolf {
             auto metalRenderTexture = (MetalRenderTexture*)renderTexture.get();
             metalRenderTexture->GetRenderPassDescriptor()->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
         }
+        shadowMap->GetRenderPassDescriptor()->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
     }
 
     void MetalGraphics::AddLightImpl(Light& light) {
@@ -139,6 +131,7 @@ namespace VWolf {
         if (renderTexture) {
             ((MetalRenderTexture*)renderTexture.get())->Prepare();
         }
+        shadowMap->Prepare();
         MetalDriver::GetCurrent()->GetSurface()->Begin();
 
         MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor()->colorAttachments()->object(0)->setTexture(MetalDriver::GetCurrent()->GetSurface()->GetCurrentDrawable()->texture());
@@ -182,7 +175,35 @@ namespace VWolf {
     }
 
     void MetalGraphics::DrawShadowMap() {
-        
+        MTL::RenderCommandEncoder* dsvEncoder = shadowMap->StartEncoder();
+
+        for (Light& light : lights) {
+            int shadowShapes = 0;
+            MatrixFloat4x4 viewProjection = light.GetLightSpaceMatrix();//cam->GetViewProjection();
+            for (auto item: items) {
+                if (item->data.vertices.size() == 1) continue; // It's a light
+    
+                if (shadowShapes >= shadowBufferGroups.size()) {
+                    shadowBufferGroups.push_back(CreateRef<MetalBufferGroup>(item->data));
+                    shadowObjectTransforms.push_back(item->transform);
+                } else {
+                    shadowBufferGroups[shadowShapes]->SetData(item->data);
+                    shadowObjectTransforms[shadowShapes] = item->transform;
+                }
+                Ref<Shader> shader = ShaderLibrary::GetShader("Shadow");
+                
+                ((MSLShader*)shader.get())->UseShader(dsvEncoder);
+                shader->Bind();
+                dsvEncoder->setVertexBuffer(*shadowBufferGroups[shadowShapes]->GetVertexBuffer(), 0, ((MSLShader*)shader.get())->GetVertexBufferIndex());
+                shader->SetData(&viewProjection, ShaderLibrary::CameraBufferName, sizeof(MatrixFloat4x4), shadowShapes);
+                shader->SetData(&shadowObjectTransforms[shadowShapes], ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), shadowShapes);
+
+                dsvEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, shadowBufferGroups[shadowShapes]->GetIndexBuffer()->GetCount(), shadowBufferGroups[shadowShapes]->GetIndexBuffer()->GetType(), *shadowBufferGroups[shadowShapes]->GetIndexBuffer(), 0);
+                shadowShapes++;
+            }
+        }
+
+        shadowMap->Commit();
     }
 
     void MetalGraphics::DrawQueue() {
@@ -249,7 +270,7 @@ namespace VWolf {
 
             for (auto textureInput : shader->GetTextureInputs()) {
                 if (textureInput.GetName() == "Shadow") {
-                    (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(emptyShadowMap->GetHandler()), textureInput.GetIndex());
+                    (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(shadowMap->GetHandler()), textureInput.GetIndex());
                 } else {
                     Ref<Texture> texture = item->material.GetTexture(textureInput.GetName());
                     if (texture != nullptr) {
