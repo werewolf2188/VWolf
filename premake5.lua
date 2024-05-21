@@ -32,6 +32,7 @@ IncludeDir["stb_image"] = "%{wks.location}/VWolf/vendor/stb_image"
 IncludeDir["obj_loader"] = "%{wks.location}/VWolf/vendor/obj_loader/obj_loader/Source"
 IncludeDir["entt"] = "%{wks.location}/VWolf/vendor/entt/src"
 IncludeDir["yaml_cpp"] = "%{wks.location}/VWolf/vendor/yaml_cpp/include"
+IncludeDir["metal_cpp"] = "%{wks.location}/VWolf/vendor/metal-cpp"
 
 LibDir = {}
 LibDir["boost"] = "%{boost}/stage/lib"

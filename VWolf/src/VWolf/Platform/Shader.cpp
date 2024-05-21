@@ -6,6 +6,9 @@
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "VWolf/Platform/DirectX12/Render/HLSLShader.h"
 #endif
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+#include "VWolf/Platform/Metal/Render/MSLShader.h"
+#endif
 
 namespace VWolf {
 
@@ -34,6 +37,13 @@ namespace VWolf {
                 shader = CreateRef<HLSLShader>(name,
                                                otherShaders,
                                                configuration);
+                break;
+#endif
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+            case DriverType::Metal:
+                shader = CreateRef<MSLShader>(name,
+                                              otherShaders,
+                                              configuration);
                 break;
 #endif
             default:

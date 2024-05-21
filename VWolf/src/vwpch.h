@@ -29,6 +29,7 @@
 // BOOST
 #include <boost/core/null_deleter.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 
 // BOOST UUID
 #include <boost/uuid/uuid.hpp>            // uuid class

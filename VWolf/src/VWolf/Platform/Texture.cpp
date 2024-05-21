@@ -13,6 +13,10 @@
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "VWolf/Platform/DirectX12/Render/DirectX12Texture.h"
 #endif
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+#include "VWolf/Platform/Metal/Render/MetalTexture.h"
+#endif
+
 
 namespace VWolf {
 
@@ -25,6 +29,11 @@ namespace VWolf {
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
                 texture = CreateRef<DirectX12Texture2D>(textureDefault, width,  height, options);
+                break;
+#endif
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+            case DriverType::Metal:
+                texture = CreateRef<MetalTexture2D>(textureDefault, width, height, options);
                 break;
 #endif
             default:
@@ -44,6 +53,11 @@ namespace VWolf {
                 texture = CreateRef<DirectX12Texture2D>(filePath, options);
                 break;
 #endif
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+            case DriverType::Metal:
+                texture = CreateRef<MetalTexture2D>(filePath, options);
+                break;
+#endif
             default:
                 VWOLF_CORE_ASSERT(false, "Texture: Not yet implemented");
         }
@@ -59,6 +73,11 @@ namespace VWolf {
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
                 texture = CreateRef<DirectX12RenderTexture>(width, height, false, options);
+                break;
+#endif
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+            case DriverType::Metal:
+                texture = CreateRef<MetalRenderTexture>(width, height, false, options);
                 break;
 #endif
             default:
@@ -78,6 +97,11 @@ namespace VWolf {
                 texture = CreateRef<DirectX12Cubemap>(textureDefault, size, options);
                 break;
 #endif
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+            case DriverType::Metal:
+                texture = CreateRef<MetalCubemap>(textureDefault, size, options);
+                break;
+#endif
             default:
                 VWOLF_CORE_ASSERT(false, "Texture: Not yet implemented");
         }
@@ -93,6 +117,11 @@ namespace VWolf {
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
                 texture = CreateRef<DirectX12Cubemap>(paths, options);
+                break;
+#endif
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+            case DriverType::Metal:
+                texture = CreateRef<MetalCubemap>(paths, options);
                 break;
 #endif
             default:

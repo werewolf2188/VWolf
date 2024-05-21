@@ -34,6 +34,7 @@ It wraps multiple libraries and it creates a static library to be used inside co
 
 - Platform: Low level code to work with multiple graphics and windows libraries. Right now it includes:
     - Windows with DirectX 12
+    - MacOS X with Metal
     - Multiplatform with OpenGL.
 
 ### Sandbox
@@ -58,6 +59,7 @@ Editor project that will help the user to create the project/scenes to make a ga
 - ImGui
 - GLM
 - DirectX 12
+- Metal
 - Windows.h
 - STB Image
 - Yaml-CPP
@@ -105,7 +107,6 @@ Download Boost and compile it. Create static libraries.
 - Material system
     - Basic render (PBR)
 - Expand driver integration
-    - Cocoa and Metal
     - GLFW and Vulkan
 - Physics system
 - Scripting

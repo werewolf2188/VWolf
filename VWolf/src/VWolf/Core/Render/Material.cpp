@@ -81,6 +81,18 @@ namespace VWolf {
 
     }
 
+    void Material::operator=(const Material& material) {
+        this->name = material.name;
+        this->shaderName = material.shaderName;
+        this->inputs = material.inputs;
+        this->size = material.size;
+        this->colors = material.colors;
+        this->vectors = material.vectors;
+        this->floats = material.floats;
+        this->textures = material.textures;
+        this->properties = material.properties;
+    }
+
     void Material::Load(std::string name, std::string shaderName) {
         float floatValue = 0;
         this->name = name;

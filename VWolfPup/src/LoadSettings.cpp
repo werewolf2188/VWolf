@@ -155,6 +155,30 @@ namespace VWolfPup {
             VWolf::ShaderLibrary::LoadShader(name, { vs, fs }, GetInitialConfiguration(name));
         }
     }
+
+    void LoadMSLShaders() {
+        std::filesystem::path shaderPath = "shaders/msl/";
+        for (auto const& dir_entry : std::filesystem::directory_iterator(shaderPath)) {
+            if (dir_entry.path().extension().string() != ".metal") continue;
+            std::string filename = dir_entry.path().string();
+            std::string name = dir_entry.path().stem().string();
+            
+            VWolf::ShaderSource vs = {
+                VWolf::ShaderType::Vertex,
+                VWolf::ShaderSourceType::File,
+                filename,
+                "vertexMain"
+            };
+            
+            VWolf::ShaderSource fs = {
+                VWolf::ShaderType::Fragment,
+                VWolf::ShaderSourceType::File,
+                filename,
+                "fragmentMain"
+            };
+            VWolf::ShaderLibrary::LoadShader(name, { vs, fs }, GetInitialConfiguration(name));
+        }
+    }
 // ----------------------------------------------- //
 
     // MARK: Private
@@ -177,6 +201,11 @@ namespace VWolfPup {
 #ifdef VWOLF_PLATFORM_WINDOWS
         case VWolf::DriverType::DirectX12:
             LoadHLSLShaders();
+            break;
+#endif
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        case VWolf::DriverType::Metal:
+            LoadMSLShaders();
             break;
 #endif
         }
