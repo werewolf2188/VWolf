@@ -85,8 +85,8 @@ project "VWolf"
    pchsource "src/vwpch.cpp"
 
    files { 
-	  "vendor/metal-cpp/**.hpp"
-
+	  "vendor/metal-cpp/**.hpp",
+     "src/**.mm"
    }
 
    includedirs
