@@ -190,8 +190,7 @@ public:
 
     void OnDraw() override {
         testScene->DrawEditor(camera);
-        // TODO: Draw mesh like this is not working. Maybe move some settings?
-        VWolf::Graphics::DrawMesh(gridData, VWolf::Vector4Float(), VWolf::Vector4Float(), *VWolfPup::Defaults::Get()->GetDefaultGridMaterial());
+        VWolf::Graphics::RenderMesh(gridData, VWolf::MatrixFloat4x4(), *VWolfPup::Defaults::Get()->GetDefaultGridMaterial());
     }
 
     void OnGUI() override {
