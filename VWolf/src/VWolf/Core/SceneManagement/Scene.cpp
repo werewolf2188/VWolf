@@ -15,6 +15,10 @@
 
 #include "VWolf/Core/Debug/ShapeHelper.h"
 
+#include "VWolf/Core/Physics/Physics.h"
+
+#include "VWolf/Core/Time.h"
+
 namespace VWolf {
 
     MeshData CreateSkyBox() {
@@ -98,6 +102,8 @@ namespace VWolf {
     // --------------- SCENE ----------------------------
     Scene::Scene(std::string name): name(name) {
         emptyMeshData = ShapeHelper::CreateEmpty();
+        world = Physics::GetCommon().createPhysicsWorld();
+        world->setIsDebugRenderingEnabled(true);
     }
 
     Scene::Scene(Scene& scene) {
@@ -109,6 +115,8 @@ namespace VWolf {
             gameObject->AttachToScene(this);
         }
         emptyMeshData = ShapeHelper::CreateEmpty();
+        world = Physics::GetCommon().createPhysicsWorld();
+        world->setIsDebugRenderingEnabled(true);
     }
 
     Scene::Scene(Scene&& scene) {
@@ -123,10 +131,14 @@ namespace VWolf {
 
         scene.name = std::string();
         scene.gameObjects.clear();
+        world = Physics::GetCommon().createPhysicsWorld();
+        world->setIsDebugRenderingEnabled(true);
     }
 
     Scene::~Scene() {
-        
+        // TODO: Why is this failing?
+//        if (world)
+//            common.destroyPhysicsWorld(world);
     }
 
     Ref<GameObject> Scene::CreateGameObject(std::string name) {
@@ -162,6 +174,160 @@ namespace VWolf {
     }
     
     void Scene::UpdateEditor() {
+        if (isPreviewing) {
+            // Apply physics
+            previewAccumulator += Time::GetDeltaTime();
+            
+//            while (previewAccumulator >= Physics::GetTimeStep()) {
+                world->update(Physics::GetTimeStep());
+//                previewAccumulator -= Physics::GetTimeStep();
+//            }
+//            float factor = previewAccumulator / Physics::GetTimeStep();
+            testData.vertices.clear();
+            testData.indices.clear();
+            reactphysics3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
+            auto& triangles = debugRenderer.getTriangles();
+            for (uint32_t index = 0; index < debugRenderer.getNbTriangles(); index++) {
+                auto triangle = triangles[index];
+                testData.vertices.push_back(Vertex(triangle.point1.x, triangle.point1.y, triangle.point1.z, 1, 1, 1, 1));
+                testData.vertices.push_back(Vertex(triangle.point2.x, triangle.point2.y, triangle.point2.z, 1, 1, 1, 1));
+                testData.vertices.push_back(Vertex(triangle.point3.x, triangle.point3.y, triangle.point3.z, 1, 1, 1, 1));
+
+                testData.indices.push_back(index * 3);
+                testData.indices.push_back((index * 3) + 1);
+                testData.indices.push_back((index * 3) + 2);
+            }
+            auto meshColMeshFilterTrans = m_previewRegistry.view<MeshColliderComponent, MeshFilterComponent, TransformComponent>();
+            
+            for (auto meshColMeshFilterTransEnty : meshColMeshFilterTrans)
+            {
+                auto [meshCollider, meshFilter, transform] = meshColMeshFilterTrans
+                    .get<MeshColliderComponent, MeshFilterComponent, TransformComponent>(meshColMeshFilterTransEnty);
+                meshCollider.Update(transform);
+            }
+
+            auto sphereColMeshFilterTrans = m_previewRegistry.view<SphereColliderComponent, MeshFilterComponent, TransformComponent>();
+            
+            for (auto sphereColMeshFilterTransEnty : sphereColMeshFilterTrans)
+            {
+                auto [sphereCollider, meshFilter, transform] = sphereColMeshFilterTrans
+                    .get<SphereColliderComponent, MeshFilterComponent, TransformComponent>(sphereColMeshFilterTransEnty);
+                sphereCollider.Update(transform);
+            }
+
+            auto boxColMeshFilterTrans = m_previewRegistry.view<BoxColliderComponent, MeshFilterComponent, TransformComponent>();
+            
+            for (auto boxColMeshFilterTransEnty : boxColMeshFilterTrans)
+            {
+                auto [boxCollider, meshFilter, transform] = boxColMeshFilterTrans
+                    .get<BoxColliderComponent, MeshFilterComponent, TransformComponent>(boxColMeshFilterTransEnty);
+                boxCollider.Update(transform);
+            }
+
+            auto rigidBodyAndTransformComponents = m_previewRegistry.view<RigidBodyComponent, TransformComponent>();
+            
+            for (auto rigidBodyAndTransformEntity : rigidBodyAndTransformComponents)
+            {
+                auto [rigidBody, transform] = rigidBodyAndTransformComponents
+                    .get<RigidBodyComponent, TransformComponent>(rigidBodyAndTransformEntity);
+                rigidBody.Update(transform, 1);
+            }
+        }
+    }
+
+    void Scene::StartingPreview() {
+        isPreviewing = true;
+        previewAccumulator = Time::GetDeltaTime();
+
+        reactphysics3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
+        debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+
+        for (auto gameObject: gameObjects) {
+            Ref<GameObject> previewGameObject = CreateRef<GameObject>(gameObject->GetName(), m_previewRegistry.create(), this);
+            previewGameObject->CopyComponents(gameObject.get());
+            previewGameObjects.push_back(previewGameObject);
+        }
+
+        auto rigidBodyAndTransformComponents = m_previewRegistry.view<RigidBodyComponent, TransformComponent>();
+        
+        for (auto rigidBodyAndTransformEntity : rigidBodyAndTransformComponents)
+        {
+            auto [rigidBody, transform] = rigidBodyAndTransformComponents
+                .get<RigidBodyComponent, TransformComponent>(rigidBodyAndTransformEntity);
+            rigidBody.CreateRigidBody(world, transform);
+        }
+
+        auto meshColMeshFilterTrans = m_previewRegistry.view<MeshColliderComponent, MeshFilterComponent, TransformComponent>();
+        
+        for (auto meshColMeshFilterTransEnty : meshColMeshFilterTrans)
+        {
+            auto [meshCollider, meshFilter, transform] = meshColMeshFilterTrans
+                .get<MeshColliderComponent, MeshFilterComponent, TransformComponent>(meshColMeshFilterTransEnty);
+            meshCollider.CreateMeshCollider(meshFilter.GetData(), transform);
+        }
+
+        auto sphereColMeshFilterTrans = m_previewRegistry.view<SphereColliderComponent, MeshFilterComponent, TransformComponent>();
+        
+        for (auto sphereColMeshFilterTransEnty : sphereColMeshFilterTrans)
+        {
+            auto [sphereCollider, meshFilter, transform] = sphereColMeshFilterTrans
+                .get<SphereColliderComponent, MeshFilterComponent, TransformComponent>(sphereColMeshFilterTransEnty);
+            sphereCollider.CreateSphereCollider(meshFilter.GetData(), transform);
+        }
+
+        auto boxColMeshFilterTrans = m_previewRegistry.view<BoxColliderComponent, MeshFilterComponent, TransformComponent>();
+        
+        for (auto boxColMeshFilterTransEnty : boxColMeshFilterTrans)
+        {
+            auto [boxCollider, meshFilter, transform] = boxColMeshFilterTrans
+                .get<BoxColliderComponent, MeshFilterComponent, TransformComponent>(boxColMeshFilterTransEnty);
+            boxCollider.CreateBoxCollider(meshFilter.GetData(), transform);
+        }
+    }
+
+    void Scene::StopingPreview() {
+        isPreviewing = false;
+
+        auto meshColMeshFilterTrans = m_previewRegistry.view<MeshColliderComponent, MeshFilterComponent, TransformComponent>();
+        
+        for (auto meshColMeshFilterTransEnty : meshColMeshFilterTrans)
+        {
+            auto [meshCollider, meshFilter, transform] = meshColMeshFilterTrans
+                .get<MeshColliderComponent, MeshFilterComponent, TransformComponent>(meshColMeshFilterTransEnty);
+            meshCollider.Destroy();
+        }
+
+        auto boxColMeshFilterTrans = m_previewRegistry.view<BoxColliderComponent, MeshFilterComponent, TransformComponent>();
+        
+        for (auto boxColMeshFilterTransEnty : boxColMeshFilterTrans)
+        {
+            auto [boxCollider, meshFilter, transform] = boxColMeshFilterTrans
+                .get<BoxColliderComponent, MeshFilterComponent, TransformComponent>(boxColMeshFilterTransEnty);
+            boxCollider.Destroy();
+        }
+
+        auto sphereColMeshFilterTrans = m_previewRegistry.view<SphereColliderComponent, MeshFilterComponent, TransformComponent>();
+
+        for (auto sphereColMeshFilterTransEnty : sphereColMeshFilterTrans)
+        {
+            auto [sphereCollider, meshFilter, transform] = sphereColMeshFilterTrans
+                .get<SphereColliderComponent, MeshFilterComponent, TransformComponent>(sphereColMeshFilterTransEnty);
+            sphereCollider.Destroy();
+        }
+
+        auto rigidBodyAndTransformComponents = m_previewRegistry.view<RigidBodyComponent, TransformComponent>();
+        
+        for (auto rigidBodyAndTransformEntity : rigidBodyAndTransformComponents)
+        {
+            auto [rigidBody, transform] = rigidBodyAndTransformComponents
+                .get<RigidBodyComponent, TransformComponent>(rigidBodyAndTransformEntity);
+            rigidBody.DestroyRigidBody(world);
+        }
+
+        for (auto previewGameObject: previewGameObjects) {
+            m_previewRegistry.destroy(previewGameObject->GetHandle());
+        }
+        previewGameObjects.clear();
     }
 
     void Scene::DrawEditor(Ref<Camera> editorCamera) {
@@ -227,5 +393,97 @@ namespace VWolf {
                                  transform.GetWorldMatrix(),
                                  *MaterialLibrary::Default());
         }
+    }
+
+    void Scene::DrawPreviewEditor() {
+        Graphics::ClearColor(sceneBackGround.GetBackgroundColor());
+        Graphics::Clear();
+
+        auto cameraAndTransformComponents = m_previewRegistry.view<CameraComponent, TransformComponent>();
+        if (cameraAndTransformComponents.begin() == cameraAndTransformComponents.end()) return; // There is no camera
+
+        auto cameraAndTransformEntity = cameraAndTransformComponents.front();
+
+        auto [cameraCom, cameraTransform] = cameraAndTransformComponents.get<CameraComponent, TransformComponent>(cameraAndTransformEntity);
+
+        Ref<Camera> camera = cameraCom.GetCamera(cameraTransform);
+
+        if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
+            // Immediate drawing so it does not belong to the queue
+            sceneBackGround.GetCamera()->UpdateView(Vector3Float(), Quat(
+                                                         {
+                                                             radians(cameraTransform.GetEulerAngles().x),
+                                                             radians(cameraTransform.GetEulerAngles().y),
+                                                             radians(cameraTransform.GetEulerAngles().z)
+                                                         }
+                                                         ));
+            Graphics::DrawMesh(sceneBackGround.GetSkyboxMeshData(),
+                               VWolf::Vector4Float(),
+                               VWolf::Vector4Float(),
+                               sceneBackGround.GetSkyboxMaterial(),
+                               sceneBackGround.GetCamera());
+        }
+
+        auto lightsAndTransformComponents = m_previewRegistry.view<LightComponent, TransformComponent>();
+        
+        for (auto lightAndTransformEntity : lightsAndTransformComponents)
+        {
+            auto [light, transform] = lightsAndTransformComponents
+                .get<LightComponent, TransformComponent>(lightAndTransformEntity);
+            light.GetLight().position = Vector4Float(transform.GetPosition().x, transform.GetPosition().y, transform.GetPosition().z, 1.0);
+            light.GetLight().direction = Vector4Float(transform.GetEulerAngles().x, transform.GetEulerAngles().y, transform.GetEulerAngles().z, 0.0);
+            VWolf::Graphics::AddLight(light.GetLight());
+        }
+
+        // TODO: We should be looking for any renderer, not only shape renderer
+        auto shapeRendererAndTransformComponents = m_previewRegistry.view<ShapeRendererComponent, TransformComponent>();
+        
+        for (auto shapeRendererAndTransformEntity : shapeRendererAndTransformComponents)
+        {
+            auto [shapeRenderer, transform] = shapeRendererAndTransformComponents
+                .get<ShapeRendererComponent, TransformComponent>(shapeRendererAndTransformEntity);
+            transform.Apply();
+            Graphics::RenderMesh(shapeRenderer.GetData(),
+                                 transform.GetWorldMatrix(),
+                                 shapeRenderer.GetMaterial(),
+                                 camera);
+        }
+
+        auto meshFilterMeshRendererAndTransformComponents = m_previewRegistry
+            .view<MeshRendererComponent, MeshFilterComponent, TransformComponent>();
+        
+        for (auto meshFilterMeshRendererAndTransformEntity : meshFilterMeshRendererAndTransformComponents)
+        {
+            auto [meshRenderer, meshFilter, transform] = meshFilterMeshRendererAndTransformComponents
+                .get<MeshRendererComponent, MeshFilterComponent, TransformComponent>(meshFilterMeshRendererAndTransformEntity);
+            transform.Apply();
+            Graphics::RenderMesh(meshFilter.GetData(),
+                                 transform.GetWorldMatrix(),
+                                 meshRenderer.GetMaterial(),
+                                 camera);
+        }
+
+        auto transformComponents = m_previewRegistry.view<TransformComponent>();
+        for (auto transformEntity : transformComponents)
+        {
+            // TODO: Should it be a renderer component? We just want to know if it has more than one component
+            if (m_registry.try_get<ShapeRendererComponent>(transformEntity)) continue;
+            auto transform = transformComponents
+                .get<TransformComponent>(transformEntity);
+            transform.Apply();
+            Graphics::RenderMesh(emptyMeshData,
+                                 transform.GetWorldMatrix(),
+                                 *MaterialLibrary::Default(),
+                                 camera);
+        }
+
+        // TODO: Debug renderer
+        Graphics::DrawMesh(testData,
+                           VWolf::Vector4Float(),
+                           VWolf::Vector4Float(),
+                           *MaterialLibrary::GetMaterial("RainbowColor"),
+                           camera);
+        
+//        VWOLF_CORE_INFO("Test");
     }
 }

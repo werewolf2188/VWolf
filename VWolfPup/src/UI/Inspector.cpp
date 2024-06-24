@@ -445,12 +445,261 @@ namespace VWolfPup {
         std::array<const char*, 7> items = { "Box", "Sphere", "Geosphere", "Cylinder", "Grid", "Monkey", "Triangle" };
     };
 
+    class CameraComponentInspector: public VWolf::ComponentInspector<VWolf::CameraComponent> {
+    public:
+        CameraComponentInspector() {}
+        ~CameraComponentInspector() {}
+    public:
+        virtual void OnInspector(VWolf::CameraComponent* component) override {
+            auto remove = DrawComponent<VWolf::CameraComponent>(component->GetName(), *component, [this](VWolf::CameraComponent& component) {
+                ImGui::PushID("Camera");
+
+                ImGui::PushID("Projection");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Projection");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                selection = component.IsOrthographic();
+                if (ImGui::Combo("##Projection", &selection, items.data(), (int)items.size())) {
+                    
+                    component.SetOrthographic(selection == 1);
+                }
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PushID("Field of View");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Field of View");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                ImGui::SliderFloat("##FieldOfView", &component.GetFOV(), 30, 90);
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PushID("Near clip");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Near clip");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                ImGui::DragFloat("##NearClip", &component.GetNearClip(), 0.01f, 0.01f, 1, "%.2f");
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PushID("Far clip");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Far clip");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                ImGui::DragFloat("##FarClip", &component.GetFarClip(), 1, 10000, 1, "%.2f");
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PushID("Zoom");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Zoom");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                ImGui::DragFloat("##Zoom", &component.GetZoom(), 1, 10000, 1, "%.2f");
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PopID();
+            });
+            if (remove) {
+                component->GetGameObject()->RemoveComponent<VWolf::CameraComponent>();
+            }
+        }
+
+        std::array<const char*, 2> items = { "Perspective", "Ortographic" };
+        int selection = 0;
+    };
+
+    class RigidBodyComponentInspector: public VWolf::ComponentInspector<VWolf::RigidBodyComponent> {
+    public:
+        RigidBodyComponentInspector() {}
+        ~RigidBodyComponentInspector() {}
+    public:
+        virtual void OnInspector(VWolf::RigidBodyComponent* component) override {
+            auto remove = DrawComponent<VWolf::RigidBodyComponent>(component->GetName(), *component, [this](VWolf::RigidBodyComponent& component) {
+                ImGui::PushID("Camera");
+
+                ImGui::PushID("Mass");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Mass");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                ImGui::DragFloat("##Mass", &component.GetMass(), 1, 1000000, 1, "%.2f");
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PushID("Drag");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Drag");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                ImGui::DragFloat("##Drag", &component.GetDrag(), 0, 1000000, 1, "%.2f");
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PushID("AngularDrag");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Angular Drag");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                ImGui::DragFloat("##AngularDrag", &component.GetAngularDrag(), 0, 1000000, 1, "%.2f");
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PushID("UseGravity");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Use Gravity");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                ImGui::Checkbox("##UseGravity", &component.GetUseGravity());
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PushID("BodyType");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Body Type");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                selection = component.GetBodyType();
+                if (ImGui::Combo("##BodyType", &selection, items.data(), (int)items.size())) {                    
+                    component.SetBodyType(selection);
+                }
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PopID();
+            });
+            if (remove)
+                component->GetGameObject()->RemoveComponent<VWolf::RigidBodyComponent>();
+        }
+
+        std::array<const char*, 3> items = { "Static", "Kinematic", "Dynamic" };
+        int selection = 0;
+    };
+
+    class MeshColliderComponentInspector: public VWolf::ComponentInspector<VWolf::MeshColliderComponent> {
+    public:
+        MeshColliderComponentInspector() {}
+        ~MeshColliderComponentInspector() {}
+    public:
+        virtual void OnInspector(VWolf::MeshColliderComponent* component) override {
+            auto remove = DrawComponent<VWolf::MeshColliderComponent>(component->GetName(), *component, [this](VWolf::MeshColliderComponent& component) {
+                
+            });
+            if (remove)
+                component->GetGameObject()->RemoveComponent<VWolf::MeshColliderComponent>();
+        }
+    };
+
+    class SphereColliderComponentInspector: public VWolf::ComponentInspector<VWolf::SphereColliderComponent> {
+    public:
+        SphereColliderComponentInspector() {}
+        ~SphereColliderComponentInspector() {}
+    public:
+        virtual void OnInspector(VWolf::SphereColliderComponent* component) override {
+            auto remove = DrawComponent<VWolf::SphereColliderComponent>(component->GetName(), *component, [this](VWolf::SphereColliderComponent& component) {
+                ImGui::PushID("Sphere Collider");
+
+                ImGui::PushID("Radius");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Radius");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                ImGui::DragFloat("##Radius", &component.GetRadius(), 1, 1000000, 1, "%.2f");
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PopID();
+            });
+            if (remove)
+                component->GetGameObject()->RemoveComponent<VWolf::SphereColliderComponent>();
+        }
+    };
+
+    class BoxColliderComponentInspector: public VWolf::ComponentInspector<VWolf::BoxColliderComponent> {
+    public:
+        BoxColliderComponentInspector() {}
+        ~BoxColliderComponentInspector() {}
+    public:
+        virtual void OnInspector(VWolf::BoxColliderComponent* component) override {
+            auto remove = DrawComponent<VWolf::BoxColliderComponent>(component->GetName(), *component, [this](VWolf::BoxColliderComponent& component) {
+                
+            });
+            if (remove)
+                component->GetGameObject()->RemoveComponent<VWolf::BoxColliderComponent>();
+        }
+    };
+
     Inspector::Inspector(): View("Inspector") {
         VWolf::TransformComponent::SetComponentInspector(new TransformComponentInspector());
         VWolf::LightComponent::SetComponentInspector(new LightComponentInspector());
         VWolf::MeshFilterComponent::SetComponentInspector(new MeshFilterComponentInspector());
         VWolf::MeshRendererComponent::SetComponentInspector(new MeshRendererComponentInspector());
         VWolf::ShapeRendererComponent::SetComponentInspector(new ShapeRendererComponentInspector());
+        VWolf::CameraComponent::SetComponentInspector(new CameraComponentInspector());
+        VWolf::RigidBodyComponent::SetComponentInspector(new RigidBodyComponentInspector());
+        VWolf::MeshColliderComponent::SetComponentInspector(new MeshColliderComponentInspector());
+        VWolf::SphereColliderComponent::SetComponentInspector(new SphereColliderComponentInspector());
+        VWolf::BoxColliderComponent::SetComponentInspector(new BoxColliderComponentInspector());
     }
     Inspector::~Inspector() {
         
@@ -519,6 +768,31 @@ namespace VWolfPup {
                     gameObject->AddComponent<VWolf::MeshFilterComponent>();
                 if (!gameObject->HasComponent<VWolf::MeshRendererComponent>())
                     gameObject->AddComponent<VWolf::MeshRendererComponent>();
+            }
+            if (ImGui::MenuItem("Camera Component"))
+            {
+                if (!gameObject->HasComponent<VWolf::CameraComponent>())
+                    gameObject->AddComponent<VWolf::CameraComponent>();
+            }
+            if (ImGui::MenuItem("Rigid Body Component"))
+            {
+                if (!gameObject->HasComponent<VWolf::RigidBodyComponent>())
+                    gameObject->AddComponent<VWolf::RigidBodyComponent>();
+            }
+            if (ImGui::MenuItem("Mesh Collider Component"))
+            {
+                if (!gameObject->HasComponent<VWolf::MeshColliderComponent>())
+                    gameObject->AddComponent<VWolf::MeshColliderComponent>();
+            }
+            if (ImGui::MenuItem("Sphere Collider Component"))
+            {
+                if (!gameObject->HasComponent<VWolf::SphereColliderComponent>())
+                    gameObject->AddComponent<VWolf::SphereColliderComponent>();
+            }
+            if (ImGui::MenuItem("Box Collider Component"))
+            {
+                if (!gameObject->HasComponent<VWolf::BoxColliderComponent>())
+                    gameObject->AddComponent<VWolf::BoxColliderComponent>();
             }
 
             ImGui::EndPopup();

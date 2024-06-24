@@ -251,8 +251,9 @@ namespace VWolfPup {
             }
         }
 
-        for (View* view: views) {
-            view->OnGui();
+        uint32_t total = (uint32_t)views.size();
+        for (uint32_t index = 0; index < total; index++) {
+            views[index]->OnGui();
         }
         
         if (starting) {

@@ -56,5 +56,10 @@ namespace VWolf {
         TransformComponent::componentInspector->OnInspector(this);
     }
 
+    Component* TransformComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        TransformComponent& component = registry.emplace<TransformComponent>(handle, *this);
+        return &component;
+    }
+
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(TransformComponent);
 }

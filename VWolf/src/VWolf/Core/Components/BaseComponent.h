@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "entt/entt.hpp"
+
 namespace VWolf {
 
     class GameObject;
@@ -18,6 +20,8 @@ namespace VWolf {
     public:
         Component(std::string name);
         ~Component();
+    public:
+        virtual Component* Copy(entt::entity& handle, entt::registry& registry) = 0;
     public:
         std::string GetName() const { return name; }
         virtual void OnInspector() {}

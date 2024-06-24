@@ -12,4 +12,8 @@
 #include "RendererComponent.h"
 #include "MeshFilterComponent.h"
 #include "LightComponent.h"
-
+#include "CameraComponent.h"
+#include "RigidBodyComponent.h"
+#include "MeshColliderComponent.h"
+#include "SphereColliderComponent.h"
+#include "BoxColliderComponent.h"

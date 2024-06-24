@@ -22,6 +22,7 @@ namespace VWolf {
         ~MeshFilterComponent();
     public:
         virtual void OnInspector() override;
+        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         MeshData& GetData() { return data; }
         void SetPath(std::filesystem::path path) { this->path = path; Load(); }

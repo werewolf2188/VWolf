@@ -48,5 +48,10 @@ namespace VWolf {
         return *this;
     }
 
+    Component* MeshFilterComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        MeshFilterComponent& component = registry.emplace<MeshFilterComponent>(handle, *this);
+        return &component;
+    }
+
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(MeshFilterComponent);
 }

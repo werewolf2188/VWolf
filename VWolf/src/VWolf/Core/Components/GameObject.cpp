@@ -35,4 +35,12 @@ namespace VWolf {
             this->handle = scene->m_registry.create();
         this->scene = scene;
     }
+
+    void GameObject::CopyComponents(GameObject* otherGameObject) {
+        for(auto component: otherGameObject->currentComponents) {
+            Component* newComponent = component->Copy(handle, scene->m_previewRegistry);
+            newComponent->SetGameObject(otherGameObject);
+            currentComponents.push_back(newComponent);
+        }
+    }
 }
