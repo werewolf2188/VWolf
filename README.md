@@ -4,6 +4,8 @@ Project inspired by the [Game engine series](https://www.youtube.com/playlist?li
 
 ![Demo](Cover.png)
 
+![](VWolf.mov)
+
 ## Objective
 
 This project pretends to have a basic render with the required capabilities like geometry handling, lighting, materials, textures and shadows. The goal is to create the core renderer and scene management to allow the creation of multiple applications with it.
@@ -27,6 +29,7 @@ VWolf is a library with basic functionality for making games. It includes the fo
     - Debug (shape creator helper methods)
     - Game objects and components
         - Light and shape components
+    - Physics system
     - UI creation (ImGui)
     - Tools
 
@@ -64,7 +67,8 @@ Editor project that will help the user to create the project/scenes to make a ga
 - STB Image
 - Yaml-CPP
 - ImGuizmo
-- entt.
+- entt
+- ReactPhysics3D 
 
 ### External (User needs to download them and compile them, or attach them using the Package manager from visual studio)
 - Boost
@@ -108,7 +112,6 @@ Download Boost and compile it. Create static libraries.
     - Basic render (PBR)
 - Expand driver integration
     - GLFW and Vulkan
-- Physics system
 - Scripting
 - Audio
 
