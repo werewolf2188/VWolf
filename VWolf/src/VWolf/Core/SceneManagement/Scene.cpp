@@ -478,6 +478,7 @@ namespace VWolf {
         }
 
         // TODO: Debug renderer
+        if (testData.vertices.size() == 0) return;
         Graphics::DrawMesh(testData,
                            VWolf::Vector4Float(),
                            VWolf::Vector4Float(),
