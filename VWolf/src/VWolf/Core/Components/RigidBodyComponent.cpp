@@ -55,14 +55,7 @@ namespace VWolf {
 
     void RigidBodyComponent::CreateRigidBody(reactphysics3d::PhysicsWorld* world, TransformComponent& component) {
         reactphysics3d::Vector3 position(component.GetPosition().x, component.GetPosition().y, component.GetPosition().z);
-        Quat quat = Quat(
-                          Vector3Float(
-                                       radians(component.GetEulerAngles().x),
-                                       radians(component.GetEulerAngles().y),
-                                       radians(component.GetEulerAngles().z)
-                                       )
-                          );
-        reactphysics3d::Quaternion orientation = reactphysics3d::Quaternion(quat.x, quat.y, quat.z, quat.w);
+        reactphysics3d::Quaternion orientation = reactphysics3d::Quaternion::fromEulerAngles({ radians(component.GetEulerAngles().x), radians(component.GetEulerAngles().y), radians(component.GetEulerAngles().z) });
         oldTransform = new reactphysics3d::Transform(position, orientation);
         rigidBody = world->createRigidBody(*oldTransform);
         GetGameObject()->SetRigidBody(rigidBody);
@@ -78,11 +71,13 @@ namespace VWolf {
         const reactphysics3d::Transform& transform = rigidBody->getTransform();
 //        const reactphysics3d::Transform transform = reactphysics3d::Transform::interpolateTransforms(*oldTransform, newTransform, factor);
         const reactphysics3d::Vector3& position = transform.getPosition();
-        const reactphysics3d::Vector3& eulerAngles = transform.getOrientation().getVectorV();
+        const reactphysics3d::Quaternion& quaternion = transform.getOrientation();
+        Quat quat(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
+        Vector3Float euler = degrees(eulerAngles(quat));
 //        Quat quat(transform.getOrientation().x, transform.getOrientation().y, transform.getOrientation().z, transform.getOrientation().w);
         component.SetPosition({ position.x, position.y, position.z });
 //        component.SetEulerAngles(eulerAngles(quat));
-        component.SetEulerAngles({ eulerAngles.x, eulerAngles.y, eulerAngles.z });
+        component.SetEulerAngles(euler);
 //        oldTransform->setPosition(transform.getPosition());
 //        oldTransform->setOrientation(transform.getOrientation());
     }
