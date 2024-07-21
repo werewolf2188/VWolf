@@ -19,6 +19,7 @@ namespace VWolfPup {
         void OnGui() override;
         VWolf::Ref<VWolf::RenderTexture> GetRenderTexture() { return renderTexture; }
         void SetSelectedObject(VWolf::Ref<VWolf::GameObject> selectedObject) { this->selectedObject = selectedObject; }
+        void SetPlaying(bool isPlay) { isPlaying = isPlay; }
         bool IsHovering() { return isHovering; }
     protected:
         virtual void SetInContainer() override;
@@ -28,6 +29,6 @@ namespace VWolfPup {
         uint32_t operation = 7; // ImGuizmo::OPERATION::TRANSLATE
         VWolf::Ref<VWolf::GameObject> selectedObject;
         VWolf::Ref<VWolf::Camera> camera;
-        bool isHovering = false;
+        bool isHovering = false, isPlaying = false;
     };
 }

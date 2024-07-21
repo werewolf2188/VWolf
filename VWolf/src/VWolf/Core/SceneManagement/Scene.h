@@ -14,6 +14,10 @@
 
 #include "VWolf/Core/Math/VMath.h"
 
+namespace reactphysics3d {
+    class PhysicsWorld;
+}
+
 namespace VWolf {
     class GameObject;
 
@@ -58,22 +62,30 @@ namespace VWolf {
         Ref<GameObject> CreateGameObject(std::string name);
         void UpdateEditor();
         void DrawEditor(Ref<Camera> editorCamera);
+        void DrawPreviewEditor();
         void AddExistingGameObject(Ref<GameObject> gameObject);
         void RemoveGameObject(std::string name);
+        void StartingPreview();
+        void StopingPreview();
     public:
-        std::vector<Ref<GameObject>> GetGameObjects() const { return gameObjects; }
+        std::vector<Ref<GameObject>> GetGameObjects() const { return isPreviewing ? previewGameObjects : gameObjects; }
         std::string GetName() const { return name; }
         void SetName(std::string name) { this->name = name; }
         SceneBackground& GetSceneBackground() { return sceneBackGround; }
         void SetSceneBackground(SceneBackground& sceneBackground) { this->sceneBackGround = sceneBackground; }
+        entt::registry& CurrentRegistry() { return isPreviewing ? m_previewRegistry : m_registry; }
     private:
+        bool isPreviewing = false;
         std::string name;
-        entt::registry m_registry;
+        entt::registry m_registry, m_previewRegistry;
 
-        std::vector<Ref<GameObject>> gameObjects;
+        std::vector<Ref<GameObject>> gameObjects, previewGameObjects;
 
         SceneBackground sceneBackGround;
-        MeshData emptyMeshData;
+        MeshData emptyMeshData, testData;
+        reactphysics3d::PhysicsWorld *world;
+
+        float previewAccumulator = 0.2f;
         friend class GameObject;
     };
 }

@@ -34,6 +34,7 @@ namespace VWolf {
         void Apply();
     public:
         virtual void OnInspector() override;
+        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         TransformComponent& operator=(TransformComponent t);
     private:

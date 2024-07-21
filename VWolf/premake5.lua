@@ -42,7 +42,8 @@ project "VWolf"
       "%{IncludeDir.stb_image}",
       "%{IncludeDir.entt}",
       "%{IncludeDir.yaml_cpp}",
-      "%{IncludeDir.obj_loader}"
+      "%{IncludeDir.obj_loader}",
+      "%{IncludeDir.reactphysics3d}"
    }
 
    libdirs 
@@ -57,7 +58,8 @@ project "VWolf"
 	  "ImGui",
 	  "ImGuizmo",
 	  "yaml-cpp",
-	  "opengl32.lib"
+	  "opengl32.lib",
+     "reactphysics3d"
 	}
    
    filter { 'files:src/VWolf/Platform/ImGUI/backends/**.cpp' }
@@ -105,7 +107,8 @@ project "VWolf"
 	"%{IncludeDir.ImGuizmo}",
 	"%{IncludeDir.yaml_cpp}",
      "%{IncludeDir.obj_loader}",
-     "%{IncludeDir.metal_cpp}"
+     "%{IncludeDir.metal_cpp}",
+      "%{IncludeDir.reactphysics3d}"
     }
 
    xcodebuildsettings 

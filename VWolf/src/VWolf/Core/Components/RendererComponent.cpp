@@ -36,6 +36,11 @@ namespace VWolf {
         MeshRendererComponent::componentInspector->OnInspector(this);
     }
 
+    Component* MeshRendererComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        MeshRendererComponent& component = registry.emplace<MeshRendererComponent>(handle, *this);
+        return &component;
+    }
+
     MeshRendererComponent& MeshRendererComponent::operator=(MeshRendererComponent t) {
     //        this->material = t.material;
         this->SetGameObject(t.GetGameObject());
@@ -63,6 +68,11 @@ namespace VWolf {
 
     void ShapeRendererComponent::OnInspector() {
         ShapeRendererComponent::componentInspector->OnInspector(this);
+    }
+
+    Component* ShapeRendererComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        ShapeRendererComponent& component = registry.emplace<ShapeRendererComponent>(handle, *this);
+        return &component;
     }
 
     ShapeRendererComponent& ShapeRendererComponent::operator=(ShapeRendererComponent t) {

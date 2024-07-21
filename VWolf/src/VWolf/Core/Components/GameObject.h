@@ -13,6 +13,10 @@
 
 #include "VWolf/Core/SceneManagement/Scene.h"
 
+namespace reactphysics3d{
+    class RigidBody;
+}
+
 namespace VWolf {
 
     class GameObject {
@@ -34,7 +38,7 @@ namespace VWolf {
         T& AddComponent(Args&&... args)
         {
             VWOLF_CLIENT_ASSERT(!HasComponent<T>(), "Entity already has component!");
-            T& component = scene->m_registry.emplace<T>(handle, std::forward<Args>(args)...);
+            T& component = scene->CurrentRegistry().emplace<T>(handle, std::forward<Args>(args)...);
             component.SetGameObject(this);
             currentComponents.push_back(&component);
             return component;
@@ -43,7 +47,7 @@ namespace VWolf {
         template<typename T, typename... Args>
         T& AddOrReplaceComponent(Args&&... args)
         {
-            T& component = scene->m_registry.emplace_or_replace<T>(handle, std::forward<Args>(args)...);
+            T& component = scene->CurrentRegistry().emplace_or_replace<T>(handle, std::forward<Args>(args)...);
             // TODO: Find and replace
             currentComponents.emplace_back(&component);
             return component;
@@ -53,13 +57,13 @@ namespace VWolf {
         T& GetComponent()
         {
             VWOLF_CLIENT_ASSERT(HasComponent<T>(), "Entity does not have component!");
-            return scene->m_registry.get<T>(handle);
+            return scene->CurrentRegistry().get<T>(handle);
         }
 
         template<typename T>
         bool HasComponent()
         {
-            return scene->m_registry.try_get<T>(handle);
+            return scene->CurrentRegistry().try_get<T>(handle);
         }
 
         template<typename T>
@@ -67,7 +71,7 @@ namespace VWolf {
         {
             VWOLF_CLIENT_ASSERT(HasComponent<T>(), "Entity does not have component!");
             auto name = GetComponent<T>().GetName();
-            scene->m_registry.remove<T>(handle);
+            scene->CurrentRegistry().remove<T>(handle);
             // Need to remove it from currentComponents
             int i = 0;
             bool found = false;
@@ -83,11 +87,17 @@ namespace VWolf {
     public:
         void OnInspector();
         void AttachToScene(Scene* scene);
+        void CopyComponents(GameObject* otherGameObject);
+    public:
+        reactphysics3d::RigidBody* GetRigidBody() { return mRigidBody; }
+        void SetRigidBody(reactphysics3d::RigidBody* rigidBody) { mRigidBody = rigidBody; }
     private:
         entt::entity handle { entt::null };
         Scene* scene;
         std::string name;
 
         std::vector<Component*> currentComponents;
+
+        reactphysics3d::RigidBody* mRigidBody = nullptr;
     };
 }

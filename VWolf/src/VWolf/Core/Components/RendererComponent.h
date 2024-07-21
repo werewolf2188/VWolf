@@ -30,6 +30,7 @@ namespace VWolf {
         ~MeshRendererComponent();
     public:
         virtual void OnInspector() override;
+        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         Material& GetMaterial() { return *material; }
         void SetMaterial(Material* material) { this->material = material; }
@@ -50,6 +51,7 @@ namespace VWolf {
         ~ShapeRendererComponent();
     public:
         virtual void OnInspector() override;
+        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         MeshData& GetData() { return data; }
         void SetData(MeshData data) { this->data = data; }

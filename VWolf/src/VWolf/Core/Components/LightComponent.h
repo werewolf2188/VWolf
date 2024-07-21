@@ -27,6 +27,7 @@ namespace VWolf {
         void SetLight(Light light) { this->light = light; }
 
         virtual void OnInspector() override;
+        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         LightComponent& operator=(LightComponent& light);
     private:

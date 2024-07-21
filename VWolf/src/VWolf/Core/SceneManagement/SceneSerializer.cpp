@@ -22,6 +22,11 @@ VWolf::Scene * currentScene = nullptr;
 #include "VWolf/Core/Components/Serialization/ShapeRendererComponent.h"
 #include "VWolf/Core/Components/Serialization/MeshFilterComponent.h"
 #include "VWolf/Core/Components/Serialization/MeshRendererComponent.h"
+#include "VWolf/Core/Components/Serialization/CameraComponent.h"
+#include "VWolf/Core/Components/Serialization/RigidBodyComponent.h"
+#include "VWolf/Core/Components/Serialization/BoxColliderComponent.h"
+#include "VWolf/Core/Components/Serialization/SphereColliderComponent.h"
+#include "VWolf/Core/Components/Serialization/MeshColliderComponent.h"
 #include "VWolf/Core/Components/Serialization/GameObject.h"
 #include "Serialization/Scene.h"
 

@@ -113,11 +113,21 @@ namespace VWolfPup {
                     SELECT_PRIMITIVE("Monkey")
                     ImGui::EndMenu();
                 }
+                
                 if (ImGui::MenuItem("Add Light"))
                 {
                     showDialog = false;
                     auto gameObject = scene->CreateGameObject("Untitled");
                     gameObject->AddComponent<VWolf::LightComponent>();
+                    selectedName = gameObject->GetName();
+                    onTapped(gameObject);
+                }
+
+                if (ImGui::MenuItem("Add Camera"))
+                {
+                    showDialog = false;
+                    auto gameObject = scene->CreateGameObject("Untitled");
+                    gameObject->AddComponent<VWolf::CameraComponent>();
                     selectedName = gameObject->GetName();
                     onTapped(gameObject);
                 }

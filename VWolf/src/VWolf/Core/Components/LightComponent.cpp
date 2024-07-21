@@ -40,5 +40,10 @@ namespace VWolf {
         LightComponent::componentInspector->OnInspector(this);
     }
 
+    Component* LightComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        LightComponent& component = registry.emplace<LightComponent>(handle, *this);
+        return &component;
+    }
+
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(LightComponent);
 }

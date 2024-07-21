@@ -32,6 +32,11 @@ enum class GameObjectConstantKeys {
     COMPONENT_KEY(MeshFilterComponent),
     COMPONENT_KEY(MeshRendererComponent),
     COMPONENT_KEY(LightComponent),
+    COMPONENT_KEY(CameraComponent),
+    COMPONENT_KEY(RigidBodyComponent),
+    COMPONENT_KEY(MeshColliderComponent),
+    COMPONENT_KEY(SphereColliderComponent),
+    COMPONENT_KEY(BoxColliderComponent)
 };
 
 static std::map<GameObjectConstantKeys, const char*> gameObjectKeys = {
@@ -41,7 +46,12 @@ static std::map<GameObjectConstantKeys, const char*> gameObjectKeys = {
     COMPONENT_KEY_VALUE(ShapeRendererComponent),
     COMPONENT_KEY_VALUE(MeshFilterComponent),
     COMPONENT_KEY_VALUE(MeshRendererComponent),
-    COMPONENT_KEY_VALUE(LightComponent)
+    COMPONENT_KEY_VALUE(LightComponent),
+    COMPONENT_KEY_VALUE(CameraComponent),
+    COMPONENT_KEY_VALUE(RigidBodyComponent),
+    COMPONENT_KEY_VALUE(MeshColliderComponent),
+    COMPONENT_KEY_VALUE(SphereColliderComponent),
+    COMPONENT_KEY_VALUE(BoxColliderComponent)
 };
 
 namespace YAML {
@@ -65,6 +75,11 @@ namespace YAML {
                     DESERIALIZE_COMPONENT(MeshFilterComponent)
                     DESERIALIZE_COMPONENT(MeshRendererComponent)
                     DESERIALIZE_COMPONENT(LightComponent)
+                    DESERIALIZE_COMPONENT(CameraComponent)
+                    DESERIALIZE_COMPONENT(RigidBodyComponent)
+                    DESERIALIZE_COMPONENT(MeshColliderComponent)
+                    DESERIALIZE_COMPONENT(SphereColliderComponent)
+                    DESERIALIZE_COMPONENT(BoxColliderComponent)
                 }
             }
             return true;
@@ -85,6 +100,11 @@ namespace VWolf {
         SERIALIZE_COMPONENT(MeshFilterComponent)
         SERIALIZE_COMPONENT(MeshRendererComponent)
         SERIALIZE_COMPONENT(LightComponent)
+        SERIALIZE_COMPONENT(CameraComponent)
+        SERIALIZE_COMPONENT(RigidBodyComponent)
+        SERIALIZE_COMPONENT(MeshColliderComponent)
+        SERIALIZE_COMPONENT(SphereColliderComponent)
+        SERIALIZE_COMPONENT(BoxColliderComponent)
 
         out << YAML::EndSeq;
         out << YAML::EndMap;

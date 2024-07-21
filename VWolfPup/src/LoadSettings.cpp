@@ -76,6 +76,10 @@ namespace VWolfPup {
                                                           "assets/skybox/front.png",
                                                           "assets/skybox/back.png" }));
         materials[defaultSkyBoxMaterial] = dfskbMat;
+        // TODO: Debug purposes
+        std::filesystem::path defaultDebugRenderPath = std::filesystem::current_path() / materialsPath / ("DebugRender" + materialExtension);
+        auto debugRenderer = VWolf::MaterialSerializer::Deserialize(defaultDebugRenderPath);
+        materials["RainbowColor"] = debugRenderer;
         
     }
 
@@ -184,11 +188,12 @@ namespace VWolfPup {
     // MARK: Private
     VWolf::ShaderConfiguration GetInitialConfiguration(std::string name) {
         static const std::string DEFAULT_SKYBOX = "Skybox";
+        static const std::string DEBUG_RENDERER = "RainbowColor";
         if (name == DEFAULT_SKYBOX)
             return { VWolf::ShaderConfiguration::Rasterization(), { true, VWolf::ShaderConfiguration::DepthStencil::DepthFunction::LEqual }, VWolf::ShaderConfiguration::Blend() };
-        // TODO: Work on these settings
-//        if (name == DEFAULT_GRID)
-//            return { VWolf::ShaderConfiguration::Rasterization(), { true, VWolf::ShaderConfiguration::DepthStencil::DepthFunction::LEqual }, VWolf::ShaderConfiguration::Blend() };
+        // TODO: Debug purposes
+        if (name == DEBUG_RENDERER)
+            return { { true, VWolf::ShaderConfiguration::Rasterization::FillMode::Wireframe, VWolf::ShaderConfiguration::Rasterization::CullMode::Back, false } , VWolf::ShaderConfiguration::DepthStencil(), VWolf::ShaderConfiguration::Blend() };
         return VWolf::ShaderConfiguration();
     }
 

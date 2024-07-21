@@ -547,6 +547,14 @@ namespace VWolf {
             }
         } else
             encoder->setCullMode(MTL::CullMode::CullModeNone);
+        switch (m_configuration.rasterization.fillMode) {
+            case ShaderConfiguration::Rasterization::FillMode::Solid:
+                encoder->setTriangleFillMode(MTL::TriangleFillMode::TriangleFillModeFill);
+                break;
+            case ShaderConfiguration::Rasterization::FillMode::Wireframe:
+                encoder->setTriangleFillMode(MTL::TriangleFillMode::TriangleFillModeLines);
+                break;
+        }
     }
 
     void MSLShader::SetBlend() const {
