@@ -4,9 +4,8 @@ Project inspired by the [Game engine series](https://www.youtube.com/playlist?li
 
 ![Demo](Cover.png)
 
-<video width="320" height="240" controls>
-  <source src="VWolf.mov" type="video/mp4">
-</video>
+[![](https://markdown-videos-api.jorgenkh.no/youtube/tEm82_dvLqE)](https://youtu.be/tEm82_dvLqE)
+
 
 ## Objective
 
