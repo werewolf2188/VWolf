@@ -4,7 +4,7 @@ Project inspired by the [Game engine series](https://www.youtube.com/playlist?li
 
 ![Demo](Cover.png)
 
-![](VWolf.mov)
+https://github.com/werewolf2188/VWolf/blob/feature/physics/VWolf.mov
 
 ## Objective
 
