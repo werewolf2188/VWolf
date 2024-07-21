@@ -4,7 +4,9 @@ Project inspired by the [Game engine series](https://www.youtube.com/playlist?li
 
 ![Demo](Cover.png)
 
-https://github.com/werewolf2188/VWolf/blob/feature/physics/VWolf.mov
+<video width="320" height="240" controls>
+  <source src="VWolf.mov" type="video/mp4">
+</video>
 
 ## Objective
 
