@@ -689,6 +689,74 @@ namespace VWolfPup {
         }
     };
 
+    class AudioListenerComponentInspector: public VWolf::ComponentInspector<VWolf::AudioListenerComponent> {
+    public:
+        AudioListenerComponentInspector() {}
+        ~AudioListenerComponentInspector() {}
+    public:
+        virtual void OnInspector(VWolf::AudioListenerComponent* component) override {
+            auto remove = DrawComponent<VWolf::AudioListenerComponent>(component->GetName(), *component, [this](VWolf::AudioListenerComponent& component) {
+                
+            });
+            if (remove)
+                component->GetGameObject()->RemoveComponent<VWolf::AudioListenerComponent>();
+        }
+    };
+
+    class AudioSourceComponentInspector: public VWolf::ComponentInspector<VWolf::AudioSourceComponent> {
+    public:
+        AudioSourceComponentInspector() {}
+        ~AudioSourceComponentInspector() {}
+    public:
+        virtual void OnInspector(VWolf::AudioSourceComponent* component) override {
+            auto remove = DrawComponent<VWolf::AudioSourceComponent>(component->GetName(), *component, [this](VWolf::AudioSourceComponent& component) {
+                ImGui::PushID("Audio Source");
+
+                ImGui::PushID("File");
+                ImGui::Columns(3);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Audio File");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                ImGui::Text("%s", component.GetAudioFile().filename().c_str());
+                ImGui::PopStyleVar();
+                ImGui::NextColumn();
+                float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+                if (ImGui::Button("...", ImVec2{ lineHeight, lineHeight }))
+                {
+                    ContainerView::GetMainView()
+                    ->AddView(new ObjectExplorer(Extension::GetExtension("Audio"), [this, &component](auto path){
+                        component.SetAudioFile(path);
+                    }));
+                }
+
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+
+                ImGui::PushID("Loop");
+                ImGui::Columns(2);
+                ImGui::SetColumnWidth(0, 100.0f);
+                ImGui::Text("%s", "Loop");
+                ImGui::NextColumn();
+
+                ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                ImGui::Checkbox("##Loop", &component.GetLoop());
+                ImGui::PopStyleVar();
+                ImGui::PopItemWidth();
+                ImGui::Columns(1);
+                ImGui::PopID();
+
+                ImGui::PopID();
+            });
+            if (remove)
+                component->GetGameObject()->RemoveComponent<VWolf::AudioSourceComponent>();
+        }
+    };
+
     Inspector::Inspector(): View("Inspector") {
         VWolf::TransformComponent::SetComponentInspector(new TransformComponentInspector());
         VWolf::LightComponent::SetComponentInspector(new LightComponentInspector());
@@ -700,6 +768,8 @@ namespace VWolfPup {
         VWolf::MeshColliderComponent::SetComponentInspector(new MeshColliderComponentInspector());
         VWolf::SphereColliderComponent::SetComponentInspector(new SphereColliderComponentInspector());
         VWolf::BoxColliderComponent::SetComponentInspector(new BoxColliderComponentInspector());
+        VWolf::AudioListenerComponent::SetComponentInspector(new AudioListenerComponentInspector());
+        VWolf::AudioSourceComponent::SetComponentInspector(new AudioSourceComponentInspector());
     }
     Inspector::~Inspector() {
         
@@ -793,6 +863,16 @@ namespace VWolfPup {
             {
                 if (!gameObject->HasComponent<VWolf::BoxColliderComponent>())
                     gameObject->AddComponent<VWolf::BoxColliderComponent>();
+            }
+            if (ImGui::MenuItem("Audio Listener Component"))
+            {
+                if (!gameObject->HasComponent<VWolf::AudioListenerComponent>())
+                    gameObject->AddComponent<VWolf::AudioListenerComponent>();
+            }
+            if (ImGui::MenuItem("Audio Source Component"))
+            {
+                if (!gameObject->HasComponent<VWolf::AudioSourceComponent>())
+                    gameObject->AddComponent<VWolf::AudioSourceComponent>();
             }
 
             ImGui::EndPopup();

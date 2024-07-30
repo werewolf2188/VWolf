@@ -20,7 +20,8 @@ project "VWolf"
 	  "vendor/stb_image/**.h",
 	  "vendor/stb_image/**.cpp",
 	  "vendor/entt/src/**.hpp",
-	  "vendor/obj_loader/obj_loader/Source/**.h"
+	  "vendor/obj_loader/obj_loader/Source/**.h",
+	  "vendor/miniaudio/*.h"
 
    }
    removefiles { "vendor/imgui/**", "vendor/imguizmo/**" }

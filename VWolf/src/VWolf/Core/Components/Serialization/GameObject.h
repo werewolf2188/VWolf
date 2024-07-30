@@ -36,7 +36,9 @@ enum class GameObjectConstantKeys {
     COMPONENT_KEY(RigidBodyComponent),
     COMPONENT_KEY(MeshColliderComponent),
     COMPONENT_KEY(SphereColliderComponent),
-    COMPONENT_KEY(BoxColliderComponent)
+    COMPONENT_KEY(BoxColliderComponent),
+    COMPONENT_KEY(AudioListenerComponent),
+    COMPONENT_KEY(AudioSourceComponent)
 };
 
 static std::map<GameObjectConstantKeys, const char*> gameObjectKeys = {
@@ -51,7 +53,9 @@ static std::map<GameObjectConstantKeys, const char*> gameObjectKeys = {
     COMPONENT_KEY_VALUE(RigidBodyComponent),
     COMPONENT_KEY_VALUE(MeshColliderComponent),
     COMPONENT_KEY_VALUE(SphereColliderComponent),
-    COMPONENT_KEY_VALUE(BoxColliderComponent)
+    COMPONENT_KEY_VALUE(BoxColliderComponent),
+    COMPONENT_KEY_VALUE(AudioListenerComponent),
+    COMPONENT_KEY_VALUE(AudioSourceComponent)
 };
 
 namespace YAML {
@@ -80,6 +84,8 @@ namespace YAML {
                     DESERIALIZE_COMPONENT(MeshColliderComponent)
                     DESERIALIZE_COMPONENT(SphereColliderComponent)
                     DESERIALIZE_COMPONENT(BoxColliderComponent)
+                    DESERIALIZE_COMPONENT(AudioListenerComponent)
+                    DESERIALIZE_COMPONENT(AudioSourceComponent)
                 }
             }
             return true;
@@ -105,6 +111,8 @@ namespace VWolf {
         SERIALIZE_COMPONENT(MeshColliderComponent)
         SERIALIZE_COMPONENT(SphereColliderComponent)
         SERIALIZE_COMPONENT(BoxColliderComponent)
+        SERIALIZE_COMPONENT(AudioListenerComponent)
+        SERIALIZE_COMPONENT(AudioSourceComponent)
 
         out << YAML::EndSeq;
         out << YAML::EndMap;

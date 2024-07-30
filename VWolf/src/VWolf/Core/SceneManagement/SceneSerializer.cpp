@@ -27,6 +27,8 @@ VWolf::Scene * currentScene = nullptr;
 #include "VWolf/Core/Components/Serialization/BoxColliderComponent.h"
 #include "VWolf/Core/Components/Serialization/SphereColliderComponent.h"
 #include "VWolf/Core/Components/Serialization/MeshColliderComponent.h"
+#include "VWolf/Core/Components/Serialization/AudioListenerComponent.h"
+#include "VWolf/Core/Components/Serialization/AudioSourceComponent.h"
 #include "VWolf/Core/Components/Serialization/GameObject.h"
 #include "Serialization/Scene.h"
 

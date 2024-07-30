@@ -33,6 +33,7 @@ VWolf is a library with basic functionality for making games. It includes the fo
     - Physics system
     - UI creation (ImGui)
     - Tools
+    - Audio
 
 It wraps multiple libraries and it creates a static library to be used inside console applications.
 
@@ -70,6 +71,7 @@ Editor project that will help the user to create the project/scenes to make a ga
 - ImGuizmo
 - entt
 - ReactPhysics3D 
+- Miniaudio
 
 ### External (User needs to download them and compile them, or attach them using the Package manager from visual studio)
 - Boost
@@ -114,7 +116,6 @@ Download Boost and compile it. Create static libraries.
 - Expand driver integration
     - GLFW and Vulkan
 - Scripting
-- Audio
 
 ## References
 

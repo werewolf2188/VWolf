@@ -15,7 +15,8 @@ namespace VWolfPup {
     std::vector<Extension> Extension::extensions = {
         Extension("VWolf Project", ".vwolfproj"),
         Extension("Scene", ".scene"),
-        Extension("Material", ".vwolfmat")
+        Extension("Material", ".vwolfmat"),
+        Extension("Audio", ".mp3")
     };
 
     std::string Extension::GetExtension(std::string name) {
