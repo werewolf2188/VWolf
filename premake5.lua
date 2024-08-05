@@ -34,6 +34,7 @@ IncludeDir["entt"] = "%{wks.location}/VWolf/vendor/entt/src"
 IncludeDir["yaml_cpp"] = "%{wks.location}/VWolf/vendor/yaml_cpp/include"
 IncludeDir["metal_cpp"] = "%{wks.location}/VWolf/vendor/metal-cpp"
 IncludeDir["reactphysics3d"] = "%{wks.location}/VWolf/vendor/reactphysics3d/include"
+IncludeDir["miniaudio"] = "%{wks.location}/VWolf/vendor/miniaudio"
 
 LibDir = {}
 LibDir["boost"] = "%{boost}/stage/lib"

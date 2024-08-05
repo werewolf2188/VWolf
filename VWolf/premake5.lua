@@ -44,7 +44,8 @@ project "VWolf"
       "%{IncludeDir.entt}",
       "%{IncludeDir.yaml_cpp}",
       "%{IncludeDir.obj_loader}",
-      "%{IncludeDir.reactphysics3d}"
+      "%{IncludeDir.reactphysics3d}",
+      "%{IncludeDir.miniaudio}"
    }
 
    libdirs 

@@ -35,7 +35,7 @@ namespace VWolf {
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::AudioSourceComponent& v)
     {
         out << YAML::BeginMap;
-        out << YAML::Key << audioSourceKeys[AudioSourceConstantKeys::AudioFile] << YAML::Value << v.GetAudioFile();
+        out << YAML::Key << audioSourceKeys[AudioSourceConstantKeys::AudioFile] << YAML::Value << v.GetAudioFile().string();
         out << YAML::Key << audioSourceKeys[AudioSourceConstantKeys::Loop] << YAML::Value << v.GetLoop();
         out << YAML::EndMap;
         return out;
