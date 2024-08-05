@@ -20,3 +20,6 @@
 [submodule "VWolf/vendor/reactphysics3d"]
 	path = VWolf/vendor/reactphysics3d
 	url = git@github.com:werewolf2188/reactphysics3d.git
+[submodule "VWolf/vendor/miniaudio"]
+	path = VWolf/vendor/miniaudio
+	url = git@github.com:werewolf2188/miniaudio.git

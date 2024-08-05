@@ -20,7 +20,8 @@ project "VWolf"
 	  "vendor/stb_image/**.h",
 	  "vendor/stb_image/**.cpp",
 	  "vendor/entt/src/**.hpp",
-	  "vendor/obj_loader/obj_loader/Source/**.h"
+	  "vendor/obj_loader/obj_loader/Source/**.h",
+	  "vendor/miniaudio/*.h"
 
    }
    removefiles { "vendor/imgui/**", "vendor/imguizmo/**" }
@@ -43,7 +44,8 @@ project "VWolf"
       "%{IncludeDir.entt}",
       "%{IncludeDir.yaml_cpp}",
       "%{IncludeDir.obj_loader}",
-      "%{IncludeDir.reactphysics3d}"
+      "%{IncludeDir.reactphysics3d}",
+      "%{IncludeDir.miniaudio}"
    }
 
    libdirs 

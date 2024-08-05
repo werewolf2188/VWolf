@@ -5,6 +5,8 @@
 #include "Window.h"
 #include "Events/ApplicationEvent.h"
 
+#include "Audio/Core.h"
+
 class Driver;
 
 namespace VWolf {

@@ -232,6 +232,18 @@ namespace VWolf {
                     .get<RigidBodyComponent, TransformComponent>(rigidBodyAndTransformEntity);
                 rigidBody.Update(transform, 1);
             }
+
+            auto audioListenerTrans = m_previewRegistry.view<AudioListenerComponent, TransformComponent>();
+
+            if (audioListenerTrans.size_hint() > 0) {
+                auto& listenerEntity = *audioListenerTrans.begin();
+                auto [audioListener, listenerTransform]  = audioListenerTrans.get<AudioListenerComponent, TransformComponent>(listenerEntity);
+                auto audioSourcesView = m_previewRegistry.view<AudioSourceComponent, TransformComponent>();
+                for (auto audioSourceEntity: audioSourcesView) {
+                    auto [audioSource, sourceTransform] = audioSourcesView.get<AudioSourceComponent, TransformComponent>(audioSourceEntity);
+                    audioSource.Update(listenerTransform, sourceTransform);
+                }
+            }
         }
     }
 
@@ -283,10 +295,28 @@ namespace VWolf {
                 .get<BoxColliderComponent, MeshFilterComponent, TransformComponent>(boxColMeshFilterTransEnty);
             boxCollider.CreateBoxCollider(meshFilter.GetData(), transform);
         }
+
+        auto audioListenerTrans = m_previewRegistry.view<AudioListenerComponent, TransformComponent>();
+
+        if (audioListenerTrans.size_hint() > 0) {
+            auto& listenerEntity = *audioListenerTrans.begin();
+            auto [audioListener, listenerTransform]  = audioListenerTrans.get<AudioListenerComponent, TransformComponent>(listenerEntity);
+            auto audioSourcesView = m_previewRegistry.view<AudioSourceComponent, TransformComponent>();
+            for (auto audioSourceEntity: audioSourcesView) {
+                auto [audioSource, sourceTransform] = audioSourcesView.get<AudioSourceComponent, TransformComponent>(audioSourceEntity);
+                audioSource.Prepare(listenerTransform, sourceTransform);
+            }
+        }
     }
 
     void Scene::StopingPreview() {
         isPreviewing = false;
+
+        auto audioSourcesView = m_previewRegistry.view<AudioSourceComponent>();
+        for (auto audioSourceEntity: audioSourcesView) {
+            auto& audioSource = audioSourcesView.get<AudioSourceComponent>(audioSourceEntity);
+            audioSource.End();
+        }
 
         auto meshColMeshFilterTrans = m_previewRegistry.view<MeshColliderComponent, MeshFilterComponent, TransformComponent>();
         
