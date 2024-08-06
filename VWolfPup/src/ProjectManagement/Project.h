@@ -16,12 +16,14 @@
 #include "VWolf.h"
 
 #include <filewatch/FileWatch.hpp>
+#include <efsw/efsw.hpp>
 
 #include "../Camera/EditorCamera.h"
 
 namespace VWolfPup {
-    class Project {
+    class ProjectListener;
 
+    class Project {
     public:
         class EditorCamera {
         public:
@@ -80,8 +82,11 @@ namespace VWolfPup {
         Settings& GetSettings() { return settings; }
         std::filesystem::path GetProjectPath() { return projectPath; }
         std::filesystem::path GetProjectFileName() { return settings.GetProjectName(); }
+        std::map<std::uintptr_t, std::function<void(const std::string& path, const efsw::Action event)>>& GetObservers() {
+            return _observers;
+        }
     public:
-        void AddObserver(std::uintptr_t, std::function<void(const std::string& path, const filewatch::Event event)>);
+        void AddObserver(std::uintptr_t, std::function<void(const std::string& path, const efsw::Action event)>);
         void Save();
         std::filesystem::path GetAssetsPath();
         VWolf::Ref<VWolf::Scene> GetCurrentScene();
@@ -89,7 +94,7 @@ namespace VWolfPup {
         VWolf::Ref<VWolf::Material> GetMaterial(std::filesystem::path inPath);
     public:
         template<typename T>
-        void AddObserver(T* obj, std::function<void(const std::string& path, const filewatch::Event event)> value) {
+        void AddObserver(T* obj, std::function<void(const std::string& path, const efsw::Action event)> value) {
             std::uintptr_t key = reinterpret_cast<std::uintptr_t>(obj);
             this->AddObserver(key, value);
         }
@@ -101,9 +106,11 @@ namespace VWolfPup {
     private:
         Settings settings;
         std::filesystem::path projectPath;
-        filewatch::FileWatch<std::string>* watch;
+        efsw::FileWatcher* fileWatcher;
+        ProjectListener* listener;
+        efsw::WatchID watchID;
         VWolf::Ref<VWolf::Scene> currentScene;
-        std::map<std::uintptr_t, std::function<void(const std::string& path, const filewatch::Event event)>> _observers;
+        std::map<std::uintptr_t, std::function<void(const std::string& path, const efsw::Action event)>> _observers;
 
         std::map<std::filesystem::path, VWolf::Ref<VWolf::Material>> materials;
         std::map<std::filesystem::path, VWolf::Ref<VWolf::Scene>> scenes;

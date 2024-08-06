@@ -15,6 +15,8 @@ project "VWolfPup"
 	   "src/**.cpp"
    }
 
+   excludes { "src/ThirdParty/efsw/**.hpp", "src/ThirdParty/efsw/**.h", "src/ThirdParty/efsw/**.cpp" }
+
    includedirs
    {
 	  "%{wks.location}/VWolf/src",
@@ -22,7 +24,8 @@ project "VWolfPup"
      "%{wks.location}/VWolfPup/src/ThirdParty",
       "%{IncludeDir.entt}",
       "%{IncludeDir.glm}",
-	"%{IncludeDir.yaml_cpp}",	
+	   "%{IncludeDir.yaml_cpp}",
+      "%{IncludeDir.efsw}"
 	--    "%{IncludeDir.GLFW}",
 	--    "%{IncludeDir.Glad}",
 	--    "%{IncludeDir.ImGui}",
@@ -35,7 +38,8 @@ project "VWolfPup"
 
    links 
    {
-      "VWolf"
+      "VWolf",
+      "efsw"
    }
 
    prebuildcommands
@@ -62,7 +66,8 @@ project "VWolfPup"
          "%{IncludeDir.glm}",
 	 "%{IncludeDir.entt}",
 	"%{IncludeDir.yaml_cpp}",
-   "%{IncludeDir.metal_cpp}"
+   "%{IncludeDir.metal_cpp}",
+   "%{IncludeDir.efsw}"
     }
 
    links { "Cocoa.framework", "CoreVideo.framework", "IOKit.framework", "OpenGL.framework", "MetalKit.framework", "AppKit.framework", "Metal.framework", "QuartzCore.framework", "GameController.framework" }

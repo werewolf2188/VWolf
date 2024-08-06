@@ -23,3 +23,6 @@
 [submodule "VWolf/vendor/miniaudio"]
 	path = VWolf/vendor/miniaudio
 	url = git@github.com:werewolf2188/miniaudio.git
+[submodule "VWolfPup/src/ThirdParty/efsw"]
+	path = VWolfPup/src/ThirdParty/efsw
+	url = git@github.com:werewolf2188/efsw.git
