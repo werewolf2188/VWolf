@@ -24,7 +24,7 @@ namespace VWolf {
 
 	// TODO: Move
 	const UINT numFrames = 2;
-	HMODULE pixModule;
+	//HMODULE pixModule;
 
 	class WindowsTime : public Time {
 	public:
@@ -63,9 +63,9 @@ namespace VWolf {
 		window->Initialize();		
 		currentDriver = this;
 
-#if defined(USE_PIX)
-		pixModule = PIXLoadLatestWinPixGpuCapturerLibrary();
-#endif
+//#if defined(USE_PIX)
+//		pixModule = PIXLoadLatestWinPixGpuCapturerLibrary();
+//#endif
 
 		// NEW CLASSES
 		if (DX12Factory::Initialize()) {
@@ -111,10 +111,10 @@ namespace VWolf {
 	void DirectX12Driver::Shutdown()
 	{
 		DX12Factory::Shutdown();
-#if defined(USE_PIX)
-		if (pixModule)
-			FreeLibrary(pixModule);
-#endif
+//#if defined(USE_PIX)
+//		if (pixModule)
+//			FreeLibrary(pixModule);
+//#endif
 	}
 
 	void DirectX12Driver::OnEvent(Event& evt) {

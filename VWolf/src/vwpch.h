@@ -70,10 +70,10 @@
 #include <D3Dcompiler.h>
 #include <d3d11shader.h>
 #include <DirectXPackedVector.h>
-#if defined(_DEBUG) || defined(DEBUG)
-#define USE_PIX
-#include "pix3.h"
-#endif
+//#if defined(_DEBUG) || defined(DEBUG)
+//#define USE_PIX
+//#include "pix3.h"
+//#endif
 //#include <DirectXCollision.h>
 
 #pragma comment(lib,"d3dcompiler.lib")

@@ -30,6 +30,9 @@ VWolf is a library with basic functionality for making games. It includes the fo
     - Debug (shape creator helper methods)
     - Game objects and components
         - Light and shape components
+		- Camera component
+		- Physics components
+		- Audio components
     - Physics system
     - UI creation (ImGui)
     - Tools
@@ -55,6 +58,7 @@ Editor project that will help the user to create the project/scenes to make a ga
 - Scene viewer (Guizmo controllers)
 - Scene settings
 - Open/Save scenes.
+- Project inspection with efsw.
 
 ## Dependencies
 
@@ -76,7 +80,6 @@ Editor project that will help the user to create the project/scenes to make a ga
 
 ### External (User needs to download them and compile them, or attach them using the Package manager from visual studio)
 - Boost
-- WinPix (attach using Package manager. Windows only). **Note: Will remove and use render docs instead**.
 
 ## Installation mode
 
@@ -93,7 +96,6 @@ Download Boost and compile it. Create static libraries.
 - Change the variables **boostversion** and **boost** inside the **premake5.lua** file in the root directory with your own.
 - Run the *generate* script inside the **scripts/{OS}** folder.
 - Open project file.
-- **Windows only** Attach winpixruntime using Visual studio's package manager.
 
 ## Future goals
 
@@ -110,7 +112,6 @@ Download Boost and compile it. Create static libraries.
 - Scene management update
     - More settings
 - Components
-    - Camera component
     - More render components (Line, billboard, etc...)
 - Material system
     - Basic render (PBR)
