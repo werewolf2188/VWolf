@@ -72,6 +72,7 @@ Editor project that will help the user to create the project/scenes to make a ga
 - entt
 - ReactPhysics3D 
 - Miniaudio
+- efsw
 
 ### External (User needs to download them and compile them, or attach them using the Package manager from visual studio)
 - Boost

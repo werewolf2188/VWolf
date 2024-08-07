@@ -10,10 +10,49 @@
 #include "Folder.h"
 
 #include <yaml-cpp/yaml.h>
+#include <fstream>
 
 #include "Serialization/Project.h"
 
 namespace VWolfPup {
+
+    class ProjectListener: public efsw::FileWatchListener {
+    public:
+        ProjectListener(Project* owner): owner(owner) {}
+    public:
+        void handleFileAction( efsw::WatchID watchid, const std::string& dir,
+                                   const std::string& filename, efsw::Action action,
+                              std::string oldFilename ) override {
+            std::filesystem::path path = dir + filename;
+            for (const auto& kv : owner->GetObservers()) {
+                if (!filename.empty())
+                    kv.second(path.string(), action);
+            }
+//
+//            switch ( action ) {
+//                case efsw::Actions::Add:
+//                    std::cout << "DIR (" << dir << ") FILE (" << filename << ") has event Added"
+//                              << std::endl;
+//                    break;
+//                case efsw::Actions::Delete:
+//                    std::cout << "DIR (" << dir << ") FILE (" << filename << ") has event Delete"
+//                              << std::endl;
+//                    break;
+//                case efsw::Actions::Modified:
+//                    std::cout << "DIR (" << dir << ") FILE (" << filename << ") has event Modified"
+//                              << std::endl;
+//                    break;
+//                case efsw::Actions::Moved:
+//                    std::cout << "DIR (" << dir << ") FILE (" << filename << ") has event Moved from ("
+//                              << oldFilename << ")" << std::endl;
+//                    break;
+//                default:
+//                    std::cout << "Should never happen!" << std::endl;
+//            }
+        }
+    private:
+        Project* owner;
+    };
 
     void SetupProject(std::filesystem::path& path) {
         std::filesystem::create_directory(path);
@@ -120,14 +159,11 @@ namespace VWolfPup {
     Project::Project(std::filesystem::path path):
     projectPath(path),
     settings((path / path.filename()).concat(Extension::GetProjectExtension())) {
-        watch = new filewatch::FileWatch<std::string> {
-            path.string(),
-            [this] (const std::string& path, const filewatch::Event event) {
-                for (const auto& kv : _observers) {
-                    kv.second(path, event);
-                }
-            }
-        };
+        fileWatcher = new efsw::FileWatcher();
+        listener = new ProjectListener(this);
+
+        watchID = fileWatcher->addWatch( path.string(), listener, true );
+        fileWatcher->watch();
     }
 
     void Project::LoadAssets() {
@@ -158,10 +194,12 @@ namespace VWolfPup {
     }
 
     Project::~Project() {
-        
+        fileWatcher->removeWatch(watchID);
+        delete fileWatcher;
+        delete listener;
     }
 
-    void Project::AddObserver(std::uintptr_t key, std::function<void(const std::string& path, const filewatch::Event event)> value) {
+    void Project::AddObserver(std::uintptr_t key, std::function<void(const std::string& path, const efsw::Action event)> value) {
         _observers[key] = value;
     }
 

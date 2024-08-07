@@ -149,8 +149,8 @@ namespace VWolfPup {
 
     ProjectStructure::ProjectStructure(): View("Project Structure"), projectTree(VWolf::CreateRef<ProjectTree>()) {
         auto proj = VWolfPup::Project::CurrentProject();
-        proj->AddObserver(this, [this](const std::string& path, const filewatch::Event event) {
-            std::cout << path << ' ' << filewatch::event_to_string(event) << '\n';
+        proj->AddObserver(this, [this](const std::string& path, const efsw::Action event) {
+//            std::cout << path << ' ' << filewatch::event_to_string(event) << '\n';
             this->Rebuild();
         });
         projectTree->Build(proj->GetAssetsPath());

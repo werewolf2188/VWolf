@@ -35,6 +35,7 @@ IncludeDir["yaml_cpp"] = "%{wks.location}/VWolf/vendor/yaml_cpp/include"
 IncludeDir["metal_cpp"] = "%{wks.location}/VWolf/vendor/metal-cpp"
 IncludeDir["reactphysics3d"] = "%{wks.location}/VWolf/vendor/reactphysics3d/include"
 IncludeDir["miniaudio"] = "%{wks.location}/VWolf/vendor/miniaudio"
+IncludeDir["efsw"] = "%{wks.location}/VWolfPup/src/ThirdParty/efsw/include"
 
 LibDir = {}
 LibDir["boost"] = "%{boost}/stage/lib"
@@ -46,6 +47,7 @@ group "Dependencies"
    include "VWolf/vendor/imguizmo"
    include "VWolf/vendor/yaml_cpp"
    include "VWolf/vendor/reactphysics3d"
+   include "VWolfPup/src/ThirdParty/efsw"
 group ""
 
 include "VWolf"
