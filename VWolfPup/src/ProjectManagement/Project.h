@@ -15,7 +15,6 @@
 
 #include "VWolf.h"
 
-#include <filewatch/FileWatch.hpp>
 #include <efsw/efsw.hpp>
 
 #include "../Camera/EditorCamera.h"

@@ -10,6 +10,7 @@
 #include "Folder.h"
 
 #include <yaml-cpp/yaml.h>
+#include <fstream>
 
 #include "Serialization/Project.h"
 
@@ -25,7 +26,7 @@ namespace VWolfPup {
             std::filesystem::path path = dir + filename;
             for (const auto& kv : owner->GetObservers()) {
                 if (!filename.empty())
-                    kv.second(path, action);
+                    kv.second(path.string(), action);
             }
 //
 //            switch ( action ) {
@@ -162,6 +163,7 @@ namespace VWolfPup {
         listener = new ProjectListener(this);
 
         watchID = fileWatcher->addWatch( path.string(), listener, true );
+        fileWatcher->watch();
     }
 
     void Project::LoadAssets() {
