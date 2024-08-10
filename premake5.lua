@@ -52,4 +52,6 @@ group ""
 
 include "VWolf"
 include "Sandbox"
+include "VWolfTest"
+include "VWolfNES"
 include "VWolfPup"
