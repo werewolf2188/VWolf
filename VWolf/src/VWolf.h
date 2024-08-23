@@ -31,6 +31,11 @@
 #include "VWolf/Core/Render/Texture.h"
 
 #include "VWolf/Core/Math/VMath.h"
+#include "VWolf/Core/Math/Vector2.h"
+#include "VWolf/Core/Math/Vector3.h"
+#include "VWolf/Core/Math/Vector4.h"
+#include "VWolf/Core/Math/IVector2.h"
+#include "VWolf/Core/Math/IVector3.h"
 
 #include "VWolf/Core/Utils/File.h"
 #include "VWolf/Core/Utils/OBJLoader.h"
