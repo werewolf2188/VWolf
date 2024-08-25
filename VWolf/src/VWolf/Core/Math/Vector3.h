@@ -19,6 +19,7 @@ namespace VWolf {
         Vector3();
         Vector3(float, float, float);
         Vector3(Vector3 &);
+        Vector3(const Vector3 &);
         Vector3(Vector3 &&);
         ~Vector3();
     public:
