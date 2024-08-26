@@ -43,6 +43,8 @@ namespace VWolf {
 
     Vector3::Vector3(Vector3& Vector3): _vector3(glm::vec3(Vector3._vector3.x, Vector3._vector3.y, Vector3._vector3.z)), x(_vector3.x), y(_vector3.y), z(_vector3.z)  {}
 
+    Vector3::Vector3(const Vector3& Vector3): _vector3(glm::vec3(Vector3._vector3.x, Vector3._vector3.y, Vector3._vector3.z)), x(_vector3.x), y(_vector3.y), z(_vector3.z)  {}
+
     Vector3::Vector3(Vector3&& Vector3): _vector3(std::move(Vector3._vector3)), x(_vector3.x), y(_vector3.y), z(_vector3.z)  {
         Vector3._vector3.x = 0;
         Vector3._vector3.y = 0;

@@ -133,7 +133,7 @@ namespace VWolf {
     }
 
     int32_t IVector3::operator[](int index) {
-        if (index < 0 || index > 2) return std::numeric_limits<float>::max();
+        if (index < 0 || index > 2) return std::numeric_limits<int32_t>::max();
 
         return _vector3[index];
     }
