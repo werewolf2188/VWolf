@@ -77,7 +77,7 @@ namespace VWolf {
         float& z;
     private:
         glm::vec3 _vector3;
-#if defined(DEBUG)
+#if defined(DEBUG) || defined(VWOLF_CORE)
     public:
         inline glm::vec3& GetInternalVector() { return this->_vector3; }
 #endif

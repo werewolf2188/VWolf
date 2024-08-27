@@ -23,6 +23,7 @@ namespace VWolf {
     public:
         Quaternion();
         Quaternion(float w, float x, float y, float z);
+        Quaternion(const Quaternion&);
         Quaternion(Quaternion&);
         Quaternion(Quaternion&&);
         ~Quaternion();

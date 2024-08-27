@@ -14,6 +14,8 @@ namespace VWolf {
 
     Quaternion::Quaternion(float w, float x, float y, float z): quat(glm::quat(w, x, y, z)), w(quat.w), x(quat.x), y(quat.y), z(quat.z) {}
 
+    Quaternion::Quaternion(const Quaternion& quaternion): quat(glm::quat(quaternion.w, quaternion.x, quaternion.y, quaternion.z)), w(quat.w), x(quat.x), y(quat.y), z(quat.z) {}
+
     Quaternion::Quaternion(Quaternion& quaternion): quat(glm::quat(quaternion.w, quaternion.x, quaternion.y, quaternion.z)), w(quat.w), x(quat.x), y(quat.y), z(quat.z) {}
 
     Quaternion::Quaternion(Quaternion&& quaternion): quat(glm::quat(quaternion.w, quaternion.x, quaternion.y, quaternion.z)), w(quat.w), x(quat.x), y(quat.y), z(quat.z) {
