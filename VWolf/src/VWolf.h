@@ -37,6 +37,7 @@
 #include "VWolf/Core/Math/IVector2.h"
 #include "VWolf/Core/Math/IVector3.h"
 #include "VWolf/Core/Math/Quaternion.h"
+#include "VWolf/Core/Math/Matrix4x4.h"
 
 #include "VWolf/Core/Utils/File.h"
 #include "VWolf/Core/Utils/OBJLoader.h"
