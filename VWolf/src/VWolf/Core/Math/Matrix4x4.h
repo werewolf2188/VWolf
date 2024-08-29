@@ -44,6 +44,13 @@ namespace VWolf {
         Matrix4x4 operator*(Matrix4x4 rhs);
         Vector4 operator[](int index) const;
     public:
+        float GetDeterminant() const;
+        Matrix4x4 GetInverse() const;
+        bool IsIdentity() const;
+        Vector3 GetLossyScale() const;
+        Quaternion GetRotation() const;
+        Matrix4x4 GetTranspose() const;
+    public:
         Vector4 GetColumn(int index);
         Vector3 GetPosition();
         Vector4 GetRow(int index);

@@ -116,6 +116,35 @@ BOOST_AUTO_TEST_CASE(Matrix4x4Operators)
     BOOST_TEST(result == result2);
 }
 
+BOOST_AUTO_TEST_CASE(Matrix4x4GetMethods) {
+    VWolf::Matrix4x4 matrix = VWolf::Matrix4x4::TRS(VWolf::Vector3::Zero, VWolf::Quaternion::Identity, VWolf::Vector3(5, 3, 2));
+
+    BOOST_TEST(matrix.GetDeterminant() == 30);
+
+    BOOST_TEST(matrix.GetInverse() == VWolf::Matrix4x4(0.200000018f, -0, 0, -0,
+                                                       -0, 0.333333343f, -0, 0,
+                                                       0, -0, 0.5f, 0,
+                                                       -0, 0, -0, 1));
+
+    BOOST_TEST(matrix.IsIdentity() == false);
+
+    BOOST_TEST(matrix.GetLossyScale() == VWolf::Vector3(5, 3, 2));
+
+    BOOST_TEST(matrix.GetRotation() == VWolf::Quaternion::Identity);
+
+    BOOST_TEST(matrix.GetPosition() == VWolf::Vector3::Zero);
+
+    BOOST_TEST(matrix.GetTranspose() == VWolf::Matrix4x4(5, 0, 0, 0,
+                                                         0, 3, 0, 0,
+                                                         0, 0, 2, 0,
+                                                         0, 0, 0, 1));
+
+    BOOST_TEST(matrix == VWolf::Matrix4x4(5, 0, 0, 0,
+                                          0, 3, 0, 0,
+                                          0, 0, 2, 0,
+                                          0, 0, 0, 1));
+}
+
 BOOST_AUTO_TEST_CASE(Matrix4x4InstanceMethods) {
     // Given
     VWolf::Matrix4x4 matrix = VWolf::Matrix4x4::Identity;

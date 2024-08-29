@@ -13,6 +13,12 @@
 
 #include <glm/gtx/matrix_decompose.hpp>
 
+#define DECOMPOSE \
+glm::vec3 scale, translation, skew; \
+glm::vec4 perspective; \
+glm::quat orientation; \
+glm::decompose(_matrix4x4, scale, orientation, translation, skew, perspective);
+
 namespace VWolf {
     // MARK: Constants
     const Matrix4x4 Matrix4x4::Identity = Matrix4x4(1.0f);
@@ -97,16 +103,44 @@ namespace VWolf {
         return Matrix4x4(result);
     }
 
+    // MARK: Public Get methods
+    float Matrix4x4::GetDeterminant() const {
+        return glm::determinant(_matrix4x4);
+    }
+
+    Matrix4x4 Matrix4x4::GetInverse() const {
+        glm::mat4x4 result = glm::inverse(_matrix4x4);
+        return Matrix4x4(result);
+    }
+
+    bool Matrix4x4::IsIdentity() const {
+        return *this == Matrix4x4::Identity;
+    }
+
+    Vector3 Matrix4x4::GetLossyScale() const {
+        DECOMPOSE
+
+        return Vector3(scale.x, scale.y, scale.z);
+    }
+
+    Quaternion Matrix4x4::GetRotation() const {
+        DECOMPOSE
+
+        return Quaternion(orientation.w, orientation.x, orientation.y, orientation.z);
+    }
+
+    Matrix4x4 Matrix4x4::GetTranspose() const {
+        glm::mat4x4 result = glm::transpose(_matrix4x4);
+        return Matrix4x4(result);
+    }
+
     // MARK: Public Instance methods
     Vector4 Matrix4x4::GetColumn(int index) {
         return this->operator[](index);
     }
 
     Vector3 Matrix4x4::GetPosition() {
-        glm::vec3 scale, translation, skew;
-        glm::vec4 perspective;
-        glm::quat orientation;
-        glm::decompose(_matrix4x4, scale, orientation, translation, skew, perspective);
+        DECOMPOSE
 
         return Vector3(translation.x, translation.y, translation.z);
     }
