@@ -41,5 +41,6 @@
 
 #include "VWolf/Core/Utils/File.h"
 #include "VWolf/Core/Utils/OBJLoader.h"
+#include "VWolf/Core/Utils/UUID.h"
 
 #include "VWolf/Core/Physics/Physics.h"
