@@ -57,10 +57,18 @@ namespace VWolf {
         static Vector4 Scale(Vector4 a, Vector4 b);
         // SmoothDamp
     public:
-        float& x;
-        float& y;
-        float& z;
-        float& w;
+        const float GetX() const;
+        float& GetX();
+        const float GetY() const;
+        float& GetY();
+        const float GetZ() const;
+        float& GetZ();
+        const float GetW() const;
+        float& GetW();
+        void SetX(float value);
+        void SetY(float value);
+        void SetZ(float value);
+        void SetW(float value);
     private:
         glm::vec4 _vector4;
 #if defined(DEBUG) || defined(VWOLF_CORE)

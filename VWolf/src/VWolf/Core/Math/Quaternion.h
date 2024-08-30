@@ -56,10 +56,18 @@ namespace VWolf {
         static Quaternion Slerp(Quaternion a, Quaternion b, float t);
         static Quaternion SlerpUnclamped(Quaternion a, Quaternion b, float t);
     public:
-        float& w;
-        float& x;
-        float& y;
-        float& z;
+        const float GetW() const;
+        float& GetW();
+        const float GetX() const;
+        float& GetX();
+        const float GetY() const;
+        float& GetY();
+        const float GetZ() const;
+        float& GetZ();
+        void SetW(float value);
+        void SetX(float value);
+        void SetY(float value);
+        void SetZ(float value);
     private:
         glm::quat quat;
 #if defined(DEBUG)
