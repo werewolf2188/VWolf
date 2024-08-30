@@ -19,6 +19,11 @@ bool ComparePerUnit(VWolf::Matrix4x4 matrix1, VWolf::Matrix4x4 matrix2) {
 
 BOOST_AUTO_TEST_CASE(Matrix4x4Initializer)
 {
+    BOOST_TEST(sizeof(VWolf::Matrix4x4) == 64);
+    // TODO: Remove when removing the old types
+    BOOST_TEST(sizeof(VWolf::MatrixFloat4x4) == 64);
+    BOOST_TEST(sizeof(VWolf::Matrix4x4) == sizeof(VWolf::MatrixFloat4x4));
+
     // Given
     VWolf::Matrix4x4 matrix;
 

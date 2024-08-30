@@ -268,8 +268,8 @@ BOOST_AUTO_TEST_CASE(Vector4Conversion) {
     VWolf::Vector2 vector2 = static_cast<VWolf::Vector2>(vector);
 
     // Then
-    BOOST_TEST(vector2.x == 10);
-    BOOST_TEST(vector2.y == 10);
+    BOOST_TEST(vector2.GetX() == 10);
+    BOOST_TEST(vector2.GetY() == 10);
 
     // Given
     VWolf::Vector3 vector3 = static_cast<VWolf::Vector3>(vector);
