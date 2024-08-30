@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE(QuaternionStaticFunctions) {
     VWolf::Quaternion quatResult = VWolf::Quaternion::AngleAxis(43.5338554f, VWolf::Vector3::Up);
 
     // Then
-    BOOST_TEST(quatResult == VWolf::Quaternion(-0.974967658f, 0, 0.222346798f, 0.222346798f));
+    BOOST_TEST(quatResult == VWolf::Quaternion(-0.974967658f, 0, 0.222346798f, 0));
 
     // When
     result = VWolf::Quaternion::Dot(quat, quat2);

@@ -16,35 +16,35 @@ BOOST_AUTO_TEST_CASE(IVector3Initializer)
     VWolf::IVector3 vector2;
 
     // Then
-    BOOST_TEST(vector2.x == 0);
-    BOOST_TEST(vector2.y == 0);
-    BOOST_TEST(vector2.z == 0);
+    BOOST_TEST(vector2.GetX() == 0);
+    BOOST_TEST(vector2.GetY() == 0);
+    BOOST_TEST(vector2.GetZ() == 0);
 
     // When
     vector2 = VWolf::IVector3(10, 10, 10);
 
-    BOOST_TEST(vector2.x == 10);
-    BOOST_TEST(vector2.y == 10);
-    BOOST_TEST(vector2.z == 10);
+    BOOST_TEST(vector2.GetX() == 10);
+    BOOST_TEST(vector2.GetY() == 10);
+    BOOST_TEST(vector2.GetZ() == 10);
 
     // When
     VWolf::IVector3 otherVector2(vector2);
 
     // Then
-    BOOST_TEST(otherVector2.x == 10);
-    BOOST_TEST(otherVector2.y == 10);
-    BOOST_TEST(otherVector2.z == 10);
+    BOOST_TEST(otherVector2.GetX() == 10);
+    BOOST_TEST(otherVector2.GetY() == 10);
+    BOOST_TEST(otherVector2.GetZ() == 10);
 
     // When
     VWolf::IVector3 moveVector2(std::move(vector2));
 
     // Then
-    BOOST_TEST(moveVector2.x == 10);
-    BOOST_TEST(moveVector2.y == 10);
-    BOOST_TEST(moveVector2.z == 10);
-    BOOST_TEST(vector2.x == 0);
-    BOOST_TEST(vector2.y == 0);
-    BOOST_TEST(vector2.z == 0);
+    BOOST_TEST(moveVector2.GetX() == 10);
+    BOOST_TEST(moveVector2.GetY() == 10);
+    BOOST_TEST(moveVector2.GetZ() == 10);
+    BOOST_TEST(vector2.GetX() == 0);
+    BOOST_TEST(vector2.GetY() == 0);
+    BOOST_TEST(vector2.GetZ() == 0);
 
 //    otherVector2 = std::move(moveVector2);
 //
@@ -232,13 +232,18 @@ BOOST_AUTO_TEST_CASE(IVector3Internals) {
     VWolf::IVector3 vector(10, 10, 10);
 
     // When
-    vector.x = 15;
-    vector.y = 30;
-    vector.z = 84;
+    vector.SetX(15);
+    vector.SetY(30);
+    vector.SetZ(84);
 
     // Then
     BOOST_TEST(vector.GetInternalVector().x == 15);
     BOOST_TEST(vector.GetInternalVector().y == 30);
     BOOST_TEST(vector.GetInternalVector().z == 84);
+
+    BOOST_TEST(sizeof(VWolf::IVector3) == 12);
+    // TODO: Remove when removing the old types
+    BOOST_TEST(sizeof(VWolf::Vector3Int) == 12);
+    BOOST_TEST(sizeof(VWolf::IVector3) == sizeof(VWolf::Vector3Int));
 }
 

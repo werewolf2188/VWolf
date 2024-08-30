@@ -80,7 +80,7 @@ namespace VWolf {
 
     void Quaternion::SetFromToRotation(Vector3 from, Vector3 to) {
         Vector3 fromTo = to - from;
-        glm::vec3 vec(fromTo.x, fromTo.y, fromTo.z);
+        glm::vec3 vec(fromTo.GetX(), fromTo.GetY(), fromTo.GetZ());
         glm::quat quat = glm::quat(vec);
         this->x = quat.x;
         this->y = quat.y;
@@ -89,8 +89,8 @@ namespace VWolf {
     }
 
     void Quaternion::SetLookRotation(Vector3 view, Vector3 up) {
-        glm::vec3 direction(view.x, view.y, view.z);
-        glm::vec3 _up(up.x, up.y, up.z);
+        glm::vec3 direction(view.GetX(), view.GetY(), view.GetZ());
+        glm::vec3 _up(up.GetX(), up.GetY(), up.GetZ());
         glm::quat quat = glm::quatLookAt(direction, _up);
         this->quat = quat;
         this->x = this->quat.x;
@@ -100,7 +100,7 @@ namespace VWolf {
     }
 
     void Quaternion::ToAngleAxis(float& angle, Vector3& axis) {
-        glm::vec3 vec(axis.x, axis.y, axis.y);
+        glm::vec3 vec(axis.GetX(), axis.GetY(), axis.GetZ());
         glm::quat quat = glm::angleAxis(angle, vec);
         this->quat = quat;
         this->x = this->quat.x;

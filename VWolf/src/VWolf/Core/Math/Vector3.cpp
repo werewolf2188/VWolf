@@ -37,15 +37,15 @@ namespace VWolf {
     const Vector3 Vector3::PositiveInfinity(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
 
     // MARK: Constructors
-    Vector3::Vector3(): _vector3(glm::vec3(0, 0, 0)), x(_vector3.x), y(_vector3.y), z(_vector3.z) {}
+    Vector3::Vector3(): _vector3(glm::vec3(0, 0, 0)) {}
 
-    Vector3::Vector3(float x, float y, float z): _vector3(glm::vec3(x, y, z)), x(_vector3.x), y(_vector3.y), z(_vector3.z)  {}
+    Vector3::Vector3(float x, float y, float z): _vector3(glm::vec3(x, y, z)) {}
 
-    Vector3::Vector3(Vector3& Vector3): _vector3(glm::vec3(Vector3._vector3.x, Vector3._vector3.y, Vector3._vector3.z)), x(_vector3.x), y(_vector3.y), z(_vector3.z)  {}
+    Vector3::Vector3(Vector3& Vector3): _vector3(glm::vec3(Vector3._vector3.x, Vector3._vector3.y, Vector3._vector3.z)) {}
 
-    Vector3::Vector3(const Vector3& Vector3): _vector3(glm::vec3(Vector3._vector3.x, Vector3._vector3.y, Vector3._vector3.z)), x(_vector3.x), y(_vector3.y), z(_vector3.z)  {}
+    Vector3::Vector3(const Vector3& Vector3): _vector3(glm::vec3(Vector3._vector3.x, Vector3._vector3.y, Vector3._vector3.z)) {}
 
-    Vector3::Vector3(Vector3&& Vector3): _vector3(std::move(Vector3._vector3)), x(_vector3.x), y(_vector3.y), z(_vector3.z)  {
+    Vector3::Vector3(Vector3&& Vector3): _vector3(std::move(Vector3._vector3)) {
         Vector3._vector3.x = 0;
         Vector3._vector3.y = 0;
         Vector3._vector3.z = 0;
@@ -61,9 +61,6 @@ namespace VWolf {
     // MARK: Assignment operators
     Vector3& Vector3::operator=(const Vector3& other) {
         this->_vector3 = other._vector3;
-        this->x = this->_vector3.x;
-        this->y = this->_vector3.y;
-        this->z = this->_vector3.z;
 
         return *this;
     }
@@ -82,7 +79,7 @@ namespace VWolf {
 
     // MARK: Operator overloading
     std::ostream& operator<<(std::ostream& os, const Vector3& v) {
-        os << "Vector3(" << std::addressof(v) << ") - { x: " << v.x << ", y: " << v.y << ", z: " << v.z << "}";
+        os << "Vector3(" << std::addressof(v) << ") - { x: " << v.GetX() << ", y: " << v.GetY() << ", z: " << v.GetZ() << "}";
         return os;
     }
 
@@ -91,7 +88,7 @@ namespace VWolf {
     }
 
     bool operator==(const Vector3& lhs, const Vector3& rhs) {
-        return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+        return lhs.GetX() == rhs.GetX() && lhs.GetY() == rhs.GetY() && lhs.GetZ() == rhs.GetZ();
     }
 
     bool Vector3::operator!=(const Vector3& rhs) {
@@ -99,7 +96,7 @@ namespace VWolf {
     }
 
     bool operator!=(const Vector3& lhs, const Vector3& rhs) {
-        return lhs.x != rhs.x || lhs.y != rhs.y || lhs.z != rhs.z;
+        return lhs.GetX() != rhs.GetX() || lhs.GetY() != rhs.GetY() || lhs.GetZ() != rhs.GetZ();
     }
 
     Vector3 Vector3::operator+(const Vector3& rhs) {
@@ -149,14 +146,32 @@ namespace VWolf {
     }
 
     Vector3::operator Vector2() {
-        return Vector2(this->x, this->y);
+        return Vector2(this->_vector3.x, this->_vector3.y);
     }
 
     Vector3::operator Vector4() {
-        return Vector4(this->x, this->y, this->z, 0);
+        return Vector4(this->_vector3.x, this->_vector3.y, this->_vector3.z, 0);
     }
 
     // MARK: Get Functions
+    const float Vector3::GetX() const { return _vector3.x; }
+
+    float& Vector3::GetX() { return _vector3.x; }
+
+    const float Vector3::GetY() const { return _vector3.y; }
+
+    float& Vector3::GetY() { return _vector3.y; }
+
+    const float Vector3::GetZ() const { return _vector3.z; }
+
+    float& Vector3::GetZ() { return _vector3.z; }
+
+    void Vector3::SetX(float value) { _vector3.x = value; }
+
+    void Vector3::SetY(float value) { _vector3.y = value; }
+
+    void Vector3::SetZ(float value) { _vector3.z = value; }
+
     Vector3 Vector3::Normalized() const {
         glm::vec3 normal = glm::normalize(_vector3);
         return Vector3(normal.x, normal.y, normal.z);
@@ -235,7 +250,7 @@ namespace VWolf {
     }
 
     Vector3 Vector3::Scale(Vector3 a, Vector3 b) {
-        return Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
+        return Vector3(a._vector3.x * b._vector3.x, a._vector3.y * b._vector3.y, a._vector3.z * b._vector3.z);
     }
 
     float Vector3::SignedAngle(Vector3 from, Vector3 to) {

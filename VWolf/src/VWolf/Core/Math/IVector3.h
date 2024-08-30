@@ -55,9 +55,15 @@ namespace VWolf {
         static IVector3 RoundToInt(Vector3 vector);
         static IVector3 Scale(IVector3 a, IVector3 b);
     public:
-        int32_t& x;
-        int32_t& y;
-        int32_t& z;
+        const int32_t GetX() const;
+        int32_t& GetX();
+        const int32_t GetY() const;
+        int32_t& GetY();
+        const int32_t GetZ() const;
+        int32_t& GetZ();
+        void SetX(int32_t value);
+        void SetY(int32_t value);
+        void SetZ(int32_t value);
     private:
         glm::ivec3 _vector3;
 #if defined(DEBUG)

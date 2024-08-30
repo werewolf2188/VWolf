@@ -188,9 +188,9 @@ namespace VWolf {
     void Matrix4x4::SetTRS(Vector3 pos, Quaternion q, Vector3 s) {
         Vector3 rotation = q.EulerAngles();
         _matrix4x4 = glm::translate(_matrix4x4, pos.GetInternalVector());
-        _matrix4x4 = glm::rotate(_matrix4x4, rotation.x, { 1.0f, 0.0f, 0.0f });
-        _matrix4x4 = glm::rotate(_matrix4x4, rotation.y, { 0.0f, 1.0f, 0.0f });
-        _matrix4x4 = glm::rotate(_matrix4x4, rotation.z, { 0.0f, 0.0f, 1.0f });
+        _matrix4x4 = glm::rotate(_matrix4x4, rotation.GetX(), { 1.0f, 0.0f, 0.0f });
+        _matrix4x4 = glm::rotate(_matrix4x4, rotation.GetY(), { 0.0f, 1.0f, 0.0f });
+        _matrix4x4 = glm::rotate(_matrix4x4, rotation.GetZ(), { 0.0f, 0.0f, 1.0f });
         _matrix4x4 = glm::scale(_matrix4x4, s.GetInternalVector());
     }
 
@@ -219,9 +219,9 @@ namespace VWolf {
     Matrix4x4 Matrix4x4::Rotate(Quaternion q) {
         Vector3 rotation = q.EulerAngles();
         glm::mat4x4 mat(1.0f);
-        mat = glm::rotate(mat, rotation.x, { 1.0f, 0.0f, 0.0f });
-        mat = glm::rotate(mat, rotation.y, { 0.0f, 1.0f, 0.0f });
-        mat = glm::rotate(mat, rotation.z, { 0.0f, 0.0f, 1.0f });
+        mat = glm::rotate(mat, rotation.GetX(), { 1.0f, 0.0f, 0.0f });
+        mat = glm::rotate(mat, rotation.GetY(), { 0.0f, 1.0f, 0.0f });
+        mat = glm::rotate(mat, rotation.GetZ(), { 0.0f, 0.0f, 1.0f });
 
         return Matrix4x4(mat);
     }

@@ -275,7 +275,7 @@ BOOST_AUTO_TEST_CASE(Vector4Conversion) {
     VWolf::Vector3 vector3 = static_cast<VWolf::Vector3>(vector);
 
     // Then
-    BOOST_TEST(vector3.x == 10);
-    BOOST_TEST(vector3.y == 10);
-    BOOST_TEST(vector3.z == 10);
+    BOOST_TEST(vector3.GetX() == 10);
+    BOOST_TEST(vector3.GetY() == 10);
+    BOOST_TEST(vector3.GetZ() == 10);
 }
