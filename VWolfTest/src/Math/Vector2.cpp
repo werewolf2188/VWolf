@@ -16,30 +16,30 @@ BOOST_AUTO_TEST_CASE(Vector2Initializer)
     VWolf::Vector2 vector2;
 
     // Then
-    BOOST_TEST(vector2.x == 0);
-    BOOST_TEST(vector2.y == 0);
+    BOOST_TEST(vector2.GetX() == 0);
+    BOOST_TEST(vector2.GetY() == 0);
 
     // When
     vector2 = VWolf::Vector2(10.5f, 10.5f);
 
-    BOOST_TEST(vector2.x == 10.5f);
-    BOOST_TEST(vector2.y == 10.5f);
+    BOOST_TEST(vector2.GetX() == 10.5f);
+    BOOST_TEST(vector2.GetY() == 10.5f);
 
     // When
     VWolf::Vector2 otherVector2(vector2);
 
     // Then
-    BOOST_TEST(otherVector2.x == 10.5f);
-    BOOST_TEST(otherVector2.y == 10.5f);
+    BOOST_TEST(otherVector2.GetX() == 10.5f);
+    BOOST_TEST(otherVector2.GetY() == 10.5f);
 
     // When
     VWolf::Vector2 moveVector2(std::move(vector2));
 
     // Then
-    BOOST_TEST(moveVector2.x == 10.5f);
-    BOOST_TEST(moveVector2.y == 10.5f);
-    BOOST_TEST(vector2.x == 0);
-    BOOST_TEST(vector2.y == 0);
+    BOOST_TEST(moveVector2.GetX() == 10.5f);
+    BOOST_TEST(moveVector2.GetY() == 10.5f);
+    BOOST_TEST(vector2.GetX() == 0);
+    BOOST_TEST(vector2.GetY() == 0);
 
 //    otherVector2 = std::move(moveVector2);
 //
@@ -249,12 +249,17 @@ BOOST_AUTO_TEST_CASE(Vector2Internals) {
     VWolf::Vector2 vector(10, 10);
 
     // When
-    vector.x = 15;
-    vector.y = 30;
+    vector.SetX(15);
+    vector.SetY(30);
 
     // Then
     BOOST_TEST(vector.GetInternalVector().x == 15);
     BOOST_TEST(vector.GetInternalVector().y == 30);
+
+    BOOST_TEST(sizeof(VWolf::Vector2) == 8);
+    // TODO: Remove when removing the old types
+    BOOST_TEST(sizeof(VWolf::Vector2Float) == 8);
+    BOOST_TEST(sizeof(VWolf::Vector2) == sizeof(VWolf::Vector2Float));
 }
 
 BOOST_AUTO_TEST_CASE(Vector2Conversion) {
@@ -265,16 +270,16 @@ BOOST_AUTO_TEST_CASE(Vector2Conversion) {
     VWolf::Vector3 vector3 = static_cast<VWolf::Vector3>(vector);
 
     // Then
-    BOOST_TEST(vector3.x == 10);
-    BOOST_TEST(vector3.y == 10);
-    BOOST_TEST(vector3.z == 0);
+    BOOST_TEST(vector3.GetX() == 10);
+    BOOST_TEST(vector3.GetY() == 10);
+    BOOST_TEST(vector3.GetZ() == 0);
 
     // When
     VWolf::Vector4 vector4 = static_cast<VWolf::Vector4>(vector);
 
     // Then
-    BOOST_TEST(vector4.x == 10);
-    BOOST_TEST(vector4.y == 10);
-    BOOST_TEST(vector4.z == 0);
-    BOOST_TEST(vector4.w == 0);
+    BOOST_TEST(vector4.GetX() == 10);
+    BOOST_TEST(vector4.GetY() == 10);
+    BOOST_TEST(vector4.GetZ() == 0);
+    BOOST_TEST(vector4.GetW() == 0);
 }

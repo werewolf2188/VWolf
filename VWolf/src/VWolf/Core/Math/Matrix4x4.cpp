@@ -39,10 +39,10 @@ namespace VWolf {
                            c3r1, c3r2, c3r3, c3r4,
                            c4r1, c4r2, c4r3, c4r4)) {}
     Matrix4x4::Matrix4x4(Vector4 c1, Vector4 c2, Vector4 c3, Vector4 c4):
-    _matrix4x4(glm::mat4x4(c1.x, c1.y, c1.z, c1.w,
-                           c2.x, c2.y, c2.z, c2.w,
-                           c3.x, c3.y, c3.z, c3.w,
-                           c4.x, c4.y, c4.z, c4.w)) {}
+    _matrix4x4(glm::mat4x4(c1.GetX(), c1.GetY(), c1.GetZ(), c1.GetW(),
+                           c2.GetX(), c2.GetY(), c2.GetZ(), c2.GetW(),
+                           c3.GetX(), c3.GetY(), c3.GetZ(), c3.GetW(),
+                           c4.GetX(), c4.GetY(), c4.GetZ(), c4.GetW())) {}
 
 #if defined(VWOLF_CORE)
     Matrix4x4::Matrix4x4(glm::mat4x4 initializer): _matrix4x4(std::move(initializer)) { }
@@ -155,7 +155,7 @@ namespace VWolf {
 
     Vector3 Matrix4x4::MultiplyPoint(Vector3 point) {
         Vector4 point4 = static_cast<Vector4>(point);
-        point4.w = 1.0f;
+        point4.SetW(1.0f);
         glm::vec4 vec4 = point4.GetInternalVector();
 
         auto result = _matrix4x4 * vec4;
@@ -164,7 +164,7 @@ namespace VWolf {
 
     Vector3 Matrix4x4::MultiplyVector(Vector3 vector) {
         Vector4 vector4 = static_cast<Vector4>(vector);
-        vector4.w = 0;
+        vector4.SetW(0);
         glm::vec4 vec4 = vector4.GetInternalVector();
 
         auto result = _matrix4x4 * vec4;
@@ -172,25 +172,25 @@ namespace VWolf {
     }
 
     void Matrix4x4::SetColumn(int index, Vector4 column) {
-        _matrix4x4[index][0] = column.x;
-        _matrix4x4[index][1] = column.y;
-        _matrix4x4[index][2] = column.z;
-        _matrix4x4[index][3] = column.w;
+        _matrix4x4[index][0] = column.GetX();
+        _matrix4x4[index][1] = column.GetY();
+        _matrix4x4[index][2] = column.GetZ();
+        _matrix4x4[index][3] = column.GetW();
     }
 
     void Matrix4x4::SetRow(int index, Vector4 row) {
-        _matrix4x4[0][index] = row.x;
-        _matrix4x4[1][index] = row.y;
-        _matrix4x4[2][index] = row.z;
-        _matrix4x4[3][index] = row.w;
+        _matrix4x4[0][index] = row.GetX();
+        _matrix4x4[1][index] = row.GetY();
+        _matrix4x4[2][index] = row.GetZ();
+        _matrix4x4[3][index] = row.GetW();
     }
 
     void Matrix4x4::SetTRS(Vector3 pos, Quaternion q, Vector3 s) {
         Vector3 rotation = q.EulerAngles();
         _matrix4x4 = glm::translate(_matrix4x4, pos.GetInternalVector());
-        _matrix4x4 = glm::rotate(_matrix4x4, rotation.x, { 1.0f, 0.0f, 0.0f });
-        _matrix4x4 = glm::rotate(_matrix4x4, rotation.y, { 0.0f, 1.0f, 0.0f });
-        _matrix4x4 = glm::rotate(_matrix4x4, rotation.z, { 0.0f, 0.0f, 1.0f });
+        _matrix4x4 = glm::rotate(_matrix4x4, rotation.GetX(), { 1.0f, 0.0f, 0.0f });
+        _matrix4x4 = glm::rotate(_matrix4x4, rotation.GetY(), { 0.0f, 1.0f, 0.0f });
+        _matrix4x4 = glm::rotate(_matrix4x4, rotation.GetZ(), { 0.0f, 0.0f, 1.0f });
         _matrix4x4 = glm::scale(_matrix4x4, s.GetInternalVector());
     }
 
@@ -219,9 +219,9 @@ namespace VWolf {
     Matrix4x4 Matrix4x4::Rotate(Quaternion q) {
         Vector3 rotation = q.EulerAngles();
         glm::mat4x4 mat(1.0f);
-        mat = glm::rotate(mat, rotation.x, { 1.0f, 0.0f, 0.0f });
-        mat = glm::rotate(mat, rotation.y, { 0.0f, 1.0f, 0.0f });
-        mat = glm::rotate(mat, rotation.z, { 0.0f, 0.0f, 1.0f });
+        mat = glm::rotate(mat, rotation.GetX(), { 1.0f, 0.0f, 0.0f });
+        mat = glm::rotate(mat, rotation.GetY(), { 0.0f, 1.0f, 0.0f });
+        mat = glm::rotate(mat, rotation.GetZ(), { 0.0f, 0.0f, 1.0f });
 
         return Matrix4x4(mat);
     }

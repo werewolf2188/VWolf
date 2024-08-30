@@ -32,13 +32,13 @@ namespace VWolf {
     const Vector2 Vector2::PositiveInfinity(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
 
     // MARK: Constructors
-    Vector2::Vector2(): _vector2(glm::vec2(0, 0)), x(_vector2.x), y(_vector2.y) {}
+    Vector2::Vector2(): _vector2(glm::vec2(0, 0)) {}
 
-    Vector2::Vector2(float x, float y): _vector2(glm::vec2(x, y)), x(_vector2.x), y(_vector2.y)  {}
+    Vector2::Vector2(float x, float y): _vector2(glm::vec2(x, y)) {}
 
-    Vector2::Vector2(Vector2& vector2): _vector2(glm::vec2(vector2._vector2.x, vector2._vector2.y)), x(_vector2.x), y(_vector2.y)  {}
+    Vector2::Vector2(Vector2& vector2): _vector2(glm::vec2(vector2._vector2.x, vector2._vector2.y)) {}
 
-    Vector2::Vector2(Vector2&& vector2): _vector2(std::move(vector2._vector2)), x(_vector2.x), y(_vector2.y)  {
+    Vector2::Vector2(Vector2&& vector2): _vector2(std::move(vector2._vector2)) {
         vector2._vector2.x = 0;
         vector2._vector2.y = 0;
     }
@@ -52,8 +52,6 @@ namespace VWolf {
     // MARK: Assignment operators
     Vector2& Vector2::operator=(const Vector2& other) {
         this->_vector2 = other._vector2;
-        this->x = this->_vector2.x;
-        this->y = this->_vector2.y;
 
         return *this;
     }
@@ -70,7 +68,7 @@ namespace VWolf {
 
     // MARK: Operator overloading
     std::ostream& operator<<(std::ostream& os, const Vector2& v) {
-        os << "Vector2(" << std::addressof(v) << ") - { x: " << v.x << ", y: " << v.y << "}";
+        os << "Vector2(" << std::addressof(v) << ") - { x: " << v.GetX() << ", y: " << v.GetX() << "}";
         return os;
     }
 
@@ -79,7 +77,7 @@ namespace VWolf {
     }
 
     bool operator==(const Vector2& lhs, const Vector2& rhs) {
-        return lhs.x == rhs.x && lhs.y == rhs.y;
+        return lhs.GetX() == rhs.GetX() && lhs.GetY() == rhs.GetY();
     }
 
     bool Vector2::operator!=(const Vector2& rhs) {
@@ -87,7 +85,7 @@ namespace VWolf {
     }
 
     bool operator!=(const Vector2& lhs, const Vector2& rhs) {
-        return lhs.x != rhs.x || lhs.y != rhs.y;
+        return lhs.GetX() != rhs.GetX() || lhs.GetY() != rhs.GetY();
     }
 
     Vector2 Vector2::operator+(const Vector2& rhs) {
@@ -137,14 +135,26 @@ namespace VWolf {
     }
 
     Vector2::operator Vector3() {
-        return Vector3(this->x, this->y, 0);
+        return Vector3(this->_vector2.x, this->_vector2.y, 0);
     }
 
     Vector2::operator Vector4() {
-        return Vector4(this->x, this->y, 0, 0);
+        return Vector4(this->_vector2.x, this->_vector2.y, 0, 0);
     }
 
     // MARK: Get Functions
+    const float Vector2::GetX() const { return _vector2.x; }
+
+    float& Vector2::GetX() { return _vector2.x; }
+
+    const float Vector2::GetY() const { return _vector2.y; }
+
+    float& Vector2::GetY() { return _vector2.y; }
+
+    void Vector2::SetX(float value) { _vector2.x = value; }
+
+    void Vector2::SetY(float value) { _vector2.y = value; }
+
     Vector2 Vector2::Normalized() const {
         glm::vec2 normal = glm::normalize(_vector2);
         return Vector2(normal.x, normal.y);
@@ -218,7 +228,7 @@ namespace VWolf {
     }
 
     Vector2 Vector2::Scale(Vector2 a, Vector2 b) {
-        return Vector2(a.x * b.x, a.y * b.y);
+        return Vector2(a._vector2.x * b._vector2.x, a._vector2.y * b._vector2.y);
     }
 
     float Vector2::SignedAngle(Vector2 from, Vector2 to) {

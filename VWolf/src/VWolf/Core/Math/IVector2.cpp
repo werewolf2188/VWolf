@@ -27,13 +27,13 @@ namespace VWolf {
     const IVector2 IVector2::One(1, 1);
 
     // MARK: Constructors
-    IVector2::IVector2(): _vector2(glm::ivec2(0, 0)), x(_vector2.x), y(_vector2.y) {}
+    IVector2::IVector2(): _vector2(glm::ivec2(0, 0)) {}
 
-    IVector2::IVector2(int32_t x, int32_t y): _vector2(glm::ivec2(x, y)), x(_vector2.x), y(_vector2.y)  {}
+    IVector2::IVector2(int32_t x, int32_t y): _vector2(glm::ivec2(x, y)) {}
 
-    IVector2::IVector2(IVector2& vector2): _vector2(glm::ivec2(vector2._vector2.x, vector2._vector2.y)), x(_vector2.x), y(_vector2.y)  {}
+    IVector2::IVector2(IVector2& vector2): _vector2(glm::ivec2(vector2._vector2.x, vector2._vector2.y)) {}
 
-    IVector2::IVector2(IVector2&& vector2): _vector2(std::move(vector2._vector2)), x(_vector2.x), y(_vector2.y)  {
+    IVector2::IVector2(IVector2&& vector2): _vector2(std::move(vector2._vector2)) {
         vector2._vector2.x = 0;
         vector2._vector2.y = 0;
     }
@@ -47,8 +47,6 @@ namespace VWolf {
     // MARK: Assignment operators
     IVector2& IVector2::operator=(const IVector2& other) {
         this->_vector2 = other._vector2;
-        this->x = this->_vector2.x;
-        this->y = this->_vector2.y;
 
         return *this;
     }
@@ -65,7 +63,7 @@ namespace VWolf {
 
     // MARK: Operator overloading
     std::ostream& operator<<(std::ostream& os, const IVector2& v) {
-        os << "IVector2(" << std::addressof(v) << ") - { x: " << v.x << ", y: " << v.y << "}";
+        os << "IVector2(" << std::addressof(v) << ") - { x: " << v.GetX() << ", y: " << v.GetY() << "}";
         return os;
     }
 
@@ -74,7 +72,7 @@ namespace VWolf {
     }
 
     bool operator==(const IVector2& lhs, const IVector2& rhs) {
-        return lhs.x == rhs.x && lhs.y == rhs.y;
+        return lhs.GetX() == rhs.GetX() && lhs.GetY() == rhs.GetY();
     }
 
     bool IVector2::operator!=(const IVector2& rhs) {
@@ -82,7 +80,7 @@ namespace VWolf {
     }
 
     bool operator!=(const IVector2& lhs, const IVector2& rhs) {
-        return lhs.x != rhs.x || lhs.y != rhs.y;
+        return lhs.GetX() != rhs.GetX() || lhs.GetY() != rhs.GetY();
     }
 
     IVector2 IVector2::operator+(const IVector2& rhs) {
@@ -132,10 +130,22 @@ namespace VWolf {
     }
 
     IVector2::operator Vector2() {
-        return Vector2(this->x, this->y);
+        return Vector2(this->_vector2.x, this->_vector2.y);
     }
 
     // MARK: Get Functions
+    const int32_t IVector2::GetX() const { return _vector2.x; }
+
+    int32_t& IVector2::GetX() { return _vector2.x; }
+
+    const int32_t IVector2::GetY() const { return _vector2.y; }
+
+    int32_t& IVector2::GetY() { return _vector2.y; }
+
+    void IVector2::SetX(int32_t value) { _vector2.x = value; }
+
+    void IVector2::SetY(int32_t value) { _vector2.y = value; }
+
     float IVector2::Magnitude() const {
         return _vector2.length();
     }
@@ -146,7 +156,7 @@ namespace VWolf {
 
     // MARK: Static Functions
     IVector2 IVector2::CeilToInt(Vector2 vector) {
-        return IVector2(std::ceil(vector.x), std::ceil(vector.y));
+        return IVector2(std::ceil(vector.GetX()), std::ceil(vector.GetY()));
     }
 
     float IVector2::Distance(IVector2 a, IVector2 b) {
@@ -155,7 +165,7 @@ namespace VWolf {
     }
 
     IVector2 IVector2::FloorToInt(Vector2 vector) {
-        return IVector2(std::floor(vector.x), std::floor(vector.y));
+        return IVector2(std::floor(vector.GetX()), std::floor(vector.GetY()));
     }
 
     IVector2 IVector2::Max(IVector2 lhs, IVector2 rhs) {
@@ -169,10 +179,10 @@ namespace VWolf {
     }
 
     IVector2 IVector2::RoundToInt(Vector2 vector) {
-        return IVector2(std::round(vector.x), std::round(vector.y));
+        return IVector2(std::round(vector.GetX()), std::round(vector.GetY()));
     }
 
     IVector2 IVector2::Scale(IVector2 a, IVector2 b) {
-        return IVector2(a.x * b.x, a.y * b.y);
+        return IVector2(a._vector2.x * b._vector2.x, a._vector2.y * b._vector2.y);
     }
 }

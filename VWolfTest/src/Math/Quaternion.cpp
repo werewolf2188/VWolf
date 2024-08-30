@@ -16,40 +16,40 @@ BOOST_AUTO_TEST_CASE(QuaternionInitializer)
     VWolf::Quaternion quat;
 
     // Then
-    BOOST_TEST(quat.x == 0);
-    BOOST_TEST(quat.y == 0);
-    BOOST_TEST(quat.z == 0);
-    BOOST_TEST(quat.w == 0);
+    BOOST_TEST(quat.GetX() == 0);
+    BOOST_TEST(quat.GetY() == 0);
+    BOOST_TEST(quat.GetZ() == 0);
+    BOOST_TEST(quat.GetW() == 0);
 
     // When
     quat = VWolf::Quaternion(10.5f, 10.5f, 10.5f, 10.5f);
 
-    BOOST_TEST(quat.x == 10.5f);
-    BOOST_TEST(quat.y == 10.5f);
-    BOOST_TEST(quat.z == 10.5f);
-    BOOST_TEST(quat.w == 10.5f);
+    BOOST_TEST(quat.GetX() == 10.5f);
+    BOOST_TEST(quat.GetY() == 10.5f);
+    BOOST_TEST(quat.GetZ() == 10.5f);
+    BOOST_TEST(quat.GetW() == 10.5f);
 
     // When
     VWolf::Quaternion otherQuat(quat);
 
     // Then
-    BOOST_TEST(otherQuat.x == 10.5f);
-    BOOST_TEST(otherQuat.y == 10.5f);
-    BOOST_TEST(otherQuat.z == 10.5f);
-    BOOST_TEST(otherQuat.w == 10.5f);
+    BOOST_TEST(otherQuat.GetX() == 10.5f);
+    BOOST_TEST(otherQuat.GetY() == 10.5f);
+    BOOST_TEST(otherQuat.GetZ() == 10.5f);
+    BOOST_TEST(otherQuat.GetW() == 10.5f);
 
     // When
     VWolf::Quaternion moveQuat(std::move(quat));
 
     // Then
-    BOOST_TEST(moveQuat.x == 10.5f);
-    BOOST_TEST(moveQuat.y == 10.5f);
-    BOOST_TEST(moveQuat.z == 10.5f);
-    BOOST_TEST(moveQuat.w == 10.5f);
-    BOOST_TEST(quat.x == 0);
-    BOOST_TEST(quat.y == 0);
-    BOOST_TEST(quat.z == 0);
-    BOOST_TEST(quat.w == 0);
+    BOOST_TEST(moveQuat.GetX() == 10.5f);
+    BOOST_TEST(moveQuat.GetY() == 10.5f);
+    BOOST_TEST(moveQuat.GetZ() == 10.5f);
+    BOOST_TEST(moveQuat.GetW() == 10.5f);
+    BOOST_TEST(quat.GetX() == 0);
+    BOOST_TEST(quat.GetY() == 0);
+    BOOST_TEST(quat.GetZ() == 0);
+    BOOST_TEST(quat.GetW() == 0);
 
 //    otherVector2 = std::move(moveVector2);
 //
@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE(QuaternionStaticFunctions) {
     VWolf::Quaternion quatResult = VWolf::Quaternion::AngleAxis(43.5338554f, VWolf::Vector3::Up);
 
     // Then
-    BOOST_TEST(quatResult == VWolf::Quaternion(-0.974967658f, 0, 0.222346798f, 0.222346798f));
+    BOOST_TEST(quatResult == VWolf::Quaternion(-0.974967658f, 0, 0.222346798f, 0));
 
     // When
     result = VWolf::Quaternion::Dot(quat, quat2);
@@ -231,14 +231,19 @@ BOOST_AUTO_TEST_CASE(QuaternionsInternals) {
     VWolf::Quaternion quaternion(10, 10, 10, 10);
 
     // When
-    quaternion.x = 15;
-    quaternion.y = 30;
-    quaternion.z = 84;
-    quaternion.w = 200;
+    quaternion.SetX(15);
+    quaternion.SetY(30);
+    quaternion.SetZ(84);
+    quaternion.SetW(200);
 
     // Then
     BOOST_TEST(quaternion.GetInternalQuaternion().x == 15);
     BOOST_TEST(quaternion.GetInternalQuaternion().y == 30);
     BOOST_TEST(quaternion.GetInternalQuaternion().z == 84);
     BOOST_TEST(quaternion.GetInternalQuaternion().w == 200);
+
+    BOOST_TEST(sizeof(VWolf::Quaternion) == 16);
+    // TODO: Remove when removing the old types
+    BOOST_TEST(sizeof(VWolf::Quat) == 16);
+    BOOST_TEST(sizeof(VWolf::Quaternion) == sizeof(VWolf::Quat));
 }

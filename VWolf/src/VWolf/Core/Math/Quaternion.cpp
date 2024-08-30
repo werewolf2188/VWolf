@@ -10,19 +10,19 @@
 namespace VWolf {
     const Quaternion Quaternion::Identity(1, 0, 0, 0);
 
-    Quaternion::Quaternion(): quat(glm::quat(0, 0, 0, 0)), w(quat.w), x(quat.x), y(quat.y), z(quat.z) {}
+    Quaternion::Quaternion(): quat(glm::quat(0, 0, 0, 0)) {}
 
-    Quaternion::Quaternion(float w, float x, float y, float z): quat(glm::quat(w, x, y, z)), w(quat.w), x(quat.x), y(quat.y), z(quat.z) {}
+    Quaternion::Quaternion(float w, float x, float y, float z): quat(glm::quat(w, x, y, z)) {}
 
-    Quaternion::Quaternion(const Quaternion& quaternion): quat(glm::quat(quaternion.w, quaternion.x, quaternion.y, quaternion.z)), w(quat.w), x(quat.x), y(quat.y), z(quat.z) {}
+    Quaternion::Quaternion(const Quaternion& quaternion): quat(glm::quat(quaternion.quat.w, quaternion.quat.x, quaternion.quat.y, quaternion.quat.z)) {}
 
-    Quaternion::Quaternion(Quaternion& quaternion): quat(glm::quat(quaternion.w, quaternion.x, quaternion.y, quaternion.z)), w(quat.w), x(quat.x), y(quat.y), z(quat.z) {}
+    Quaternion::Quaternion(Quaternion& quaternion): quat(glm::quat(quaternion.quat.w, quaternion.quat.x, quaternion.quat.y, quaternion.quat.z)) {}
 
-    Quaternion::Quaternion(Quaternion&& quaternion): quat(glm::quat(quaternion.w, quaternion.x, quaternion.y, quaternion.z)), w(quat.w), x(quat.x), y(quat.y), z(quat.z) {
-        quaternion.w = 0;
-        quaternion.x = 0;
-        quaternion.y = 0;
-        quaternion.z = 0;
+    Quaternion::Quaternion(Quaternion&& quaternion): quat(glm::quat(quaternion.quat.w, quaternion.quat.x, quaternion.quat.y, quaternion.quat.z)) {
+        quaternion.quat.w = 0;
+        quaternion.quat.x = 0;
+        quaternion.quat.y = 0;
+        quaternion.quat.z = 0;
     }
 
     Quaternion::~Quaternion() {
@@ -35,17 +35,13 @@ namespace VWolf {
     // MARK: Assignment operators
     Quaternion& Quaternion::operator=(const Quaternion& other) {
         this->quat = other.quat;
-        this->x = this->quat.x;
-        this->y = this->quat.y;
-        this->z = this->quat.z;
-        this->w = this->quat.w;
 
         return *this;
     }
 
     // MARK: Operator overloading
     std::ostream& operator<<(std::ostream& os, const Quaternion& v) {
-        os << "Quaternion(" << std::addressof(v) << ") - { w: " << v.w << ", x: " << v.x << ", y: " << v.y << ", z: " << v.z << "}";
+        os << "Quaternion(" << std::addressof(v) << ") - { w: " << v.GetW() << ", x: " << v.GetX() << ", y: " << v.GetY() << ", z: " << v.GetZ() << "}";
         return os;
     }
 
@@ -54,7 +50,7 @@ namespace VWolf {
     }
 
     bool operator==(const Quaternion& lhs, const Quaternion& rhs) {
-        return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z && lhs.w == rhs.w;;
+        return lhs.GetW() == rhs.GetW() && lhs.GetX() == rhs.GetX() && lhs.GetY() == rhs.GetY() && lhs.GetZ() == rhs.GetZ();
     }
 
     Quaternion Quaternion::operator*(Quaternion rhs) {
@@ -68,6 +64,30 @@ namespace VWolf {
     }
 
     // MARK: Get Functions
+    const float Quaternion::GetW() const { return quat.w; }
+
+    float& Quaternion::GetW() { return quat.w; }
+
+    const float Quaternion::GetX() const { return quat.x; }
+
+    float& Quaternion::GetX() { return quat.x; }
+
+    const float Quaternion::GetY() const { return quat.y; }
+
+    float& Quaternion::GetY() { return quat.y; }
+
+    const float Quaternion::GetZ() const { return quat.z; }
+
+    float& Quaternion::GetZ() { return quat.z; }
+
+    void Quaternion::SetW(float value) { quat.w = value; }
+
+    void Quaternion::SetX(float value) { quat.x = value; }
+
+    void Quaternion::SetY(float value) { quat.y = value; }
+
+    void Quaternion::SetZ(float value) { quat.z = value; }
+
     Vector3 Quaternion::EulerAngles() const {
         glm::vec3 vec3 = glm::eulerAngles(this->quat);
         return Vector3(vec3.x, vec3.y, vec3.z);
@@ -80,33 +100,22 @@ namespace VWolf {
 
     void Quaternion::SetFromToRotation(Vector3 from, Vector3 to) {
         Vector3 fromTo = to - from;
-        glm::vec3 vec(fromTo.x, fromTo.y, fromTo.z);
+        glm::vec3 vec(fromTo.GetX(), fromTo.GetY(), fromTo.GetZ());
         glm::quat quat = glm::quat(vec);
-        this->x = quat.x;
-        this->y = quat.y;
-        this->z = quat.z;
-        this->w = quat.w;
+        this->quat = quat;
     }
 
     void Quaternion::SetLookRotation(Vector3 view, Vector3 up) {
-        glm::vec3 direction(view.x, view.y, view.z);
-        glm::vec3 _up(up.x, up.y, up.z);
+        glm::vec3 direction(view.GetX(), view.GetY(), view.GetZ());
+        glm::vec3 _up(up.GetX(), up.GetY(), up.GetZ());
         glm::quat quat = glm::quatLookAt(direction, _up);
         this->quat = quat;
-        this->x = this->quat.x;
-        this->y = this->quat.y;
-        this->z = this->quat.z;
-        this->w = this->quat.w;
     }
 
     void Quaternion::ToAngleAxis(float& angle, Vector3& axis) {
-        glm::vec3 vec(axis.x, axis.y, axis.y);
+        glm::vec3 vec(axis.GetX(), axis.GetY(), axis.GetZ());
         glm::quat quat = glm::angleAxis(angle, vec);
         this->quat = quat;
-        this->x = this->quat.x;
-        this->y = this->quat.y;
-        this->z = this->quat.z;
-        this->w = this->quat.w;
     }
 
     // MARK: Static Functions

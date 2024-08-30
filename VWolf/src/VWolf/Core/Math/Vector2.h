@@ -65,8 +65,12 @@ namespace VWolf {
         static float SignedAngle(Vector2 from, Vector2 to);
         // SmoothDamp
     public:
-        float& x;
-        float& y;
+        const float GetX() const;
+        float& GetX();
+        const float GetY() const;
+        float& GetY();
+        void SetX(float value);
+        void SetY(float value);
     private:
         glm::vec2 _vector2;
 #if defined(DEBUG)

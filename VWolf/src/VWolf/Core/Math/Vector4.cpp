@@ -25,13 +25,13 @@ namespace VWolf {
     const Vector4 Vector4::PositiveInfinity(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
 
     // MARK: Constructors
-    Vector4::Vector4(): _vector4(glm::vec4(0, 0, 0, 0)), x(_vector4.x), y(_vector4.y), z(_vector4.z), w(_vector4.w) {}
+    Vector4::Vector4(): _vector4(glm::vec4(0, 0, 0, 0)) {}
 
-    Vector4::Vector4(float x, float y, float z, float w): _vector4(glm::vec4(x, y, z, w)), x(_vector4.x), y(_vector4.y), z(_vector4.z), w(_vector4.w)  {}
+    Vector4::Vector4(float x, float y, float z, float w): _vector4(glm::vec4(x, y, z, w)) {}
 
-    Vector4::Vector4(Vector4& vector4): _vector4(glm::vec4(vector4._vector4.x, vector4._vector4.y, vector4._vector4.z, vector4._vector4.w)), x(_vector4.x), y(_vector4.y), z(_vector4.z), w(_vector4.w)  {}
+    Vector4::Vector4(Vector4& vector4): _vector4(glm::vec4(vector4._vector4.x, vector4._vector4.y, vector4._vector4.z, vector4._vector4.w)) {}
 
-    Vector4::Vector4(Vector4&& vector4): _vector4(std::move(vector4._vector4)), x(_vector4.x), y(_vector4.y), z(_vector4.z), w(_vector4.w) {
+    Vector4::Vector4(Vector4&& vector4): _vector4(std::move(vector4._vector4)) {
         vector4._vector4.x = 0;
         vector4._vector4.y = 0;
         vector4._vector4.z = 0;
@@ -49,10 +49,6 @@ namespace VWolf {
     // MARK: Assignment operators
     Vector4& Vector4::operator=(const Vector4& other) {
         this->_vector4 = other._vector4;
-        this->x = this->_vector4.x;
-        this->y = this->_vector4.y;
-        this->z = this->_vector4.z;
-        this->w = this->_vector4.w;
 
         return *this;
     }
@@ -71,7 +67,7 @@ namespace VWolf {
 
     // MARK: Operator overloading
     std::ostream& operator<<(std::ostream& os, const Vector4& v) {
-        os << "Vector4(" << std::addressof(v) << ") - { x: " << v.x << ", y: " << v.y << ", z: " << v.z << ", w: " << v.w << "}";
+        os << "Vector4(" << std::addressof(v) << ") - { x: " << v.GetX() << ", y: " << v.GetY() << ", z: " << v.GetZ() << ", w: " << v.GetW() << "}";
         return os;
     }
 
@@ -80,7 +76,7 @@ namespace VWolf {
     }
 
     bool operator==(const Vector4& lhs, const Vector4& rhs) {
-        return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z && lhs.w == rhs.w;
+        return lhs.GetX() == rhs.GetX() && lhs.GetY() == rhs.GetY() && lhs.GetZ() == rhs.GetZ() && lhs.GetW() == rhs.GetW();
     }
 
     bool Vector4::operator!=(const Vector4& rhs) {
@@ -88,7 +84,7 @@ namespace VWolf {
     }
 
     bool operator!=(const Vector4& lhs, const Vector4& rhs) {
-        return lhs.x != rhs.x || lhs.y != rhs.y || lhs.z != rhs.z || lhs.w != rhs.w;
+        return lhs.GetX() != rhs.GetX() || lhs.GetY() != rhs.GetY() || lhs.GetZ() != rhs.GetZ() || lhs.GetW() != rhs.GetW();
     }
 
     Vector4 Vector4::operator+(const Vector4& rhs) {
@@ -138,14 +134,38 @@ namespace VWolf {
     }
 
     Vector4::operator Vector2() {
-        return Vector2(this->x, this->y);
+        return Vector2(this->_vector4.x, this->_vector4.y);
     }
 
     Vector4::operator Vector3() {
-        return Vector3(this->x, this->y, this->z);
+        return Vector3(this->_vector4.x, this->_vector4.y, this->_vector4.z);
     }
 
     // MARK: Get Functions
+    const float Vector4::GetX() const { return _vector4.x; }
+
+    float& Vector4::GetX() { return _vector4.x; }
+
+    const float Vector4::GetY() const { return _vector4.y; }
+
+    float& Vector4::GetY() { return _vector4.y; }
+
+    const float Vector4::GetZ() const { return _vector4.z; }
+
+    float& Vector4::GetZ() { return _vector4.z; }
+
+    const float Vector4::GetW() const { return _vector4.w; }
+
+    float& Vector4::GetW() { return _vector4.w; }
+
+    void Vector4::SetX(float value) { _vector4.x = value; }
+
+    void Vector4::SetY(float value) { _vector4.y = value; }
+
+    void Vector4::SetZ(float value) { _vector4.z = value; }
+
+    void Vector4::SetW(float value) { _vector4.w = value; }
+
     Vector4 Vector4::Normalized() const {
         glm::vec4 normal = glm::normalize(_vector4);
         return Vector4(normal.x, normal.y, normal.z, normal.w);
@@ -205,7 +225,7 @@ namespace VWolf {
     }
 
     Vector4 Vector4::Scale(Vector4 a, Vector4 b) {
-        return Vector4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+        return Vector4(a._vector4.x * b._vector4.x, a._vector4.y * b._vector4.y, a._vector4.z * b._vector4.z, a._vector4.w * b._vector4.w);
     }
 
     Vector4 Vector4::ProjectOnPlane(Vector4 vector, Vector4 planeNormal) {
