@@ -13,11 +13,12 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/euler_angles.hpp>
 
 #include "Vector3.h"
 
 namespace VWolf {
+
+    struct Matrix4x4;
 
     struct Quaternion {
     public:
@@ -27,6 +28,8 @@ namespace VWolf {
         Quaternion(Quaternion&);
         Quaternion(Quaternion&&);
         ~Quaternion();
+    private:
+        Quaternion(glm::quat);
     public:
         static const Quaternion Identity;
     public:
@@ -42,6 +45,8 @@ namespace VWolf {
         void SetFromToRotation(Vector3 from, Vector3 to);
         void SetLookRotation(Vector3 view, Vector3 up = Vector3::Up);
         void ToAngleAxis(float& angle, Vector3& axis);
+        Vector3 GetOrientation(Vector3 vector);
+        Matrix4x4 ToMatrix4x4() const;
     public:
         static float Angle(Quaternion from, Quaternion to);
         static Quaternion  AngleAxis(float angle, Vector3 axis);
@@ -72,11 +77,12 @@ namespace VWolf {
         glm::quat quat;
 #if defined(DEBUG)
     public:
-        inline glm::quat& GetInternalQuaternion() { return this->quat; }
+        inline glm::quat GetInternalQuaternion() const { return this->quat; }
 #endif
-    };
+        friend std::ostream& operator<<(std::ostream& os, const Quaternion& q);
+        friend bool operator==(const Quaternion& lhs, const Quaternion& rhs);
+        friend Quaternion operator*(const Quaternion& lhs, Quaternion rhs);
 
-    std::ostream& operator<<(std::ostream& os, const Quaternion& q);
-    bool operator==(const Quaternion& lhs, const Quaternion& rhs);
-    Quaternion operator*(const Quaternion& lhs, Quaternion rhs);
+        friend struct Matrix4x4;
+    };
 }

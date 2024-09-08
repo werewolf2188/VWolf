@@ -34,10 +34,10 @@ namespace YAML {
                 return false;
             
             rhs.type = (VWolf::Light::LightType)node[lightKeys[LightComponentKeys::LightType]].as<unsigned int>();
-            rhs.color = node[lightKeys[LightComponentKeys::LightColor]].as<VWolf::Vector4Float>();
-            rhs.position = node[lightKeys[LightComponentKeys::LightPosition]].as<VWolf::Vector4Float>();
-            rhs.direction = node[lightKeys[LightComponentKeys::LightDirection]].as<VWolf::Vector4Float>();
-            rhs.strength = node[lightKeys[LightComponentKeys::LightStrength]].as<VWolf::Vector4Float>();
+            rhs.color = node[lightKeys[LightComponentKeys::LightColor]].as<VWolf::Vector4>();
+            rhs.position = node[lightKeys[LightComponentKeys::LightPosition]].as<VWolf::Vector4>();
+            rhs.direction = node[lightKeys[LightComponentKeys::LightDirection]].as<VWolf::Vector4>();
+            rhs.strength = node[lightKeys[LightComponentKeys::LightStrength]].as<VWolf::Vector4>();
             rhs.cutOff = node[lightKeys[LightComponentKeys::LightCutOff]].as<float>();
             rhs.exponent = node[lightKeys[LightComponentKeys::LightExponent]].as<float>();
 

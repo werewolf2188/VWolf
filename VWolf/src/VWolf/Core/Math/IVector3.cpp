@@ -35,6 +35,8 @@ namespace VWolf {
 
     IVector3::IVector3(IVector3& vector3): _vector3(glm::ivec3(vector3._vector3.x, vector3._vector3.y, vector3._vector3.z)) {}
 
+    IVector3::IVector3(const IVector3& vector3): _vector3(glm::ivec3(vector3._vector3.x, vector3._vector3.y, vector3._vector3.z)) {}
+
     IVector3::IVector3(IVector3&& vector3): _vector3(std::move(vector3._vector3)) {
         vector3._vector3.x = 0;
         vector3._vector3.y = 0;
@@ -95,8 +97,8 @@ namespace VWolf {
     }
 
     IVector3 operator+(const IVector3& lhs, const IVector3& rhs) {
-        IVector3 result = lhs + rhs;
-        return result;
+        glm::ivec3 vec = lhs._vector3 + rhs._vector3;
+        return IVector3(vec.x, vec.y, vec.z);
     }
 
     IVector3 IVector3::operator-(const IVector3& rhs) {
@@ -105,8 +107,8 @@ namespace VWolf {
     }
 
     IVector3 operator-(const IVector3& lhs, const IVector3& rhs) {
-        IVector3 result = lhs - rhs;
-        return result;
+        glm::ivec3 vec = lhs._vector3 - rhs._vector3;
+        return IVector3(vec.x, vec.y, vec.z);
     }
 
     IVector3 IVector3::operator*(int32_t rhs) {
@@ -115,8 +117,13 @@ namespace VWolf {
     }
 
     IVector3 operator*(const IVector3& lhs, int32_t rhs) {
-        IVector3 result = lhs * rhs;
-        return result;
+        glm::ivec3 vec = lhs._vector3 * rhs;
+        return IVector3(vec.x, vec.y, vec.z);
+    }
+
+    IVector3 operator*(int32_t lhs, const IVector3& rhs) {
+        glm::ivec3 vec = lhs * rhs._vector3;
+        return IVector3(vec.x, vec.y, vec.z);
     }
 
     IVector3 IVector3::operator/(int32_t rhs) {
@@ -125,8 +132,13 @@ namespace VWolf {
     }
 
     IVector3 operator/(const IVector3& lhs, int32_t rhs) {
-        IVector3 result = lhs / rhs;
-        return result;
+        glm::ivec3 vec = lhs._vector3 / rhs;
+        return IVector3(vec.x, vec.y, vec.z);
+    }
+
+    IVector3 operator/(int32_t lhs, const IVector3& rhs) {
+        glm::ivec3 vec = lhs / rhs._vector3;
+        return IVector3(vec.x, vec.y, vec.z);
     }
 
     int32_t IVector3::operator[](int index) {

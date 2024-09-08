@@ -61,7 +61,7 @@ namespace YAML {
                 !node[sceneKeys[SceneObjectsConstantKeys::BackgroundColor]])
                 return false;
 
-            rhs.SetBackgroundColor(node[sceneKeys[SceneObjectsConstantKeys::BackgroundColor]].as<VWolf::Vector4Float>());
+            rhs.SetBackgroundColor(node[sceneKeys[SceneObjectsConstantKeys::BackgroundColor]].as<VWolf::Color>());
             if (node[sceneKeys[SceneObjectsConstantKeys::BackgroundType]]) {
                 rhs.SetType((VWolf::SceneBackground::Type)node[sceneKeys[SceneObjectsConstantKeys::BackgroundType]]
                                        .as<int>());

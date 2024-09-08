@@ -60,7 +60,7 @@ static bool DrawComponent(const std::string& name, T& component, UIFunction uiFu
 
 }
 
-static void DrawVec3Control(const std::string& label, VWolf::Vector3Float& values, float resetValue = 0.0f, float columnWidth = 100.0f)
+static void DrawVec3Control(const std::string& label, VWolf::Vector3& values, float resetValue = 0.0f, float columnWidth = 100.0f)
 {
     ImGuiIO& io = ImGui::GetIO();
     auto boldFont = io.Fonts->Fonts[0];
@@ -83,12 +83,12 @@ static void DrawVec3Control(const std::string& label, VWolf::Vector3Float& value
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
     ImGui::PushFont(boldFont);
     if (ImGui::Button("X", buttonSize))
-        values.x = resetValue;
+        values.SetX(resetValue);
     ImGui::PopFont();
     ImGui::PopStyleColor(3);
 
     ImGui::SameLine();
-    ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+    ImGui::DragFloat("##X", &values.GetX(), 0.1f, 0.0f, 0.0f, "%.2f");
     ImGui::PopItemWidth();
     ImGui::SameLine();
 
@@ -97,12 +97,12 @@ static void DrawVec3Control(const std::string& label, VWolf::Vector3Float& value
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
     ImGui::PushFont(boldFont);
     if (ImGui::Button("Y", buttonSize))
-        values.y = resetValue;
+        values.SetY(resetValue);
     ImGui::PopFont();
     ImGui::PopStyleColor(3);
 
     ImGui::SameLine();
-    ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+    ImGui::DragFloat("##Y", &values.GetY(), 0.1f, 0.0f, 0.0f, "%.2f");
     ImGui::PopItemWidth();
     ImGui::SameLine();
 
@@ -111,12 +111,12 @@ static void DrawVec3Control(const std::string& label, VWolf::Vector3Float& value
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
     ImGui::PushFont(boldFont);
     if (ImGui::Button("Z", buttonSize))
-        values.z = resetValue;
+        values.SetZ(resetValue);
     ImGui::PopFont();
     ImGui::PopStyleColor(3);
 
     ImGui::SameLine();
-    ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
+    ImGui::DragFloat("##Z", &values.GetZ(), 0.1f, 0.0f, 0.0f, "%.2f");
     ImGui::PopItemWidth();
 
     ImGui::PopStyleVar();
@@ -199,8 +199,8 @@ namespace VWolfPup {
                 ImGui::PushItemWidth(ImGui::CalcItemWidth());
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
                 
-                ImGui::ColorEdit4("##Light Color", VWolf::value_ptr(component.GetLight().color), ImGuiColorEditFlags_NoInputs);
-                
+                ImGui::ColorEdit4("##Light Color", &component.GetLight().color.GetX(), ImGuiColorEditFlags_NoInputs);
+
                 ImGui::PopStyleVar();
                 ImGui::PopItemWidth();
                 ImGui::Columns(1);
@@ -217,8 +217,8 @@ namespace VWolfPup {
                 ImGui::PushItemWidth(ImGui::CalcItemWidth());
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
-                ImGui::DragFloat3("##Light Strength", VWolf::value_ptr(component.GetLight().strength), 0.1f, 0, 1);
-                
+                ImGui::DragFloat3("##Light Strength", &component.GetLight().strength.GetX(), 0.1f, 0, 1);
+
                 ImGui::PopStyleVar();
                 ImGui::PopItemWidth();
                 ImGui::Columns(1);
@@ -910,7 +910,7 @@ namespace VWolfPup {
                 ImGui::PushItemWidth(ImGui::CalcItemWidth());
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
                 ImGui::ColorEdit4((std::string("##") + property.first + std::string("Selector")).c_str(),
-                                  VWolf::value_ptr(material.GetColor(property.first)), ImGuiColorEditFlags_NoInputs);
+                                  &material.GetColor(property.first).GetR(), ImGuiColorEditFlags_NoInputs);
                 ImGui::PopStyleVar();
                 ImGui::PopItemWidth();
                 ImGui::Columns(1);

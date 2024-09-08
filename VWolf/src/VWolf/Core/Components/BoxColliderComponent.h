@@ -34,7 +34,7 @@ namespace VWolf {
     private:
         reactphysics3d::BoxShape* boxShape;
         reactphysics3d::Collider* collider;
-        Vector3Float scale;
+        Vector3 scale;
 
         VWOLF_COMPONENT_INSPECTOR_DEFINE(BoxColliderComponent);
     };

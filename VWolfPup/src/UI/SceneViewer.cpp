@@ -57,28 +57,26 @@ namespace VWolfPup {
                 
                 ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
                 
-                const VWolf::MatrixFloat4x4& projection = camera->GetProjection();
-                VWolf::MatrixFloat4x4 view = camera->GetViewMatrix();
+                VWolf::Matrix4x4 projection = camera->GetProjection();
+                VWolf::Matrix4x4 view = camera->GetViewMatrix();
                 VWolf::TransformComponent& tComponent = selectedObject->GetTransform();
                 tComponent.Apply();
-                VWolf::MatrixFloat4x4& transform = tComponent.GetWorldMatrix();
+                VWolf::Matrix4x4& transform = tComponent.GetWorldMatrix();
                 if (((ImGuizmo::OPERATION)operation) == ImGuizmo::OPERATION::ROTATE) {
-                    transform = VWolf::translate(VWolf::MatrixFloat4x4(1.0f), selectedObject->GetTransform().GetPosition());
-                    VWolf::Vector3Float rota(0);
-                    transform = VWolf::rotate(transform, VWolf::radians(rota.x), { 1.0f, 0.0f, 0.0f });
-                    transform = VWolf::rotate(transform, VWolf::radians(rota.y), { 0.0f, 1.0f, 0.0f });
-                    transform = VWolf::rotate(transform, VWolf::radians(rota.z), { 0.0f, 0.0f, 1.0f });
-                    transform = VWolf::scale(transform, selectedObject->GetTransform().GetLocalScale());
+                    VWolf::Vector3 rota = VWolf::Vector3::Zero;
+                    transform = VWolf::Matrix4x4::TRS(selectedObject->GetTransform().GetPosition(),
+                                                      VWolf::Quaternion::Euler(rota.GetX(), rota.GetY(), rota.GetZ()),
+                                                      selectedObject->GetTransform().GetLocalScale());
                 }
                 
-                ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection),
-                                     (ImGuizmo::OPERATION)operation, ImGuizmo::WORLD, glm::value_ptr(transform),
+                ImGuizmo::Manipulate(view.Unsafe_AddressOf(), projection.Unsafe_AddressOf(),
+                                     (ImGuizmo::OPERATION)operation, ImGuizmo::WORLD, transform.Unsafe_AddressOf(),
                                      nullptr, nullptr);
                 if (ImGuizmo::IsUsing())            {
-                    VWolf::Vector3Float translation, rotation, scale;
-                    
-                    ImGuizmo::DecomposeMatrixToComponents(&transform[0][0], &translation.x, &rotation.x, &scale.x);
-                    
+                    VWolf::Vector3 translation, rotation, scale;
+
+                    ImGuizmo::DecomposeMatrixToComponents(transform.Unsafe_AddressOf(), &translation.GetX(), &rotation.GetX(), &scale.GetX());
+
                     if (((ImGuizmo::OPERATION)operation) == ImGuizmo::OPERATION::TRANSLATE)
                         selectedObject->GetTransform().SetPosition(translation);
                     if (((ImGuizmo::OPERATION)operation) == ImGuizmo::OPERATION::ROTATE)

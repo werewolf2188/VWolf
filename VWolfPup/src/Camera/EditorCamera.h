@@ -20,7 +20,7 @@ namespace VWolfPup {
         void OnEvent(VWolf::Event& evt);
         bool OnMouseScroll(VWolf::MouseScrolledEvent& e);
         void OnUpdate();
-        VWolf::Vector2Float GetMouseDelta();
+        VWolf::Vector2 GetMouseDelta();
         void SetViewportSize(float width, float height);
         float GetPitch() const;
         float GetYaw() const;
@@ -31,27 +31,27 @@ namespace VWolfPup {
         inline void SetPitch(float pitch) { m_Pitch = pitch; }
         inline void SetYaw(float yaw) { m_Yaw = yaw; }
     private:
-        void MousePan(const VWolf::Vector2Float& delta);
-        void MouseRotate(const VWolf::Vector2Float& delta);
+        void MousePan(const VWolf::Vector2& delta);
+        void MouseRotate(const VWolf::Vector2& delta);
         void MouseZoom(float delta);
         std::pair<float, float> PanSpeed() const;
         float RotationSpeed() const;
         float ZoomSpeed() const;;
-        VWolf::Vector3Float GetUpDirection() const;
-        VWolf::Vector3Float GetRightDirection() const;
-        VWolf::Vector3Float GetForwardDirection() const;
-        VWolf::Quat GetOrientation() const;
-        VWolf::Vector3Float CalculatePosition() const;
+        VWolf::Vector3 GetUpDirection() const;
+        VWolf::Vector3 GetRightDirection() const;
+        VWolf::Vector3 GetForwardDirection() const;
+        VWolf::Quaternion GetOrientation() const;
+        VWolf::Vector3 CalculatePosition() const;
     private:
         VWolf::Ref<VWolf::Camera> camera;
         // This is going to change into a transform, once we start implementing components
         // For position
-        VWolf::Vector3Float m_Position = { 0.0f, 0.0f, 0.0f };
+        VWolf::Vector3 m_Position = { 0.0f, 0.0f, 0.0f };
         // For rotation
         float m_Pitch = 0.240f;
         float m_Yaw = -0.451f;
         // For zoom
-        VWolf::Vector3Float m_FocalPoint = { 0.0f, 0.0f, 0.0f };
+        VWolf::Vector3 m_FocalPoint = { 0.0f, 0.0f, 0.0f };
         float m_Distance = 10.0f;
         // Window/Image size
         float m_ViewportWidth = 1280.0f;
@@ -61,6 +61,6 @@ namespace VWolfPup {
         bool useDistanceAndFocalPointForPositionCalculation = true;
 
         // Input
-        VWolf::Vector2Float m_InitialMousePosition = { 0.0f, 0.0f };
+        VWolf::Vector2 m_InitialMousePosition = { 0.0f, 0.0f };
     };
 }

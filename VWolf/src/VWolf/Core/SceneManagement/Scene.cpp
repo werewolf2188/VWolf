@@ -42,14 +42,14 @@ namespace VWolf {
          };
          */
 
-        meshData.vertices[0].position = VWolf::Vector3Float(-1.0f, -1.0f,  1.0f);
-        meshData.vertices[1].position = VWolf::Vector3Float(1.0f, -1.0f,  1.0f);
-        meshData.vertices[2].position = VWolf::Vector3Float(1.0f, -1.0f, -1.0f);
-        meshData.vertices[3].position = VWolf::Vector3Float(-1.0f, -1.0f, -1.0f);
-        meshData.vertices[4].position = VWolf::Vector3Float(-1.0f,  1.0f,  1.0f);
-        meshData.vertices[5].position = VWolf::Vector3Float(1.0f,  1.0f,  1.0f);
-        meshData.vertices[6].position = VWolf::Vector3Float(1.0f,  1.0f, -1.0f);
-        meshData.vertices[7].position = VWolf::Vector3Float(-1.0f,  1.0f, -1.0f);
+        meshData.vertices[0].position = VWolf::Vector3(-1.0f, -1.0f,  1.0f);
+        meshData.vertices[1].position = VWolf::Vector3(1.0f, -1.0f,  1.0f);
+        meshData.vertices[2].position = VWolf::Vector3(1.0f, -1.0f, -1.0f);
+        meshData.vertices[3].position = VWolf::Vector3(-1.0f, -1.0f, -1.0f);
+        meshData.vertices[4].position = VWolf::Vector3(-1.0f,  1.0f,  1.0f);
+        meshData.vertices[5].position = VWolf::Vector3(1.0f,  1.0f,  1.0f);
+        meshData.vertices[6].position = VWolf::Vector3(1.0f,  1.0f, -1.0f);
+        meshData.vertices[7].position = VWolf::Vector3(-1.0f,  1.0f, -1.0f);
 
         unsigned int skyboxIndices[] =
         {
@@ -77,7 +77,7 @@ namespace VWolf {
     }
 
     // ---------------- SCENE BACKGROUND ----------------
-    SceneBackground::SceneBackground(): backgroundColor({ 0.0f, 0.0f, 0.0f, 1.0f }), skybox(CreateSkyBox()) {}
+    SceneBackground::SceneBackground(): backgroundColor(Color(0.0f, 0.0f, 0.0f, 1.0f )), skybox(CreateSkyBox()) {}
 
     SceneBackground::SceneBackground(SceneBackground& scene): backgroundColor(scene.backgroundColor), skybox(CreateSkyBox()) {}
     
@@ -367,8 +367,8 @@ namespace VWolf {
         if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
             // Immediate drawing so it does not belong to the queue
             Graphics::DrawMesh(sceneBackGround.GetSkyboxMeshData(),
-                               VWolf::Vector4Float(),
-                               VWolf::Vector4Float(),
+                               VWolf::Vector4(),
+                               VWolf::Vector4(),
                                sceneBackGround.GetSkyboxMaterial(),
                                sceneBackGround.GetCamera());
         }
@@ -379,8 +379,8 @@ namespace VWolf {
         {
             auto [light, transform] = lightsAndTransformComponents
                 .get<LightComponent, TransformComponent>(lightAndTransformEntity);
-            light.GetLight().position = Vector4Float(transform.GetPosition().x, transform.GetPosition().y, transform.GetPosition().z, 1.0);
-            light.GetLight().direction = Vector4Float(transform.GetEulerAngles().x, transform.GetEulerAngles().y, transform.GetEulerAngles().z, 0.0);
+            light.GetLight().position = Vector4(transform.GetPosition().GetX(), transform.GetPosition().GetY(), transform.GetPosition().GetZ(), 1.0);
+            light.GetLight().direction = Vector4(transform.GetEulerAngles().GetX(), transform.GetEulerAngles().GetY(), transform.GetEulerAngles().GetZ(), 0.0);
             VWolf::Graphics::AddLight(light.GetLight());
         }
 
@@ -440,16 +440,14 @@ namespace VWolf {
 
         if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
             // Immediate drawing so it does not belong to the queue
-            sceneBackGround.GetCamera()->UpdateView(Vector3Float(), Quat(
-                                                         {
-                                                             radians(cameraTransform.GetEulerAngles().x),
-                                                             radians(cameraTransform.GetEulerAngles().y),
-                                                             radians(cameraTransform.GetEulerAngles().z)
-                                                         }
+            sceneBackGround.GetCamera()->UpdateView(Vector3(), Quaternion::Euler(
+                                                             radians(cameraTransform.GetEulerAngles().GetX()),
+                                                             radians(cameraTransform.GetEulerAngles().GetY()),
+                                                             radians(cameraTransform.GetEulerAngles().GetZ())
                                                          ));
             Graphics::DrawMesh(sceneBackGround.GetSkyboxMeshData(),
-                               VWolf::Vector4Float(),
-                               VWolf::Vector4Float(),
+                               VWolf::Vector4(),
+                               VWolf::Vector4(),
                                sceneBackGround.GetSkyboxMaterial(),
                                sceneBackGround.GetCamera());
         }
@@ -460,8 +458,8 @@ namespace VWolf {
         {
             auto [light, transform] = lightsAndTransformComponents
                 .get<LightComponent, TransformComponent>(lightAndTransformEntity);
-            light.GetLight().position = Vector4Float(transform.GetPosition().x, transform.GetPosition().y, transform.GetPosition().z, 1.0);
-            light.GetLight().direction = Vector4Float(transform.GetEulerAngles().x, transform.GetEulerAngles().y, transform.GetEulerAngles().z, 0.0);
+            light.GetLight().position = Vector4(transform.GetPosition().GetX(), transform.GetPosition().GetY(), transform.GetPosition().GetZ(), 1.0);
+            light.GetLight().direction = Vector4(transform.GetEulerAngles().GetX(), transform.GetEulerAngles().GetY(), transform.GetEulerAngles().GetZ(), 0.0);
             VWolf::Graphics::AddLight(light.GetLight());
         }
 
@@ -510,8 +508,8 @@ namespace VWolf {
         // TODO: Debug renderer
         if (testData.vertices.size() == 0) return;
         Graphics::DrawMesh(testData,
-                           VWolf::Vector4Float(),
-                           VWolf::Vector4Float(),
+                           VWolf::Vector4(),
+                           VWolf::Vector4(),
                            *MaterialLibrary::GetMaterial("RainbowColor"),
                            camera);
         

@@ -37,7 +37,7 @@ namespace VWolf {
         reactphysics3d::ConcaveMeshShape* concaveMeshShape;
         reactphysics3d::TriangleMesh* triangleMesh;
         reactphysics3d::Collider* collider;
-        Vector3Float scale;
+        Vector3 scale;
 
         VWOLF_COMPONENT_INSPECTOR_DEFINE(MeshColliderComponent);
     };

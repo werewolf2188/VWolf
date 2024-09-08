@@ -76,7 +76,7 @@ namespace VWolf {
 
     void OpenGLGraphics::ClearColorImpl(Color color) {
         BindToRenderTexture();
-        GLThrowIfFailed(glClearColor(color.r, color.b, color.g, color.a));
+        GLThrowIfFailed(glClearColor(color.GetR(), color.GetG(), color.GetB(), color.GetA()));
         UnbindToRenderTexture();
     }
 
@@ -92,7 +92,7 @@ namespace VWolf {
     }
 
     // TODO: Better names. This is for immediate rendering
-    void OpenGLGraphics::DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera) {
+    void OpenGLGraphics::DrawMeshImpl(MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
         auto data = mesh.vertices;
         auto indices = mesh.indices;
         Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(Vertex));
@@ -104,25 +104,24 @@ namespace VWolf {
 
         CameraPass cameraPass = {
             cam->GetViewMatrix(),
-            inverse(cam->GetViewMatrix()),
+            cam->GetViewMatrix().GetInverse(),
             cam->GetProjection(),
-            inverse(cam->GetProjection()),
+            cam->GetProjection().GetInverse(),
             cam->GetViewProjection(),
-            inverse(cam->GetViewProjection()),
+            cam->GetViewProjection().GetInverse(),
             cam->GetPosition(),
             0,
             cam->GetDisplaySize(),
-            { 1 / cam->GetDisplaySize().x, 1 / cam->GetDisplaySize().y },
+            { 1 / cam->GetDisplaySize().GetX(), 1 / cam->GetDisplaySize().GetY() },
             cam->GetNearZ(),
             cam->GetFarZ(),
             Time::GetTotalTime(),
             Time::GetDeltaTime()
         };
-        
-        MatrixFloat4x4 transform = translate(MatrixFloat4x4(1.0f), Vector3Float(position));
-        transform = VWolf::rotate(transform, rotation.x, { 1.0f, 0.0f, 0.0f });
-        transform = VWolf::rotate(transform, rotation.y, { 0.0f, 1.0f, 0.0f });
-        transform = VWolf::rotate(transform, rotation.z, { 0.0f, 0.0f, 1.0f });
+
+        Matrix4x4 transform = Matrix4x4::TRS(Vector3(position),
+                                             Quaternion::Euler(rotation.GetX(), rotation.GetY(), rotation.GetZ()),
+                                             Vector3::One);
 
         Ref<Shader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
         void* material1 = material.GetDataPointer();
@@ -143,16 +142,16 @@ namespace VWolf {
         }
         shader->Bind();
         shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
-        shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
+        shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), 0);
         shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
         if (lights) {
             shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
-            std::vector<MatrixFloat4x4> spaces;
+            std::vector<Matrix4x4> spaces;
             for(int i = 0; i < this->lights.size(); i++) {
                 spaces.push_back(lights[i].GetLightSpaceMatrix());
             }
-            MatrixFloat4x4* spacesPointer = spaces.data();
-            shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(MatrixFloat4x4) * Light::LightsMax, 0);
+            Matrix4x4* spacesPointer = spaces.data();
+            shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, 0);
         }
         group->Bind();
         vertices->Bind();
@@ -179,7 +178,7 @@ namespace VWolf {
     }
 
     // TODO: Better names. This is for lazy rendering
-    void OpenGLGraphics::RenderMeshImpl(MeshData& mesh, MatrixFloat4x4 transform, Material& material, Ref<Camera> camera) {
+    void OpenGLGraphics::RenderMeshImpl(MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
         items.push_back(CreateRef<RenderItem>(mesh, material, transform, camera));
     }
 
@@ -224,12 +223,12 @@ namespace VWolf {
                 Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
                 Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices);
 
-                MatrixFloat4x4 viewProjection = light.GetLightSpaceMatrix();
-                MatrixFloat4x4 transform = item->transform;
+                Matrix4x4 viewProjection = light.GetLightSpaceMatrix();
+                Matrix4x4 transform = item->transform;
                 
                 shader->Bind();
-                shader->SetData(&viewProjection, ShaderLibrary::CameraBufferName, sizeof(MatrixFloat4x4), 0);
-                shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
+                shader->SetData(&viewProjection, ShaderLibrary::CameraBufferName, sizeof(Matrix4x4), 0);
+                shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), 0);
 
                 group->Bind();
                 vertices->Bind();
@@ -252,7 +251,7 @@ namespace VWolf {
             auto& mesh = item->data;
             auto& material = item->material;
             Ref<Camera> camera = item->camera;
-            MatrixFloat4x4 transform = item->transform;
+            Matrix4x4 transform = item->transform;
 
             auto data = mesh.vertices;
             auto indices = mesh.indices;
@@ -265,15 +264,15 @@ namespace VWolf {
 
             CameraPass cameraPass = {
                 cam->GetViewMatrix(),
-                inverse(cam->GetViewMatrix()),
+                cam->GetViewMatrix().GetInverse(),
                 cam->GetProjection(),
-                inverse(cam->GetProjection()),
+                cam->GetProjection().GetInverse(),
                 cam->GetViewProjection(),
-                inverse(cam->GetViewProjection()),
+                cam->GetViewProjection().GetInverse(),
                 cam->GetPosition(),
                 0,
                 cam->GetDisplaySize(),
-                { 1 / cam->GetDisplaySize().x, 1 / cam->GetDisplaySize().y },
+                { 1 / cam->GetDisplaySize().GetX(), 1 / cam->GetDisplaySize().GetY() },
                 cam->GetNearZ(),
                 cam->GetFarZ(),
                 Time::GetTotalTime(),
@@ -299,16 +298,16 @@ namespace VWolf {
                 }
             }
             shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
-            shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(MatrixFloat4x4), 0);
+            shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), 0);
             shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
             if (lights) {
                 shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
-                std::vector<MatrixFloat4x4> spaces;
+                std::vector<Matrix4x4> spaces;
                 for(int i = 0; i < this->lights.size(); i++) {
                     spaces.push_back(lights[i].GetLightSpaceMatrix());
                 }
-                MatrixFloat4x4* spacesPointer = spaces.data();
-                shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(MatrixFloat4x4) * Light::LightsMax, 0);
+                Matrix4x4* spacesPointer = spaces.data();
+                shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, 0);
             }
             
             group->Bind();

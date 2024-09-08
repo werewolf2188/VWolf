@@ -7,85 +7,69 @@
 
 #pragma once
 
+#include "VWolf/Core/Math/Vector2.h"
+#include "VWolf/Core/Math/Vector3.h"
+#include "VWolf/Core/Math/Vector4.h"
+
 namespace YAML {
     template<>
-    struct convert<VWolf::Vector2Float>
+    struct convert<VWolf::Color>
     {
-        static Node encode(const VWolf::Vector2Float& rhs)
-        {
-            Node node;
-            node.push_back(rhs.x);
-            node.push_back(rhs.y);
-            node.SetStyle(EmitterStyle::Flow);
-            return node;
-        }
-
-        static bool decode(const Node& node, VWolf::Vector2Float& rhs)
-        {
-            if (!node.IsSequence() || node.size() != 2)
-                return false;
-
-            rhs.x = node[0].as<float>();
-            rhs.y = node[1].as<float>();
-            return true;
-        }
-    };
-
-    template<>
-    struct convert<VWolf::Vector3Float>
-    {
-        static Node encode(const VWolf::Vector3Float& rhs)
-        {
-            Node node;
-            node.push_back(rhs.x);
-            node.push_back(rhs.y);
-            node.push_back(rhs.z);
-            node.SetStyle(EmitterStyle::Flow);
-            return node;
-        }
-
-        static bool decode(const Node& node, VWolf::Vector3Float& rhs)
-        {
-            if (!node.IsSequence() || node.size() != 3)
-                return false;
-
-            rhs.x = node[0].as<float>();
-            rhs.y = node[1].as<float>();
-            rhs.z = node[2].as<float>();
-            return true;
-        }
-    };
-
-    template<>
-    struct convert<VWolf::Vector4Float>
-    {
-        static Node encode(const VWolf::Vector4Float& rhs)
-        {
-            Node node;
-            node.push_back(rhs.x);
-            node.push_back(rhs.y);
-            node.push_back(rhs.z);
-            node.push_back(rhs.w);
-            node.SetStyle(EmitterStyle::Flow);
-            return node;
-        }
-
-        static bool decode(const Node& node, VWolf::Vector4Float& rhs)
+        static bool decode(const Node& node, VWolf::Color& rhs)
         {
             if (!node.IsSequence() || node.size() != 4)
                 return false;
 
-            rhs.x = node[0].as<float>();
-            rhs.y = node[1].as<float>();
-            rhs.z = node[2].as<float>();
-            rhs.w = node[3].as<float>();
+            rhs.SetR(node[0].as<float>());
+            rhs.SetG(node[1].as<float>());
+            rhs.SetB(node[2].as<float>());
+            rhs.SetA(node[3].as<float>());
             return true;
         }
     };
+
+    template<>
+    struct convert<VWolf::Vector2> {
+        static bool decode(const Node& node, VWolf::Vector2& rhs) {
+            if (!node.IsSequence() || node.size() != 2)
+                return false;
+            rhs.SetX(node[0].as<float>());
+            rhs.SetY(node[1].as<float>());
+            return true;
+        }
+    };
+
+    template<>
+    struct convert<VWolf::Vector3> {
+        static bool decode(const Node& node, VWolf::Vector3& rhs) {
+            if (!node.IsSequence() || node.size() != 3)
+                return false;
+            rhs.SetX(node[0].as<float>());
+            rhs.SetY(node[1].as<float>());
+            rhs.SetZ(node[2].as<float>());
+            return true;
+        }
+    };
+
+    template<>
+    struct convert<VWolf::Vector4> {
+        static bool decode(const Node& node, VWolf::Vector4& rhs) {
+            if (!node.IsSequence() || node.size() != 4)
+                return false;
+            rhs.SetX(node[0].as<float>());
+            rhs.SetY(node[1].as<float>());
+            rhs.SetZ(node[2].as<float>());
+            rhs.SetW(node[3].as<float>());
+            return true;
+        }
+    };
+
 }
 
 namespace VWolf {
-    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector2Float& v);
-    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector3Float& v);
-    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector4Float& v);
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Color& v);
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector2& v);
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector3& v);
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector4& v);
 }

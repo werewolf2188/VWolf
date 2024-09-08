@@ -6,6 +6,9 @@
 //
 
 #include "Quaternion.h"
+#include "Matrix4x4.h"
+
+#include <glm/gtx/euler_angles.hpp>
 
 namespace VWolf {
     const Quaternion Quaternion::Identity(1, 0, 0, 0);
@@ -13,6 +16,8 @@ namespace VWolf {
     Quaternion::Quaternion(): quat(glm::quat(0, 0, 0, 0)) {}
 
     Quaternion::Quaternion(float w, float x, float y, float z): quat(glm::quat(w, x, y, z)) {}
+
+    Quaternion::Quaternion(glm::quat initializer): quat(std::move(initializer)) { }
 
     Quaternion::Quaternion(const Quaternion& quaternion): quat(glm::quat(quaternion.quat.w, quaternion.quat.x, quaternion.quat.y, quaternion.quat.z)) {}
 
@@ -59,8 +64,8 @@ namespace VWolf {
     }
 
     Quaternion operator*(const Quaternion& lhs, Quaternion rhs) {
-        Quaternion q = lhs * rhs;
-        return q;
+        glm::quat quat = lhs.quat * rhs.quat;
+        return Quaternion(quat.w, quat.x, quat.y, quat.z);
     }
 
     // MARK: Get Functions
@@ -116,6 +121,16 @@ namespace VWolf {
         glm::vec3 vec(axis.GetX(), axis.GetY(), axis.GetZ());
         glm::quat quat = glm::angleAxis(angle, vec);
         this->quat = quat;
+    }
+
+    Vector3 Quaternion::GetOrientation(Vector3 vector) {
+        glm::vec3 vec = glm::rotate(quat, vector._vector3);
+        return Vector3(vec);
+    }
+
+    Matrix4x4 Quaternion::ToMatrix4x4() const {
+        glm::mat4x4 matrix = toMat4(quat);
+        return Matrix4x4(matrix);
     }
 
     // MARK: Static Functions

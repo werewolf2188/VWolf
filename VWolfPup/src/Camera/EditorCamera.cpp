@@ -31,21 +31,21 @@ namespace VWolfPup {
         
         if (VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftShift))
         {
-            VWolf::Vector2Float delta = GetMouseDelta();
+            VWolf::Vector2 delta = GetMouseDelta();
             if (VWolf::Input::IsMouseButtonPressed(VWolf::MouseCode::Left))
                 MousePan(delta);
         }
         if (VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftAlt))
         {
-            VWolf::Vector2Float delta = GetMouseDelta();
+            VWolf::Vector2 delta = GetMouseDelta();
             if (VWolf::Input::IsMouseButtonPressed(VWolf::MouseCode::Left))
                 MouseRotate(delta);
         }
         if (VWolf::Input::IsKeyPressed(VWolf::KeyCode::LeftControl))
         {
-            VWolf::Vector2Float delta = GetMouseDelta();
+            VWolf::Vector2 delta = GetMouseDelta();
             if (VWolf::Input::IsMouseButtonPressed(VWolf::MouseCode::Left))
-                MouseZoom(delta.y);
+                MouseZoom(delta.GetY());
         }
 
         camera->UpdateView(CalculatePosition(), GetOrientation());
@@ -53,9 +53,9 @@ namespace VWolfPup {
 //        VWOLF_CLIENT_DEBUG("Position (%.3f %.3f %.3f), Pitch (%.3f), Yaw (%.3f), Distance (%.3f)", m_Position.x, m_Position.y, m_Position.z, m_Pitch, m_Yaw, m_Distance);
     }
 
-    VWolf::Vector2Float CameraController::GetMouseDelta() {
-        const VWolf::Vector2Float& mouse{ VWolf::Input::GetMouseX(), VWolf::Input::GetMouseY() };
-        VWolf::Vector2Float delta = (mouse - m_InitialMousePosition) * 0.003f;
+    VWolf::Vector2 CameraController::GetMouseDelta() {
+        const VWolf::Vector2& mouse{ VWolf::Input::GetMouseX(), VWolf::Input::GetMouseY() };
+        VWolf::Vector2 delta = (mouse - m_InitialMousePosition) * 0.003f;
         m_InitialMousePosition = mouse;
         return delta;
     }
@@ -77,18 +77,18 @@ namespace VWolfPup {
         camera->SetZoomLevel(m_Distance);
     }
 
-    void CameraController::MousePan(const VWolf::Vector2Float& delta)
+    void CameraController::MousePan(const VWolf::Vector2& delta)
     {
         auto [xSpeed, ySpeed] = PanSpeed();
-        m_FocalPoint += -GetRightDirection() * delta.x * xSpeed * m_Distance;
-        m_FocalPoint += GetUpDirection() * delta.y * ySpeed * m_Distance;
+        m_FocalPoint += -GetRightDirection() * delta.GetX() * xSpeed * m_Distance;
+        m_FocalPoint += GetUpDirection() * delta.GetY() * ySpeed * m_Distance;
     }
 
-    void CameraController::MouseRotate(const VWolf::Vector2Float& delta)
+    void CameraController::MouseRotate(const VWolf::Vector2& delta)
     {
-        float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
-        m_Yaw += yawSign * delta.x * RotationSpeed();
-        m_Pitch += delta.y * RotationSpeed();
+        float yawSign = GetUpDirection().GetY() < 0 ? -1.0f : 1.0f;
+        m_Yaw += yawSign * delta.GetX() * RotationSpeed();
+        m_Pitch += delta.GetY() * RotationSpeed();
     }
 
     void CameraController::MouseZoom(float delta)
@@ -127,28 +127,28 @@ namespace VWolfPup {
         return speed;
     }
 
-    VWolf::Vector3Float CameraController::CalculatePosition() const
+    VWolf::Vector3 CameraController::CalculatePosition() const
     {
-        return (useDistanceAndFocalPointForPositionCalculation ? m_FocalPoint: VWolf::Vector3Float(0.0f, 0.0f, 0.0f)) -
+        return (useDistanceAndFocalPointForPositionCalculation ? m_FocalPoint: VWolf::Vector3(0.0f, 0.0f, 0.0f)) -
         GetForwardDirection() * (useDistanceAndFocalPointForPositionCalculation ? m_Distance: 1.0f); //<--- For the skybox, the distance should not be changed
     }
 
-    VWolf::Vector3Float CameraController::GetUpDirection() const
+    VWolf::Vector3 CameraController::GetUpDirection() const
     {
-        return VWolf::rotate(GetOrientation(), { 0.0f, 1.0f, 0.0f });
+        return GetOrientation().GetOrientation({ 0.0f, 1.0f, 0.0f });
     }
 
-    VWolf::Vector3Float CameraController::GetRightDirection() const
+    VWolf::Vector3 CameraController::GetRightDirection() const
     {
-        return VWolf::rotate(GetOrientation(), { 1.0f, 0.0f, 0.0f });
+        return GetOrientation().GetOrientation({ 1.0f, 0.0f, 0.0f });
     }
 
-    VWolf::Vector3Float CameraController::GetForwardDirection() const
+    VWolf::Vector3 CameraController::GetForwardDirection() const
     {
-        return VWolf::rotate(GetOrientation(), { 0.0f, 0.0f, -1.0f });
+        return GetOrientation().GetOrientation({ 0.0f, 0.0f, -1.0f });
     }
 
-    VWolf::Quat CameraController::GetOrientation() const {
-        return VWolf::Quat({ -m_Pitch, -m_Yaw, 0.0f });
+    VWolf::Quaternion CameraController::GetOrientation() const {
+        return VWolf::Quaternion::Euler(-m_Pitch, -m_Yaw, 0.0f);
     }
 }

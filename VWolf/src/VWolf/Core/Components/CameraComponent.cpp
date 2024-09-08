@@ -13,7 +13,7 @@ namespace VWolf {
 
     CameraComponent::CameraComponent(): Component("Camera"),
     m_camera(CreateRef<Camera>()),
-    m_ViewportWidth(m_camera->GetDisplaySize().x),  m_ViewportHeight(m_camera->GetDisplaySize().y),
+    m_ViewportWidth(m_camera->GetDisplaySize().GetX()),  m_ViewportHeight(m_camera->GetDisplaySize().GetY()),
     m_FOV(m_camera->GetFOV()), m_AspectRatio(m_camera->GetAspectRatio()), m_NearClip(m_camera->GetNearZ()), m_FarClip(m_camera->GetFarZ()),
     m_isOrthographic(m_camera->IsOrtographic()), m_zoom(m_camera->GetZoom()) { }
 
@@ -77,14 +77,11 @@ namespace VWolf {
 
     Ref<Camera> CameraComponent::GetCamera(TransformComponent component) {
         m_camera->UpdateView(component.GetPosition(), 
-                             Quat(
-                                  Vector3Float(
-                                               radians(component.GetEulerAngles().x),
-                                               radians(component.GetEulerAngles().y),
-                                               radians(component.GetEulerAngles().z)
-                                               )
-                                  )
-                             );
+                             Quaternion::Euler(
+                                          radians(component.GetEulerAngles().GetX()),
+                                          radians(component.GetEulerAngles().GetY()),
+                                          radians(component.GetEulerAngles().GetZ())
+                             ));
         m_camera->SetFOV(m_FOV);
         m_camera->SetNearZ(m_NearClip);
         m_camera->SetFarZ(m_FarClip);

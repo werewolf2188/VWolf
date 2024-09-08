@@ -29,7 +29,11 @@ namespace VWolf {
 
     Vector4::Vector4(float x, float y, float z, float w): _vector4(glm::vec4(x, y, z, w)) {}
 
+    Vector4::Vector4(glm::vec4 initializer): _vector4(std::move(initializer)) { }
+
     Vector4::Vector4(Vector4& vector4): _vector4(glm::vec4(vector4._vector4.x, vector4._vector4.y, vector4._vector4.z, vector4._vector4.w)) {}
+
+    Vector4::Vector4(const Vector4& vector4): _vector4(glm::vec4(vector4._vector4.x, vector4._vector4.y, vector4._vector4.z, vector4._vector4.w)) {}
 
     Vector4::Vector4(Vector4&& vector4): _vector4(std::move(vector4._vector4)) {
         vector4._vector4.x = 0;
@@ -93,8 +97,8 @@ namespace VWolf {
     }
 
     Vector4 operator+(const Vector4& lhs, const Vector4& rhs) {
-        Vector4 result = lhs + rhs;
-        return result;
+        glm::vec4 vec = lhs._vector4 + rhs._vector4;
+        return Vector4(vec.x, vec.y, vec.z, vec.w);
     }
 
     Vector4 Vector4::operator-(const Vector4& rhs) {
@@ -103,8 +107,8 @@ namespace VWolf {
     }
 
     Vector4 operator-(const Vector4& lhs, const Vector4& rhs) {
-        Vector4 result = lhs - rhs;
-        return result;
+        glm::vec4 vec = lhs._vector4 - rhs._vector4;
+        return Vector4(vec.x, vec.y, vec.z, vec.w);
     }
 
     Vector4 Vector4::operator*(float rhs) {
@@ -113,8 +117,13 @@ namespace VWolf {
     }
 
     Vector4 operator*(const Vector4& lhs, float rhs) {
-        Vector4 result = lhs * rhs;
-        return result;
+        glm::vec4 vec = lhs._vector4 * rhs;
+        return Vector4(vec.x, vec.y, vec.z, vec.w);
+    }
+
+    Vector4 operator*(float lhs, const Vector4& rhs) {
+        glm::vec4 vec = lhs * rhs._vector4;
+        return Vector4(vec.x, vec.y, vec.z, vec.w);
     }
 
     Vector4 Vector4::operator/(float rhs) {
@@ -123,8 +132,13 @@ namespace VWolf {
     }
 
     Vector4 operator/(const Vector4& lhs, float rhs) {
-        Vector4 result = lhs / rhs;
-        return result;
+        glm::vec4 vec = lhs._vector4 / rhs;
+        return Vector4(vec.x, vec.y, vec.z, vec.w);
+    }
+
+    Vector4 operator/(float lhs, const Vector4& rhs) {
+        glm::vec4 vec = lhs / rhs._vector4;
+        return Vector4(vec.x, vec.y, vec.z, vec.w);
     }
 
     float Vector4::operator[](int index) {

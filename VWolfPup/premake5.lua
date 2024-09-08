@@ -25,7 +25,8 @@ project "VWolfPup"
       "%{IncludeDir.entt}",
       "%{IncludeDir.glm}",
 	   "%{IncludeDir.yaml_cpp}",
-      "%{IncludeDir.efsw}"
+      "%{IncludeDir.efsw}",
+      "%{IncludeDir.boost}"
 	--    "%{IncludeDir.GLFW}",
 	--    "%{IncludeDir.Glad}",
 	--    "%{IncludeDir.ImGui}",
@@ -67,7 +68,8 @@ project "VWolfPup"
 	 "%{IncludeDir.entt}",
 	"%{IncludeDir.yaml_cpp}",
    "%{IncludeDir.metal_cpp}",
-   "%{IncludeDir.efsw}"
+   "%{IncludeDir.efsw}",
+   "%{IncludeDir.boost}"
     }
 
    links { "Cocoa.framework", "CoreVideo.framework", "IOKit.framework", "OpenGL.framework", "MetalKit.framework", "AppKit.framework", "Metal.framework", "QuartzCore.framework", "GameController.framework" }

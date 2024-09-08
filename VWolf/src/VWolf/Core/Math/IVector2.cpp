@@ -33,6 +33,8 @@ namespace VWolf {
 
     IVector2::IVector2(IVector2& vector2): _vector2(glm::ivec2(vector2._vector2.x, vector2._vector2.y)) {}
 
+    IVector2::IVector2(const IVector2& vector2): _vector2(glm::ivec2(vector2._vector2.x, vector2._vector2.y)) {}
+
     IVector2::IVector2(IVector2&& vector2): _vector2(std::move(vector2._vector2)) {
         vector2._vector2.x = 0;
         vector2._vector2.y = 0;
@@ -84,43 +86,53 @@ namespace VWolf {
     }
 
     IVector2 IVector2::operator+(const IVector2& rhs) {
-        glm::vec2 vec = this->_vector2 + rhs._vector2;
+        glm::ivec2 vec = this->_vector2 + rhs._vector2;
         return IVector2(vec.x, vec.y);
     }
 
     IVector2 operator+(const IVector2& lhs, const IVector2& rhs) {
-        IVector2 result = lhs + rhs;
-        return result;
+        glm::ivec2 vec = lhs._vector2 + rhs._vector2;
+        return IVector2(vec.x, vec.y);
     }
 
     IVector2 IVector2::operator-(const IVector2& rhs) {
-        glm::vec2 vec = this->_vector2 - rhs._vector2;
+        glm::ivec2 vec = this->_vector2 - rhs._vector2;
         return IVector2(vec.x, vec.y);
     }
 
     IVector2 operator-(const IVector2& lhs, const IVector2& rhs) {
-        IVector2 result = lhs - rhs;
-        return result;
+        glm::ivec2 vec = lhs._vector2 - rhs._vector2;
+        return IVector2(vec.x, vec.y);
     }
 
     IVector2 IVector2::operator*(int32_t rhs) {
-        glm::vec2 vec = this->_vector2 * rhs;
+        glm::ivec2 vec = this->_vector2 * rhs;
         return IVector2(vec.x, vec.y);
     }
 
     IVector2 operator*(const IVector2& lhs, int32_t rhs) {
-        IVector2 result = lhs * rhs;
-        return result;
+        glm::ivec2 vec = lhs._vector2 * rhs;
+        return IVector2(vec.x, vec.y);
+    }
+
+    IVector2 operator*(int32_t lhs, const IVector2& rhs) {
+        glm::ivec2 vec = lhs * rhs._vector2;
+        return IVector2(vec.x, vec.y);
     }
 
     IVector2 IVector2::operator/(int32_t rhs) {
-        glm::vec2 vec = this->_vector2 / rhs;
+        glm::ivec2 vec = this->_vector2 / rhs;
         return IVector2(vec.x, vec.y);
     }
 
     IVector2 operator/(const IVector2& lhs, int32_t rhs) {
-        IVector2 result = lhs / rhs;
-        return result;
+        glm::ivec2 vec = lhs._vector2 / rhs;
+        return IVector2(vec.x, vec.y);
+    }
+
+    IVector2 operator/(int32_t lhs, const IVector2& rhs) {
+        glm::ivec2 vec = lhs / rhs._vector2;
+        return IVector2(vec.x, vec.y);
     }
 
     int32_t IVector2::operator[](int index) {

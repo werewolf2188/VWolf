@@ -35,7 +35,7 @@ namespace VWolf {
     }
 
     void BoxColliderComponent::CreateBoxCollider(MeshData& data, TransformComponent& component) {
-        boxShape = Physics::GetCommon().createBoxShape({ component.GetLocalScale().x, component.GetLocalScale().y, component.GetLocalScale().z });
+        boxShape = Physics::GetCommon().createBoxShape({ component.GetLocalScale().GetX(), component.GetLocalScale().GetY(), component.GetLocalScale().GetZ() });
         scale = component.GetLocalScale();
         reactphysics3d::Transform transform = reactphysics3d::Transform::identity();
         reactphysics3d::RigidBody* rigidBody = GetGameObject()->GetRigidBody();
@@ -46,7 +46,7 @@ namespace VWolf {
 
     void BoxColliderComponent::Update(TransformComponent& component) {
         if (boxShape != nullptr && component.GetLocalScale() != scale) {
-            boxShape->setHalfExtents({ component.GetLocalScale().x, component.GetLocalScale().y, component.GetLocalScale().z });
+            boxShape->setHalfExtents({ component.GetLocalScale().GetX(), component.GetLocalScale().GetY(), component.GetLocalScale().GetZ() });
             scale = component.GetLocalScale();
         }
     }

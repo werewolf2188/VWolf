@@ -40,13 +40,13 @@ namespace VWolf {
         uint32_t nbVertices = (uint32_t)data.vertices.size();
         uint32_t nbTriangles = ((uint32_t)data.indices.size()) / 3;
         for(Vertex vertex: data.vertices) {
-            positions.push_back(vertex.position.x);
-            positions.push_back(vertex.position.y);
-            positions.push_back(vertex.position.z);
+            positions.push_back(vertex.position.GetX());
+            positions.push_back(vertex.position.GetY());
+            positions.push_back(vertex.position.GetZ());
 
-            normals.push_back(vertex.normal.x);
-            normals.push_back(vertex.normal.y);
-            normals.push_back(vertex.normal.z);
+            normals.push_back(vertex.normal.GetX());
+            normals.push_back(vertex.normal.GetY());
+            normals.push_back(vertex.normal.GetZ());
         }
         reactphysics3d::TriangleVertexArray array(nbVertices, positions.data(), 3 * sizeof(float),
                                                   normals.data(), 3 * sizeof(float),
@@ -62,7 +62,7 @@ namespace VWolf {
         scale = component.GetLocalScale();
 
         concaveMeshShape = Physics::GetCommon()
-            .createConcaveMeshShape(triangleMesh, { scale.x, scale.y, scale.z });
+            .createConcaveMeshShape(triangleMesh, { scale.GetX(), scale.GetY(), scale.GetZ() });
 
         reactphysics3d::Transform transform = reactphysics3d::Transform::identity();
         reactphysics3d::RigidBody* rigidBody = GetGameObject()->GetRigidBody();
@@ -74,7 +74,7 @@ namespace VWolf {
     void MeshColliderComponent::Update(TransformComponent& component) {
         if (concaveMeshShape != nullptr && component.GetLocalScale() != scale) {
             scale = component.GetLocalScale();
-            concaveMeshShape->setScale({ scale.x, scale.y, scale.z });
+            concaveMeshShape->setScale({ scale.GetX(), scale.GetY(), scale.GetZ() });
         }
     }
 

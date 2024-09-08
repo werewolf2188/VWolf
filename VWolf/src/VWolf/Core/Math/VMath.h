@@ -1,66 +1,22 @@
 #pragma once
 
-#include "VWolf/Core/Base.h"
+#include "Vector2.h"
+#include "IVector2.h"
+#include "Vector3.h"
+#include "IVector3.h"
+#include "Vector4.h"
+#include "Quaternion.h"
+#include "Matrix4x4.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-
-#ifndef GLM_ENABLE_EXPERIMENTAL
-#define GLM_ENABLE_EXPERIMENTAL
-#endif
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/euler_angles.hpp>
+#include "VWolf/Core/Color.h"
 
 namespace VWolf {
-	using namespace glm;
+    // TODO: Move to math class
+    template<typename genType>
+    inline constexpr genType radians(genType degrees)
+    {
+        static_assert(std::numeric_limits<genType>::is_iec559, "'radians' only accept floating-point input");
 
-	typedef glm::vec4 Vector4Float;
-
-	typedef glm::vec4 Color;
-
-	typedef glm::vec3 Vector3Float;
-
-	typedef glm::vec2 Vector2Float;
-
-	typedef glm::ivec4 Vector4Int;
-
-	typedef glm::ivec3 Vector3Int;
-
-	typedef glm::ivec2 Vector2Int;
-
-	typedef glm::quat Quat;
-
-	typedef glm::mat4x4 MatrixFloat4x4;
-
-	inline std::ostream& operator<<(std::ostream& os, const MatrixFloat4x4& v)
-	{
-		os << "Matrix 4x4: \n";
-		os << "[aa:" << v[0][0] << ", ab:" << v[0][1] << ", ac:" << v[0][2] << ", ad:" << v[0][3] << "] \n";
-		os << "[ba:" << v[1][0] << ", bb:" << v[1][1] << ", bc:" << v[1][2] << ", bd:" << v[1][3] << "] \n";
-		os << "[ca:" << v[2][0] << ", cb:" << v[2][1] << ", cc:" << v[2][2] << ", cd:" << v[2][3] << "] \n";
-		os << "[da:" << v[3][0] << ", db:" << v[3][1] << ", dc:" << v[3][2] << ", dd:" << v[3][3] << "]";
-		return os;
-	}
-
-	typedef glm::mat3x3 MatrixFloat3x3;
-
-	inline std::ostream& operator<<(std::ostream& os, const MatrixFloat3x3& v)
-	{
-		os << "Matrix 3x3: \n";
-		os << "[aa:" << v[0][0] << ", ab:" << v[0][1] << ", ac:" << v[0][2] << "] \n";
-		os << "[ba:" << v[1][0] << ", bb:" << v[1][1] << ", bc:" << v[1][2] << "] \n";
-		os << "[ca:" << v[2][0] << ", cb:" << v[2][1] << ", cc:" << v[2][2] << "]";
-		return os;
-	}
-
-	typedef glm::mat2x2 MatrixFloat2x2;
-
-	inline std::ostream& operator<<(std::ostream& os, const MatrixFloat2x2& v)
-	{
-		os << "Matrix 2x2: \n";
-		os << "[aa:" << v[0][0] << ", ab:" << v[0][1] << "] \n";
-		os << "[ba:" << v[1][0] << ", bb:" << v[1][1] << "]";
-		return os;
-	}
+        return degrees * static_cast<genType>(0.01745329251994329576923690768489);
+    }
 }

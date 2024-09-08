@@ -19,6 +19,7 @@ namespace VWolf {
         IVector3();
         IVector3(int32_t, int32_t, int32_t);
         IVector3(IVector3 &);
+        IVector3(const IVector3 &);
         IVector3(IVector3 &&);
         ~IVector3();
     public:
@@ -68,15 +69,16 @@ namespace VWolf {
         glm::ivec3 _vector3;
 #if defined(DEBUG)
     public:
-        inline glm::ivec3& GetInternalVector() { return this->_vector3; }
+        inline glm::ivec3 GetInternalVector() const { return this->_vector3; }
 #endif
+        friend std::ostream& operator<<(std::ostream& os, const IVector3& v);
+        friend bool operator==(const IVector3& lhs, const IVector3& rhs);
+        friend bool operator!=(const IVector3& lhs, const IVector3& rhs);
+        friend IVector3 operator+(const IVector3& lhs, const IVector3& rhs);
+        friend IVector3 operator-(const IVector3& lhs, const IVector3& rhs);
+        friend IVector3 operator*(const IVector3& lhs, int32_t rhs);
+        friend IVector3 operator*(int32_t lhs, const IVector3& rhs);
+        friend IVector3 operator/(const IVector3& lhs, int32_t rhs);
+        friend IVector3 operator/(int32_t lhs, const IVector3& rhs);
     };
-
-    std::ostream& operator<<(std::ostream& os, const IVector3& v);
-    bool operator==(const IVector3& lhs, const IVector3& rhs);
-    bool operator!=(const IVector3& lhs, const IVector3& rhs);
-    IVector3 operator+(const IVector3& lhs, const IVector3& rhs);
-    IVector3 operator-(const IVector3& lhs, const IVector3& rhs);
-    IVector3 operator*(const IVector3& lhs, int32_t rhs);
-    IVector3 operator/(const IVector3& lhs, int32_t rhs);
 }

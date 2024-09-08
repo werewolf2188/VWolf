@@ -49,7 +49,7 @@ namespace VWolf {
     }
 
     bool operator==(const UUID& lhs, const UUID& rhs) {
-        return lhs.GetInternalUUID() == rhs.GetInternalUUID();
+        return lhs._uuid == rhs._uuid;
     }
 
     bool UUID::operator!=(const UUID& rhs) {
@@ -57,7 +57,7 @@ namespace VWolf {
     }
 
     bool operator!=(const UUID& lhs, const UUID& rhs) {
-        return lhs.GetInternalUUID() != rhs.GetInternalUUID();
+        return lhs._uuid != rhs._uuid;
     }
 
     // MARK: Instance Methods
