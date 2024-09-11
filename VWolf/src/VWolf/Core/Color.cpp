@@ -5,6 +5,7 @@
 //  Created by Enrique Ricalde on 9/9/24.
 //
 
+#include "vwpch.h"
 #include "Color.h"
 #include "Math/Vector4.h"
 

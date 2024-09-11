@@ -335,11 +335,11 @@ namespace VWolf {
 	}
 
 	void DirectX12Texture2D::PopulateColor() {
-		size_t size = sizeof(Vector4Float) * m_width * m_height;
-		Vector4Float* data = (Vector4Float*)malloc(size);
+		size_t size = sizeof(Color) * m_width * m_height;
+		Color* data = (Color*)malloc(size);
 		memset(data, 0, size);
 		uint32_t index = 0;
-		Vector4Float value = Transform(m_textureDefault);
+		Color value = Transform(m_textureDefault);
 		for (uint32_t column = 0; column < m_height; column++) {			
 			for (uint32_t row = 0; row < m_width; row++) {
 				index = (column * m_height) + row;
@@ -351,25 +351,25 @@ namespace VWolf {
 
 #if defined(DEBUG) || defined(_DEBUG)
 	void* DirectX12Texture2D::PopulateTest() {
-		size_t size = sizeof(Vector4Float) * m_width * m_height;
-		Vector4Float* data = (Vector4Float*)malloc(size);
+		size_t size = sizeof(Color) * m_width * m_height;
+		Color* data = (Color*)malloc(size);
 		memset(data, 0, size);
 		uint32_t index = 0;
-		Vector4Float black(0, 0, 0, 1);
-		Vector4Float white(1, 1, 1, 1);
-		Vector4Float value = white;
+		Color black(0, 0, 0, 1);
+		Color white(1, 1, 1, 1);
+		Color value = white;
 		for (uint32_t column = 0; column < m_height; column++) {
 			if (column % 32 == 0) {
-				if (value.r == 1)
+				if (value.GetR() == 1)
 					value = black;
-				else if (value.r == 0)
+				else if (value.GetR() == 0)
 					value = white;
 			}
 			for (uint32_t row = 0; row < m_width; row++) {
 				if (row % 32 == 0) {
-					if (value.r == 1)
+					if (value.GetR() == 1)
 						value = black;
-					else if (value.r == 0)
+					else if (value.GetR() == 0)
 						value = white;
 				}
 				index = (column * m_height) + row;
@@ -416,7 +416,7 @@ namespace VWolf {
 
 		DX12BufferResourceInfo bInfo;		
 		bInfo.CreateBufferResourceDescription(true);
-		bInfo.newResourceDescription->Width = sizeof(Vector4Float) * width * height;
+		bInfo.newResourceDescription->Width = sizeof(Vector4) * width * height;
 
 		m_textureUpload = CreateRef<DX12BufferResource>(bInfo);		
 		auto size = GetRequiredIntermediateSize(m_texture->GetResource().Get(), 0, 1);
@@ -568,13 +568,13 @@ namespace VWolf {
 
 	void DirectX12Cubemap::PopulateColor()
 	{
-		std::array<Vector4Float, 6> colors = {
-		   Vector4Float(1, 0, 0, 1),
-		   Vector4Float(0, 1, 0, 1),
-		   Vector4Float(0, 0, 1, 1),
-		   Vector4Float(1, 1, 0, 1),
-		   Vector4Float(1, 0, 1, 1),
-		   Vector4Float(0, 1, 1, 1)
+		std::array<Color, 6> colors = {
+		   Color(1, 0, 0, 1),
+		   Color(0, 1, 0, 1),
+		   Color(0, 0, 1, 1),
+		   Color(1, 1, 0, 1),
+		   Color(1, 0, 1, 1),
+		   Color(0, 1, 1, 1)
 		};
 
 		std::array<int, 6> indicesToCheck = {
@@ -593,11 +593,11 @@ namespace VWolf {
 
 	void DirectX12Cubemap::PopulateTest()
 	{		
-		Vector4Float value  = Transform(m_textureDefault);
+		Color value  = Transform(m_textureDefault);
 		for (unsigned int i = 0; i < numberOfSides; i++)
 		{
-			size_t size = sizeof(Vector4Float) * m_size * m_size;
-			Vector4Float* data = (Vector4Float*)malloc(size);
+			size_t size = sizeof(Color) * m_size * m_size;
+			Color* data = (Color*)malloc(size);
 			memset(data, 0, size);
 			uint32_t index = 0;			
 			for (uint32_t column = 0; column < m_size; column++) {				
@@ -610,14 +610,14 @@ namespace VWolf {
 		}
 	}
 
-	void* DirectX12Cubemap::PopulateTest(int checkIndex, Vector4Float otherColor)
+	void* DirectX12Cubemap::PopulateTest(int checkIndex, Color otherColor)
 	{
-		size_t size = sizeof(Vector4Float) * m_size * m_size;
-		Vector4Float* data = (Vector4Float*)malloc(size);
+		size_t size = sizeof(Color) * m_size * m_size;
+		Color* data = (Color*)malloc(size);
 		memset(data, 0, size);
 		uint32_t index = 0;
-		Vector4Float white(1, 1, 1, 1);
-		Vector4Float value = white;
+		Color white(1, 1, 1, 1);
+		Color value = white;
 		for (uint32_t column = 0; column < m_size; column++) {
 			if (column % 32 == 0) {
 				if (value[checkIndex] == 1)
@@ -673,7 +673,7 @@ namespace VWolf {
 
 		DX12BufferResourceInfo bInfo;
 		bInfo.CreateBufferResourceDescription(true);
-		bInfo.newResourceDescription->Width = sizeof(Vector4Float) * size * size * numberOfSides;
+		bInfo.newResourceDescription->Width = sizeof(Vector4) * size * size * numberOfSides;
 
 		m_textureUpload = CreateRef<DX12BufferResource>(bInfo);
 		auto requiredSize = GetRequiredIntermediateSize(m_texture->GetResource().Get(), 0, numberOfSides);

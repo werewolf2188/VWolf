@@ -60,7 +60,7 @@ namespace VWolf {
 	private:
 		//void PopulateTest(GLuint id, int checkIndex, Vector4Float otherColor);
 		void PopulateTest();
-		void* PopulateTest(int checkIndex, Vector4Float otherColor);
+		void* PopulateTest(int checkIndex, Color otherColor);
 #endif
 		void Initialize(uint32_t size, DXGI_FORMAT format, TextureOptions options = {});
 	private:

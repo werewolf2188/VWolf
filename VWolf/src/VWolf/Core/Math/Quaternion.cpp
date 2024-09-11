@@ -5,6 +5,7 @@
 //  Created by Enrique Ricalde on 8/25/24.
 //
 
+#include "vwpch.h"
 #include "Quaternion.h"
 #include "Matrix4x4.h"
 
