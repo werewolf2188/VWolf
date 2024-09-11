@@ -77,7 +77,7 @@ namespace VWolf {
         virtual void PopulateColor() override;
     private:
 #if defined(DEBUG) || defined(_DEBUG)
-        void PopulateTest(GLuint id, int checkIndex, Vector4Float otherColor);
+        void PopulateTest(GLuint id, int checkIndex, Color otherColor);
         void PopulateTest();
 #endif
     private:

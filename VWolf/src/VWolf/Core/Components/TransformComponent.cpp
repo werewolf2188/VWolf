@@ -10,9 +10,9 @@
 
 namespace VWolf {
     TransformComponent::TransformComponent(): Component("Transform") {
-        position = Vector3Float(0, 0, 0);
-        eulerAngles = Vector3Float(0, 0, 0);
-        localScale = Vector3Float(1, 1, 1);
+        position = Vector3(0, 0, 0);
+        eulerAngles = Vector3(0, 0, 0);
+        localScale = Vector3(1, 1, 1);
     }
 
     TransformComponent::TransformComponent(TransformComponent& transform): Component("Transform") {
@@ -28,9 +28,9 @@ namespace VWolf {
         this->localScale = transform.localScale;
         this->SetGameObject(transform.GetGameObject());
 
-        transform.position = Vector3Float(0, 0, 0);
-        transform.eulerAngles = Vector3Float(0, 0, 0);
-        transform.localScale = Vector3Float(1, 1, 1);
+        transform.position = Vector3(0, 0, 0);
+        transform.eulerAngles = Vector3(0, 0, 0);
+        transform.localScale = Vector3(1, 1, 1);
         transform.SetGameObject(nullptr);
     }
 
@@ -45,11 +45,11 @@ namespace VWolf {
     TransformComponent::~TransformComponent() {}
 
     void TransformComponent::Apply() {
-        matrix = translate(MatrixFloat4x4(1.0f), position);
-        matrix = rotate(matrix, radians(eulerAngles.x), { 1.0f, 0.0f, 0.0f });
-        matrix = rotate(matrix, radians(eulerAngles.y), { 0.0f, 1.0f, 0.0f });
-        matrix = rotate(matrix, radians(eulerAngles.z), { 0.0f, 0.0f, 1.0f });
-        matrix = scale(matrix, localScale);
+        matrix = Matrix4x4::TRS(position,
+                                Quaternion::Euler(radians(eulerAngles.GetX()),
+                                                  radians(eulerAngles.GetY()),
+                                                  radians(eulerAngles.GetZ())),
+                                localScale);
     }
 
     void TransformComponent::OnInspector() {

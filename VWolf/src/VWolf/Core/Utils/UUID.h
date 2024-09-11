@@ -47,9 +47,10 @@ namespace VWolf {
         inline boost::uuids::uuid& GetInternalUUID() { return _uuid; }
         inline const boost::uuids::uuid& GetInternalUUID() const { return _uuid; }
 #endif
+        friend std::ostream& operator<<(std::ostream& os, const UUID& v);
+        friend bool operator==(const UUID& lhs, const UUID& rhs);
+        friend bool operator!=(const UUID& lhs, const UUID& rhs);
     };
 
-    std::ostream& operator<<(std::ostream& os, const UUID& v);
-    bool operator==(const UUID& lhs, const UUID& rhs);
-    bool operator!=(const UUID& lhs, const UUID& rhs);
+
 }

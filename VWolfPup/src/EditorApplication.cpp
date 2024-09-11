@@ -214,7 +214,7 @@ public:
             testScene->DrawPreviewEditor();
         else {
             testScene->DrawEditor(camera);
-            VWolf::Graphics::RenderMesh(gridData, VWolf::MatrixFloat4x4(), *VWolfPup::Defaults::Get()->GetDefaultGridMaterial());
+            VWolf::Graphics::RenderMesh(gridData, VWolf::Matrix4x4(), *VWolfPup::Defaults::Get()->GetDefaultGridMaterial());
         }
     }
 

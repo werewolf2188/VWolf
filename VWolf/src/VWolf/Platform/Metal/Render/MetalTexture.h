@@ -70,7 +70,7 @@ namespace VWolf {
     private:
         //void PopulateTest(GLuint id, int checkIndex, Vector4Float otherColor);
         void PopulateTest();
-        void* PopulateTest(int checkIndex, Vector4Float otherColor);
+        void* PopulateTest(int checkIndex, Color otherColor);
     #endif
         void Initialize(uint32_t size, MTL::PixelFormat format, TextureOptions options = {});
         void CopyData(size_t numBytes);

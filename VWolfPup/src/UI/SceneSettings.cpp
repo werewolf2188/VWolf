@@ -54,8 +54,8 @@ namespace VWolfPup {
             ImGui::PushItemWidth(ImGui::CalcItemWidth());
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
             
-            ImGui::ColorEdit4("##Background Color", VWolf::value_ptr(scene->GetSceneBackground().GetBackgroundColor()), ImGuiColorEditFlags_NoInputs);
-            
+            ImGui::ColorEdit4("##Background Color", &scene->GetSceneBackground().GetBackgroundColor().GetR(), ImGuiColorEditFlags_NoInputs);
+
             ImGui::PopStyleVar();
             ImGui::PopItemWidth();
             ImGui::Columns(1);

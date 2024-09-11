@@ -39,7 +39,7 @@ namespace VWolf {
     }
 
     void SphereColliderComponent::CreateSphereCollider(MeshData& data, TransformComponent& component) {
-        mRadius = std::max(std::max(component.GetLocalScale().x, component.GetLocalScale().y), component.GetLocalScale().z);
+        mRadius = std::max(std::max(component.GetLocalScale().GetX(), component.GetLocalScale().GetY()), component.GetLocalScale().GetZ());
         sphereShape = Physics::GetCommon().createSphereShape(mRadius);
         reactphysics3d::Transform transform = reactphysics3d::Transform::identity();
         reactphysics3d::RigidBody* rigidBody = GetGameObject()->GetRigidBody();
@@ -49,7 +49,7 @@ namespace VWolf {
     }
 
     void SphereColliderComponent::Update(TransformComponent& component) {
-        float currentRadius = std::max(std::max(component.GetLocalScale().x, component.GetLocalScale().y), component.GetLocalScale().z);
+        float currentRadius = std::max(std::max(component.GetLocalScale().GetX(), component.GetLocalScale().GetY()), component.GetLocalScale().GetZ());
         if (sphereShape != nullptr && currentRadius != mRadius) {
             sphereShape->setRadius(currentRadius);
             mRadius = currentRadius;

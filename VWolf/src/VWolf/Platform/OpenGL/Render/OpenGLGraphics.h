@@ -22,8 +22,8 @@ namespace VWolf {
     public:
         void Initialize();
     protected:
-        virtual void DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera = nullptr) override;
-        virtual void RenderMeshImpl(MeshData& mesh, MatrixFloat4x4 transform, Material& material, Ref<Camera> camera = nullptr) override;
+        virtual void DrawMeshImpl(MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera = nullptr) override;
+        virtual void RenderMeshImpl(MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera = nullptr) override;
         virtual void ClearColorImpl(Color color) override;
         virtual void ClearImpl() override;
         // TODO: Not sure about this one

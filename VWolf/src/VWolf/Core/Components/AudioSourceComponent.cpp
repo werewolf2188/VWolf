@@ -56,8 +56,8 @@ namespace VWolf {
         listenerPosition = listener.GetPosition();
         listenerDirection = listener.GetEulerAngles();
 
-        ma_engine_listener_set_position(engine, 1, listener.GetPosition().x, listener.GetPosition().y, listener.GetPosition().z);
-        ma_engine_listener_set_direction(engine, 1, listener.GetEulerAngles().x, listener.GetEulerAngles().y, listener.GetEulerAngles().z);
+        ma_engine_listener_set_position(engine, 1, listener.GetPosition().GetX(), listener.GetPosition().GetY(), listener.GetPosition().GetZ());
+        ma_engine_listener_set_direction(engine, 1, listener.GetEulerAngles().GetX(), listener.GetEulerAngles().GetY(), listener.GetEulerAngles().GetZ());
         ma_engine_listener_set_world_up(engine, 1, 0, 1, 0);
 
         if (sound == nullptr && audioFilePath != "") {
@@ -72,8 +72,8 @@ namespace VWolf {
 
         if (sound) {
             // TODO: Fails after playing twice
-            ma_sound_set_position(sound, sourceTransform.GetPosition().x, sourceTransform.GetPosition().y, sourceTransform.GetPosition().z);
-            ma_sound_set_direction(sound, sourceTransform.GetEulerAngles().x, sourceTransform.GetEulerAngles().y, sourceTransform.GetEulerAngles().z);
+            ma_sound_set_position(sound, sourceTransform.GetPosition().GetX(), sourceTransform.GetPosition().GetY(), sourceTransform.GetPosition().GetZ());
+            ma_sound_set_direction(sound, sourceTransform.GetEulerAngles().GetX(), sourceTransform.GetEulerAngles().GetY(), sourceTransform.GetEulerAngles().GetZ());
             ma_sound_set_looping(sound, mLoop);
             CHECKMAERROR(ma_sound_start(sound));
         }
@@ -81,18 +81,18 @@ namespace VWolf {
 
     void AudioSourceComponent::Update(TransformComponent& listener, TransformComponent& sourceTransform) {
         if (listenerPosition != listener.GetPosition()) {
-            ma_engine_listener_set_position(engine, 1, listener.GetPosition().x, listener.GetPosition().y, listener.GetPosition().z);
+            ma_engine_listener_set_position(engine, 1, listener.GetPosition().GetX(), listener.GetPosition().GetY(), listener.GetPosition().GetZ());
             listenerPosition = listener.GetPosition();
         }
 
         if (listenerDirection != listener.GetEulerAngles()) {
-            ma_engine_listener_set_direction(engine, 1, listener.GetEulerAngles().x, listener.GetEulerAngles().y, listener.GetEulerAngles().z);
+            ma_engine_listener_set_direction(engine, 1, listener.GetEulerAngles().GetX(), listener.GetEulerAngles().GetY(), listener.GetEulerAngles().GetZ());
             listenerDirection = listener.GetEulerAngles();
         }
 
         if (sound) {
-            ma_sound_set_position(sound, sourceTransform.GetPosition().x, sourceTransform.GetPosition().y, sourceTransform.GetPosition().z);
-            ma_sound_set_direction(sound, sourceTransform.GetEulerAngles().x, sourceTransform.GetEulerAngles().y, sourceTransform.GetEulerAngles().z);
+            ma_sound_set_position(sound, sourceTransform.GetPosition().GetX(), sourceTransform.GetPosition().GetY(), sourceTransform.GetPosition().GetZ());
+            ma_sound_set_direction(sound, sourceTransform.GetEulerAngles().GetX(), sourceTransform.GetEulerAngles().GetY(), sourceTransform.GetEulerAngles().GetZ());
         }
     }
 

@@ -47,7 +47,7 @@ namespace VWolf {
         ma_engine* engine = nullptr;
         ma_sound* sound = nullptr;
 
-        Vector3Float listenerPosition, listenerDirection;
+        Vector3 listenerPosition, listenerDirection;
     VWOLF_COMPONENT_INSPECTOR_DEFINE(AudioSourceComponent);
     };
 }

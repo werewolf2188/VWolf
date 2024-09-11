@@ -25,8 +25,8 @@ namespace VWolf {
         MTL::CommandBuffer* GetCommandBuffer() { return commandBuffer; }
         MTL::RenderCommandEncoder* GetRenderCommandEncoder() { return encoder; }
     protected:
-        virtual void DrawMeshImpl(MeshData& mesh, Vector4Float position, Vector4Float rotation, Material& material, Ref<Camera> camera = nullptr) override;
-        virtual void RenderMeshImpl(MeshData& mesh, MatrixFloat4x4 transform, Material& material, Ref<Camera> camera = nullptr) override;
+        virtual void DrawMeshImpl(MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera = nullptr) override;
+        virtual void RenderMeshImpl(MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera = nullptr) override;
         virtual void ClearColorImpl(Color color) override;
         virtual void ClearImpl() override;
         // TODO: Not sure about this one
@@ -42,10 +42,10 @@ namespace VWolf {
         virtual void DrawPostProcess() override;
     private:
         std::vector<Ref<MetalBufferGroup>> bufferGroups;
-        std::vector<MatrixFloat4x4> objectTransforms;
+        std::vector<Matrix4x4> objectTransforms;
 
         std::vector<Ref<MetalBufferGroup>> shadowBufferGroups;
-        std::vector<MatrixFloat4x4> shadowObjectTransforms;
+        std::vector<Matrix4x4> shadowObjectTransforms;
         // MARK: Per frame
         std::vector<Ref<RenderItem>> items;
         NS::AutoreleasePool* pool;
@@ -57,6 +57,6 @@ namespace VWolf {
         int itemsCount = 0;
         // TODO: Plan later
         std::vector<Light> lights;
-        std::vector<MatrixFloat4x4> spaces;
+        std::vector<Matrix4x4> spaces;
     };
 }

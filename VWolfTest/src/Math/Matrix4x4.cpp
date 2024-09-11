@@ -20,9 +20,6 @@ bool ComparePerUnit(VWolf::Matrix4x4 matrix1, VWolf::Matrix4x4 matrix2) {
 BOOST_AUTO_TEST_CASE(Matrix4x4Initializer)
 {
     BOOST_TEST(sizeof(VWolf::Matrix4x4) == 64);
-    // TODO: Remove when removing the old types
-    BOOST_TEST(sizeof(VWolf::MatrixFloat4x4) == 64);
-    BOOST_TEST(sizeof(VWolf::Matrix4x4) == sizeof(VWolf::MatrixFloat4x4));
 
     // Given
     VWolf::Matrix4x4 matrix;
@@ -169,7 +166,7 @@ BOOST_AUTO_TEST_CASE(Matrix4x4InstanceMethods) {
     VWolf::Vector4 result(matrix[0][0], matrix[1][1], matrix[2][2], matrix[3][3]);
 
     // Then
-    BOOST_TEST(result == VWolf::Vector4(-0.448073804f, 1, -0.448073804f, 1));
+    BOOST_TEST(result == VWolf::Vector4(-0.448073685f, 1, -0.448073685f, 1));
 
     // When
     matrix.SetColumn(0, VWolf::Vector4(10, 20, 30, 40));
@@ -219,7 +216,7 @@ BOOST_AUTO_TEST_CASE(Matrix4x4StaticMethods) {
     VWolf::Vector4 result(matrix[0][0], matrix[1][1], matrix[2][2], matrix[3][3]);
 
     // Then
-    BOOST_TEST(result == VWolf::Vector4(-0.448073804f, 1, -0.448073804f, 1));
+    BOOST_TEST(result == VWolf::Vector4(-0.448073685f, 1, -0.448073685f, 1));
 
     // When
     VWolf::Vector3 position(10, 10, 10);

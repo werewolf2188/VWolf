@@ -26,14 +26,13 @@ namespace VWolf {
                   float c2r1, float c2r2, float c2r3, float c2r4,
                   float c3r1, float c3r2, float c3r3, float c3r4,
                   float c4r1, float c4r2, float c4r3, float c4r4);
-#if defined(VWOLF_CORE)
-        Matrix4x4(glm::mat4x4);
-#endif
         Matrix4x4(Vector4 c1, Vector4 c2, Vector4 c3, Vector4 c4);
         Matrix4x4(const Matrix4x4&);
         Matrix4x4(Matrix4x4&);
         Matrix4x4(Matrix4x4&&);
         ~Matrix4x4();
+    private:
+        Matrix4x4(glm::mat4x4);
     public:
         static const Matrix4x4 Identity;
         static const Matrix4x4 Zero;
@@ -43,6 +42,7 @@ namespace VWolf {
         bool operator==(const Matrix4x4& rhs);
         Matrix4x4 operator*(Matrix4x4 rhs);
         Vector4 operator[](int index) const;
+        operator Quaternion();
     public:
         float GetDeterminant() const;
         Matrix4x4 GetInverse() const;
@@ -59,6 +59,7 @@ namespace VWolf {
         void SetColumn(int index, Vector4 column);
         void SetRow(int index, Vector4 row);
         void SetTRS(Vector3 pos, Quaternion q, Vector3 s);
+        float* Unsafe_AddressOf();
     public:
         static Matrix4x4 Frustum(float left, float right, float bottom, float top, float zNear, float zFar);
         static Matrix4x4 LookAt(Vector3 from, Vector3 to, Vector3 up);
@@ -70,14 +71,16 @@ namespace VWolf {
         static Matrix4x4 TRS(Vector3 pos, Quaternion q, Vector3 s);
     private:
         glm::mat4x4 _matrix4x4;
-#if defined(DEBUG) || defined(VWOLF_CORE)
+#if defined(DEBUG)
     public:
         inline glm::mat4x4 GetInternalMatrix() const { return this->_matrix4x4; }
 #endif
-    };
+        friend std::ostream& operator<<(std::ostream& os, const Matrix4x4& q);
+        friend bool operator==(const Matrix4x4& lhs, const Matrix4x4& rhs);
+        friend Matrix4x4 operator*(const Matrix4x4& lhs, Matrix4x4 rhs);
 
-    std::ostream& operator<<(std::ostream& os, const Matrix4x4& q);
-    bool operator==(const Matrix4x4& lhs, const Matrix4x4& rhs);
-    Matrix4x4 operator*(const Matrix4x4& lhs, Matrix4x4 rhs);
+        friend struct Vector3;
+        friend struct Quaternion;
+    };
 }
 

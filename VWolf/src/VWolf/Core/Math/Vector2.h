@@ -20,6 +20,7 @@ namespace VWolf {
         Vector2();
         Vector2(float, float);
         Vector2(Vector2 &);
+        Vector2(const Vector2 &);
         Vector2(Vector2 &&);
         ~Vector2();
     public:
@@ -75,15 +76,17 @@ namespace VWolf {
         glm::vec2 _vector2;
 #if defined(DEBUG)
     public:
-        inline glm::vec2& GetInternalVector() { return this->_vector2; }
+        inline glm::vec2 GetInternalVector() const { return this->_vector2; }
 #endif
-    };
 
-    std::ostream& operator<<(std::ostream& os, const Vector2& v);
-    bool operator==(const Vector2& lhs, const Vector2& rhs);
-    bool operator!=(const Vector2& lhs, const Vector2& rhs);
-    Vector2 operator+(const Vector2& lhs, const Vector2& rhs);
-    Vector2 operator-(const Vector2& lhs, const Vector2& rhs);
-    Vector2 operator*(const Vector2& lhs, float rhs);
-    Vector2 operator/(const Vector2& lhs, float rhs);
+        friend std::ostream& operator<<(std::ostream& os, const Vector2& v);
+        friend bool operator==(const Vector2& lhs, const Vector2& rhs);
+        friend bool operator!=(const Vector2& lhs, const Vector2& rhs);
+        friend Vector2 operator+(const Vector2& lhs, const Vector2& rhs);
+        friend Vector2 operator-(const Vector2& lhs, const Vector2& rhs);
+        friend Vector2 operator*(const Vector2& lhs, float rhs);
+        friend Vector2 operator/(const Vector2& lhs, float rhs);
+        friend Vector2 operator*(float lhs, const Vector2& rhs);
+        friend Vector2 operator/(float lhs, const Vector2& rhs);
+    };
 }

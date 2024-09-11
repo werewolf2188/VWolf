@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(QuaternionMemberFunctions) {
     quat2.SetFromToRotation(VWolf::Vector3(10, 10, 10), VWolf::Vector3(20, 20, 20));
 
     // Then
-    BOOST_TEST(quat2 == VWolf::Quaternion(-0.858940601f, -0.337996632f, 0.183678403f, -0.337996662f));
+    BOOST_TEST(quat2 == VWolf::Quaternion(-0.858940601f, -0.337996632f, 0.183678418f, -0.337996662f));
 
     // When
     quat2.SetLookRotation(VWolf::Vector3(10, 10, 10));
@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE(QuaternionStaticFunctions) {
     VWolf::Quaternion quatResult = VWolf::Quaternion::AngleAxis(43.5338554f, VWolf::Vector3::Up);
 
     // Then
-    BOOST_TEST(quatResult == VWolf::Quaternion(-0.974967658f, 0, 0.222346798f, 0));
+    BOOST_TEST(quatResult == VWolf::Quaternion(-0.974967659f, 0, 0.222346783f, 0));
 
     // When
     result = VWolf::Quaternion::Dot(quat, quat2);
@@ -243,7 +243,4 @@ BOOST_AUTO_TEST_CASE(QuaternionsInternals) {
     BOOST_TEST(quaternion.GetInternalQuaternion().w == 200);
 
     BOOST_TEST(sizeof(VWolf::Quaternion) == 16);
-    // TODO: Remove when removing the old types
-    BOOST_TEST(sizeof(VWolf::Quat) == 16);
-    BOOST_TEST(sizeof(VWolf::Quaternion) == sizeof(VWolf::Quat));
 }

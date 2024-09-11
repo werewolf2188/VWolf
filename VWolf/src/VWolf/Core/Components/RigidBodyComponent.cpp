@@ -54,8 +54,8 @@ namespace VWolf {
     }
 
     void RigidBodyComponent::CreateRigidBody(reactphysics3d::PhysicsWorld* world, TransformComponent& component) {
-        reactphysics3d::Vector3 position(component.GetPosition().x, component.GetPosition().y, component.GetPosition().z);
-        reactphysics3d::Quaternion orientation = reactphysics3d::Quaternion::fromEulerAngles({ radians(component.GetEulerAngles().x), radians(component.GetEulerAngles().y), radians(component.GetEulerAngles().z) });
+        reactphysics3d::Vector3 position(component.GetPosition().GetX(), component.GetPosition().GetY(), component.GetPosition().GetZ());
+        reactphysics3d::Quaternion orientation = reactphysics3d::Quaternion::fromEulerAngles({ radians(component.GetEulerAngles().GetX()), radians(component.GetEulerAngles().GetY()), radians(component.GetEulerAngles().GetZ()) });
         oldTransform = new reactphysics3d::Transform(position, orientation);
         rigidBody = world->createRigidBody(*oldTransform);
         GetGameObject()->SetRigidBody(rigidBody);
@@ -72,8 +72,8 @@ namespace VWolf {
 //        const reactphysics3d::Transform transform = reactphysics3d::Transform::interpolateTransforms(*oldTransform, newTransform, factor);
         const reactphysics3d::Vector3& position = transform.getPosition();
         const reactphysics3d::Quaternion& quaternion = transform.getOrientation();
-        Quat quat(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
-        Vector3Float euler = degrees(eulerAngles(quat));
+        Quaternion quat(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
+        Vector3 euler = quat.EulerAngles().Degrees();
 //        Quat quat(transform.getOrientation().x, transform.getOrientation().y, transform.getOrientation().z, transform.getOrientation().w);
         component.SetPosition({ position.x, position.y, position.z });
 //        component.SetEulerAngles(eulerAngles(quat));

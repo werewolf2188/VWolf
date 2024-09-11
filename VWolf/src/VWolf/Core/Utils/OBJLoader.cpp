@@ -12,19 +12,19 @@
 
 namespace VWolf {
     
-    Vector2Float ConvertToCoreVector2(objl::Vector2 vector) {
-        return Vector2Float( vector.X, vector.Y );
+    Vector2 ConvertToCoreVector2(objl::Vector2 vector) {
+        return Vector2( vector.X, vector.Y );
     }
 
-    Vector3Float ConvertToCoreVector3(objl::Vector3 vector) {
-        return Vector3Float( vector.X, vector.Y, vector.Z );
+    Vector3 ConvertToCoreVector3(objl::Vector3 vector) {
+        return Vector3( vector.X, vector.Y, vector.Z );
     }
 
     Vertex ConvertToCoreVertex(objl::Vertex vertex) {
         return Vertex(ConvertToCoreVector3(vertex.Position),
-            Vector4Float(0, 0, 0, 0),
+            Vector4(0, 0, 0, 0),
             ConvertToCoreVector3(vertex.Normal),
-            Vector3Float( 0, 0, 0 ),
+            Vector3( 0, 0, 0 ),
             ConvertToCoreVector2(vertex.TextureCoordinate));
     }
 

@@ -13,14 +13,18 @@
 namespace VWolf {
     struct Vector2;
     struct Vector3;
+    struct Matrix4x4;
 
     struct Vector4 {
     public:
         Vector4();
         Vector4(float, float, float, float);
         Vector4(Vector4 &);
+        Vector4(const Vector4 &);
         Vector4(Vector4 &&);
         ~Vector4();
+    private:
+        Vector4(glm::vec4);
     public:
         Vector4& operator=(const Vector4& other);
 //        Vector2& operator=(Vector2&& other);
@@ -71,17 +75,20 @@ namespace VWolf {
         void SetW(float value);
     private:
         glm::vec4 _vector4;
-#if defined(DEBUG) || defined(VWOLF_CORE)
+#if defined(DEBUG)
     public:
-        inline glm::vec4& GetInternalVector() { return this->_vector4; }
+        inline glm::vec4 GetInternalVector() const { return this->_vector4; }
 #endif
-    };
+        friend std::ostream& operator<<(std::ostream& os, const Vector4& v);
+        friend bool operator==(const Vector4& lhs, const Vector4& rhs);
+        friend bool operator!=(const Vector4& lhs, const Vector4& rhs);
+        friend Vector4 operator+(const Vector4& lhs, const Vector4& rhs);
+        friend Vector4 operator-(const Vector4& lhs, const Vector4& rhs);
+        friend Vector4 operator*(const Vector4& lhs, float rhs);
+        friend Vector4 operator*(float lhs, const Vector4& rhs);
+        friend Vector4 operator/(const Vector4& lhs, float rhs);
+        friend Vector4 operator/(float lhs, const Vector4& rhs);
 
-    std::ostream& operator<<(std::ostream& os, const Vector4& v);
-    bool operator==(const Vector4& lhs, const Vector4& rhs);
-    bool operator!=(const Vector4& lhs, const Vector4& rhs);
-    Vector4 operator+(const Vector4& lhs, const Vector4& rhs);
-    Vector4 operator-(const Vector4& lhs, const Vector4& rhs);
-    Vector4 operator*(const Vector4& lhs, float rhs);
-    Vector4 operator/(const Vector4& lhs, float rhs);
+        friend struct Matrix4x4;
+    };
 }

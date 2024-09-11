@@ -9,10 +9,13 @@
 #include "Vector3.h"
 #include "Vector2.h"
 #include "Vector4.h"
+#include "Matrix4x4.h"
+#include "Quaternion.h"
 
 #include <glm/gtx/perpendicular.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include <glm/gtx/projection.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 namespace VWolf {
     // MARK: Constants
@@ -40,6 +43,8 @@ namespace VWolf {
     Vector3::Vector3(): _vector3(glm::vec3(0, 0, 0)) {}
 
     Vector3::Vector3(float x, float y, float z): _vector3(glm::vec3(x, y, z)) {}
+
+    Vector3::Vector3(glm::vec3 initializer): _vector3(std::move(initializer)) { }
 
     Vector3::Vector3(Vector3& Vector3): _vector3(glm::vec3(Vector3._vector3.x, Vector3._vector3.y, Vector3._vector3.z)) {}
 
@@ -104,9 +109,14 @@ namespace VWolf {
         return Vector3(vec.x, vec.y, vec.z);
     }
 
+    Vector3& Vector3::operator+=(const Vector3& rhs) {
+        this->_vector3 += rhs._vector3;
+        return *this;
+    }
+
     Vector3 operator+(const Vector3& lhs, const Vector3& rhs) {
-        Vector3 result = lhs + rhs;
-        return result;
+        glm::vec3 vec = lhs._vector3 + rhs._vector3;
+        return Vector3(vec.x, vec.y, vec.z);
     }
 
     Vector3 Vector3::operator-(const Vector3& rhs) {
@@ -114,9 +124,14 @@ namespace VWolf {
         return Vector3(vec.x, vec.y, vec.z);
     }
 
+    Vector3 Vector3::operator-() {
+        glm::vec3 vec = -this->_vector3;
+        return Vector3(vec.x, vec.y, vec.z);
+    }
+
     Vector3 operator-(const Vector3& lhs, const Vector3& rhs) {
-        Vector3 result = lhs - rhs;
-        return result;
+        glm::vec3 vec = lhs._vector3 - rhs._vector3;
+        return Vector3(vec.x, vec.y, vec.z);
     }
 
     Vector3 Vector3::operator*(float rhs) {
@@ -125,8 +140,13 @@ namespace VWolf {
     }
 
     Vector3 operator*(const Vector3& lhs, float rhs) {
-        Vector3 result = lhs * rhs;
-        return result;
+        glm::vec3 vec = lhs._vector3 * rhs;
+        return Vector3(vec.x, vec.y, vec.z);
+    }
+
+    Vector3 operator*(float lhs, const Vector3& rhs) {
+        glm::vec3 vec = lhs * rhs._vector3;
+        return Vector3(vec.x, vec.y, vec.z);
     }
 
     Vector3 Vector3::operator/(float rhs) {
@@ -135,8 +155,13 @@ namespace VWolf {
     }
 
     Vector3 operator/(const Vector3& lhs, float rhs) {
-        Vector3 result = lhs / rhs;
-        return result;
+        glm::vec3 vec = lhs._vector3 / rhs;
+        return Vector3(vec.x, vec.y, vec.z);
+    }
+
+    Vector3 operator/(float lhs, const Vector3&  rhs) {
+        glm::vec3 vec = lhs / rhs._vector3;
+        return Vector3(vec.x, vec.y, vec.z);
     }
 
     float Vector3::operator[](int index) {
@@ -187,6 +212,16 @@ namespace VWolf {
 
     float Vector3::SqrMagnitude() const {
         return glm::sqrt(Magnitude());
+    }
+
+    Vector3 Vector3::Degrees() const {
+        glm::vec3 normal = glm::degrees(_vector3);
+        return Vector3(normal.x, normal.y, normal.z);
+    }
+
+    Matrix4x4 Vector3::Orientate() const {
+        glm::mat4x4 orientation = glm::orientate4(_vector3);
+        return Matrix4x4(orientation);
     }
 
     // MARK: Static Functions

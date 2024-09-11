@@ -11,27 +11,35 @@
 #include "VMath.h"
 
 namespace VWolf {
-    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector2Float& v)
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Color& v)
     {
         out << YAML::Flow;
-        out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
-        
+        out << YAML::BeginSeq << v.GetR() << v.GetG() << v.GetB() << v.GetA() << YAML::EndSeq;
+
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector3Float& v)
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector2& v)
     {
         out << YAML::Flow;
-        out << YAML::BeginSeq << v.x << v.y << v.z << YAML::EndSeq;
-        
+        out << YAML::BeginSeq << v.GetX() << v.GetY() << YAML::EndSeq;
+
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector4Float& v)
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector3& v)
     {
         out << YAML::Flow;
-        out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
-        
+        out << YAML::BeginSeq << v.GetX() << v.GetY() << v.GetZ() << YAML::EndSeq;
+
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector4& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq << v.GetX() << v.GetY() << v.GetZ()  << v.GetZ() << YAML::EndSeq;
+
         return out;
     }
 }

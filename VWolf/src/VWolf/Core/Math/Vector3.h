@@ -13,6 +13,8 @@
 namespace VWolf {
     struct Vector2;
     struct Vector4;
+    struct Matrix4x4;
+    struct Quaternion;
 
     struct Vector3 {
     public:
@@ -22,6 +24,8 @@ namespace VWolf {
         Vector3(const Vector3 &);
         Vector3(Vector3 &&);
         ~Vector3();
+    private:
+        Vector3(glm::vec3);
     public:
         Vector3& operator=(const Vector3& other);
 //        Vector2& operator=(Vector2&& other);
@@ -40,7 +44,9 @@ namespace VWolf {
         bool operator==(const Vector3& rhs);
         bool operator!=(const Vector3& rhs);
         Vector3 operator+(const Vector3& rhs);
+        Vector3& operator+=(const Vector3& rhs);
         Vector3 operator-(const Vector3& rhs);
+        Vector3 operator-();
         Vector3 operator*(float rhs);
         Vector3 operator/(float rhs);
         float operator[](int index);
@@ -51,6 +57,8 @@ namespace VWolf {
         void Normalize();
         float Magnitude() const;
         float SqrMagnitude() const;
+        Vector3 Degrees() const;
+        Matrix4x4 Orientate() const;
     public:
         static float Angle(Vector3 from, Vector3 to);
         static Vector3 ClampMagnitude(Vector3 vector, float maxLength);
@@ -83,17 +91,21 @@ namespace VWolf {
         void SetZ(float value);
     private:
         glm::vec3 _vector3;
-#if defined(DEBUG) || defined(VWOLF_CORE)
+#if defined(DEBUG)
     public:
-        inline glm::vec3& GetInternalVector() { return this->_vector3; }
+        inline glm::vec3 GetInternalVector() const { return this->_vector3; }
 #endif
-    };
+        friend std::ostream& operator<<(std::ostream& os, const Vector3& v);
+        friend bool operator==(const Vector3& lhs, const Vector3& rhs);
+        friend bool operator!=(const Vector3& lhs, const Vector3& rhs);
+        friend Vector3 operator+(const Vector3& lhs, const Vector3& rhs);
+        friend Vector3 operator-(const Vector3& lhs, const Vector3& rhs);
+        friend Vector3 operator*(const Vector3& lhs, float rhs);
+        friend Vector3 operator*(float lhs, const Vector3& rhs);
+        friend Vector3 operator/(const Vector3& lhs, float rhs);
+        friend Vector3 operator/(float lhs, const Vector3& rhs);
 
-    std::ostream& operator<<(std::ostream& os, const Vector3& v);
-    bool operator==(const Vector3& lhs, const Vector3& rhs);
-    bool operator!=(const Vector3& lhs, const Vector3& rhs);
-    Vector3 operator+(const Vector3& lhs, const Vector3& rhs);
-    Vector3 operator-(const Vector3& lhs, const Vector3& rhs);
-    Vector3 operator*(const Vector3& lhs, float rhs);
-    Vector3 operator/(const Vector3& lhs, float rhs);
+        friend struct Quaternion;
+        friend struct Matrix4x4;
+    };
 }

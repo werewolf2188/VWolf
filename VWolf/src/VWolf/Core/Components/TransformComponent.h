@@ -19,15 +19,15 @@ namespace VWolf {
         TransformComponent(TransformComponent&& transform);
         ~TransformComponent();
     public:
-        Vector3Float& GetPosition() { return position; }
-        void SetPosition(Vector3Float position) { this->position = position; }
+        Vector3& GetPosition() { return position; }
+        void SetPosition(Vector3 position) { this->position = position; }
         // TODO: Pass this to quaternion
-        Vector3Float& GetEulerAngles() { return eulerAngles; }
-        void SetEulerAngles(Vector3Float eulerAngles) { this->eulerAngles = eulerAngles; }
-        Vector3Float& GetLocalScale() { return localScale; }
-        void SetLocalScale(Vector3Float localScale) { this->localScale = localScale; }
+        Vector3& GetEulerAngles() { return eulerAngles; }
+        void SetEulerAngles(Vector3 eulerAngles) { this->eulerAngles = eulerAngles; }
+        Vector3& GetLocalScale() { return localScale; }
+        void SetLocalScale(Vector3 localScale) { this->localScale = localScale; }
 
-        MatrixFloat4x4& GetWorldMatrix() {
+        Matrix4x4& GetWorldMatrix() {
             return matrix;
         }
 
@@ -38,10 +38,10 @@ namespace VWolf {
     public:
         TransformComponent& operator=(TransformComponent t);
     private:
-        Vector3Float position;
-        Vector3Float eulerAngles;
-        Vector3Float localScale;
-        MatrixFloat4x4 matrix;
+        Vector3 position;
+        Vector3 eulerAngles;
+        Vector3 localScale;
+        Matrix4x4 matrix;
     VWOLF_COMPONENT_INSPECTOR_DEFINE(TransformComponent);
     };
 }

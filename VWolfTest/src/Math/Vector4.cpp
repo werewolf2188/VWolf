@@ -260,9 +260,6 @@ BOOST_AUTO_TEST_CASE(Vector4Internals) {
     BOOST_TEST(vector.GetInternalVector().w == 200);
 
     BOOST_TEST(sizeof(VWolf::Vector4) == 16);
-    // TODO: Remove when removing the old types
-    BOOST_TEST(sizeof(VWolf::Vector4Float) == 16);
-    BOOST_TEST(sizeof(VWolf::Vector4) == sizeof(VWolf::Vector4Float));
 }
 
 BOOST_AUTO_TEST_CASE(Vector4Conversion) {

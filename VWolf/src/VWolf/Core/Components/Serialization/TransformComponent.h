@@ -26,9 +26,9 @@ namespace YAML {
             if (!node.IsMap())
                 return false;
             
-            rhs.SetPosition(node[transformKeys[TransformConstantKeys::Position]].as<VWolf::Vector3Float>());
-            rhs.SetEulerAngles(node[transformKeys[TransformConstantKeys::Rotation]].as<VWolf::Vector3Float>());
-            rhs.SetLocalScale(node[transformKeys[TransformConstantKeys::Scale]].as<VWolf::Vector3Float>());
+            rhs.SetPosition(node[transformKeys[TransformConstantKeys::Position]].as<VWolf::Vector3>());
+            rhs.SetEulerAngles(node[transformKeys[TransformConstantKeys::Rotation]].as<VWolf::Vector3>());
+            rhs.SetLocalScale(node[transformKeys[TransformConstantKeys::Scale]].as<VWolf::Vector3>());
             return true;
         }
     };

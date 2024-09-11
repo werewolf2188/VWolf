@@ -31,8 +31,8 @@ namespace VWolf {
         SceneBackground(SceneBackground&& scene) = default;
         ~SceneBackground();
     public:
-        Vector4Float& GetBackgroundColor() { return backgroundColor; }
-        void SetBackgroundColor(Vector4Float backgroundColor) { this->backgroundColor = backgroundColor; }
+        Color& GetBackgroundColor() { return backgroundColor; }
+        void SetBackgroundColor(Color backgroundColor) { this->backgroundColor = backgroundColor; }
         void SetSkyboxMaterial(Material& material) { this->materialSkybox = &material; }
         MeshData& GetSkyboxMeshData() { return skybox; }
         Material& GetSkyboxMaterial() { return *this->materialSkybox; }
@@ -44,7 +44,7 @@ namespace VWolf {
         SceneBackground& operator=(SceneBackground& t);
         SceneBackground& operator=(SceneBackground&& t);
     private:
-        Vector4Float backgroundColor;
+        Color backgroundColor;
         Type type = Type::Color;
         MeshData skybox;
         Material* materialSkybox;

@@ -118,19 +118,19 @@ namespace VWolf {
     // Vertex structure (intercalated)
     struct Vertex {
         Vertex() {
-            position = Vector3Float(0, 0, 0);
-            color = Vector4Float(0, 0, 0, 1);
-            normal = Vector3Float(0, 0, 0);
-            tangent = Vector3Float(0, 0, 0);
-            texCoord = Vector2Float(0, 0);
+            position = Vector3(0, 0, 0);
+            color = Vector4(0, 0, 0, 1);
+            normal = Vector3(0, 0, 0);
+            tangent = Vector3(0, 0, 0);
+            texCoord = Vector2(0, 0);
         }
 
         Vertex(float x, float y, float z, float r, float g, float b, float a) {
-            position = Vector3Float(x, y, z);
-            color = Vector4Float(r, g, b, a);
-            normal = Vector3Float(0, 0, 0);
-            tangent = Vector3Float(0, 0, 0);
-            texCoord = Vector2Float(0, 0);
+            position = Vector3(x, y, z);
+            color = Vector4(r, g, b, a);
+            normal = Vector3(0, 0, 0);
+            tangent = Vector3(0, 0, 0);
+            texCoord = Vector2(0, 0);
         }
 
         Vertex(float x, float y, float z,
@@ -138,22 +138,22 @@ namespace VWolf {
                float nx, float ny, float nz,
                float tnx, float tny, float tnz,
                float tx, float ty) {
-            position = Vector3Float(x, y, z);
-            color = Vector4Float(r, g, b, a);
-            normal = Vector3Float(nx, ny, nz);
-            tangent = Vector3Float(tnx, tny, tnz);
-            texCoord = Vector2Float(tx, ty);
+            position = Vector3(x, y, z);
+            color = Vector4(r, g, b, a);
+            normal = Vector3(nx, ny, nz);
+            tangent = Vector3(tnx, tny, tnz);
+            texCoord = Vector2(tx, ty);
         }
 
-        Vertex(Vector3Float pos, Vector4Float col) {
+        Vertex(Vector3 pos, Vector4 col) {
             position = pos;
             color = col;
-            normal = Vector3Float(0, 0, 0);
-            tangent = Vector3Float(0, 0, 0);
-            texCoord = Vector2Float(0, 0);
+            normal = Vector3(0, 0, 0);
+            tangent = Vector3(0, 0, 0);
+            texCoord = Vector2(0, 0);
         }
 
-        Vertex(Vector3Float pos, Vector4Float col, Vector3Float norm, Vector3Float tan, Vector2Float tex) {
+        Vertex(Vector3 pos, Vector4 col, Vector3 norm, Vector3 tan, Vector2 tex) {
             position = pos;
             color = col;
             normal = norm;
@@ -161,29 +161,29 @@ namespace VWolf {
             texCoord = tex;
         }
 
-        Vector3Float position;
-        Vector4Float color;
-        Vector3Float normal;
-        Vector3Float tangent;
-        Vector2Float texCoord;
+        Vector3 position;
+        Vector4 color;
+        Vector3 normal;
+        Vector3 tangent;
+        Vector2 texCoord;
 
         inline std::vector<float> Transform() {
             std::vector<float> values;
-            values.push_back(position.x);
-            values.push_back(position.y);
-            values.push_back(position.z);
-            values.push_back(color.r);
-            values.push_back(color.g);
-            values.push_back(color.b);
-            values.push_back(color.a);
-            values.push_back(normal.x);
-            values.push_back(normal.y);
-            values.push_back(normal.z);
-            values.push_back(tangent.x);
-            values.push_back(tangent.y);
-            values.push_back(tangent.z);
-            values.push_back(texCoord.x);
-            values.push_back(texCoord.y);
+            values.push_back(position.GetX());
+            values.push_back(position.GetY());
+            values.push_back(position.GetZ());
+            values.push_back(color.GetX());
+            values.push_back(color.GetY());
+            values.push_back(color.GetZ());
+            values.push_back(color.GetW());
+            values.push_back(normal.GetX());
+            values.push_back(normal.GetY());
+            values.push_back(normal.GetZ());
+            values.push_back(tangent.GetX());
+            values.push_back(tangent.GetY());
+            values.push_back(tangent.GetZ());
+            values.push_back(texCoord.GetX());
+            values.push_back(texCoord.GetY());
             
             return values;
         }
@@ -228,16 +228,16 @@ namespace VWolf {
         /* TODO: I don't know what this value does
              float cbPerObjectPad1;
          */
-        MatrixFloat4x4 view;
-        MatrixFloat4x4 invView;
-        MatrixFloat4x4 proj;
-        MatrixFloat4x4 invProj;
-        MatrixFloat4x4 viewProjection;
-        MatrixFloat4x4 invViewProjection;
-        Vector3Float eyePosition;
+        Matrix4x4 view;
+        Matrix4x4 invView;
+        Matrix4x4 proj;
+        Matrix4x4 invProj;
+        Matrix4x4 viewProjection;
+        Matrix4x4 invViewProjection;
+        Vector3 eyePosition;
         float padding;
-        Vector2Float renderTargetSize;
-        Vector2Float invRenderTargetSize;
+        Vector2 renderTargetSize;
+        Vector2 invRenderTargetSize;
         float nearZ;
         float farZ;
         float totalTime;
@@ -254,10 +254,10 @@ namespace VWolf {
             Point = 3
         };
         
-        Vector4Float color;
-        Vector4Float position;
-        Vector4Float direction;
-        Vector4Float strength;
+        Vector4 color;
+        Vector4 position;
+        Vector4 direction;
+        Vector4 strength;
         float cutOff;
         float exponent;
         LightType type = LightType::Directional;
@@ -266,15 +266,15 @@ namespace VWolf {
         float padding; // Needed for OPENGL
 
     public:
-        MatrixFloat4x4 GetLightSpaceMatrix() {
-            Vector3Float rotation(direction.x, direction.y, direction.z);
-            Vector3Float eye(position.x, position.y, position.z);
-            Quat q = toQuat(orientate4(rotation));
-            Vector3Float up = rotate(q, { 0.0f, 1.0f, 0.0f });
-            Vector3Float center = rotate(q, { 0.0f, 0.0f, -1.0f });
-            MatrixFloat4x4 lightView = lookAt(eye, center, up);
+        Matrix4x4 GetLightSpaceMatrix() {
+            Vector3 rotation(direction.GetX(), direction.GetY(), direction.GetZ());
+            Vector3 eye(position.GetX(), position.GetY(), position.GetZ());
+            Quaternion q = static_cast<Quaternion>(rotation.Orientate());
+            Vector3 up(q.GetOrientation({ 0.0f, 1.0f, 0.0f }));
+            Vector3 center(q.GetOrientation({ 0.0f, 0.0f, -1.0f }));
+            Matrix4x4 lightView = Matrix4x4::LookAt(eye, center, up);
             float near_plane = 1.0f, far_plane = 100.0f;
-            MatrixFloat4x4 lightProjection = ortho(-30.0f, 30.0f, -30.0f, 30.0f, near_plane, far_plane);
+            Matrix4x4 lightProjection = Matrix4x4::Ortho(-30.0f, 30.0f, -30.0f, 30.0f, near_plane, far_plane);
 
             /*
             float near_plane = 1, far_plane = 25.0f;

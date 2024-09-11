@@ -139,36 +139,36 @@ namespace VWolf {
         float thetaStep = 2.0f * M_PI/ sliceCount;
 
         // Compute vertices for each stack ring (do not count the poles as rings).
-        for(uint32 i = 1; i <= stackCount-1; ++i)
+        for(uint32_t i = 1; i <= stackCount-1; ++i)
         {
             float phi = i * phiStep;
 
             // Vertices of ring.
-            for(uint32 j = 0; j <= sliceCount; ++j)
+            for(uint32_t j = 0; j <= sliceCount; ++j)
             {
                 float theta = j * thetaStep;
 
                 Vertex v;
 
                 // spherical to cartesian
-                v.position.x = radius * sinf(phi) * cosf(theta);
-                v.position.y = radius * cosf(phi);
-                v.position.z = radius * sinf(phi) * sinf(theta);
-                
-                Vector3Float pos = v.position;
-                v.color = normalize(Vector4Float(pos.x, pos.y, pos.z, 1.0f));
+                v.position.SetX(radius * sinf(phi) * cosf(theta));
+                v.position.SetY(radius * cosf(phi));
+                v.position.SetZ(radius * sinf(phi) * sinf(theta));
+
+                Vector3 pos = v.position;
+                v.color = Vector4(pos.GetX(), pos.GetY(), pos.GetZ(), 1.0f).Normalized();
 
                 // Partial derivative of P with respect to theta
-                v.tangent.x = -radius * sinf(phi) * sinf(theta);
-                v.tangent.y = 0.0f;
-                v.tangent.z = +radius * sinf(phi) * cosf(theta);
+                v.tangent.SetX(-radius * sinf(phi) * sinf(theta));
+                v.tangent.SetY(0.0f);
+                v.tangent.SetZ(+radius * sinf(phi) * cosf(theta));
 
-                v.tangent = normalize(v.tangent);
+                v.tangent = v.tangent.Normalized();
 
-                v.normal = normalize(v.position);
+                v.normal = v.position.Normalized();
 
-                v.texCoord.x = theta / (M_PI * 2);
-                v.texCoord.y = phi / M_PI;
+                v.texCoord.SetX(theta / (M_PI * 2));
+                v.texCoord.SetY(phi / M_PI);
 
                 meshData.vertices.push_back( v );
             }
@@ -235,24 +235,24 @@ namespace VWolf {
         MeshData meshData;
         meshData.SetName("Geosphere");
         // Put a cap on the number of subdivisions.
-        numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
+        numSubdivisions = std::min<uint32_t>(numSubdivisions, 6u);
 
         // Approximate a sphere by tessellating an icosahedron.
 
         const float X = 0.525731f;
         const float Z = 0.850651f;
 
-        Vector3Float pos[12] =
+        Vector3 pos[12] =
         {
-            Vector3Float(-X, 0.0f, Z),  Vector3Float(X, 0.0f, Z),
-            Vector3Float(-X, 0.0f, -Z), Vector3Float(X, 0.0f, -Z),
-            Vector3Float(0.0f, Z, X),   Vector3Float(0.0f, Z, -X),
-            Vector3Float(0.0f, -Z, X),  Vector3Float(0.0f, -Z, -X),
-            Vector3Float(Z, X, 0.0f),   Vector3Float(-Z, X, 0.0f),
-            Vector3Float(Z, -X, 0.0f),  Vector3Float(-Z, -X, 0.0f)
+            Vector3(-X, 0.0f, Z),  Vector3(X, 0.0f, Z),
+            Vector3(-X, 0.0f, -Z), Vector3(X, 0.0f, -Z),
+            Vector3(0.0f, Z, X),   Vector3(0.0f, Z, -X),
+            Vector3(0.0f, -Z, X),  Vector3(0.0f, -Z, -X),
+            Vector3(Z, X, 0.0f),   Vector3(-Z, X, 0.0f),
+            Vector3(Z, -X, 0.0f),  Vector3(-Z, -X, 0.0f)
         };
 
-        uint32 k[60] =
+        uint32_t k[60] =
         {
             0,4,1,  0,9,4,  9,5,4,  4,5,8,  4,8,1,
             8,10,1, 8,3,10, 5,3,8,  5,2,3,  2,7,3,
@@ -263,48 +263,48 @@ namespace VWolf {
         meshData.vertices.resize(12);
         meshData.indices.assign(&k[0], &k[60]);
 
-        for(uint32 i = 0; i < 12; ++i)
+        for(uint32_t i = 0; i < 12; ++i)
             meshData.vertices[i].position = pos[i];
 
-        for(uint32 i = 0; i < numSubdivisions; ++i)
+        for(uint32_t i = 0; i < numSubdivisions; ++i)
             Subdivide(meshData);
 
         // Project vertices onto sphere and scale.
-        for(uint32 i = 0; i < meshData.vertices.size(); ++i)
+        for(uint32_t i = 0; i < meshData.vertices.size(); ++i)
         {
             // Project onto unit sphere.
-            Vector3Float n = normalize(meshData.vertices[i].position);
+            Vector3 n = meshData.vertices[i].position.Normalized();
 
             // Project onto sphere.
-            Vector3Float p = radius * n;
+            Vector3 p = radius * n;
 
             meshData.vertices[i].position = p;
-            meshData.vertices[i].color = normalize(Vector4Float(p.x, p.y, p.z, 1.0f));
+            meshData.vertices[i].color = Vector4(p.GetX(), p.GetY(), p.GetZ(), 1.0f).Normalized();
             meshData.vertices[i].normal = n;
 
-            float theta = atan2f(meshData.vertices[i].position.z, meshData.vertices[i].position.x);
+            float theta = atan2f(meshData.vertices[i].position.GetZ(), meshData.vertices[i].position.GetX());
 
             // Put in [0, 2pi].
             if(theta < 0.0f)
                 theta += (M_PI * 2);
 
-            float phi = acosf(meshData.vertices[i].position.y / radius);
+            float phi = acosf(meshData.vertices[i].position.GetY() / radius);
 
-            meshData.vertices[i].texCoord.x = theta / (M_PI * 2);
-            meshData.vertices[i].texCoord.y = phi / M_PI;
+            meshData.vertices[i].texCoord.GetX() = theta / (M_PI * 2);
+            meshData.vertices[i].texCoord.GetY() = phi / M_PI;
 
             // Partial derivative of P with respect to theta
-            meshData.vertices[i].tangent.x = -radius * sinf(phi) * sinf(theta);
-            meshData.vertices[i].tangent.y = 0.0f;
-            meshData.vertices[i].tangent.z = +radius * sinf(phi) * cosf(theta);
-            
-            meshData.vertices[i].tangent = normalize(meshData.vertices[i].tangent);
+            meshData.vertices[i].tangent.SetX(-radius * sinf(phi) * sinf(theta));
+            meshData.vertices[i].tangent.SetY(0.0f);
+            meshData.vertices[i].tangent.SetZ(+radius * sinf(phi) * cosf(theta));
+
+            meshData.vertices[i].tangent = meshData.vertices[i].tangent.Normalized();
         }
 
         return meshData;
     }
 
-    MeshData ShapeHelper::CreateCylinder(float bottomRadius, float topRadius, float height, uint32 sliceCount, uint32 stackCount) {
+    MeshData ShapeHelper::CreateCylinder(float bottomRadius, float topRadius, float height, uint32_t sliceCount, uint32_t stackCount) {
         MeshData meshData;
         meshData.SetName("Cylinder");
         //
@@ -333,19 +333,19 @@ namespace VWolf {
                 float c = cosf(j * dTheta);
                 float s = sinf(j * dTheta);
 
-                vertex.position = Vector3Float(r * c, y, r * s);
-                vertex.color = normalize(Vector4Float(vertex.position.x, vertex.position.y, vertex.position.z, 1.0f));
-                vertex.texCoord.x = (float)j / sliceCount;
-                vertex.texCoord.y = 1.0f - (float)i / stackCount;
+                vertex.position = Vector3(r * c, y, r * s);
+                vertex.color = Vector4(vertex.position.GetX(), vertex.position.GetY(), vertex.position.GetZ(), 1.0f).Normalized();
+                vertex.texCoord.SetX((float)j / sliceCount);
+                vertex.texCoord.SetY(1.0f - (float)i / stackCount);
 
-                vertex.tangent = Vector3Float(-s, 0.0f, c);
+                vertex.tangent = Vector3(-s, 0.0f, c);
 
                 float dr = bottomRadius - topRadius;
-                Vector3Float bitangent(dr * c, -height, dr * s);
+                Vector3 bitangent(dr * c, -height, dr * s);
 
-                Vector3Float T = vertex.tangent;
-                Vector3Float B(bitangent);
-                Vector3Float N = normalize(cross(T, B));
+                Vector3 T = vertex.tangent;
+                Vector3 B(bitangent);
+                Vector3 N = Vector3::Cross(T, B).Normalized();
                 vertex.normal = N;
 
                 meshData.vertices.push_back(vertex);
@@ -397,21 +397,21 @@ namespace VWolf {
         float dv = 1.0f / (m-1);
 
         meshData.vertices.resize(vertexCount);
-        for(uint32 i = 0; i < m; ++i)
+        for(uint32_t i = 0; i < m; ++i)
         {
             float z = halfDepth - i*dz;
-            for(uint32 j = 0; j < n; ++j)
+            for(uint32_t j = 0; j < n; ++j)
             {
                 float x = -halfWidth + j*dx;
 
-                meshData.vertices[i * n + j].position = Vector3Float(x, 0.0f, z);
-                meshData.vertices[i * n + j].color = Vector4Float(x, 0.0f, z, 1.0f);
-                meshData.vertices[i * n + j].normal = Vector3Float(0.0f, 1.0f, 0.0f);
-                meshData.vertices[i * n + j].tangent = Vector3Float(1.0f, 0.0f, 0.0f);
+                meshData.vertices[i * n + j].position = Vector3(x, 0.0f, z);
+                meshData.vertices[i * n + j].color = Vector4(x, 0.0f, z, 1.0f);
+                meshData.vertices[i * n + j].normal = Vector3(0.0f, 1.0f, 0.0f);
+                meshData.vertices[i * n + j].tangent = Vector3(1.0f, 0.0f, 0.0f);
 
                 // Stretch texture over grid.
-                meshData.vertices[i * n + j].texCoord.x = j * du;
-                meshData.vertices[i * n + j].texCoord.y = i * dv;
+                meshData.vertices[i * n + j].texCoord.SetX(j * du);
+                meshData.vertices[i * n + j].texCoord.SetY(i * dv);
             }
         }
      
@@ -423,10 +423,10 @@ namespace VWolf {
 
         // Iterate over each quad and compute indices.
         // TODO: Indices have to work for culling face back
-        uint32 k = 0;
-        for(uint32 i = 0; i < m - 1; ++i)
+        uint32_t k = 0;
+        for(uint32_t i = 0; i < m - 1; ++i)
         {
-            for(uint32 j = 0; j < n - 1; ++j)
+            for(uint32_t j = 0; j < n - 1; ++j)
             {
                 meshData.indices[k] = (i + 1) * n + j;
                 meshData.indices[k + 1] = i * n + j + 1;
@@ -548,8 +548,8 @@ namespace VWolf {
         // *-----*-----*
         // v0    m2     v2
 
-        uint32 numTris = (uint32)inputCopy.indices.size()/3;
-        for(uint32 i = 0; i < numTris; ++i)
+        uint32_t numTris = (uint32_t)inputCopy.indices.size()/3;
+        for(uint32_t i = 0; i < numTris; ++i)
         {
             Vertex v0 = inputCopy.vertices[ inputCopy.indices[i * 3 + 0] ];
             Vertex v1 = inputCopy.vertices[ inputCopy.indices[i * 3 + 1] ];
@@ -593,11 +593,11 @@ namespace VWolf {
     }
 
     Vertex ShapeHelper::MidPoint(const Vertex& v0, const Vertex& v1) {
-        Vector3Float pos = 0.5f * (v0.position + v1.position);
-        Vector4Float color = 0.5f * (v0.color + v1.color);
-        Vector3Float normal = normalize(0.5f * (v0.normal + v1.normal));
-        Vector3Float tangent = normalize(0.5f * (v0.tangent + v1.tangent));
-        Vector2Float texCoord = 0.5f * (v0.texCoord + v1.texCoord);
+        Vector3 pos = 0.5f * (v0.position + v1.position);
+        Vector4 color = 0.5f * (v0.color + v1.color);
+        Vector3 normal = (0.5f * (v0.normal + v1.normal)).Normalized();
+        Vector3 tangent = (0.5f * (v0.tangent + v1.tangent)).Normalized();
+        Vector2 texCoord = 0.5f * (v0.texCoord + v1.texCoord);
         return Vertex(pos, color, normal, tangent, texCoord);
     }
 

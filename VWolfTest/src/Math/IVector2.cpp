@@ -232,7 +232,4 @@ BOOST_AUTO_TEST_CASE(IVector2Internals) {
     BOOST_TEST(vector.GetInternalVector().y == 30);
 
     BOOST_TEST(sizeof(VWolf::IVector2) == 8);
-    // TODO: Remove when removing the old types
-    BOOST_TEST(sizeof(VWolf::Vector2Int) == 8);
-    BOOST_TEST(sizeof(VWolf::IVector2) == sizeof(VWolf::Vector2Int));
 }

@@ -242,8 +242,5 @@ BOOST_AUTO_TEST_CASE(IVector3Internals) {
     BOOST_TEST(vector.GetInternalVector().z == 84);
 
     BOOST_TEST(sizeof(VWolf::IVector3) == 12);
-    // TODO: Remove when removing the old types
-    BOOST_TEST(sizeof(VWolf::Vector3Int) == 12);
-    BOOST_TEST(sizeof(VWolf::IVector3) == sizeof(VWolf::Vector3Int));
 }
 

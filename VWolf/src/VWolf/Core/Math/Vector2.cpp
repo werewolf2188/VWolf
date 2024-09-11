@@ -38,6 +38,8 @@ namespace VWolf {
 
     Vector2::Vector2(Vector2& vector2): _vector2(glm::vec2(vector2._vector2.x, vector2._vector2.y)) {}
 
+    Vector2::Vector2(const Vector2& vector2): _vector2(glm::vec2(vector2._vector2.x, vector2._vector2.y)) {}
+
     Vector2::Vector2(Vector2&& vector2): _vector2(std::move(vector2._vector2)) {
         vector2._vector2.x = 0;
         vector2._vector2.y = 0;
@@ -94,8 +96,8 @@ namespace VWolf {
     }
 
     Vector2 operator+(const Vector2& lhs, const Vector2& rhs) {
-        Vector2 result = lhs + rhs;
-        return result;
+        glm::vec2 vec = lhs._vector2 + rhs._vector2;
+        return Vector2(vec.x, vec.y);
     }
 
     Vector2 Vector2::operator-(const Vector2& rhs) {
@@ -104,8 +106,8 @@ namespace VWolf {
     }
 
     Vector2 operator-(const Vector2& lhs, const Vector2& rhs) {
-        Vector2 result = lhs - rhs;
-        return result;
+        glm::vec2 vec = lhs._vector2 - rhs._vector2;
+        return Vector2(vec.x, vec.y);
     }
 
     Vector2 Vector2::operator*(float rhs) {
@@ -114,8 +116,13 @@ namespace VWolf {
     }
 
     Vector2 operator*(const Vector2& lhs, float rhs) {
-        Vector2 result = lhs * rhs;
-        return result;
+        glm::vec2 vec = lhs._vector2 * rhs;
+        return Vector2(vec.x, vec.y);
+    }
+
+    Vector2 operator*(float lhs, const Vector2& rhs) {
+        glm::vec2 vec = lhs * rhs._vector2;
+        return Vector2(vec.x, vec.y);
     }
 
     Vector2 Vector2::operator/(float rhs) {
@@ -124,8 +131,13 @@ namespace VWolf {
     }
 
     Vector2 operator/(const Vector2& lhs, float rhs) {
-        Vector2 result = lhs / rhs;
-        return result;
+        glm::vec2 vec = lhs._vector2 / rhs;
+        return Vector2(vec.x, vec.y);
+    }
+
+    Vector2 operator/(float lhs, const Vector2& rhs) {
+        glm::vec2 vec = lhs / rhs._vector2;
+        return Vector2(vec.x, vec.y);
     }
 
     float Vector2::operator[](int index) {

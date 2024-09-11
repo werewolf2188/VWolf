@@ -25,7 +25,7 @@ namespace VWolf {
                     colors[input->GetName()] = Color(1, 1, 1, 1);
                     break;
                 case ShaderDataType::Float3:
-                    vectors[input->GetName()] = Vector3Float(1, 1, 1);
+                    vectors[input->GetName()] = Vector3(1, 1, 1);
                     break;
                 case ShaderDataType::Float:                    
                     floats[input->GetName()] = floatValue;
@@ -107,7 +107,7 @@ namespace VWolf {
                     colors[input->GetName()] = Color(1, 1, 1, 1);
                     break;
                 case ShaderDataType::Float3:
-                    vectors[input->GetName()] = Vector3Float(1, 1, 1);
+                    vectors[input->GetName()] = Vector3(1, 1, 1);
                     break;
                 case ShaderDataType::Float:
                     floats[input->GetName()] = floatValue;
@@ -136,7 +136,7 @@ namespace VWolf {
         colors[name] = color;
     }
 
-    void Material::SetVector3(std::string name, Vector3Float vector) {
+    void Material::SetVector3(std::string name, Vector3 vector) {
         vectors[name] = vector;
     }
 
@@ -148,7 +148,7 @@ namespace VWolf {
         return colors[name];
     }
 
-    Vector3Float& Material::GetVector3(std::string name) {
+    Vector3& Material::GetVector3(std::string name) {
         return vectors[name];
     }
 
@@ -176,13 +176,15 @@ namespace VWolf {
                 case VWolf::ShaderDataType::Float4:
                     {
                         char * newP = pointer + input->GetOffset();
-                        memcpy(newP, value_ptr(colors.find(input->GetName())->second), input->GetSize());
+                        const Color& value = colors.find(input->GetName())->second;
+                        memcpy(newP, &value, input->GetSize());
                     }
                     break;
                 case VWolf::ShaderDataType::Float3:
                     {
                         char * newP = pointer + input->GetOffset();
-                        memcpy(newP, value_ptr(vectors.find(input->GetName())->second), input->GetSize());
+                        const Vector3& value = vectors.find(input->GetName())->second;
+                        memcpy(newP, &value, input->GetSize());
                     }
                     break;
                 case VWolf::ShaderDataType::Float:
