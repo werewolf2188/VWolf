@@ -10,6 +10,8 @@
 #include "Vector3.h"
 #include "Vector2.h"
 
+#include "VWolf/Core/Color.h"
+
 #include <glm/gtx/perpendicular.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include <glm/gtx/projection.hpp>
@@ -153,6 +155,10 @@ namespace VWolf {
 
     Vector4::operator Vector3() {
         return Vector3(this->_vector4.x, this->_vector4.y, this->_vector4.z);
+    }
+
+    Vector4::operator Color() {
+        return Color(this->_vector4.x, this->_vector4.y, this->_vector4.z, this->_vector4.w);
     }
 
     // MARK: Get Functions
