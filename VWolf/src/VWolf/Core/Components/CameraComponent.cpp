@@ -78,9 +78,9 @@ namespace VWolf {
     Ref<Camera> CameraComponent::GetCamera(TransformComponent component) {
         m_camera->UpdateView(component.GetPosition(), 
                              Quaternion::Euler(
-                                          radians(component.GetEulerAngles().GetX()),
-                                          radians(component.GetEulerAngles().GetY()),
-                                          radians(component.GetEulerAngles().GetZ())
+                                          (Mathf::Deg2Rad * component.GetEulerAngles().GetX()),
+                                          (Mathf::Deg2Rad * component.GetEulerAngles().GetY()),
+                                          (Mathf::Deg2Rad * component.GetEulerAngles().GetZ())
                              ));
         m_camera->SetFOV(m_FOV);
         m_camera->SetNearZ(m_NearClip);

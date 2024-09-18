@@ -441,9 +441,9 @@ namespace VWolf {
         if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
             // Immediate drawing so it does not belong to the queue
             sceneBackGround.GetCamera()->UpdateView(Vector3(), Quaternion::Euler(
-                                                             radians(cameraTransform.GetEulerAngles().GetX()),
-                                                             radians(cameraTransform.GetEulerAngles().GetY()),
-                                                             radians(cameraTransform.GetEulerAngles().GetZ())
+                                                             (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetX()),
+                                                             (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetY()),
+                                                             (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetZ())
                                                          ));
             Graphics::DrawMesh(sceneBackGround.GetSkyboxMeshData(),
                                VWolf::Vector4(),

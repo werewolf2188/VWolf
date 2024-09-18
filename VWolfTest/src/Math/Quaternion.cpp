@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(QuaternionMemberFunctions) {
 
     // Then
     // TODO: Round to closest value
-//    BOOST_TEST(quat2 == VWolf::Quaternion(-0.858940601f, -0.337996632f, 0.183678418f, -0.337996662f));
+    BOOST_TEST(quat2 == VWolf::Quaternion(-0.858940601f, -0.337996632f, 0.183678418f, -0.337996662f));
 
     // When
     quat2.SetLookRotation(VWolf::Vector3(10, 10, 10));
@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(QuaternionStaticFunctions) {
 
     // Then
     // TODO: Round to closest value
-//    BOOST_TEST(quatResult == VWolf::Quaternion(-0.974967659f, 0, 0.222346783f, 0));
+    BOOST_TEST(quatResult == VWolf::Quaternion(-0.974967659f, 0, 0.222346783f, 0));
 
     // When
     result = VWolf::Quaternion::Dot(quat, quat2);

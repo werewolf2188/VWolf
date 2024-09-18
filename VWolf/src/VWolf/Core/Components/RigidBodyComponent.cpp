@@ -55,7 +55,7 @@ namespace VWolf {
 
     void RigidBodyComponent::CreateRigidBody(reactphysics3d::PhysicsWorld* world, TransformComponent& component) {
         reactphysics3d::Vector3 position(component.GetPosition().GetX(), component.GetPosition().GetY(), component.GetPosition().GetZ());
-        reactphysics3d::Quaternion orientation = reactphysics3d::Quaternion::fromEulerAngles({ radians(component.GetEulerAngles().GetX()), radians(component.GetEulerAngles().GetY()), radians(component.GetEulerAngles().GetZ()) });
+        reactphysics3d::Quaternion orientation = reactphysics3d::Quaternion::fromEulerAngles({ ( Mathf::Deg2Rad * component.GetEulerAngles().GetX()), (Mathf::Deg2Rad * component.GetEulerAngles().GetY()), (Mathf::Deg2Rad * component.GetEulerAngles().GetZ()) });
         oldTransform = new reactphysics3d::Transform(position, orientation);
         rigidBody = world->createRigidBody(*oldTransform);
         GetGameObject()->SetRigidBody(rigidBody);
