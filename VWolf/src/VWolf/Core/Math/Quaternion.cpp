@@ -11,6 +11,8 @@
 
 #include <glm/gtx/euler_angles.hpp>
 
+#include "MathClass.h"
+
 namespace VWolf {
     const Quaternion Quaternion::Identity(1, 0, 0, 0);
 
@@ -56,7 +58,10 @@ namespace VWolf {
     }
 
     bool operator==(const Quaternion& lhs, const Quaternion& rhs) {
-        return lhs.GetW() == rhs.GetW() && lhs.GetX() == rhs.GetX() && lhs.GetY() == rhs.GetY() && lhs.GetZ() == rhs.GetZ();
+        return Mathf::Approximately(lhs.GetW(), rhs.GetW()) &&
+        Mathf::Approximately(lhs.GetX(), rhs.GetX()) &&
+        Mathf::Approximately(lhs.GetY(), rhs.GetY()) &&
+        Mathf::Approximately(lhs.GetZ(), rhs.GetZ());
     }
 
     Quaternion Quaternion::operator*(Quaternion rhs) {

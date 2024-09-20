@@ -234,7 +234,7 @@ namespace VWolfPup {
 
                     ImGui::PushItemWidth(ImGui::CalcItemWidth());
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-                    ImGui::DragFloat("##Light CutOff", &component.GetLight().cutOff, 0.1f, 0, VWolf::radians(90.0f));
+                    ImGui::DragFloat("##Light CutOff", &component.GetLight().cutOff, 0.1f, 0, (VWolf::Mathf::Deg2Rad * 90.0f));
                     
                     ImGui::PopStyleVar();
                     ImGui::PopItemWidth();

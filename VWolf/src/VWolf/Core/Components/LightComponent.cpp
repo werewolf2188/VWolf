@@ -14,7 +14,7 @@ namespace VWolf {
         // TODO: Testing
         light.color = { 1.0f, 1.0f, 1.0f, 1.0f };
         light.strength = { 0.5f, 0.5f, 0.5f, 0.5f };
-        light.cutOff = radians(15.0f);
+        light.cutOff = Mathf::Deg2Rad * 15.0f;
         light.type = Light::LightType::Point;
         light.exponent = 50.0f;
         light.position = { 0.0f, 0.0f, 0.0f, 1.0f };
