@@ -86,7 +86,7 @@ namespace VWolfPup {
 #ifdef VWOLF_PLATFORM_WINDOWS   
         std::string projectLocation = "C:\\Users\\jenri\\Projects\\Desktop\\Game_Project";
 #else 
-        std::string projectLocation = "/Users/vn50tzy/Projects/Personal/Game_Project";
+        std::string projectLocation = "/Users/enriquemoises/Projects/Personal/Game_Project";
 #endif
         
         std::filesystem::path path(projectLocation);
