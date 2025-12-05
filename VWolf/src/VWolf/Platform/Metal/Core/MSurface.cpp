@@ -29,6 +29,21 @@ namespace VWolf {
         renderPassDescriptor->stencilAttachment()->setTexture(renderPassDescriptor->depthAttachment()->texture());
     }
 
+    void MSurface::Resize(Ref<MDevice> device, int width, int height) {
+        layer->setDrawableSize({static_cast<CGFloat>(width), static_cast<CGFloat>(height)});
+        
+        if (renderPassDescriptor)
+            renderPassDescriptor->release();
+        renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
+        renderPassDescriptor->depthAttachment()->setClearDepth(1.0f);
+        renderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadAction::LoadActionClear);
+        renderPassDescriptor->depthAttachment()->setStoreAction(MTL::StoreAction::StoreActionDontCare);
+        MTL::TextureDescriptor* depthBufferDescriptor = MTL::TextureDescriptor::texture2DDescriptor(GetDepthStencilPixelFormat(), width, height, false);
+        depthBufferDescriptor->setUsage(MTL::TextureUsageRenderTarget | MTL::TextureUsageShaderRead);
+        renderPassDescriptor->depthAttachment()->setTexture(device->GetDevice()->newTexture(depthBufferDescriptor));
+        renderPassDescriptor->stencilAttachment()->setTexture(renderPassDescriptor->depthAttachment()->texture());
+    }
+
     MSurface::~MSurface() {
         renderPassDescriptor->release();
         layer->release();

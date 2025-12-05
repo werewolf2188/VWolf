@@ -131,6 +131,16 @@ namespace VWolf {
 
     void MetalRenderTexture::Resize(uint32_t width, uint32_t height) {
         // TODO: What to do with this?
+        if (m_width == width && m_height == height) return;
+        if (texture != nullptr)
+            texture->release();
+        if (depthTexture != nullptr)
+            depthTexture->release();
+        if (renderPassDescriptor != nullptr)
+            renderPassDescriptor->release();
+        m_width = width;
+        m_height = height;
+        Initialize();
     }
 
     void MetalRenderTexture::Initialize() {
