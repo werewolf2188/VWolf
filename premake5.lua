@@ -16,8 +16,8 @@ workspace "VWolf"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-boostversion = iif(os.is("windows"), "boost_1_79_0", "boost_1_80_0")
-programfiles = iif(os.is("windows"), "C:/Program Files", "/Users/vn50tzy/Projects/") -- os.getenv("ProgramFiles") -- Returning C:\Program Files (x86)
+boostversion = iif(os.is("windows"), "boost_1_79_0", "boost_1_87_0")
+programfiles = iif(os.is("windows"), "C:/Program Files", "/Users/enriquemoises/Projects/") -- os.getenv("ProgramFiles") -- Returning C:\Program Files (x86)
 boost = iif(os.is("windows"), "%{programfiles}/boost/%{boostversion}", "%{programfiles}/%{boostversion}") 
 
 -- Include directories relative to root folder (solution directory)

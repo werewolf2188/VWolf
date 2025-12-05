@@ -73,7 +73,7 @@ namespace VWolf {
         callback->OnEvent(evt);
     }
     void MetalDriver::Resize(unsigned int m_Width, unsigned int m_Height) {
-        surface->GetLayer()->setDrawableSize({static_cast<CGFloat>(m_Width), static_cast<CGFloat>(m_Height)});
+        surface->Resize(device, m_Width, m_Height);
     }
 }
 
