@@ -74,7 +74,18 @@ project "VWolf"
    {
       "vendor/d3dx12",
    }
-
+   
+   libdirs 
+   {
+       "vendor/DirectXShaderCompiler/lib/x64"
+   }
+   
+   links 
+   {
+	   "dxcompiler.lib",
+	   "dxil.lib"
+   }
+   
    defines
    {
       "GLFW_INCLUDE_NONE"
