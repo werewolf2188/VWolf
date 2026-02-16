@@ -76,6 +76,11 @@ project "VWolfPup"
 
    filter "system:windows"
       systemversion "latest"
+	  
+   prebuildcommands {	  
+	  "{COPYFILE} %{wks.location}/VWolf/vendor/DirectXShaderCompiler/bin/x64/dxcompiler.dll %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/dxcompiler.dll",
+	  "{COPYFILE} %{wks.location}/VWolf/vendor/DirectXShaderCompiler/bin/x64/dxil.dll %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/dxil.dll"
+   }
 
    filter "configurations:Debug"
       defines { "DEBUG" }
