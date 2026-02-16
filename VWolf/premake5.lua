@@ -73,6 +73,7 @@ project "VWolf"
    includedirs
    {
       "vendor/d3dx12",
+	  "vendor/DirectXShaderCompiler/inc"
    }
    
    libdirs 
