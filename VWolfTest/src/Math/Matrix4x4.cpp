@@ -166,6 +166,7 @@ BOOST_AUTO_TEST_CASE(Matrix4x4InstanceMethods) {
     VWolf::Vector4 result(matrix[0][0], matrix[1][1], matrix[2][2], matrix[3][3]);
 
     // Then
+    // TODO: Round to closest value
     BOOST_TEST(result == VWolf::Vector4(-0.448073685f, 1, -0.448073685f, 1));
 
     // When
@@ -216,6 +217,7 @@ BOOST_AUTO_TEST_CASE(Matrix4x4StaticMethods) {
     VWolf::Vector4 result(matrix[0][0], matrix[1][1], matrix[2][2], matrix[3][3]);
 
     // Then
+    // TODO: Round to closest value
     BOOST_TEST(result == VWolf::Vector4(-0.448073685f, 1, -0.448073685f, 1));
 
     // When

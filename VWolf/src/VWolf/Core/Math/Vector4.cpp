@@ -10,9 +10,13 @@
 #include "Vector3.h"
 #include "Vector2.h"
 
+#include "VWolf/Core/Color.h"
+
 #include <glm/gtx/perpendicular.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include <glm/gtx/projection.hpp>
+
+#include "MathClass.h"
 
 namespace VWolf {
     // MARK: Constants
@@ -76,11 +80,17 @@ namespace VWolf {
     }
 
     bool Vector4::operator==(const Vector4& rhs) {
-        return this->_vector4.x == rhs._vector4.x && this->_vector4.y == rhs._vector4.y && this->_vector4.z == rhs._vector4.z && this->_vector4.w == rhs._vector4.w;
+        return Mathf::Approximately(this->_vector4.x, rhs._vector4.x) &&
+        Mathf::Approximately(this->_vector4.y, rhs._vector4.y) &&
+        Mathf::Approximately(this->_vector4.z, rhs._vector4.z) && 
+        Mathf::Approximately(this->_vector4.w, rhs._vector4.w);
     }
 
     bool operator==(const Vector4& lhs, const Vector4& rhs) {
-        return lhs.GetX() == rhs.GetX() && lhs.GetY() == rhs.GetY() && lhs.GetZ() == rhs.GetZ() && lhs.GetW() == rhs.GetW();
+        return Mathf::Approximately(lhs._vector4.x, rhs._vector4.x) &&
+        Mathf::Approximately(lhs._vector4.y, rhs._vector4.y) &&
+        Mathf::Approximately(lhs._vector4.z, rhs._vector4.z) &&
+        Mathf::Approximately(lhs._vector4.w, rhs._vector4.w);
     }
 
     bool Vector4::operator!=(const Vector4& rhs) {
@@ -153,6 +163,10 @@ namespace VWolf {
 
     Vector4::operator Vector3() {
         return Vector3(this->_vector4.x, this->_vector4.y, this->_vector4.z);
+    }
+
+    Vector4::operator Color() {
+        return Color(this->_vector4.x, this->_vector4.y, this->_vector4.z, this->_vector4.w);
     }
 
     // MARK: Get Functions

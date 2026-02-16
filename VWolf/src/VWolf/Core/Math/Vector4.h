@@ -14,6 +14,7 @@ namespace VWolf {
     struct Vector2;
     struct Vector3;
     struct Matrix4x4;
+    struct Color;
 
     struct Vector4 {
     public:
@@ -43,6 +44,7 @@ namespace VWolf {
         float operator[](int index);
         operator Vector2();
         operator Vector3();
+        operator Color();
     public:
         Vector4 Normalized() const;
         void Normalize();

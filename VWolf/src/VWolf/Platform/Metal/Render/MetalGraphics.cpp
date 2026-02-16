@@ -23,7 +23,7 @@ namespace VWolf {
 
     void MetalGraphics::Initialize() {
         emptyShadowMap = CreateRef<MetalTexture2D>(TextureDefault::White, 1024, 1024, TextureOptions());
-        shadowMap = CreateRef<MetalRenderTexture>(1024, 1024, true);
+        shadowMap = CreateRef<MetalRenderTexture>(2048, 2048, true);
     }
 
     void MetalGraphics::DrawMeshImpl(MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {

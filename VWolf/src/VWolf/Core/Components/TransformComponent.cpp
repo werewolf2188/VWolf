@@ -46,9 +46,9 @@ namespace VWolf {
 
     void TransformComponent::Apply() {
         matrix = Matrix4x4::TRS(position,
-                                Quaternion::Euler(radians(eulerAngles.GetX()),
-                                                  radians(eulerAngles.GetY()),
-                                                  radians(eulerAngles.GetZ())),
+                                Quaternion::Euler((Mathf::Deg2Rad * eulerAngles.GetX()),
+                                                  (Mathf::Deg2Rad * eulerAngles.GetY()),
+                                                  (Mathf::Deg2Rad * eulerAngles.GetZ())),
                                 localScale);
     }
 

@@ -7,12 +7,12 @@ namespace VWolf {
 	class Camera
 	{
 	public:
-        Camera(): m_Projection(Matrix4x4::Perspective(radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip))  {
+        Camera(): m_Projection(Matrix4x4::Perspective((Mathf::Deg2Rad * m_FOV), m_AspectRatio, m_NearClip, m_FarClip))  {
             UpdateView(Vector3(), Quaternion());
         };
         Camera(float fov, float aspectRatio, float nearClip, float farClip):
         m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip),
-        m_Projection(Matrix4x4::Perspective(radians(fov), aspectRatio, nearClip, farClip)) {
+        m_Projection(Matrix4x4::Perspective((Mathf::Deg2Rad * fov), aspectRatio, nearClip, farClip)) {
             UpdateView(Vector3(), Quaternion());
         }
 
