@@ -37,3 +37,9 @@ packages/WinPixEventRuntime.1.0.230302001/Include/WinPixEventRuntime/pix3_win.h
 packages/WinPixEventRuntime.1.0.230302001/Include/WinPixEventRuntime/PIXEvents.h
 packages/WinPixEventRuntime.1.0.230302001/Include/WinPixEventRuntime/PIXEventsCommon.h
 VWolfPup/imgui.ini
+VWolf/vendor/glad/bin/Debug-windows-x86_64/Glad/Glad.idb
+VWolf/vendor/glad/bin/Debug-windows-x86_64/Glad/Glad.lib
+VWolf/vendor/glad/bin/Debug-windows-x86_64/Glad/Glad.pdb
+VWolf/vendor/glad/bin/Release-windows-x86_64/Glad/Glad.lib
+VWolf/vendor/glad/bin/Release-windows-x86_64/Glad/Glad.pdb
+*.exe
