@@ -72,7 +72,19 @@ project "VWolfPup"
    "%{IncludeDir.boost}"
     }
 
-   links { "Cocoa.framework", "CoreVideo.framework", "IOKit.framework", "OpenGL.framework", "MetalKit.framework", "AppKit.framework", "Metal.framework", "QuartzCore.framework", "GameController.framework" }
+   links { "Cocoa.framework", "CoreVideo.framework", "IOKit.framework", "OpenGL.framework", "MetalKit.framework", "AppKit.framework", "Metal.framework", "QuartzCore.framework", "GameController.framework", "dxcompiler" }
+
+   libdirs 
+   {
+      "%{wks.location}/bin/" .. outputdir .. "/%{prj.name}"
+   }
+
+   linkoptions { "-rpath @executable_path/../VWolfPup" }
+
+   prebuildcommands {	  
+	  "{COPYFILE} %{wks.location}/VWolf/vendor/DirectXShaderCompiler/bin/osx/libdxcompiler.dylib %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/libdxcompiler.dylib",
+	  "{COPYFILE} %{wks.location}/VWolf/vendor/DirectXShaderCompiler/bin/osx/libdxil.dylib %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/libdxil.dylib"
+   }
 
    filter "system:windows"
       systemversion "latest"

@@ -13,6 +13,8 @@
 #include "VWolf/Core/Utils/File.h"
 #include "VWolf/Platform/Metal/MetalDriver.h"
 
+#include "dxcapi.h"
+
 #define RELEASEMAP(map) \
 for(auto kv: map) \
 kv.second->release();
@@ -511,6 +513,12 @@ namespace VWolf {
                          ShaderConfiguration configuration): 
     Shader(name, otherShaders, configuration) {
 
+        std::shared_ptr<IDxcCompiler3> pCompiler;
+        DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&pCompiler));
+        pCompiler->Release();
+        VWOLF_CORE_DEBUG("Lol");
+
+        
         mlProgram = CreateRef<MLProgram>(name, otherShaders, configuration);
     }
 

@@ -107,7 +107,8 @@ project "VWolf"
 
    includedirs
    {
-      "%{IncludeDir.metal_cpp}"
+      "%{IncludeDir.metal_cpp}",
+      "vendor/DirectXShaderCompiler/inc"
    }
 
     sysincludedirs
@@ -122,7 +123,8 @@ project "VWolf"
 	"%{IncludeDir.yaml_cpp}",
      "%{IncludeDir.obj_loader}",
      "%{IncludeDir.metal_cpp}",
-      "%{IncludeDir.reactphysics3d}"
+      "%{IncludeDir.reactphysics3d}",
+      "vendor/DirectXShaderCompiler/inc"
     }
 
    xcodebuildsettings 
