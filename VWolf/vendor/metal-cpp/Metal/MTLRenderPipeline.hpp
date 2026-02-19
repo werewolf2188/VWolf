@@ -420,6 +420,12 @@ public:
 
     class Function*                                     fragmentFunction() const;
     void                                                setFragmentFunction(const class Function* fragmentFunction);
+    
+    class LinkedFunctions*                              objectLinkedFunctions() const;
+    void                                                setObjectLinkedFunctions(LinkedFunctions* pStageInFunctions);
+    
+    class LinkedFunctions*                              meshLinkedFunctions() const;
+    void                                                setMeshLinkedFunctions(LinkedFunctions* pMeshLinkedFunctions);
 
     NS::UInteger                                        maxTotalThreadsPerObjectThreadgroup() const;
     void                                                setMaxTotalThreadsPerObjectThreadgroup(NS::UInteger maxTotalThreadsPerObjectThreadgroup);
@@ -1422,6 +1428,26 @@ _MTL_INLINE MTL::Function* MTL::MeshRenderPipelineDescriptor::fragmentFunction()
 _MTL_INLINE void MTL::MeshRenderPipelineDescriptor::setFragmentFunction(const MTL::Function* fragmentFunction)
 {
     Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setFragmentFunction_), fragmentFunction);
+}
+
+_MTL_INLINE MTL::LinkedFunctions* MTL::MeshRenderPipelineDescriptor::objectLinkedFunctions() const
+{
+    return Object::sendMessage<MTL::LinkedFunctions*>(this, _MTL_PRIVATE_SEL(objectLinkedFunctions));
+}
+
+_MTL_INLINE void MTL::MeshRenderPipelineDescriptor::setObjectLinkedFunctions(MTL::LinkedFunctions* pStageInFunctions)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setObjectLinkedFunctions_), pStageInFunctions);
+}
+
+_MTL_INLINE MTL::LinkedFunctions* MTL::MeshRenderPipelineDescriptor::meshLinkedFunctions() const
+{
+    return Object::sendMessage<MTL::LinkedFunctions*>(this, _MTL_PRIVATE_SEL(objectLinkedFunctions));
+}
+
+_MTL_INLINE void MTL::MeshRenderPipelineDescriptor::setMeshLinkedFunctions(MTL::LinkedFunctions* pMeshLinkedFunctions)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setMeshLinkedFunctions_), pMeshLinkedFunctions);
 }
 
 // property: maxTotalThreadsPerObjectThreadgroup

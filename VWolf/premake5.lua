@@ -102,13 +102,15 @@ project "VWolf"
 
    files { 
 	  "vendor/metal-cpp/**.hpp",
+     "vendor/metal-shaderconverter/include/**.h",
      "src/**.mm"
    }
 
    includedirs
    {
       "%{IncludeDir.metal_cpp}",
-      "vendor/DirectXShaderCompiler/inc"
+      "vendor/DirectXShaderCompiler/inc",
+      "%{IncludeDir.metal_shaderconverter}"
    }
 
     sysincludedirs
@@ -124,7 +126,8 @@ project "VWolf"
      "%{IncludeDir.obj_loader}",
      "%{IncludeDir.metal_cpp}",
       "%{IncludeDir.reactphysics3d}",
-      "vendor/DirectXShaderCompiler/inc"
+      "vendor/DirectXShaderCompiler/inc",
+      "%{IncludeDir.metal_shaderconverter}"
     }
 
    xcodebuildsettings 

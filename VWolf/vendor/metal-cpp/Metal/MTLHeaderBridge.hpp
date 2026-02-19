@@ -552,6 +552,10 @@ _MTL_PRIVATE_DEF_SEL(fragmentBuffers,
     "fragmentBuffers");
 _MTL_PRIVATE_DEF_SEL(fragmentFunction,
     "fragmentFunction");
+_MTL_PRIVATE_DEF_SEL(objectLinkedFunctions,
+    "objectLinkedFunctions");
+_MTL_PRIVATE_DEF_SEL(meshLinkedFunctions,
+    "meshLinkedFunctions");
 _MTL_PRIVATE_DEF_SEL(fragmentLinkedFunctions,
     "fragmentLinkedFunctions");
 _MTL_PRIVATE_DEF_SEL(fragmentPreloadedLibraries,
@@ -1442,6 +1446,10 @@ _MTL_PRIVATE_DEF_SEL(setFragmentBytes_length_atIndex_,
     "setFragmentBytes:length:atIndex:");
 _MTL_PRIVATE_DEF_SEL(setFragmentFunction_,
     "setFragmentFunction:");
+_MTL_PRIVATE_DEF_SEL(setObjectLinkedFunctions_,
+    "setObjectLinkedFunctions:");
+_MTL_PRIVATE_DEF_SEL(setMeshLinkedFunctions_,
+    "setMeshLinkedFunctions:");
 _MTL_PRIVATE_DEF_SEL(setFragmentIntersectionFunctionTable_atBufferIndex_,
     "setFragmentIntersectionFunctionTable:atBufferIndex:");
 _MTL_PRIVATE_DEF_SEL(setFragmentIntersectionFunctionTables_withBufferRange_,

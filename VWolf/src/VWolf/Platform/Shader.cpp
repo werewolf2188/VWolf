@@ -118,6 +118,12 @@ namespace VWolf {
             std::wcout << L"Compilation successful. Generated shader bytecode size: " << pShader->GetBufferSize() << L" bytes." << std::endl;
         }
         
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        IRCompiler* pCompiler = IRCompilerCreate();
+        IRCompilerDestroy(pCompiler);
+        pCompiler = nullptr;
+#endif
+        
         // You can also retrieve PDB data and reflection data similarly
         // ...
         VWOLF_CORE_DEBUG("Lol");

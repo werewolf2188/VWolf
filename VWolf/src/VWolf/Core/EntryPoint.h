@@ -17,6 +17,9 @@ VWolf::Application* getApplication() {\
     #include <MetalKit/MetalKit.hpp>
     #include <AppKit/AppKit.hpp>
     #include <Metal/Metal.hpp>
+    #define IR_RUNTIME_METALCPP       // enable metal-cpp compatibility mode
+    #define IR_PRIVATE_IMPLEMENTATION
+    #include <metal_irconverter_runtime/metal_irconverter_runtime.h>
 #endif
 
 int main(int args, const char** argv) {
