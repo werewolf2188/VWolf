@@ -16,7 +16,7 @@
 template<typename T>
 using SmartPoint = Microsoft::WRL::ComPtr<T>;
 #define DEREFERENCE(SP) SP.Get()
-#elif VWOLF_PLATFORM_MACOS
+#elif defined(VWOLF_PLATFORM_MACOS)
 template<typename T>
 using SmartPoint = CComPtr<T>;
 #define DEREFERENCE(SP) &*SP
