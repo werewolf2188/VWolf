@@ -12,6 +12,17 @@
 
 #include "dxcapi.h"
 
+#ifdef VWOLF_PLATFORM_WINDOWS
+template<typename T>
+using SmartPoint = Microsoft::WRL::ComPtr<T>;
+#define DEREFERENCE(SP) SP.Get()
+#elif VWOLF_PLATFORM_MACOS
+template<typename T>
+using SmartPoint = CComPtr<T>;
+#define DEREFERENCE(SP) &*SP
+#endif
+
+
 namespace VWolf {
 
     std::vector<Ref<Shader>> ShaderLibrary::m_shaders;
@@ -40,9 +51,9 @@ namespace VWolf {
         HRESULT hr;
 
         // 1. Initialize DXC components
-        CComPtr<IDxcUtils> utils;
-        CComPtr<IDxcCompiler3> compiler;
-        CComPtr<IDxcIncludeHandler> includeHandler;
+        SmartPoint<IDxcUtils> utils;
+        SmartPoint<IDxcCompiler3> compiler;
+        SmartPoint<IDxcIncludeHandler> includeHandler;
 
         hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils));
         if (FAILED(hr)) { /* handle error */ return; }
@@ -54,9 +65,9 @@ namespace VWolf {
         if (FAILED(hr)) { /* handle error */ return; }
 
         // 2. Load the HLSL source file
-        CComPtr<IDxcBlobEncoding> sourceBlob;
+        SmartPoint<IDxcBlobEncoding> sourceBlob;
         // Assume "shader.hlsl" exists and contains your shader code
-        hr = LoadFileIntoBlob(&*utils, wFilename, &sourceBlob);
+        hr = LoadFileIntoBlob(DEREFERENCE(utils), wFilename, &sourceBlob);
         if (FAILED(hr)) { /* handle error */ return; }
 
         DxcBuffer src = {
@@ -76,12 +87,12 @@ namespace VWolf {
         UINT32 argCount = _countof(arguments);
 
         // 4. Compile the shader
-        CComPtr<IDxcResult> result;
+        SmartPoint<IDxcResult> result;
         hr = compiler->Compile(
             &src,                   // Source buffer
             arguments,              // Arguments
             argCount,               // Argument count
-            &*includeHandler,   // Include handler
+            DEREFERENCE(includeHandler),   // Include handler
             IID_PPV_ARGS(&result)   // Operation result
         );
         if (FAILED(hr)) { /* handle error */ return; }
@@ -90,7 +101,7 @@ namespace VWolf {
         HRESULT compileStatus;
         result->GetStatus(&compileStatus);
         if (FAILED(compileStatus)) {
-            CComPtr<IDxcBlobUtf8> errors;
+            SmartPoint<IDxcBlobUtf8> errors;
             result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&errors), nullptr);
             if (errors && errors->GetStringPointer()) {
                 std::wcerr << L"Compilation failed with errors:\n" << errors->GetStringPointer() << std::endl;
@@ -99,7 +110,7 @@ namespace VWolf {
         }
 
         // 6. Retrieve the compiled shader bytecode (object code)
-        CComPtr<IDxcBlob> pShader;
+        SmartPoint<IDxcBlob> pShader;
         result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShader), nullptr);
         if (pShader != nullptr) {
             // Save the shader binary to a file (e.g., shader.cso) or use it directly in your application

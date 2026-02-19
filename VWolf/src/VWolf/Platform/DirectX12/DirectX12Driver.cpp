@@ -20,8 +20,6 @@
 #include "VWolf/Platform/DirectX12/Core/DX12Resources.h"
 #include "VWolf/Platform/DirectX12/Core/DX12Surface.h"
 
-#include "dxcapi.h"
-
 namespace VWolf {
 
 	// TODO: Move
@@ -58,13 +56,7 @@ namespace VWolf {
 	DirectX12Driver* DirectX12Driver::currentDriver = nullptr;
 
 	void DirectX12Driver::Initialize(InitConfiguration config, WindowEventCallback& callback)
-	{
-		//
-
-		Microsoft::WRL::ComPtr<IDxcCompiler3> pCompiler;
-		DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&pCompiler));
-		VWOLF_CORE_DEBUG("Lol");
-		//
+	{		
 		handle = GetModuleHandle(nullptr);
 		this->callback = &callback;
 		window = CreateRef<WinWindow>(handle, config, *this);
