@@ -10,6 +10,8 @@
 #include "VWolf/Platform/Metal/Render/MSLShader.h"
 #endif
 
+#include "dxcapi.h"
+
 namespace VWolf {
 
     std::vector<Ref<Shader>> ShaderLibrary::m_shaders;
@@ -20,6 +22,95 @@ namespace VWolf {
 
     const char* ShaderLibrary::ObjectBufferName = "Object";
     //
+
+
+    HRESULT LoadFileIntoBlob(IDxcUtils* pUtils, const wchar_t* filename, IDxcBlobEncoding** ppBlobEncoding) {
+        uint32_t codePage = DXC_CP_ACP;
+        return pUtils->LoadFile(filename, &codePage, ppBlobEncoding);
+    }
+
+    void ShaderLibrary::UseDirectXCompiler(std::string filename) {
+        // Setup the converter using the appropriate facet
+            // std::codecvt_utf8_utf16<wchar_t> is a common facet for this conversion
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        std::wstring wide = converter.from_bytes(filename);
+        
+        const wchar_t* wFilename = wide.data();
+        
+        HRESULT hr;
+
+        // 1. Initialize DXC components
+        CComPtr<IDxcUtils> utils;
+        CComPtr<IDxcCompiler3> compiler;
+        CComPtr<IDxcIncludeHandler> includeHandler;
+
+        hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils));
+        if (FAILED(hr)) { /* handle error */ return; }
+        hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler));
+        if (FAILED(hr)) { /* handle error */ return; }
+        
+        // Create default include handler
+        hr = utils->CreateDefaultIncludeHandler(&includeHandler);
+        if (FAILED(hr)) { /* handle error */ return; }
+
+        // 2. Load the HLSL source file
+        CComPtr<IDxcBlobEncoding> sourceBlob;
+        // Assume "shader.hlsl" exists and contains your shader code
+        hr = LoadFileIntoBlob(&*utils, wFilename, &sourceBlob);
+        if (FAILED(hr)) { /* handle error */ return; }
+
+        DxcBuffer src = {
+            sourceBlob->GetBufferPointer(),
+            sourceBlob->GetBufferSize(),
+            DXC_CP_ACP // Use the loaded encoding
+        };
+        
+        // 3. Define compilation arguments (e.g., entry point, target profile, etc.)
+        LPCWSTR arguments[] = {
+            L"-E", L"VS",         // Entry point name: "Main"
+            L"-T", L"vs_6_0",       // Target profile: Vertex Shader Model 6.0
+            L"-Zi",                 // Enable debug info (PDB)
+            L"-Qstrip_debug",       // Strip debug info from the object code but keep it in the PDB
+            L"-Fo", L"shader.cso"   // Output object file name
+        };
+        UINT32 argCount = _countof(arguments);
+
+        // 4. Compile the shader
+        CComPtr<IDxcResult> result;
+        hr = compiler->Compile(
+            &src,                   // Source buffer
+            arguments,              // Arguments
+            argCount,               // Argument count
+            &*includeHandler,   // Include handler
+            IID_PPV_ARGS(&result)   // Operation result
+        );
+        if (FAILED(hr)) { /* handle error */ return; }
+
+        // 5. Handle the compilation result
+        HRESULT compileStatus;
+        result->GetStatus(&compileStatus);
+        if (FAILED(compileStatus)) {
+            CComPtr<IDxcBlobUtf8> errors;
+            result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&errors), nullptr);
+            if (errors && errors->GetStringPointer()) {
+                std::wcerr << L"Compilation failed with errors:\n" << errors->GetStringPointer() << std::endl;
+            }
+            return;
+        }
+
+        // 6. Retrieve the compiled shader bytecode (object code)
+        CComPtr<IDxcBlob> pShader;
+        result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShader), nullptr);
+        if (pShader != nullptr) {
+            // Save the shader binary to a file (e.g., shader.cso) or use it directly in your application
+            // ... (file writing code omitted for brevity)
+            std::wcout << L"Compilation successful. Generated shader bytecode size: " << pShader->GetBufferSize() << L" bytes." << std::endl;
+        }
+        
+        // You can also retrieve PDB data and reflection data similarly
+        // ...
+        VWOLF_CORE_DEBUG("Lol");
+    }
 
     void ShaderLibrary::LoadShader(std::string name,
                                    std::initializer_list<ShaderSource> otherShaders,
