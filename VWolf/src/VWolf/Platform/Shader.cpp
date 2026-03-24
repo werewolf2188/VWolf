@@ -112,6 +112,7 @@ namespace VWolf {
         // 6. Retrieve the compiled shader bytecode (object code)
         SmartPoint<IDxcBlob> pShader;
         result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShader), nullptr);
+        
         if (pShader != nullptr) {
             // Save the shader binary to a file (e.g., shader.cso) or use it directly in your application
             // ... (file writing code omitted for brevity)
@@ -120,6 +121,30 @@ namespace VWolf {
         
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
         IRCompiler* pCompiler = IRCompilerCreate();
+        IRCompilerSetEntryPointName(pCompiler, "MainVSEntry");
+        
+        IRObject* pDXIL = IRObjectCreateFromDXIL((const uint8_t*)pShader->GetBufferPointer(), pShader->GetBufferSize(), IRBytecodeOwnershipNone);
+        // Compile DXIL to Metal IR:
+        IRError* pError = nullptr;
+        IRObject* pOutIR = IRCompilerAllocCompileAndLink(pCompiler, NULL,  pDXIL, &pError);
+
+        if (!pOutIR)
+        {
+          // Inspect pError to determine cause.
+          IRErrorDestroy( pError );
+        }
+        IRMetalLibBinary* pMetallib = IRMetalLibBinaryCreate();
+        IRObjectGetMetalLibBinary(pOutIR, IRShaderStageVertex, pMetallib);
+        size_t metallibSize = IRMetalLibGetBytecodeSize(pMetallib);
+        uint8_t* metallib = new uint8_t[metallibSize];
+        IRMetalLibGetBytecode(pMetallib, metallib);
+
+        // Store the metallib to custom format or disk, or use to create a MTLLibrary.
+
+        delete [] metallib;
+        IRMetalLibBinaryDestroy(pMetallib);
+        IRObjectDestroy(pDXIL);
+        IRObjectDestroy(pOutIR);
         IRCompilerDestroy(pCompiler);
         pCompiler = nullptr;
 #endif
