@@ -135,7 +135,7 @@ namespace VWolf {
         hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&reflection));
         if (FAILED(hr)) { /* handle error */ return; }
         
-        hr = reflection->Load(pShader.Get());
+        hr = reflection->Load(DEREFERENCE(pShader));
         if (FAILED(hr)) { /* handle error */ return; }
         UINT32 parts = 0, partType = 0;
         hr = reflection->GetPartCount(&parts);
@@ -152,7 +152,7 @@ namespace VWolf {
         SmartPoint<IDxcPdbUtils> debug;
         hr = DxcCreateInstance(CLSID_DxcPdbUtils, IID_PPV_ARGS(&debug));
         if (FAILED(hr)) { /* handle error */ return; }
-        hr = debug->Load(pPdb.Get());
+        hr = debug->Load(DEREFERENCE(pPdb));
         if (FAILED(hr)) { /* handle error */ return; }
         UINT32 args = 0, source = 0;
         BSTR name;
