@@ -33,6 +33,7 @@ IncludeDir["obj_loader"] = "%{wks.location}/VWolf/vendor/obj_loader/obj_loader/S
 IncludeDir["entt"] = "%{wks.location}/VWolf/vendor/entt/src"
 IncludeDir["yaml_cpp"] = "%{wks.location}/VWolf/vendor/yaml_cpp/include"
 IncludeDir["metal_cpp"] = "%{wks.location}/VWolf/vendor/metal-cpp"
+IncludeDir["metal_shaderconverter"] = "%{wks.location}/VWolf/vendor/metal-shaderconverter/include"
 IncludeDir["reactphysics3d"] = "%{wks.location}/VWolf/vendor/reactphysics3d/include"
 IncludeDir["miniaudio"] = "%{wks.location}/VWolf/vendor/miniaudio"
 IncludeDir["efsw"] = "%{wks.location}/VWolfPup/src/ThirdParty/efsw/include"

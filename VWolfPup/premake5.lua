@@ -56,7 +56,8 @@ project "VWolfPup"
 
    includedirs
    {
-      "%{IncludeDir.metal_cpp}"
+      "%{IncludeDir.metal_cpp}",
+      "%{IncludeDir.metal_shaderconverter}"
    }
 
     sysincludedirs
@@ -68,14 +69,33 @@ project "VWolfPup"
 	 "%{IncludeDir.entt}",
 	"%{IncludeDir.yaml_cpp}",
    "%{IncludeDir.metal_cpp}",
+   "%{IncludeDir.metal_shaderconverter}",
    "%{IncludeDir.efsw}",
    "%{IncludeDir.boost}"
     }
 
-   links { "Cocoa.framework", "CoreVideo.framework", "IOKit.framework", "OpenGL.framework", "MetalKit.framework", "AppKit.framework", "Metal.framework", "QuartzCore.framework", "GameController.framework" }
+   links { "Cocoa.framework", "CoreVideo.framework", "IOKit.framework", "OpenGL.framework", "MetalKit.framework", "AppKit.framework", "Metal.framework", "QuartzCore.framework", "GameController.framework", "dxcompiler", "metalirconverter" }
+
+   libdirs 
+   {
+      "%{wks.location}/bin/" .. outputdir .. "/%{prj.name}"
+   }
+
+   linkoptions { "-rpath @executable_path/../VWolfPup" }
+
+   prebuildcommands {	  
+	  "{COPYFILE} %{wks.location}/VWolf/vendor/DirectXShaderCompiler/bin/osx/libdxcompiler.dylib %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/libdxcompiler.dylib",
+	  "{COPYFILE} %{wks.location}/VWolf/vendor/DirectXShaderCompiler/bin/osx/libdxil.dylib %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/libdxil.dylib",
+     "{COPYFILE} %{wks.location}/VWolf/vendor/metal-shaderconverter/lib/libmetalirconverter.dylib %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/libmetalirconverter.dylib"
+   }
 
    filter "system:windows"
       systemversion "latest"
+	  
+   prebuildcommands {	  
+	  "{COPYFILE} %{wks.location}/VWolf/vendor/DirectXShaderCompiler/bin/x64/dxcompiler.dll %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/dxcompiler.dll",
+	  "{COPYFILE} %{wks.location}/VWolf/vendor/DirectXShaderCompiler/bin/x64/dxil.dll %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/dxil.dll"
+   }
 
    filter "configurations:Debug"
       defines { "DEBUG" }

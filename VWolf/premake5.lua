@@ -73,8 +73,20 @@ project "VWolf"
    includedirs
    {
       "vendor/d3dx12",
+	  "vendor/DirectXShaderCompiler/inc"
    }
-
+   
+   libdirs 
+   {
+       "vendor/DirectXShaderCompiler/lib/x64"
+   }
+   
+   links 
+   {
+	   "dxcompiler.lib",
+	   "dxil.lib"
+   }
+   
    defines
    {
       "GLFW_INCLUDE_NONE"
@@ -90,12 +102,15 @@ project "VWolf"
 
    files { 
 	  "vendor/metal-cpp/**.hpp",
+     "vendor/metal-shaderconverter/include/**.h",
      "src/**.mm"
    }
 
    includedirs
    {
-      "%{IncludeDir.metal_cpp}"
+      "%{IncludeDir.metal_cpp}",
+      "vendor/DirectXShaderCompiler/inc",
+      "%{IncludeDir.metal_shaderconverter}"
    }
 
     sysincludedirs
@@ -110,7 +125,9 @@ project "VWolf"
 	"%{IncludeDir.yaml_cpp}",
      "%{IncludeDir.obj_loader}",
      "%{IncludeDir.metal_cpp}",
-      "%{IncludeDir.reactphysics3d}"
+      "%{IncludeDir.reactphysics3d}",
+      "vendor/DirectXShaderCompiler/inc",
+      "%{IncludeDir.metal_shaderconverter}"
     }
 
    xcodebuildsettings 

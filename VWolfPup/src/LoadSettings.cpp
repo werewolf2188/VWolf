@@ -86,6 +86,8 @@ namespace VWolfPup {
     std::vector<VWolf::Ref<VWolf::Material>> materials;
     VWolf::ShaderConfiguration GetInitialConfiguration(std::string name);
 
+    void TestDirectXShaderCompiler();
+
     void LoadGLSLShaders() {
         std::filesystem::path shaderPath = "shaders/glsl/";
         std::string vertExtension = ".vert";
@@ -158,6 +160,7 @@ namespace VWolfPup {
             };
             VWolf::ShaderLibrary::LoadShader(name, { vs, fs }, GetInitialConfiguration(name));
         }
+        TestDirectXShaderCompiler();
     }
 
     void LoadMSLShaders() {
@@ -181,6 +184,19 @@ namespace VWolfPup {
                 "fragmentMain"
             };
             VWolf::ShaderLibrary::LoadShader(name, { vs, fs }, GetInitialConfiguration(name));
+        }
+        TestDirectXShaderCompiler();
+    }
+
+    void TestDirectXShaderCompiler() {
+        std::filesystem::path shaderPath2 = "shaders/hlsl/";
+        
+        for (auto const& dir_entry : std::filesystem::directory_iterator(shaderPath2)) {
+            std::string filename = dir_entry.path().string();
+            std::cout << filename << std::endl;
+            
+            VWolf::ShaderLibrary::UseDirectXCompiler(filename);
+            break;
         }
     }
 // ----------------------------------------------- //

@@ -509,8 +509,7 @@ namespace VWolf {
     MSLShader::MSLShader(std::string name,
                          std::initializer_list<ShaderSource> otherShaders,
                          ShaderConfiguration configuration): 
-    Shader(name, otherShaders, configuration) {
-
+    Shader(name, otherShaders, configuration) {        
         mlProgram = CreateRef<MLProgram>(name, otherShaders, configuration);
     }
 
