@@ -25,16 +25,6 @@ using SmartPoint = CComPtr<T>;
 
 namespace VWolf {
 
-    struct VWolfRResourceLocation
-    {
-        IRResourceType resourceType;      /**< Resource type. */
-        uint32_t space;                   /**< DXIL space of this resource. */
-        uint32_t slot;                    /**< DXIL slot of this resource. */
-        uint32_t topLevelOffset;          /**< Offset in bytes into the top-level argument buffer. */
-        uint64_t sizeBytes;               /**< Size of the entry in the argument buffer in bytes. */
-        const char* resourceName;         /**< Name of the resource. String is non-owned and points into the parent reflection object. May be NULL. */
-    };
-
     std::vector<Ref<Shader>> ShaderLibrary::m_shaders;
     std::map<ShaderLibrary::ShaderSpecialty, std::string> ShaderLibrary::m_specialtiesShaders;
 
@@ -145,7 +135,7 @@ namespace VWolf {
         hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&reflection));
         if (FAILED(hr)) { /* handle error */ return; }
         
-        hr = reflection->Load(pShader);
+        hr = reflection->Load(pShader.Get());
         if (FAILED(hr)) { /* handle error */ return; }
         UINT32 parts = 0, partType = 0;
         hr = reflection->GetPartCount(&parts);
@@ -162,7 +152,7 @@ namespace VWolf {
         SmartPoint<IDxcPdbUtils> debug;
         hr = DxcCreateInstance(CLSID_DxcPdbUtils, IID_PPV_ARGS(&debug));
         if (FAILED(hr)) { /* handle error */ return; }
-        hr = debug->Load(pPdb);
+        hr = debug->Load(pPdb.Get());
         if (FAILED(hr)) { /* handle error */ return; }
         UINT32 args = 0, source = 0;
         BSTR name;
