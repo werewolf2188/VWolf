@@ -132,7 +132,7 @@ project "VWolf"
 
    xcodebuildsettings 
    { 
-      ["OTHER_LIBTOOLFLAGS"] = "-lboost_log_setup -lboost_thread -lboost_log"
+      ["OTHER_LIBTOOLFLAGS"] = "-lboost_log_setup -lboost_thread -lboost_log -lboost_json"
    }
 
    defines

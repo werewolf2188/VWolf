@@ -52,6 +52,11 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/support/date_time.hpp>
 
+// BOOST JSON
+#include <boost/json.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 // OPENGL
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

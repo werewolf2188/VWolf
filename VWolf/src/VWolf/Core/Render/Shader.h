@@ -147,8 +147,6 @@ namespace VWolf {
         static void LoadShader(std::string name,
                                std::initializer_list<ShaderSource> otherShaders,
                                ShaderConfiguration configuration = {});
-        
-        static void UseDirectXCompiler(std::string filename);
 
         static Ref<Shader> GetShader(std::string name);
         static Ref<Shader> GetShader(ShaderSpecialty type);
