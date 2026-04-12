@@ -52,7 +52,7 @@ namespace VWolf {
         std::string ShaderFileName(ShaderSource shader) {
             std::filesystem::path path = shader.shader;
             
-            std::string name = path.filename();
+            std::string name = path.filename().string();
             std::string type = ShaderTypeEquivalent(shader.type);
             
             return (name + "." + type + ".cso");
@@ -411,12 +411,11 @@ namespace VWolf {
             SmartPoint<IDxcBlob> pReflectionData;
             DXSC_EXECUTE(result->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(&pReflectionData), nullptr));
             
-            const DxcBuffer reflectionBuffer
-            {
-                .Ptr = pReflectionData->GetBufferPointer(),
-                .Size = pReflectionData->GetBufferSize(),
-                .Encoding = 0,
-            };
+            DxcBuffer reflectionBuffer{};
+            
+            reflectionBuffer.Ptr = pReflectionData->GetBufferPointer();
+            reflectionBuffer.Size = pReflectionData->GetBufferSize();
+            reflectionBuffer.Encoding = 0;
             
             SmartPoint<ID3D12ShaderReflection> shaderReflection;
             DXSC_EXECUTE(utils->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(&shaderReflection)));
