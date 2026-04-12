@@ -154,6 +154,7 @@ namespace VWolf {
                 return IRResourceTypeInvalid;
             }
         }
+        ShaderType GetShaderType() { return shaderType; }
     private:
         boost::json::value value;
         ShaderType shaderType;
@@ -181,104 +182,107 @@ namespace VWolf {
         std::map<std::string, DXIL::Sampler>& GetSamplers() { return samplers; }
         std::map<std::string, DXIL::Texture>& GetTextures() { return textures; }
         std::map<std::string, DXIL::ConstantBuffer>& GetConstantBuffers() { return constantBuffers; }
-        MTL::Buffer* GetDescriptorTable(uint32_t index, ShaderType type) {
-            switch (type) {
-                case ShaderType::Vertex:
-                    return pVertexDescriptorTables[index];
-                case ShaderType::Fragment:
-                    return pFragmentDescriptorTables[index];
-                default: break;
+        void SetDescriptorTable(uint32_t index, ShaderType type, MTL::RenderCommandEncoder* encoder) {
+            auto& pDescriptorTable = pDescriptorTables[type];
+            if (pDescriptorTable.size() > index) {
+                switch (type) {
+                    case ShaderType::Vertex:
+                        encoder->setVertexBuffer(pDescriptorTable[index], 0, kIRArgumentBufferBindPoint);
+                        break;
+                    case ShaderType::Fragment:
+                        encoder->setFragmentBuffer(pDescriptorTable[index], 0, kIRArgumentBufferBindPoint);
+                        break;
+                    default: break;
+                }
             }
-            return nullptr;
         }
     public:
         void SetTexture(MTL::Texture* texture, ShaderInput& input, uint32_t objectIndex) {
-            auto argumentBufferPtr = static_cast<uint8_t*>(pFragmentDescriptorTables[objectIndex]->contents());
-            Argument& resource = topLevelArguments[input.GetName()];
-            uint64_t _offset = resource.GetOffset();
-            auto entry = reinterpret_cast<IRDescriptorTableEntry*>(argumentBufferPtr + _offset);
-            IRDescriptorTableSetTexture(entry, texture, 0, 0);
+            for(auto& [key, topLevelArgument]: topLevelArguments) {
+                if (topLevelArgument.count(input.GetName()) == 0) continue;
+                Argument& resource = topLevelArgument[input.GetName()];
+                auto argumentBufferPtr = static_cast<uint8_t*>(pDescriptorTables[resource.GetShaderType()][objectIndex]->contents());
+                uint64_t _offset = resource.GetOffset();
+                auto entry = reinterpret_cast<IRDescriptorTableEntry*>(argumentBufferPtr + _offset);
+                IRDescriptorTableSetTexture(entry, texture, 0, 0);
+            }
         }
         
         void CreateDescriptorTableEntries(uint32_t objectIndex) {
-            
-            if (pVertexDescriptorTables.size() <= objectIndex) {
-                const uint32_t kNumEntries = (uint32_t)constantBuffers.size() + (uint32_t)textures.size() + (uint32_t)samplers.size();
-                
-                size_t size= sizeof(IRDescriptorTableEntry) * kNumEntries;
-                if (size == 0) return;
-                
-                MTL::Buffer* pVertexDescriptorTable = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newBuffer(size, MTL::ResourceStorageModeShared);
-                pVertexDescriptorTables.push_back(pVertexDescriptorTable);
-            }
-            if (pFragmentDescriptorTables.size() <= objectIndex) {
-                const uint32_t kNumEntries = (uint32_t)constantBuffers.size() + (uint32_t)textures.size() + (uint32_t)samplers.size();
-                
-                size_t size= sizeof(IRDescriptorTableEntry) * kNumEntries;
-                if (size == 0) return;
-                
-                MTL::Buffer* pFragmentDescriptorTable = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newBuffer(size, MTL::ResourceStorageModeShared);
-                auto argumentBufferPtr = static_cast<uint8_t*>(pFragmentDescriptorTable->contents());
-                
-                // TODO: Change this
-                for(auto [key, value]: samplers) {
-                    Argument& resource = topLevelArguments[value.GetName()];
-                    uint64_t _offset = resource.GetOffset();
-                    auto entry = reinterpret_cast<IRDescriptorTableEntry*>(argumentBufferPtr + _offset);
+            for(auto& [key, value]: topLevelArguments) {
+                if (pDescriptorTables[key].size() <= objectIndex) {
+                    const uint32_t kNumEntries = (uint32_t)value.size();
+                    size_t size= sizeof(IRDescriptorTableEntry) * kNumEntries;
                     
-                    MTL::SamplerDescriptor* descriptor = MTL::SamplerDescriptor::alloc()->init();
-                    descriptor->setMipFilter(MTL::SamplerMipFilter::SamplerMipFilterLinear);
-                    descriptor->setRAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
-                    descriptor->setTAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
-                    descriptor->setSAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
-                    descriptor->setMaxAnisotropy(1);
-                    descriptor->setCompareFunction(MTL::CompareFunction::CompareFunctionNever);
-                    descriptor->setLodMinClamp(0);
-                    descriptor->setLodMaxClamp(std::numeric_limits<float>::max());
-                    descriptor->setSupportArgumentBuffers(true);
-                    IRDescriptorTableSetSampler(entry, MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newSamplerState(descriptor), 0);
-                    descriptor->release();
+                    if (size == 0) continue;
+                    
+                    MTL::Buffer* pDescriptorTable = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newBuffer(size, MTL::ResourceStorageModeShared);
+                    auto argumentBufferPtr = static_cast<uint8_t*>(pDescriptorTable->contents());
+                    for(auto [skey, svalue]: samplers) {
+                        if (value.count(skey) == 0) continue;
+                        
+                        Argument& resource = value[svalue.GetName()];
+                        uint64_t _offset = resource.GetOffset();
+                        auto entry = reinterpret_cast<IRDescriptorTableEntry*>(argumentBufferPtr + _offset);
+                        
+                        MTL::SamplerDescriptor* descriptor = MTL::SamplerDescriptor::alloc()->init();
+                        descriptor->setMipFilter(MTL::SamplerMipFilter::SamplerMipFilterLinear);
+                        descriptor->setRAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
+                        descriptor->setTAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
+                        descriptor->setSAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
+                        descriptor->setMaxAnisotropy(1);
+                        descriptor->setCompareFunction(MTL::CompareFunction::CompareFunctionNever);
+                        descriptor->setLodMinClamp(0);
+                        descriptor->setLodMaxClamp(std::numeric_limits<float>::max());
+                        descriptor->setSupportArgumentBuffers(true);
+                        IRDescriptorTableSetSampler(entry, MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newSamplerState(descriptor), 0);
+                        descriptor->release();
+                    }
+                    pDescriptorTables[key].push_back(pDescriptorTable);
                 }
-                pFragmentDescriptorTables.push_back(pFragmentDescriptorTable);
             }
         }
         
         void SetData(const void* data, std::string& name, uint32_t index, uint32_t size, uint32_t offset, MTL::RenderCommandEncoder* encoder) {
             if (size == 0) return;
-            if (topLevelArguments.count(name) == 0) return;
             
-            auto argumentBufferPtr = static_cast<uint8_t*>(pVertexDescriptorTables[index]->contents());
-            Argument& resource = topLevelArguments[name];
-            uint64_t _offset = resource.GetOffset();
-            auto entry = reinterpret_cast<IRDescriptorTableEntry*>(argumentBufferPtr + _offset);
-
-            MTL::Buffer *passArgument;
-            if (variableBuffers.count(name) == 0) {
-                std::vector<MTL::Buffer*> passArgumentsPerObject;
-                passArgument = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newBuffer(data, size, MTL::ResourceStorageModeShared);
-                passArgumentsPerObject.push_back(passArgument);
-                variableBuffers[name] = passArgumentsPerObject;
-                encoder->useResource(passArgument, MTL::ResourceUsageRead, MTL::RenderStageVertex);
-                encoder->useResource(passArgument, MTL::ResourceUsageRead, MTL::RenderStageFragment);
-            } else {
-                std::vector<MTL::Buffer*>& passArgumentsPerObject = variableBuffers[name];
-                if (index >= passArgumentsPerObject.size()) {
+            for(auto& [key, topLevelArgument]: topLevelArguments) {
+                if (topLevelArgument.count(name) == 0) continue;
+                
+                auto argumentBufferPtr = static_cast<uint8_t*>(pDescriptorTables[key][index]->contents());
+                Argument& resource = topLevelArgument[name];
+                uint64_t _offset = resource.GetOffset();
+                auto entry = reinterpret_cast<IRDescriptorTableEntry*>(argumentBufferPtr + _offset);
+                auto& variableBuffer = variableBuffers[key];
+                
+                MTL::Buffer *passArgument;
+                if (variableBuffer.count(name) == 0) {
+                    std::vector<MTL::Buffer*> passArgumentsPerObject;
                     passArgument = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newBuffer(data, size, MTL::ResourceStorageModeShared);
                     passArgumentsPerObject.push_back(passArgument);
+                    variableBuffer[name] = passArgumentsPerObject;
                     encoder->useResource(passArgument, MTL::ResourceUsageRead, MTL::RenderStageVertex);
                     encoder->useResource(passArgument, MTL::ResourceUsageRead, MTL::RenderStageFragment);
                 } else {
-                    passArgument = passArgumentsPerObject[index];
-                    memcpy(passArgument->contents(), data, size);
-                    encoder->useResource(passArgument, MTL::ResourceUsageRead, MTL::RenderStageVertex);
-                    encoder->useResource(passArgument, MTL::ResourceUsageRead, MTL::RenderStageFragment);
+                    std::vector<MTL::Buffer*>& passArgumentsPerObject = variableBuffer[name];
+                    if (index >= passArgumentsPerObject.size()) {
+                        passArgument = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newBuffer(data, size, MTL::ResourceStorageModeShared);
+                        passArgumentsPerObject.push_back(passArgument);
+                        encoder->useResource(passArgument, MTL::ResourceUsageRead, MTL::RenderStageVertex);
+                        encoder->useResource(passArgument, MTL::ResourceUsageRead, MTL::RenderStageFragment);
+                    } else {
+                        passArgument = passArgumentsPerObject[index];
+                        memcpy(passArgument->contents(), data, size);
+                        encoder->useResource(passArgument, MTL::ResourceUsageRead, MTL::RenderStageVertex);
+                        encoder->useResource(passArgument, MTL::ResourceUsageRead, MTL::RenderStageFragment);
+                    }
                 }
+                
+                uint64_t gpuAddress = passArgument->gpuAddress();
+                uint32_t newOffset = 0;
+                
+                IRDescriptorTableSetBuffer(entry, gpuAddress, newOffset);
             }
-            
-            uint64_t gpuAddress = passArgument->gpuAddress();
-            uint32_t newOffset = 0;
-            
-            IRDescriptorTableSetBuffer(entry, gpuAddress, newOffset);
         }
     private:
         void CompileHLSLWithDirectXShaderCompiler(std::initializer_list<ShaderSource> otherShaders) {
@@ -351,7 +355,7 @@ namespace VWolf {
                 boost::json::array arguments = root.at("TopLevelArgumentBuffer").as_array();
                 for(auto argument : arguments) {
                     Argument arg(argument, otherShader.type);
-                    topLevelArguments[argument.at("Name").as_string().c_str()] = arg;
+                    topLevelArguments[otherShader.type][argument.at("Name").as_string().c_str()] = arg;
                 }
                 
                 if (otherShader.type == ShaderType::Vertex) {
@@ -577,18 +581,17 @@ namespace VWolf {
         std::string name;
         std::vector<DXIL::Shader> dxils;
         std::vector<StageInAttribute> stageInAttributes;
-        std::map<std::string, Argument> topLevelArguments;
+        std::map<ShaderType, std::map<std::string, Argument>> topLevelArguments;
         
         MTL::RenderPipelineState* state;
-        std::vector<MTL::Buffer*> pVertexDescriptorTables;
-        std::vector<MTL::Buffer*> pFragmentDescriptorTables;
+        std::map<ShaderType, std::vector<MTL::Buffer*>> pDescriptorTables;
         MTL::DepthStencilState *depthStencilState = nullptr;
         
         // DXIL
         std::map<std::string, DXIL::Sampler> samplers;
         std::map<std::string, DXIL::Texture> textures;
         std::map<std::string, DXIL::ConstantBuffer> constantBuffers;
-        std::map<std::string, std::vector<MTL::Buffer*>> variableBuffers;
+        std::map<ShaderType, std::map<std::string, std::vector<MTL::Buffer*>>> variableBuffers;
     };
 
     HLSLMetalShader::HLSLMetalShader(std::string name,
@@ -670,8 +673,8 @@ namespace VWolf {
         currentIndex = index;
         if (hlMetalProgram->GetConstantBuffers().size() > 0) {
             hlMetalProgram->CreateDescriptorTableEntries(index);
-            encoder->setVertexBuffer(hlMetalProgram->GetDescriptorTable(currentIndex, ShaderType::Vertex), 0, kIRArgumentBufferBindPoint);
-            encoder->setFragmentBuffer(hlMetalProgram->GetDescriptorTable(currentIndex, ShaderType::Fragment), 0, kIRArgumentBufferBindPoint);
+            hlMetalProgram->SetDescriptorTable(index, ShaderType::Vertex, encoder);
+            hlMetalProgram->SetDescriptorTable(index, ShaderType::Fragment, encoder);
         }
     }
 

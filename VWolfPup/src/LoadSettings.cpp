@@ -212,7 +212,7 @@ namespace VWolfPup {
 #endif
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
         case VWolf::DriverType::Metal:
-            LoadMSLShaders();
+            LoadHLSLShaders();
             break;
 #endif
         }
