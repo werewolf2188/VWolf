@@ -73,7 +73,7 @@ project "VWolf"
    includedirs
    {
       "vendor/d3dx12",
-	  "vendor/DirectXShaderCompiler/inc"
+	  "vendor/DirectXShaderCompiler/inc/windows"
    }
    
    libdirs 
@@ -109,7 +109,7 @@ project "VWolf"
    includedirs
    {
       "%{IncludeDir.metal_cpp}",
-      "vendor/DirectXShaderCompiler/inc",
+      "vendor/DirectXShaderCompiler/inc/mac",
       "%{IncludeDir.metal_shaderconverter}"
    }
 
@@ -126,7 +126,7 @@ project "VWolf"
      "%{IncludeDir.obj_loader}",
      "%{IncludeDir.metal_cpp}",
       "%{IncludeDir.reactphysics3d}",
-      "vendor/DirectXShaderCompiler/inc",
+      "vendor/DirectXShaderCompiler/inc/mac",
       "%{IncludeDir.metal_shaderconverter}"
     }
 
