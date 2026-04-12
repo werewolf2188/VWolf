@@ -74,6 +74,19 @@ struct VertexOut
 	float4 FragPosLightSpace[LIGHTS_MAX]: TEXCOORD1;
 };
 
+float ShadowCalculationOpenGL(float4 fragPosLightSpace) {
+    float3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5;
+    float closestDepth = Shadow.Sample(gsamPointWrap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+    float bias = 0.005;
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+    if(projCoords.z > 1.0)
+        shadow = 0.0;
+
+    return shadow;
+}
+
 float ShadowCalculation(float4 fragPosLightSpace) {
 	float3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 	projCoords.x = projCoords.x * 0.5 + 0.5;
@@ -124,7 +137,11 @@ float3 ComputeSpotBlinnPhongLightColor(float3 position, float3 n, LightInfo ligh
 			spec = u_specular * pow(max(dot(h, n), 0.0), u_shinines);
 		}
 	}
+#ifndef OPENGL
 	float shadow = ShadowCalculation(FragPosLightSpace);
+#else
+    float shadow = ShadowCalculationOpenGL(FragPosLightSpace);
+#endif
 	return ambient + (1.0 - shadow) * spotScale * lightInfo.u_strength.xyz * (diffuse + spec);
 }
 
@@ -149,7 +166,11 @@ float3 ComputePointBlinnPhongLightColor(float3 position, float3 n, LightInfo lig
 		float3 h = normalize(v + s);
 		spec = u_specular * pow(max(dot(h, n), 0.0), u_shinines);
 	}
-	float shadow = ShadowCalculation(FragPosLightSpace);
+#ifndef OPENGL
+    float shadow = ShadowCalculation(FragPosLightSpace);
+#else
+    float shadow = ShadowCalculationOpenGL(FragPosLightSpace);
+#endif
 	return ambient + (1.0 - shadow) * lightInfo.u_strength.xyz * (diffuse + spec);
 }
 
@@ -171,7 +192,11 @@ float3 ComputeDirectionalBlinnPhongLightColor(float3 position, float3 n, LightIn
 		float3 h = normalize(v + s);
 		spec = u_specular * pow(max(dot(h, n), 0.0), u_shinines);
 	}
-	float shadow = ShadowCalculation(FragPosLightSpace);
+#ifndef OPENGL
+    float shadow = ShadowCalculation(FragPosLightSpace);
+#else
+    float shadow = ShadowCalculationOpenGL(FragPosLightSpace);
+#endif
 	return ambient + (1.0 - shadow) * lightInfo.u_strength.xyz * (diffuse + spec);
 }
 
@@ -218,6 +243,10 @@ VertexOut VS(VertexIn vin)
 
 float4 PS(VertexOut pin) : SV_Target
 {
+#ifndef OPENGL
 	float4 sampleTexture = gDiffuseMap.Sample(gsamPointWrap, float2(pin.TexC.x, 1.0f - pin.TexC.y));
+#else
+    float4 sampleTexture = gDiffuseMap.Sample(gsamPointWrap, pin.TexC);
+#endif
 	return sampleTexture * float4(ComputeBlinnPhongLightColor(pin.PosL, pin.FragPosLightSpace, normalize(pin.Normal)), 1.0);
 }

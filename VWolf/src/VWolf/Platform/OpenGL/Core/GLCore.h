@@ -1,5 +1,9 @@
 #pragma once
 
+#define OPENGL_MAJOR_VERSION 4
+#define OPENGL_MINOR_VERSION 1
+#define OPENGL_VERSION 400
+
 static bool CheckForGLErrors(const char* file, const char* code, int line) {
     GLenum err = glGetError();
 
@@ -33,16 +37,6 @@ static bool CheckForGLErrors(const char* file, const char* code, int line) {
                 VWOLF_CORE_ERROR("OpenGL OUT OF MEMORY Error: File %s. Line: %d. Code: %s", file, line, code);
                 VWOLF_CORE_ASSERT(false);
                 break;
-            case GL_STACK_UNDERFLOW:
-                //An attempt has been made to perform an operation that would cause an internal stack to underflow.
-                VWOLF_CORE_ERROR("OpenGL STACK UNDERFLOW Error: File %s. Line: %d. Code: %s", file, line, code);
-                VWOLF_CORE_ASSERT(false);
-                break;
-            case GL_STACK_OVERFLOW:
-                //An attempt has been made to perform an operation that would cause an internal stack to overflow.
-                VWOLF_CORE_ERROR("OpenGL STACK OVERFLOW Error: File %s. Line: %d. Code: %s", file, line, code);
-                VWOLF_CORE_ASSERT(false);
-                break;
         }
         return true;
     }
@@ -63,13 +57,13 @@ static void OpenGLMessageCallback(
     const char* message,
     const void* userParam)
 {
-    switch (severity)
-    {
-    case GL_DEBUG_SEVERITY_HIGH:         VWOLF_CORE_FATAL(message); return;
-    case GL_DEBUG_SEVERITY_MEDIUM:       VWOLF_CORE_ERROR(message); return;
-    case GL_DEBUG_SEVERITY_LOW:          VWOLF_CORE_WARNING(message); return;
-    case GL_DEBUG_SEVERITY_NOTIFICATION: VWOLF_CORE_TRACE(message); return;
-    }
+//    switch (severity)
+//    {
+//    case GL_DEBUG_SEVERITY_HIGH:         VWOLF_CORE_FATAL(message); return;
+//    case GL_DEBUG_SEVERITY_MEDIUM:       VWOLF_CORE_ERROR(message); return;
+//    case GL_DEBUG_SEVERITY_LOW:          VWOLF_CORE_WARNING(message); return;
+//    case GL_DEBUG_SEVERITY_NOTIFICATION: VWOLF_CORE_TRACE(message); return;
+//    }
 
     VWOLF_CORE_ASSERT(false, "Unknown severity level!");
 }

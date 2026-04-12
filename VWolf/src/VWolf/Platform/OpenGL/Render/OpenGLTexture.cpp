@@ -27,7 +27,6 @@ namespace VWolf {
                 case TextureWrapMode::Repeat: return GL_REPEAT;
                 case TextureWrapMode::Clamp: return GL_CLAMP_TO_EDGE;
                 case TextureWrapMode::Mirror: return GL_MIRRORED_REPEAT;
-                case TextureWrapMode::MirrorOnce: return GL_MIRROR_CLAMP_TO_EDGE;
                 default: return GL_REPEAT;
             }
         }

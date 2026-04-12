@@ -129,7 +129,7 @@ namespace VWolf {
         std::vector<ShaderInput> textures = shader->GetTextureInputs();
         shader->Bind();
         for (GLuint index = 0; index < textures.size(); index++) {
-            if (textures[index].GetName() == "u_shadow") {
+            if (textures[index].GetName() == "Shadow") {
                 emptyShadowMap->Bind(index);
             } else {
                 OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
@@ -164,7 +164,7 @@ namespace VWolf {
         index->Unbind();
         group->Unbind();
         for (GLuint index = 0; index < textures.size(); index++) {
-            if (textures[index].GetName() == "u_shadow") {
+            if (textures[index].GetName() == "Shadow") {
                 emptyShadowMap->Unbind(index);
             } else {
                 OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
@@ -285,7 +285,7 @@ namespace VWolf {
             std::vector<ShaderInput> textures = shader->GetTextureInputs();
             shader->Bind();
             for (GLuint index = 0; index < textures.size(); index++) {
-                if (textures[index].GetName() == "u_shadow") {
+                if (textures[index].GetName() == "Shadow") {
                     shadowMap->DepthTextureBind(index);
                     GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
                 } else {
@@ -322,7 +322,7 @@ namespace VWolf {
             index->Unbind();
             group->Unbind();
             for (GLuint index = 0; index < textures.size(); index++) {
-                if (textures[index].GetName() == "u_shadow") {
+                if (textures[index].GetName() == "Shadow") {
                     shadowMap->DepthTextureUnbind(index);
                 } else {
                     OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());

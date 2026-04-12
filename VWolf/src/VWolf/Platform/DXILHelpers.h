@@ -273,7 +273,13 @@ namespace VWolf {
     
         struct Shader {
         public:
-            Shader(ShaderSource otherShader);
+            enum class ArgumentType {
+                Metal,
+                OpenGL
+            };
+        public:
+            Shader();
+            Shader(ShaderSource otherShader, ArgumentType argumentType);
             ~Shader();
         public:
             ShaderSource& GetShaderSource() { return otherShader; }
@@ -284,7 +290,7 @@ namespace VWolf {
             std::vector<Texture>& GetTextures() { return textures; }
             std::vector<Sampler>& GetSamplers() { return samplers; }
         private:
-            void CompileHLSLWithDirectXShaderCompiler();
+            void CompileHLSLWithDirectXShaderCompiler(ArgumentType argumentType);
             void DXILReflection(SmartPoint<ID3D12ShaderReflection> shaderReflection);
             void GetStageInAttributes(SmartPoint<ID3D12ShaderReflection> shaderReflection, _D3D12_SHADER_DESC* shaderDesc);
             void GetInputBinds(SmartPoint<ID3D12ShaderReflection> shaderReflection, _D3D12_SHADER_DESC* shaderDesc);

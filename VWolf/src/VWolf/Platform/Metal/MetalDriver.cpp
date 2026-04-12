@@ -44,7 +44,7 @@ namespace VWolf {
         this->callback = &callback;
         // Using GLFW instead of normal application since its too complicated to do it the normal way
         glfwInit();
-        glfwSetErrorCallback(GLFWErrorCallback);
+        glfwSetErrorCallback(MetalErrorCallback);
         window = CreateRef<CocoaWindow>(config, callback);
         window->Initialize();
         currentDriver = this;

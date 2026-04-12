@@ -36,6 +36,7 @@ IncludeDir["metal_cpp"] = "%{wks.location}/VWolf/vendor/metal-cpp"
 IncludeDir["metal_shaderconverter"] = "%{wks.location}/VWolf/vendor/metal-shaderconverter/include"
 IncludeDir["reactphysics3d"] = "%{wks.location}/VWolf/vendor/reactphysics3d/include"
 IncludeDir["miniaudio"] = "%{wks.location}/VWolf/vendor/miniaudio"
+IncludeDir["SPIRV_Cross"] = "%{wks.location}/VWolf/vendor/SPIRV-Cross"
 IncludeDir["efsw"] = "%{wks.location}/VWolfPup/src/ThirdParty/efsw/include"
 
 LibDir = {}
@@ -48,6 +49,7 @@ group "Dependencies"
    include "VWolf/vendor/imguizmo"
    include "VWolf/vendor/yaml_cpp"
    include "VWolf/vendor/reactphysics3d"
+   include "VWolf/vendor/SPIRV-Cross"
    include "VWolfPup/src/ThirdParty/efsw"
 group ""
 

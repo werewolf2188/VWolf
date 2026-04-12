@@ -13,8 +13,6 @@
 
 #include "VWolf/Platform/OpenGL/Core/GLCore.h"
 
-#define OPENGL_MAJOR_VERSION 4
-#define OPENGL_MINOR_VERSION 1
 #define OPENGL_PROFILE GLFW_OPENGL_CORE_PROFILE
 
 namespace VWolf {
@@ -51,14 +49,6 @@ namespace VWolf {
 		}
 		window->Initialize();
         graphics->Initialize();
-#ifdef DEBUG        
-        if (OPENGL_MINOR_VERSION > 5) {
-            GLThrowIfFailed(glEnable(GL_DEBUG_OUTPUT));
-            GLThrowIfFailed(glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
-            GLThrowIfFailed(glDebugMessageCallback(OpenGLMessageCallback, nullptr));
-            GLThrowIfFailed(glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE));
-        }
-#endif
         VWOLF_CORE_INFO("GL Vendor %s", glGetString(GL_VENDOR));
         GLThrowIfFailedNoAction("glGetString(GL_VENDOR)");
         VWOLF_CORE_INFO("GL Render %s", glGetString(GL_RENDERER));

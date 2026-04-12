@@ -36,7 +36,9 @@ VertexOut VS(VertexIn vin)
 	// Transform to homogeneous clip space.
 	vout.PosH = mul(u_Transform, float4(vin.PosL, 1.0f));
 	vout.PosH = mul(u_ViewProjection, vout.PosH);
+#ifndef OPENGL
 	vout.PosH.z = vout.PosH.z * 0.5 + 0.5;
+#endif
 
 	return vout;
 }
