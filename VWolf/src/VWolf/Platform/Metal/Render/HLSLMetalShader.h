@@ -1,8 +1,8 @@
 //
-//  MSLShader.hpp
+//  HLSLToMetal.hpp
 //  VWolf
 //
-//  Created by Enrique Ricalde on 4/25/24.
+//  Created by Enrique Moises on 3/28/26.
 //
 
 #pragma once
@@ -10,14 +10,21 @@
 #include "VWolf/Platform/Metal/Render/MetalShader.h"
 
 namespace VWolf {
-    class MLProgram;
+    enum class ProgramType {
+        MSL, HLSL, UNKNOWN
+    };
 
-    class MSLShader: public MetalShader {
+    ProgramType getShaderExtension(std::initializer_list<ShaderSource> otherShaders);
+
+    class HLMetalProgram;
+//    std::map<std::string, MTL::Library*> CompileHLSLLibraries(std::initializer_list<ShaderSource> otherShaders);
+
+    class HLSLMetalShader: public MetalShader {
     public:
-        MSLShader(std::string name,
-                   std::initializer_list<ShaderSource> otherShaders,
-                   ShaderConfiguration configuration = {});
-        virtual ~MSLShader();
+        HLSLMetalShader(std::string name,
+                        std::initializer_list<ShaderSource> otherShaders,
+                        ShaderConfiguration configuration = {});
+        virtual ~HLSLMetalShader();
     public:
         virtual void Bind() const override;
         virtual void Unbind() const override;
@@ -29,7 +36,7 @@ namespace VWolf {
         virtual std::vector<ShaderInput> GetTextureInputs() const override;
     public:
         virtual MTL::RenderPipelineState* GetState() override;
-        virtual void SetObjectIndex(uint32_t index) override;
+        virtual void SetObjectIndex(uint32_t index)override;
         virtual void SetVertexBufferIndex(Ref<MetalVertexBuffer> buffer) override;
         virtual void UseShader(MTL::RenderCommandEncoder* encoder) override;
         virtual void SetTextures(Ref<MetalRenderTexture> shadowMap, Material& material) override;
@@ -40,7 +47,8 @@ namespace VWolf {
         void SetBlend() const;
         void SetDepthStencil() const;
     private:
-        Ref<MLProgram> mlProgram;
+        uint32_t currentIndex = 0;
+        Ref<HLMetalProgram> hlMetalProgram;
         MTL::RenderCommandEncoder* encoder = nullptr;
     };
 }

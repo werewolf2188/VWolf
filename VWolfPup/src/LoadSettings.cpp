@@ -160,7 +160,6 @@ namespace VWolfPup {
             };
             VWolf::ShaderLibrary::LoadShader(name, { vs, fs }, GetInitialConfiguration(name));
         }
-        TestDirectXShaderCompiler();
     }
 
     void LoadMSLShaders() {
@@ -184,19 +183,6 @@ namespace VWolfPup {
                 "fragmentMain"
             };
             VWolf::ShaderLibrary::LoadShader(name, { vs, fs }, GetInitialConfiguration(name));
-        }
-        TestDirectXShaderCompiler();
-    }
-
-    void TestDirectXShaderCompiler() {
-        std::filesystem::path shaderPath2 = "shaders/hlsl/";
-        
-        for (auto const& dir_entry : std::filesystem::directory_iterator(shaderPath2)) {
-            std::string filename = dir_entry.path().string();
-            std::cout << filename << std::endl;
-            
-            VWolf::ShaderLibrary::UseDirectXCompiler(filename);
-            break;
         }
     }
 // ----------------------------------------------- //
@@ -226,7 +212,7 @@ namespace VWolfPup {
 #endif
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
         case VWolf::DriverType::Metal:
-            LoadMSLShaders();
+            LoadHLSLShaders();
             break;
 #endif
         }

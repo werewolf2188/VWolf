@@ -10,7 +10,7 @@
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
 #include "MetalGraphics.h"
 
-#include "MSLShader.h"
+#include "MetalShader.h"
 
 #include "VWolf/Core/Render/RenderItem.h"
 #include "VWolf/Platform/Metal/MetalDriver.h"
@@ -70,27 +70,17 @@ namespace VWolf {
         }
 
         void* material1 = material.GetDataPointer();
-        Ref<Shader> shader = ShaderLibrary::GetShader(material.GetShaderName());
-        ((MSLShader*)shader.get())->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
-        shader->Bind();
-        (rtvEncoder != nullptr ? rtvEncoder : encoder)->setVertexBuffer(*bufferGroups[itemsCount]->GetVertexBuffer(), 0, ((MSLShader*)shader.get())->GetVertexBufferIndex());
-        shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
-        shader->SetData(&objectTransforms[itemsCount], ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shapes);
-        shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
-
-        for (auto textureInput : shader->GetTextureInputs()) {
-            if (textureInput.GetName() == "Shadow") {
-                (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(emptyShadowMap->GetHandler()), textureInput.GetIndex());
-            } else {
-                Ref<Texture> texture = material.GetTexture(textureInput.GetName());
-                if (texture != nullptr) {
-                    (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(texture->GetHandler()), textureInput.GetIndex());
-                }
-            }
-            
-        }
+        MetalShader* metalShader = (MetalShader*)ShaderLibrary::GetShader(material.GetShaderName()).get();
+        metalShader->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
+        metalShader->Bind();
+        metalShader->SetObjectIndex(shapes);
+        metalShader->SetVertexBufferIndex(bufferGroups[itemsCount]->GetVertexBuffer());
+        metalShader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
+        metalShader->SetData(&objectTransforms[itemsCount], ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shapes);
+        metalShader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
+        metalShader->SetTextures(shadowMap, material);
         
-        (rtvEncoder != nullptr ? rtvEncoder : encoder)->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[itemsCount]->GetIndexBuffer()->GetCount(), bufferGroups[itemsCount]->GetIndexBuffer()->GetType(), *bufferGroups[itemsCount]->GetIndexBuffer(), 0);
+        metalShader->Draw(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[itemsCount]->GetIndexBuffer());
         free(material1);
 
         itemsCount++;
@@ -189,15 +179,15 @@ namespace VWolf {
                     shadowBufferGroups[shadowShapes]->SetData(item->data);
                     shadowObjectTransforms[shadowShapes] = item->transform;
                 }
-                Ref<Shader> shader = ShaderLibrary::GetShader("Shadow");
-                
-                ((MSLShader*)shader.get())->UseShader(dsvEncoder);
-                shader->Bind();
-                dsvEncoder->setVertexBuffer(*shadowBufferGroups[shadowShapes]->GetVertexBuffer(), 0, ((MSLShader*)shader.get())->GetVertexBufferIndex());
-                shader->SetData(&viewProjection, ShaderLibrary::CameraBufferName, sizeof(Matrix4x4), shadowShapes);
-                shader->SetData(&shadowObjectTransforms[shadowShapes], ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shadowShapes);
+                MetalShader* metalShader = (MetalShader*)ShaderLibrary::GetShader("Shadow").get();
+                metalShader->UseShader(dsvEncoder);
+                metalShader->Bind();
+                metalShader->SetObjectIndex(shadowShapes);
+                metalShader->SetVertexBufferIndex(shadowBufferGroups[shadowShapes]->GetVertexBuffer());
+                metalShader->SetData(&viewProjection, ShaderLibrary::CameraBufferName, sizeof(Matrix4x4), shadowShapes);
+                metalShader->SetData(&shadowObjectTransforms[shadowShapes], ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shadowShapes);
 
-                dsvEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, shadowBufferGroups[shadowShapes]->GetIndexBuffer()->GetCount(), shadowBufferGroups[shadowShapes]->GetIndexBuffer()->GetType(), *shadowBufferGroups[shadowShapes]->GetIndexBuffer(), 0);
+                metalShader->Draw(MTL::PrimitiveType::PrimitiveTypeTriangle, shadowBufferGroups[shadowShapes]->GetIndexBuffer());
                 shadowShapes++;
             }
         }
@@ -257,30 +247,19 @@ namespace VWolf {
             }
 
             void* material1 = item->material.GetDataPointer();
-            Ref<Shader> shader = ShaderLibrary::GetShader(item->material.GetShaderName());
-            ((MSLShader*)shader.get())->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
-            shader->Bind();
-            (rtvEncoder != nullptr ? rtvEncoder : encoder)->setVertexBuffer(*bufferGroups[itemsCount]->GetVertexBuffer(), 0, ((MSLShader*)shader.get())->GetVertexBufferIndex());
-            shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
-            shader->SetData(&objectTransforms[itemsCount], ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shapes);
-            shader->SetData(material1, materialName.c_str(), item->material.GetSize(), shapes);
-            shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
-            shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, shapes);
-
-            for (auto textureInput : shader->GetTextureInputs()) {
-                if (textureInput.GetName() == "Shadow") {
-                    (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(shadowMap->GetHandler()), textureInput.GetIndex());
-                } else {
-                    Ref<Texture> texture = item->material.GetTexture(textureInput.GetName());
-                    if (texture != nullptr) {
-                        (rtvEncoder != nullptr ? rtvEncoder : encoder)->setFragmentTexture(reinterpret_cast<MTL::Texture*>(texture->GetHandler()), textureInput.GetIndex());
-                    }
-                }
-                
-            }
+            MetalShader* metalShader = (MetalShader*)ShaderLibrary::GetShader(item->material.GetShaderName()).get();
+            metalShader->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
+            metalShader->Bind();
+            metalShader->SetObjectIndex(shapes);
+            metalShader->SetVertexBufferIndex(bufferGroups[itemsCount]->GetVertexBuffer());
+            metalShader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
+            metalShader->SetData(&objectTransforms[itemsCount], ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shapes);
+            metalShader->SetData(material1, materialName.c_str(), item->material.GetSize(), shapes);
+            metalShader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
+            metalShader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, shapes);
+            metalShader->SetTextures(shadowMap, item->material);
             
-            (rtvEncoder != nullptr ? rtvEncoder : encoder)->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[itemsCount]->GetIndexBuffer()->GetCount(), bufferGroups[itemsCount]->GetIndexBuffer()->GetType(), *bufferGroups[itemsCount]->GetIndexBuffer(), 0);
-            free(material1);
+            metalShader->Draw(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[itemsCount]->GetIndexBuffer());
     
             itemsCount++;
             constantBufferIndexPerShader[item->material.GetShaderName()] = ++shapes;

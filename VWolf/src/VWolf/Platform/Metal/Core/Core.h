@@ -6,12 +6,12 @@
 //
 
 #pragma once
+
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
 #include <MetalKit/MetalKit.hpp>
 #include <AppKit/AppKit.hpp>
 #include <Metal/Metal.hpp>
 #include <metal_irconverter/metal_irconverter.h>
-
-#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
 
 #define NSSTRINGFROM(charArray) NS::String::string(charArray, NS::StringEncoding::UTF8StringEncoding)
 

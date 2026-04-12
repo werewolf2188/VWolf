@@ -233,7 +233,7 @@ namespace VWolf {
                   ShaderConfiguration configuration = {}): name(name), configuration(configuration) {
     
             std::map<std::string, MTL::Library*> libraries = CompileLibraries(otherShaders);
-            std::map<std::string, MTL::Function*> functions = ExtractFunctions(otherShaders, libraries);
+            std::map<std::string, MTL::Function*> functions = ExtractFunctions(libraries);
 
             ReflectLibraryAndCreateState(functions, configuration);
             PrepareDepthStencilState(configuration);
@@ -245,11 +245,14 @@ namespace VWolf {
         ~MLProgram() {
             state->release();
         }
+
     private:
         std::map<std::string, MTL::Library*> CompileLibraries(std::initializer_list<ShaderSource> otherShaders) {
+            
             std::map<std::string, MTL::Library*> libraries;
 
             for (ShaderSource otherShader: otherShaders) {
+                
                 if (libraries.count(otherShader.shader) == 0) {
                     const std::string file = File::OpenTextFile(otherShader.shader.c_str());
                     const NS::String* nsFile = NSSTRINGFROM(file.c_str());
@@ -267,8 +270,7 @@ namespace VWolf {
             return libraries;
         }
 
-        std::map<std::string, MTL::Function*> ExtractFunctions(std::initializer_list<ShaderSource> otherShaders, 
-                                                               std::map<std::string, MTL::Library*> libraries) {
+        std::map<std::string, MTL::Function*> ExtractFunctions(std::map<std::string, MTL::Library*> libraries) {
             std::map<std::string, MTL::Function*> functions;
 
             for(auto kv: libraries) {
@@ -509,7 +511,7 @@ namespace VWolf {
     MSLShader::MSLShader(std::string name,
                          std::initializer_list<ShaderSource> otherShaders,
                          ShaderConfiguration configuration): 
-    Shader(name, otherShaders, configuration) {        
+    MetalShader(name, otherShaders, configuration) {        
         mlProgram = CreateRef<MLProgram>(name, otherShaders, configuration);
     }
 
@@ -602,16 +604,29 @@ namespace VWolf {
         
     }
 
-    NS::UInteger MSLShader::GetIndex(const char* name) {
-        std::string strName = name;
-        boost::to_lower(strName);
-        if (mlProgram->GetConstantBuffers().count(strName) == 0) return -1;
-
-        return mlProgram->GetConstantBuffers()[name]->GetIndex();
+    void MSLShader::SetObjectIndex(uint32_t index) {
+        
     }
 
-    NS::UInteger MSLShader::GetVertexBufferIndex() {
-        return 0;
+    void MSLShader::SetVertexBufferIndex(Ref<MetalVertexBuffer> buffer) {
+        encoder->setVertexBuffer(*buffer, 0, 0);
+    }
+
+    void MSLShader::SetTextures(Ref<MetalRenderTexture> shadowMap, Material& material)  {
+        for (auto textureInput : GetTextureInputs()) {
+            if (textureInput.GetName() == "Shadow") {
+                encoder->setFragmentTexture(reinterpret_cast<MTL::Texture*>(shadowMap->GetHandler()), textureInput.GetIndex());
+            } else {
+                Ref<Texture> texture = material.GetTexture(textureInput.GetName());
+                if (texture != nullptr) {
+                    encoder->setFragmentTexture(reinterpret_cast<MTL::Texture*>(texture->GetHandler()), textureInput.GetIndex());
+                }
+            }            
+        }
+    }
+
+    void MSLShader::Draw(MTL::PrimitiveType type, Ref<MetalIndexBuffer> buffer) {
+        encoder->drawIndexedPrimitives(type, buffer->GetCount(), buffer->GetType(), *buffer, 0);
     }
 
     std::vector<Ref<ShaderInput>> MSLShader::GetMaterialInputs() const {
