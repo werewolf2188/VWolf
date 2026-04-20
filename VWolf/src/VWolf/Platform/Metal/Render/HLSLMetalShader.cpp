@@ -46,17 +46,6 @@ kv.second->release();
 */
 
 namespace VWolf {
-
-    ProgramType getShaderExtension(std::initializer_list<ShaderSource> otherShaders) {
-        const std::filesystem::path path = otherShaders.begin()->shader;
-        if (path.extension() == ".metal") { // OLD SHADER FILE
-            return ProgramType::MSL;
-        } else if (path.extension() == ".hlsl") { // NEW SHADER FILE
-            return ProgramType::HLSL;
-        }
-        return ProgramType::UNKNOWN;
-    }
-
     uint64_t GetSizeFrom(MTL::VertexFormat format) {
         
         switch (format) {
@@ -287,7 +276,7 @@ namespace VWolf {
     private:
         void CompileHLSLWithDirectXShaderCompiler(std::initializer_list<ShaderSource> otherShaders) {
             for (ShaderSource otherShader: otherShaders) {
-                dxils.push_back(DXIL::Shader(otherShader));
+                dxils.push_back(DXIL::Shader(otherShader, DXIL::Shader::ArgumentType::Metal));
                 
                 for(auto& dxil: dxils) {
                     for (DXIL::Sampler& sampler: dxil.GetSamplers()) {
@@ -349,7 +338,6 @@ namespace VWolf {
                 IRObjectGetReflection(pOutIR, ShaderTypeEquivalentIR(otherShader.type), reflection);
                 
                 std::string jsonString = IRShaderReflectionCopyJSONString(reflection);
-                VWOLF_CORE_INFO(jsonString.c_str());
                 boost::json::value root = boost::json::parse(jsonString);
                 
                 boost::json::array arguments = root.at("TopLevelArgumentBuffer").as_array();

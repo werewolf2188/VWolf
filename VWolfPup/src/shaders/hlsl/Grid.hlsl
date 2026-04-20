@@ -122,6 +122,13 @@ float computeLinearDepth(float3 pos) {
     return linearDepth / u_FarZ; // normalize
 }
 
+float openGLCorrection(float depthComputed) {
+    float zFar = 1.0;
+    float zNear = 0.0;
+    float diff = zFar - zNear;
+    return ((diff * depthComputed) + zNear + zFar) / 2.0;
+}
+
 PixelOut PS(VertexOut vin) {
     float t = -vin.nearPoint.y / (vin.farPoint.y - vin.nearPoint.y);
     float3 fragPos3D = (vin.nearPoint + t * (vin.farPoint - vin.nearPoint)).xyz;
@@ -134,6 +141,11 @@ PixelOut PS(VertexOut vin) {
 
     PixelOut pOut;
     pOut.color = outColor;
+#ifndef OPENGL
     pOut.depth = computeDepth(fragPos3D);
+#else
+    pOut.depth = openGLCorrection(computeDepth(fragPos3D));
+#endif
+    
 	return pOut;
 }

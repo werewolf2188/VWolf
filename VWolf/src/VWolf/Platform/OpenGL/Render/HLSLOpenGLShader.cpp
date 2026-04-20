@@ -1,40 +1,34 @@
+//
+//  HLSLOpenGLShader.cpp
+//  VWolf
+//
+//  Created by Enrique Moises on 4/13/26.
+//
+
 #include "vwpch.h"
-#include "GLSLShader.h"
-
-#include "VWolf/Core/Utils/File.h"
-
-#include <glm/gtc/type_ptr.hpp>
-
+#include "HLSLOpenGLShader.h"
+#include "VWolf/Platform/DXILHelpers.h"
 #include "VWolf/Platform/OpenGL/Core/GLCore.h"
 
-#define MESSAGE_LENGTH 512
+// https://github.com/werewolf2188/SPIRV-Cross
+#include <spirv_glsl.hpp>
 
 namespace VWolf {
-    class GLShaderSource {
+    class HLOGLShaderSource {
     public:
-        GLShaderSource(ShaderSource source, bool compile = true) {
-            switch (source.sourceType) {
-                case ShaderSourceType::File:
-                    sourceText = File::OpenTextFile(source.shader.c_str());
-                    break;
-                case ShaderSourceType::Text:
-                    sourceText = source.shader;
-                    break;
-                case ShaderSourceType::Binary:
-                    VWOLF_CORE_ASSERT(false, "Shaders cannot be binary at the moment");
-                    break;
-            }
+        HLOGLShaderSource(ShaderSource source) {
+            shader = DXIL::Shader(source, DXIL::Shader::ArgumentType::OpenGL);
+            TranslateFromDXILToGLSL();
             type = ShaderTypeEquivalent(source.type);
             shaderId = glCreateShader(type);
             GLThrowIfFailedNoAction("glCreateShader");
-            if (compile)
-                Compile();
+            Compile();
         }
-        ~GLShaderSource() {
+        ~HLOGLShaderSource() {
             if (!HasBeenDeleted())
                 GLThrowIfFailed(glDeleteShader(shaderId));
         }
-    
+
         bool HasBeenDeleted() {
             return GetStatus(GL_DELETE_STATUS) == GL_TRUE;
         }
@@ -60,7 +54,94 @@ namespace VWolf {
             return isAttached;
         }
 
-        friend class GLProgram;
+        friend class HLOGLProgram;
+    private:
+        void TranslateFromDXILToGLSL() {
+            SmartPoint<IDxcBlob>& blob = shader.GetShader();
+            uint32_t* pointer = reinterpret_cast<uint32_t*>(blob->GetBufferPointer());
+            size_t di = blob->GetBufferSize() / sizeof(uint32_t);
+            std::vector<uint32_t> spirv(pointer, pointer + di);
+            spirv_cross::CompilerGLSL glsl(std::move(spirv));
+            glsl.build_combined_image_samplers();
+            // The SPIR-V is now parsed, and we can perform reflection on it.
+            spirv_cross::ShaderResources resources = glsl.get_shader_resources();
+
+            // Get all sampled images in the shader.
+            for (auto &resource : resources.stage_inputs)
+            {
+                if (shader.GetShaderSource().type == ShaderType::Vertex) {
+                    std::string new_name = SanitizeNameForVertexForInput(resource.name);
+                    glsl.set_name(resource.id, new_name);
+                } else if (shader.GetShaderSource().type == ShaderType::Fragment) {
+                    std::string new_name = SanitizeNameForVertexForOutputOrFragmentForInput(resource.name);
+                    glsl.set_name(resource.id, new_name);
+                }
+
+            }
+            
+            for (auto &resource : resources.stage_outputs)
+            {
+                if (shader.GetShaderSource().type == ShaderType::Vertex) {
+                    std::string new_name = SanitizeNameForVertexForOutputOrFragmentForInput(resource.name);
+                    glsl.set_name(resource.id, new_name);
+                }
+            }
+
+            uint32_t index = 0;
+            for (auto &resource : resources.sampled_images)
+            {
+                auto& texture = resources.separate_images[index];
+                std::string name = texture.name;
+                std::cout << name << std::endl;
+                glsl.set_name(resource.id, name);
+                index++;
+            }
+
+            // Set some options.
+            spirv_cross::CompilerGLSL::Options options;
+            options.version = OPENGL_VERSION;
+            options.enable_420pack_extension = false;
+            glsl.set_common_options(options);
+            
+
+            // Compile to GLSL, ready to give to GL driver.
+            sourceText = glsl.compile();
+        }
+        
+        std::string SanitizeNameForVertexForInput(std::string name) {
+            if (name.rfind("in.var.", 0) == 0) { // C++17 starts_with
+                std::string new_name = name.substr(7); // Remove "in"
+                
+                // 3. Rename the variable
+                return new_name;
+            }
+            return name;
+        }
+        
+        std::string SanitizeNameForVertexForOutputOrFragmentForInput(std::string name) {
+            if (name.rfind("in.var.a", 0) == 0) { // C++17 starts_with
+                std::string new_name = name.substr(8); // Remove "in"
+                
+                // 3. Rename the variable
+                return "v" + new_name;
+            } if (name.rfind("in.var.", 0) == 0) { // C++17 starts_with
+                std::string new_name = name.substr(7); // Remove "in"
+                
+                // 3. Rename the variable
+                return "v_" + new_name;
+            } else if (name.rfind("out.var.a", 0) == 0) { // C++17 starts_with
+                std::string new_name = name.substr(9); // Remove "in"
+                
+                // 3. Rename the variable
+                return "v" + new_name;
+            } else if (name.rfind("out.var.", 0) == 0) { // C++17 starts_with
+                std::string new_name = name.substr(8); // Remove "in"
+                
+                // 3. Rename the variable
+                return "v_" + new_name;
+            }
+            return name;
+        }
     private:
         GLint GetStatus(GLenum enumValue) {
             GLint success;
@@ -98,23 +179,25 @@ namespace VWolf {
             return -1;
         }
     private:
-        GLuint shaderId;
+        DXIL::Shader shader;
         std::string sourceText;
+        
+        GLuint shaderId;
         GLenum type;
         bool isAttached;
     };
 
-    class GLAttribute {
+    class HLOGLAttribute {
     public:
-        GLAttribute(GLuint programId, GLint index) {
+        HLOGLAttribute(GLuint programId, GLint index) {
             GLint length = 255;
             GLchar* nameHolder = new GLchar[length];
             GLThrowIfFailed(glGetActiveAttrib(programId, index, length, 0, &size, &type, nameHolder));
             name = std::string(nameHolder);
             delete[] nameHolder;
         }
-    
-        ~GLAttribute() = default;
+
+        ~HLOGLAttribute() = default;
         std::string GetName() {
             return name;
         }
@@ -128,9 +211,9 @@ namespace VWolf {
         GLint size;
     };
 
-    class GLUniform {
+    class HLOGLUniform {
     public:
-        GLUniform(GLuint programId, GLint index): index(index) {
+        HLOGLUniform(GLuint programId, GLint index): index(index) {
             GLint length;
             GLThrowIfFailed(glGetProgramiv(programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &length));
             char* nameHolder = new char[length];
@@ -139,7 +222,7 @@ namespace VWolf {
             delete[] nameHolder;
         }
 
-        ~GLUniform() = default;
+        ~HLOGLUniform() = default;
 
         std::string GetName() {
             return name;
@@ -209,15 +292,15 @@ namespace VWolf {
         GLint offset;
     };
 
-    class GLUniformBuffer {
+    class HLOGLUniformBuffer {
     public:
-    
-        GLUniformBuffer(GLuint programId, GLint index): index(index) {
+
+        HLOGLUniformBuffer(GLuint programId, GLint index): index(index) {
             GLThrowIfFailed(glGenBuffers(1, &id));
             Build(programId);
         }
 
-        ~GLUniformBuffer() {
+        ~HLOGLUniformBuffer() {
             GLThrowIfFailed(glDeleteBuffers(1, &id));
         }
 
@@ -237,7 +320,7 @@ namespace VWolf {
             return size;
         }
         
-        std::map<std::string, Ref<GLUniform>> GetUniforms() {
+        std::map<std::string, Ref<HLOGLUniform>> GetUniforms() {
             return uniforms;
         }
 
@@ -259,19 +342,19 @@ namespace VWolf {
             GLThrowIfFailed(glGetActiveUniformBlockName(programId, index, length, 0, nameHolder));
             name = std::string(nameHolder);
             delete[] nameHolder;
-    
+
             // Getting the size of the block
             GLThrowIfFailed(glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_DATA_SIZE, &size));
-    
+
             // Binding the UB
             GLThrowIfFailed(glUniformBlockBinding(programId, index, index + totalBindings));
-   
+
             // Sizing the buffer
             GLThrowIfFailed(glBindBuffer(GL_UNIFORM_BUFFER, id));
             GLThrowIfFailed(glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_BINDING, &binding));
             GLThrowIfFailed(glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW));
             GLThrowIfFailed(glBindBuffer(GL_UNIFORM_BUFFER, 0));
-    
+
             // Setting the base
             GLThrowIfFailed(glBindBufferBase(GL_UNIFORM_BUFFER, binding, id));
             RetrieveUniforms(programId);
@@ -293,10 +376,10 @@ namespace VWolf {
             GLThrowIfFailed(glGetActiveUniformsiv(programId, ubActiveUniforms, ubActiveUniformsIndicesNotNegative.data(), GL_UNIFORM_OFFSET, ubActiveUniformsOffsets));
             
             for(int uIndex = 0; uIndex < ubActiveUniforms; uIndex++) {
-                Ref<GLUniform> uniform = CreateRef<GLUniform>(programId, ubActiveUniformsIndices[uIndex]);
+                Ref<HLOGLUniform> uniform = CreateRef<HLOGLUniform>(programId, ubActiveUniformsIndices[uIndex]);
                 uniform->SetType(ubActiveUniformsTypes[uIndex]);
                 uniform->SetOffset(ubActiveUniformsOffsets[uIndex]);
-                uniforms.insert(std::pair<std::string, Ref<GLUniform>>(uniform->GetName(), uniform));
+                uniforms.insert(std::pair<std::string, Ref<HLOGLUniform>>(uniform->GetName(), uniform));
             }
             delete[] ubActiveUniformsIndices;
             delete[] ubActiveUniformsOffsets;
@@ -308,32 +391,32 @@ namespace VWolf {
         GLint size;
         GLint index;
         std::string name;
-        std::map<std::string, Ref<GLUniform>> uniforms;
+        std::map<std::string, Ref<HLOGLUniform>> uniforms;
     private:
         static int totalBindings;
     };
 
-    int GLUniformBuffer::totalBindings = 0;
+    int HLOGLUniformBuffer::totalBindings = 0;
 
-    class GLProgram {
+    class HLOGLProgram {
     public:
-        GLProgram(): programId(glCreateProgram()) {
+        HLOGLProgram(): programId(glCreateProgram()) {
             GLThrowIfFailedNoAction("glCreateProgram");
         }
-        ~GLProgram() {
+        ~HLOGLProgram() {
             Clear();
             GLThrowIfFailed(glDeleteProgram(programId));
         }
 
-        void AddShader(Ref<GLShaderSource> source) {
+        void AddShader(Ref<HLOGLShaderSource> source) {
             sources.push_back(source);
         }
 
-        void RemoveShader(Ref<GLShaderSource> source) {
-            auto lambda = [source](Ref<GLShaderSource> it) {
+        void RemoveShader(Ref<HLOGLShaderSource> source) {
+            auto lambda = [source](Ref<HLOGLShaderSource> it) {
                 return it->shaderId == source->shaderId;
             };
-            Ref<GLShaderSource> found = *std::remove_if(sources.begin(), sources.end(), lambda);
+            Ref<HLOGLShaderSource> found = *std::remove_if(sources.begin(), sources.end(), lambda);
             DettachShader(found);
         }
 
@@ -342,25 +425,25 @@ namespace VWolf {
             sources.clear();
         }
 
-        void AttachShader(Ref<GLShaderSource> source) {
+        void AttachShader(Ref<HLOGLShaderSource> source) {
             AddShader(source);
             AttachShaderWithoutAdding(source);
         }
 
         void AttachShaders() {
-            for (Ref<GLShaderSource> source: sources) {
+            for (Ref<HLOGLShaderSource> source: sources) {
                 if (!source->isAttached)
                     AttachShaderWithoutAdding(source);
             }
         }
 
-        void DettachShader(Ref<GLShaderSource> source) {
+        void DettachShader(Ref<HLOGLShaderSource> source) {
             GLThrowIfFailed(glDetachShader(programId, source->shaderId));
             source->isAttached = false;
         }
 
         void DettachShaders() {
-            for (Ref<GLShaderSource> source: sources) {
+            for (Ref<HLOGLShaderSource> source: sources) {
                 if (source->isAttached)
                     DettachShader(source);
             }
@@ -383,17 +466,17 @@ namespace VWolf {
             GLint ubCount;
             GLThrowIfFailed(glGetProgramiv(programId, GL_ACTIVE_UNIFORM_BLOCKS, &ubCount));
             for(int index = 0; index < ubCount; index++) {
-                Ref<GLUniformBuffer> ubBlock = CreateRef<GLUniformBuffer>(*this, index);
-                uniformBuffers.insert(std::pair<std::string, Ref<GLUniformBuffer>>(ubBlock->GetName(), ubBlock));
+                Ref<HLOGLUniformBuffer> ubBlock = CreateRef<HLOGLUniformBuffer>(*this, index);
+                uniformBuffers.insert(std::pair<std::string, Ref<HLOGLUniformBuffer>>(ubBlock->GetName(), ubBlock));
             }
-            GLUniformBuffer::AddTotalBindings(ubCount);
+            HLOGLUniformBuffer::AddTotalBindings(ubCount);
             RetrieveDefaultUniforms();
             RetrieveAttributes();
         }
 
         void SetData(const void* data, const char* name, uint32_t size, uint32_t offset) {
-            Ref<GLUniformBuffer> ubBlock = 0;
-            auto lambda = [name](std::pair<std::string, Ref<GLUniformBuffer>> it) {
+            Ref<HLOGLUniformBuffer> ubBlock = 0;
+            auto lambda = [name](std::pair<std::string, Ref<HLOGLUniformBuffer>> it) {
                 return strcmp(it.first.c_str(), name) == 0;
             };
             auto ubPair = std::find_if(uniformBuffers.begin(), uniformBuffers.end(), lambda);
@@ -427,19 +510,19 @@ namespace VWolf {
             return GetStatus(GL_ATTACHED_SHADERS);
         }
 
-        std::vector<Ref<GLShaderSource>> GetSources() {
+        std::vector<Ref<HLOGLShaderSource>> GetSources() {
             return sources;
         }
 
-        std::map<std::string, Ref<GLUniformBuffer>> GetUniformBuffers() {
+        std::map<std::string, Ref<HLOGLUniformBuffer>> GetUniformBuffers() {
             return uniformBuffers;
         }
 
-        std::map<std::string, Ref<GLUniform>> GetDefaultUniforms() {
+        std::map<std::string, Ref<HLOGLUniform>> GetDefaultUniforms() {
             return defaultUniforms;
         }
 
-        std::map<std::string, Ref<GLAttribute>> GetAttributes() {
+        std::map<std::string, Ref<HLOGLAttribute>> GetAttributes() {
             return attributes;
         }
 
@@ -462,7 +545,7 @@ namespace VWolf {
             delete[] infoLog;
         }
     
-        void AttachShaderWithoutAdding(Ref<GLShaderSource> source) {
+        void AttachShaderWithoutAdding(Ref<HLOGLShaderSource> source) {
             GLThrowIfFailed(glAttachShader(programId, source->shaderId));
             source->isAttached = true;
         }
@@ -483,7 +566,7 @@ namespace VWolf {
             
             for(int uIndex = 0; uIndex < uniforms; uIndex++) {
                 if (uActiveUniformsBlockIndex[uIndex] != -1) continue;
-                Ref<GLUniform> uniform = CreateRef<GLUniform>(programId, uIndex);
+                Ref<HLOGLUniform> uniform = CreateRef<HLOGLUniform>(programId, uIndex);
                 uniform->SetType(uActiveUniformsTypes[uIndex]);
                 uniform->SetOffset(uActiveUniformsOffsets[uIndex]);
 #ifdef VWOLF_PLATFORM_WINDOWS
@@ -491,7 +574,7 @@ namespace VWolf {
                 if (uIndex != _index)
                     uniform->SetIndex(_index);
 #endif
-                defaultUniforms.insert(std::pair<std::string, Ref<GLUniform>>(uniform->GetName(), uniform));
+                defaultUniforms.insert(std::pair<std::string, Ref<HLOGLUniform>>(uniform->GetName(), uniform));
             }
             delete[] uActiveUniformsOffsets;
             delete[] uActiveUniformsTypes;
@@ -501,51 +584,135 @@ namespace VWolf {
             GLint attributesCount;
             GLThrowIfFailed(glGetProgramiv(programId, GL_ACTIVE_ATTRIBUTES, &attributesCount));
             for(int aIndex = 0; aIndex < attributesCount; aIndex++) {
-                Ref<GLAttribute> attribute = CreateRef<GLAttribute>(programId, aIndex);
-                attributes.insert(std::pair<std::string, Ref<GLAttribute>>(attribute->GetName(), attribute));
+                Ref<HLOGLAttribute> attribute = CreateRef<HLOGLAttribute>(programId, aIndex);
+                attributes.insert(std::pair<std::string, Ref<HLOGLAttribute>>(attribute->GetName(), attribute));
             }
         }
     private:
         GLuint programId;
-        std::vector<Ref<GLShaderSource>> sources;
-        std::map<std::string, Ref<GLUniformBuffer>> uniformBuffers;
-        std::map<std::string, Ref<GLUniform>> defaultUniforms;
-        std::map<std::string, Ref<GLAttribute>> attributes;
+        std::vector<Ref<HLOGLShaderSource>> sources;
+        std::map<std::string, Ref<HLOGLUniformBuffer>> uniformBuffers;
+        std::map<std::string, Ref<HLOGLUniform>> defaultUniforms;
+        std::map<std::string, Ref<HLOGLAttribute>> attributes;
     };
 
-    GLSLShader::GLSLShader(std::string name,
-                           std::initializer_list<ShaderSource> otherShaders,
-                           ShaderConfiguration configuration): Shader(name,
-                                                                      otherShaders,
-                                                                      configuration)
+    HLSLOpenGLShader::HLSLOpenGLShader(std::string name,
+                                       std::initializer_list<ShaderSource> otherShaders,
+                                       ShaderConfiguration configuration): Shader(name,
+                                                                                  otherShaders,
+                                                                                  configuration)
     {
-        m_program = CreateRef<GLProgram>();
+        m_program = CreateRef<HLOGLProgram>();
         for(ShaderSource source: m_otherShaders)
-            m_program->AttachShader(CreateRef<GLShaderSource>(source));
+           m_program->AttachShader(CreateRef<HLOGLShaderSource>(source));
         m_program->Link();
-//        m_program->Validate();
+        //        m_program->Validate();
         m_program->DettachShaders();
         m_program->RetrieveUniforms();
     }
 
-	GLSLShader::~GLSLShader()
-	{
-	}
+    HLSLOpenGLShader::~HLSLOpenGLShader() {
+        
+    }
 
-	void GLSLShader::Bind() const
-	{
+    void HLSLOpenGLShader::Bind() const {
         m_program->Bind();
         // Configuration
         SetConfiguration();
-	}
+    }
 
-    void GLSLShader::SetConfiguration() const {
+    void HLSLOpenGLShader::Unbind() const {
+        m_program->Unbind();
+    }
+
+    std::vector<Ref<ShaderInput>> HLSLOpenGLShader::GetMaterialInputs() const {
+        std::vector<Ref<ShaderInput>> inputs;
+        std::string cbMaterialName = std::string("type_cbPer") + std::string(materialName);
+        const char * _materialName = cbMaterialName.c_str();
+        auto lambda = [_materialName](std::pair<std::string, Ref<HLOGLUniformBuffer>> it) {
+            return strcmp(it.first.c_str(), _materialName) == 0;
+        };
+        auto container = m_program->GetUniformBuffers();
+        auto mat = std::find_if(container.begin(),
+                                container.end(),
+                                lambda);
+        if (mat == container.end()) return inputs;
+
+        Ref<HLOGLUniformBuffer> material = mat->second;
+        
+        if (material == nullptr) {
+            return inputs;
+        }
+        for (std::pair<std::string, Ref<HLOGLUniform>> uniform: material->GetUniforms()) {
+            if (uniform.second->GetShaderDataType() == ShaderDataType::None) continue;
+            inputs.push_back(CreateRef<ShaderInput>(uniform.second->GetName().substr(cbMaterialName.length() + 1),
+                                                    uniform.second->GetShaderDataType(),
+                                                    uniform.second->GetIndex(),
+                                                    ShaderDataTypeSize(uniform.second->GetShaderDataType()),
+                                                    uniform.second->GetOffset()));
+        }
+        
+        return inputs;
+    }
+
+    size_t HLSLOpenGLShader::GetMaterialSize() const {
+        std::string cbMaterialName = std::string("type_cbPer") + std::string(materialName);
+        const char * _materialName = cbMaterialName.c_str();
+        auto lambda = [_materialName](std::pair<std::string, Ref<HLOGLUniformBuffer>> it) {
+            return strcmp(it.first.c_str(), _materialName) == 0;
+        };
+        auto container = m_program->GetUniformBuffers();
+        auto mat = std::find_if(container.begin(),
+                                container.end(),
+                                lambda);
+        if (mat == container.end()) return 0;
+        return std::find_if(container.begin(),
+                            container.end(),
+                            lambda)->second->GetSize();
+    }
+
+    std::vector<ShaderInput> HLSLOpenGLShader::GetTextureInputs() const {
+        std::vector<ShaderInput> inputs;
+        
+        for (auto uBuffer: m_program->GetUniformBuffers()) {
+            for (auto uniform: uBuffer.second->GetUniforms()) {
+                if (!uniform.second->IsTexture()) continue;
+                inputs.push_back(ShaderInput(uniform.second->GetName(),
+                                             uniform.second->GetShaderDataType(),
+                                             uniform.second->GetIndex(),
+                                             uniform.second->GetTextureSize(),
+                                             uniform.second->GetOffset()));
+            }
+        }
+
+        for (auto uniform: m_program->GetDefaultUniforms()) {
+            if (!uniform.second->IsTexture()) continue;
+            inputs.push_back(ShaderInput(uniform.second->GetName(),
+                                         uniform.second->GetShaderDataType(),
+                                         uniform.second->GetIndex(),
+                                         uniform.second->GetTextureSize(),
+                                         uniform.second->GetOffset()));
+        }
+        
+        return inputs;
+    }
+
+    std::string HLSLOpenGLShader::GetName() const {
+        return this->m_name;
+    }
+
+    void HLSLOpenGLShader::SetData(const void* data, const char* name, uint32_t size, uint32_t offset) {
+        std::string cbMaterialName = std::string("type_cbPer") + std::string(name);
+        m_program->SetData(data, cbMaterialName.c_str(), size, offset);
+    }
+
+    void HLSLOpenGLShader::SetConfiguration() const {
         SetRasterization();
         SetBlend();
         SetDepthStencil();
     }
 
-    void GLSLShader::SetRasterization() const {
+    void HLSLOpenGLShader::SetRasterization() const {
         // Rasterization
         if (m_configuration.rasterization.cullEnabled) {
             GLThrowIfFailed(glEnable(GL_CULL_FACE));
@@ -576,10 +743,9 @@ namespace VWolf {
         }
 
         GLThrowIfFailed(glFrontFace(m_configuration.rasterization.counterClockwise ? GL_CCW: GL_CW));
-
     }
 
-    GLuint GetBlendFunction(ShaderConfiguration::Blend::Function function) {
+    GLuint HLSLOpenGLShader::GetBlendFunction(ShaderConfiguration::Blend::Function function) const {
         switch (function) {
             case ShaderConfiguration::Blend::Function::Zero: return GL_ZERO;
             case ShaderConfiguration::Blend::Function::One: return GL_ONE;
@@ -604,7 +770,7 @@ namespace VWolf {
         return GL_ZERO;
     }
 
-    void GLSLShader::SetBlend() const {
+    void HLSLOpenGLShader::SetBlend() const {
         // Blend
         if (m_configuration.blend.enabled) {
             GLThrowIfFailed(glEnable(GL_BLEND));
@@ -637,7 +803,7 @@ namespace VWolf {
         }
     }
 
-    void GLSLShader::SetDepthStencil() const {
+    void HLSLOpenGLShader::SetDepthStencil() const {
         // Depth/Stencil
         if (m_configuration.depthStencil.depthTest) {
             GLThrowIfFailed(glEnable(GL_DEPTH_TEST));
@@ -672,89 +838,5 @@ namespace VWolf {
                 GLThrowIfFailed(glDepthFunc(GL_ALWAYS));
                 break;
         }
-    }
-
-	void GLSLShader::Unbind() const
-	{
-        m_program->Unbind();
-	}
-
-    std::string GLSLShader::GetName() const
-	{
-		return this->m_name;
-	}
-
-    void GLSLShader::SetData(const void* data, const char* name, uint32_t size, uint32_t offset) {
-        m_program->SetData(data, name, size, offset);
-    }
-
-    std::vector<Ref<ShaderInput>> GLSLShader::GetMaterialInputs() const {
-        std::vector<Ref<ShaderInput>> inputs;
-        const char * _materialName = materialName.c_str();
-        auto lambda = [_materialName](std::pair<std::string, Ref<GLUniformBuffer>> it) {
-            return strcmp(it.first.c_str(), _materialName) == 0;
-        };
-        auto container = m_program->GetUniformBuffers();
-        auto mat = std::find_if(container.begin(),
-                                container.end(),
-                                lambda);
-        if (mat == container.end()) return inputs;
-
-        Ref<GLUniformBuffer> material = mat->second;       
-        
-        if (material == nullptr) {
-            return inputs;
-        }
-        for (std::pair<std::string, Ref<GLUniform>> uniform: material->GetUniforms()) {
-            if (uniform.second->GetShaderDataType() == ShaderDataType::None) continue;
-            inputs.push_back(CreateRef<ShaderInput>(uniform.second->GetName(),
-                                                    uniform.second->GetShaderDataType(),
-                                                    uniform.second->GetIndex(),
-                                                    ShaderDataTypeSize(uniform.second->GetShaderDataType()),
-                                                    uniform.second->GetOffset()));
-        }
-        
-        return inputs;
-    }
-
-    size_t GLSLShader::GetMaterialSize() const {
-        const char * _materialName = materialName.c_str();
-        auto lambda = [_materialName](std::pair<std::string, Ref<GLUniformBuffer>> it) {
-            return strcmp(it.first.c_str(), _materialName) == 0;
-        };
-        auto container = m_program->GetUniformBuffers();
-        auto mat = std::find_if(container.begin(),
-                                container.end(),
-                                lambda);
-        if (mat == container.end()) return 0;
-        return std::find_if(container.begin(),
-                            container.end(),
-                            lambda)->second->GetSize();
-    }
-
-    std::vector<ShaderInput> GLSLShader::GetTextureInputs() const {
-        std::vector<ShaderInput> inputs;
-        
-        for (auto uBuffer: m_program->GetUniformBuffers()) {
-            for (auto uniform: uBuffer.second->GetUniforms()) {
-                if (!uniform.second->IsTexture()) continue;
-                inputs.push_back(ShaderInput(uniform.second->GetName(),
-                                             uniform.second->GetShaderDataType(),
-                                             uniform.second->GetIndex(),
-                                             uniform.second->GetTextureSize(),
-                                             uniform.second->GetOffset()));
-            }
-        }
-
-        for (auto uniform: m_program->GetDefaultUniforms()) {
-            if (!uniform.second->IsTexture()) continue;
-            inputs.push_back(ShaderInput(uniform.second->GetName(),
-                                         uniform.second->GetShaderDataType(),
-                                         uniform.second->GetIndex(),
-                                         uniform.second->GetTextureSize(),
-                                         uniform.second->GetOffset()));
-        }
-        
-        return inputs;
     }
 }

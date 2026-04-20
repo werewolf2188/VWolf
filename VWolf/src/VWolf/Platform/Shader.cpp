@@ -3,6 +3,7 @@
 #include "VWolf/Core/Application.h"
 
 #include "VWolf/Platform/OpenGL/Render/GLSLShader.h"
+#include "VWolf/Platform/OpenGL/Render/HLSLOpenGLShader.h"
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "VWolf/Platform/DirectX12/Render/HLSLShader.h"
 #endif
@@ -12,6 +13,24 @@
 #endif
 
 namespace VWolf {
+
+    enum class ProgramType {
+        GLSL, MSL, HLSL, UNKNOWN
+    };
+
+    ProgramType getShaderExtension(std::initializer_list<ShaderSource> otherShaders) {
+        if (otherShaders.size() == 0) return ProgramType::UNKNOWN;
+        
+        const std::filesystem::path path = otherShaders.begin()->shader;
+        if (path.extension() == ".metal") { // OLD SHADER FILE
+            return ProgramType::MSL;
+        } else if (path.extension() == ".hlsl") { // NEW SHADER FILE
+            return ProgramType::HLSL;
+        } else if (path.extension() == ".glsl") { // OLD SHADER FILE
+            return ProgramType::GLSL;
+        }
+        return ProgramType::UNKNOWN;
+    }
 
     std::vector<Ref<Shader>> ShaderLibrary::m_shaders;
     std::map<ShaderLibrary::ShaderSpecialty, std::string> ShaderLibrary::m_specialtiesShaders;
@@ -29,9 +48,21 @@ namespace VWolf {
         
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
-                shader = CreateRef<GLSLShader>(name,
-                                               otherShaders,
-                                               configuration);
+                switch (getShaderExtension(otherShaders)) {
+                    case ProgramType::GLSL:
+                        shader = CreateRef<GLSLShader>(name,
+                                                       otherShaders,
+                                                       configuration);
+                        break;
+                    case ProgramType::HLSL:
+                        shader = CreateRef<HLSLOpenGLShader>(name,
+                                                             otherShaders,
+                                                             configuration);
+                        break;
+                    default:
+                        VWOLF_CORE_ASSERT("This file is unsupported");
+                }
+                
                 break;
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
@@ -54,7 +85,7 @@ namespace VWolf {
                                                             otherShaders,
                                                             configuration);
                         break;
-                    case ProgramType::UNKNOWN:
+                    default:
                         VWOLF_CORE_ASSERT("This file is unsupported");
                 }
                 break;

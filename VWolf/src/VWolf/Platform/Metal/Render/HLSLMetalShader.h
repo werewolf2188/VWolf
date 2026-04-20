@@ -10,12 +10,6 @@
 #include "VWolf/Platform/Metal/Render/MetalShader.h"
 
 namespace VWolf {
-    enum class ProgramType {
-        MSL, HLSL, UNKNOWN
-    };
-
-    ProgramType getShaderExtension(std::initializer_list<ShaderSource> otherShaders);
-
     class HLMetalProgram;
 //    std::map<std::string, MTL::Library*> CompileHLSLLibraries(std::initializer_list<ShaderSource> otherShaders);
 

@@ -340,13 +340,15 @@ namespace VWolf {
         }
     
     // MARK: Shader
-        Shader::Shader(ShaderSource otherShader): otherShader(otherShader), name(ShaderFileName(otherShader)) {
-            CompileHLSLWithDirectXShaderCompiler();
+        Shader::Shader() {}
+    
+        Shader::Shader(ShaderSource otherShader, ArgumentType argumentType): otherShader(otherShader), name(ShaderFileName(otherShader)) {
+            CompileHLSLWithDirectXShaderCompiler(argumentType);
         }
     
         Shader::~Shader() {}
     
-        void Shader::CompileHLSLWithDirectXShaderCompiler() {
+        void Shader::CompileHLSLWithDirectXShaderCompiler(ArgumentType argumentType) {
             std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
             uint32_t codePage = DXC_CP_ACP;
                 
@@ -376,18 +378,36 @@ namespace VWolf {
             wide = converter.from_bytes(otherShader.mainFunction);
             std::wstring outputName = ShaderWideFileName(otherShader);
             std::wstring type = ShaderTypeEquivalentWide(otherShader.type);
-            
-            LPCWSTR arguments[] = {
-                L"-E", wide.c_str(),                                    // Entry point name: "Main"
-                L"-T", type.c_str(),                                    // Target profile: Vertex Shader Model 6.0
-                DXC_ARG_DEBUG,                                          // Enable debug info (PDB)
-                DXC_ARG_SKIP_OPTIMIZATIONS,
-                DXC_ARG_ALL_RESOURCES_BOUND,
-                L"-Qembed_debug",
-                L"-Fo", outputName.c_str()                              // Output object file name
-            };
-            
-            UINT32 argCount = _countof(arguments);
+            UINT32 argCount = 0;
+            LPCWSTR* arguments;
+            switch (argumentType) {
+                case Shader::ArgumentType::Metal:
+                    arguments = new LPCWSTR[] {
+                        L"-E", wide.c_str(),                                    // Entry point name: "Main"
+                        L"-T", type.c_str(),                                    // Target profile: Vertex Shader Model 6.0
+                        DXC_ARG_DEBUG,                                          // Enable debug info (PDB)
+                        DXC_ARG_SKIP_OPTIMIZATIONS,
+                        DXC_ARG_ALL_RESOURCES_BOUND,
+                        L"-Qembed_debug",
+                        L"-Fo", outputName.c_str()                              // Output object file name
+                    };
+                    argCount = 10;
+                    break;
+                case Shader::ArgumentType::OpenGL:
+                    arguments = new LPCWSTR[] {
+                        L"-E", wide.c_str(),                                    // Entry point name: "Main"
+                        L"-T", type.c_str(),                                    // Target profile: Vertex Shader Model 6.0
+                        DXC_ARG_DEBUG,                                          // Enable debug info (PDB)
+                        DXC_ARG_SKIP_OPTIMIZATIONS,
+                        DXC_ARG_ALL_RESOURCES_BOUND,
+                        L"-Qembed_debug",
+                        L"-spirv",
+                        L"-D OPENGL",
+                        L"-Fo", outputName.c_str()                              // Output object file name
+                    };
+                    argCount = 12;
+                    break;
+            }
             
             SmartPoint<IDxcResult> result;
             DXSC_EXECUTE(compiler->Compile(
@@ -402,11 +422,9 @@ namespace VWolf {
             
             DXSC_EXECUTE(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShader), nullptr));
             
-            if (pShader != nullptr) {
-                // Save the shader binary to a file (e.g., shader.cso) or use it directly in your application
-                // ... (file writing code omitted for brevity)
-                std::wcout << L"Compilation successful. Generated shader bytecode size: " << pShader->GetBufferSize() << L" bytes." << std::endl;
-            }
+            VWOLF_CORE_ASSERT(pShader != nullptr, "Shader was not able to compile");
+            
+            if (argumentType == Shader::ArgumentType::OpenGL) return;
             
             SmartPoint<IDxcBlob> pReflectionData;
             DXSC_EXECUTE(result->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(&pReflectionData), nullptr));

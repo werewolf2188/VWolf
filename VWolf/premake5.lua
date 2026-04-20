@@ -45,7 +45,8 @@ project "VWolf"
       "%{IncludeDir.yaml_cpp}",
       "%{IncludeDir.obj_loader}",
       "%{IncludeDir.reactphysics3d}",
-      "%{IncludeDir.miniaudio}"
+      "%{IncludeDir.miniaudio}",
+      "%{IncludeDir.SPIRV_Cross}",
    }
 
    libdirs 
@@ -61,7 +62,8 @@ project "VWolf"
 	  "ImGuizmo",
 	  "yaml-cpp",
 	  "opengl32.lib",
-     "reactphysics3d"
+     "reactphysics3d",
+     "SPIRV-Cross"
 	}
    
    filter { 'files:src/VWolf/Platform/ImGUI/backends/**.cpp' }
@@ -126,6 +128,7 @@ project "VWolf"
      "%{IncludeDir.obj_loader}",
      "%{IncludeDir.metal_cpp}",
       "%{IncludeDir.reactphysics3d}",
+      "%{IncludeDir.SPIRV_Cross}",
       "vendor/DirectXShaderCompiler/inc/mac",
       "%{IncludeDir.metal_shaderconverter}"
     }
