@@ -8,11 +8,12 @@
 #pragma once
 
 enum class LightComponentKeys {
-    Light,
+    ID, Light,
     LightColor, LightPosition, LightDirection, LightStrength, LightCutOff, LightExponent, LightType
 };
 
 static std::map<LightComponentKeys, const char*> lightKeys = {
+    { LightComponentKeys::ID, "ID" },
     { LightComponentKeys::Light, "Light" },
     { LightComponentKeys::LightColor, "color" },
     { LightComponentKeys::LightPosition, "position" },
@@ -53,6 +54,9 @@ namespace YAML {
             if (!node.IsMap())
                 return false;
 
+            if (node[lightKeys[LightComponentKeys::ID]]) {
+                rhs.SetID(node[lightKeys[LightComponentKeys::ID]].as<VWolf::UUID>());
+            }
             rhs.SetLight(node[lightKeys[LightComponentKeys::Light]].as<VWolf::Light>());
 
             return true;
@@ -79,6 +83,7 @@ namespace VWolf {
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::LightComponent& v)
     {
         out << YAML::BeginMap;
+        out << YAML::Key << lightKeys[LightComponentKeys::ID] << YAML::Value << v.GetID();
         out << YAML::Key << lightKeys[LightComponentKeys::Light];
         out << v.GetLight();
         out << YAML::EndMap;

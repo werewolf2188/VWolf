@@ -8,10 +8,11 @@
 #pragma once
 
 enum class CameraConstantKeys {
-    ViewportWidth, ViewportHeight, FOV, AspectRatio, NearClip, FarClip, Zoom, IsOrthographic
+    ID, ViewportWidth, ViewportHeight, FOV, AspectRatio, NearClip, FarClip, Zoom, IsOrthographic
 };
 
 static std::map<CameraConstantKeys, const char*> cameraKeys = {
+    { CameraConstantKeys::ID, "ID" },
     { CameraConstantKeys::ViewportWidth, "ViewportWidth" },
     { CameraConstantKeys::ViewportHeight, "ViewportHeight" },
     { CameraConstantKeys::FOV, "FOV" },
@@ -31,6 +32,9 @@ namespace YAML {
             if (!node.IsMap())
                 return false;
             
+            if (node[cameraKeys[CameraConstantKeys::ID]]) {
+                rhs.SetID(node[cameraKeys[CameraConstantKeys::ID]].as<VWolf::UUID>());
+            }
             rhs.SetViewportWidth(node[cameraKeys[CameraConstantKeys::ViewportWidth]].as<float>());
             rhs.SetViewportHeight(node[cameraKeys[CameraConstantKeys::ViewportHeight]].as<float>());
             rhs.SetFOV(node[cameraKeys[CameraConstantKeys::FOV]].as<float>());
@@ -48,6 +52,7 @@ namespace VWolf {
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::CameraComponent& v)
     {
         out << YAML::BeginMap;
+        out << YAML::Key << cameraKeys[CameraConstantKeys::ID] << YAML::Value << v.GetID();
         out << YAML::Key << cameraKeys[CameraConstantKeys::ViewportWidth] << YAML::Value << v.GetViewportWidth();
         out << YAML::Key << cameraKeys[CameraConstantKeys::ViewportHeight] << YAML::Value << v.GetViewportHeight();
         out << YAML::Key << cameraKeys[CameraConstantKeys::FOV] << YAML::Value << v.GetFOV();

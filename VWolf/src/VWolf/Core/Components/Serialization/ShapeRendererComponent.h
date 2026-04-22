@@ -8,10 +8,11 @@
 #pragma once
 
 enum class ShapeRendererComponentKeys {
-    MeshData, Material
+    ID, MeshData, Material
 };
 
 static std::map<ShapeRendererComponentKeys, const char*> shapeRendererKeys = {
+    { ShapeRendererComponentKeys::ID, "ID" },
     { ShapeRendererComponentKeys::MeshData, "MeshData" },
     { ShapeRendererComponentKeys::Material, "Material" }
 };
@@ -25,6 +26,9 @@ namespace YAML {
             if (!node.IsMap())
                 return false;
             
+            if (node[shapeRendererKeys[ShapeRendererComponentKeys::ID]]) {
+                rhs.SetID(node[shapeRendererKeys[ShapeRendererComponentKeys::ID]].as<VWolf::UUID>());
+            }
             std::string meshDataName = node[shapeRendererKeys[ShapeRendererComponentKeys::MeshData]].as<std::string>();
             std::string materialName = node[shapeRendererKeys[ShapeRendererComponentKeys::Material]].as<std::string>();
             
@@ -40,6 +44,7 @@ namespace VWolf {
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::ShapeRendererComponent& v)
     {
         out << YAML::BeginMap;
+        out << YAML::Key << shapeRendererKeys[ShapeRendererComponentKeys::ID] << YAML::Value << v.GetID();
         out << YAML::Key << shapeRendererKeys[ShapeRendererComponentKeys::MeshData] << YAML::Value << v.GetData().GetName();
         out << YAML::Key << shapeRendererKeys[ShapeRendererComponentKeys::Material] << YAML::Value << v.GetMaterial().GetName();
         out << YAML::EndMap;

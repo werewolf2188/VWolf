@@ -8,11 +8,12 @@
 #pragma once
 
 enum class ProjectObjectsConstantKeys {
-    Project, ProjectName, ProjectDriver, ProjectEditorCamera, EditorCameraYaw, EditorCameraPitch, EditorCameraDistance, ProjectCurrentScene, SceneRelativePath
+    Project, ProjectID, ProjectName, ProjectDriver, ProjectEditorCamera, EditorCameraYaw, EditorCameraPitch, EditorCameraDistance, ProjectCurrentScene, SceneRelativePath
 };
 
 static std::map<ProjectObjectsConstantKeys, const char*> projectKeys = {
     { ProjectObjectsConstantKeys::Project, "Project" },
+    { ProjectObjectsConstantKeys::ProjectID, "ID" },
     { ProjectObjectsConstantKeys::ProjectName, "Name" },
     { ProjectObjectsConstantKeys::ProjectDriver, "Driver" },
     { ProjectObjectsConstantKeys::ProjectEditorCamera, "EditorCamera" },
@@ -33,6 +34,10 @@ namespace YAML {
                 !node[projectKeys[ProjectObjectsConstantKeys::ProjectName]])
                 return false;
 
+            if (node[projectKeys[ProjectObjectsConstantKeys::ProjectID]]) {
+                rhs.SetID(node[projectKeys[ProjectObjectsConstantKeys::ProjectID]].as<VWolf::UUID>());
+            }
+            
             if (node[projectKeys[ProjectObjectsConstantKeys::ProjectDriver]]) {
                 std::string driver = node[projectKeys[ProjectObjectsConstantKeys::ProjectDriver]]
                     .as<std::string>();
@@ -78,6 +83,7 @@ namespace VWolfPup {
         out << YAML::BeginMap;
         out << YAML::Key << projectKeys[ProjectObjectsConstantKeys::Project];
         out << YAML::BeginMap;
+        out << YAML::Key << projectKeys[ProjectObjectsConstantKeys::ProjectID] << YAML::Value << v.GetID();
         out << YAML::Key << projectKeys[ProjectObjectsConstantKeys::ProjectName] << YAML::Value << v.GetProjectName();
         out << YAML::Key << projectKeys[ProjectObjectsConstantKeys::ProjectDriver] << YAML::Value << VWolf::DriverName(v.GetType());
         out << YAML::Key << projectKeys[ProjectObjectsConstantKeys::ProjectEditorCamera];

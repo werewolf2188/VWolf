@@ -107,6 +107,7 @@ namespace VWolf {
     }
 
     Scene::Scene(Scene& scene) {
+        this->id = scene.id;
         this->name = scene.name;
         this->sceneBackGround = scene.sceneBackGround;
         this->m_registry = std::move(scene.m_registry);
@@ -121,6 +122,7 @@ namespace VWolf {
 
     Scene::Scene(Scene&& scene) {
         emptyMeshData = ShapeHelper::CreateEmpty();
+        this->id = scene.id;
         this->name = scene.name;
         this->sceneBackGround = scene.sceneBackGround;
         this->m_registry = std::move(scene.m_registry);
@@ -129,6 +131,7 @@ namespace VWolf {
             gameObject->AttachToScene(this);
         }
 
+        scene.id = UUID::Empty;
         scene.name = std::string();
         scene.gameObjects.clear();
         world = Physics::GetCommon().createPhysicsWorld();

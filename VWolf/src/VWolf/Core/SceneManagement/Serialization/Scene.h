@@ -8,11 +8,12 @@
 #pragma once
 
 enum class SceneObjectsConstantKeys {
-    Scene, SceneName, SceneBackground, BackgroundColor, BackgroundType, GameObjects
+    Scene, SceneID, SceneName, SceneBackground, BackgroundColor, BackgroundType, GameObjects
 };
 
 static std::map<SceneObjectsConstantKeys, const char*> sceneKeys = {
     { SceneObjectsConstantKeys::Scene, "Scene" },
+    { SceneObjectsConstantKeys::SceneID, "ID" },
     { SceneObjectsConstantKeys::SceneName, "Name" },
     { SceneObjectsConstantKeys::SceneBackground, "Scene_Background" },
     { SceneObjectsConstantKeys::BackgroundColor, "Background_color" },
@@ -32,6 +33,10 @@ namespace YAML {
 
             currentScene = &rhs;
 
+            if (node[sceneKeys[SceneObjectsConstantKeys::SceneID]]) {
+                rhs.SetID(node[sceneKeys[SceneObjectsConstantKeys::SceneID]].as<VWolf::UUID>());
+            }
+            
             rhs.SetName(node[sceneKeys[SceneObjectsConstantKeys::SceneName]].as<std::string>());
     
             if (node[sceneKeys[SceneObjectsConstantKeys::SceneBackground]]) {
@@ -88,6 +93,7 @@ namespace VWolf {
         out << YAML::BeginMap;
         out << YAML::Key << sceneKeys[SceneObjectsConstantKeys::Scene];
         out << YAML::BeginMap;
+        out << YAML::Key << sceneKeys[SceneObjectsConstantKeys::SceneID] << YAML::Value << v.GetID();
         out << YAML::Key << sceneKeys[SceneObjectsConstantKeys::SceneName] << YAML::Value << v.GetName();
         out << v.GetSceneBackground();
         out << YAML::Key << sceneKeys[SceneObjectsConstantKeys::GameObjects];

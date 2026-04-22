@@ -53,6 +53,9 @@ namespace VWolfPup {
             Settings(std::filesystem::path path);
             ~Settings();
         public:
+            const VWolf::UUID GetID() const { return id; }
+            VWolf::UUID& GetID() { return id; }
+            void SetID(VWolf::UUID value) { id = value; }
             VWolf::DriverType GetType() { return type; }
             void SetType(VWolf::DriverType type) { this->type = type; }
             std::string GetCurrentSceneRelativePath() { return currentSceneRelativePath; }
@@ -64,6 +67,7 @@ namespace VWolfPup {
             void Save();
             void Load();
         private:
+            VWolf::UUID id;
 #ifdef VWOLF_PLATFORM_WINDOWS
         VWolf::DriverType type = VWolf::DriverType::DirectX12;
 #else

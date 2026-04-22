@@ -8,10 +8,11 @@
 #pragma once
 
 enum class MeshFilterComponentKeys {
-    Path
+    ID, Path
 };
 
 static std::map<MeshFilterComponentKeys, const char*> meshFilterKeys = {
+    { MeshFilterComponentKeys::ID, "ID" },
     { MeshFilterComponentKeys::Path, "Path" }
 };
 
@@ -24,6 +25,10 @@ namespace YAML {
             if (!node.IsMap())
                 return false;
 
+            if (node[meshFilterKeys[MeshFilterComponentKeys::ID]]) {
+                rhs.SetID(node[meshFilterKeys[MeshFilterComponentKeys::ID]].as<VWolf::UUID>());
+            }
+            
             std::filesystem::path path(node[meshFilterKeys[MeshFilterComponentKeys::Path]].as<std::string>());
             rhs.SetPath(path);
 
@@ -36,6 +41,7 @@ namespace VWolf {
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::MeshFilterComponent& v)
     {
         out << YAML::BeginMap;
+        out << YAML::Key << meshFilterKeys[MeshFilterComponentKeys::ID] << YAML::Value << v.GetID();
         out << YAML::Key << meshFilterKeys[MeshFilterComponentKeys::Path] << YAML::Value << v.GetPath().string();
         out << YAML::EndMap;
         return out;

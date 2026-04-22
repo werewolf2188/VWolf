@@ -151,6 +151,7 @@ namespace VWolfPup {
         
         Settings settings = data[projectKeys[ProjectObjectsConstantKeys::Project]].as<Settings>();
         // TODO: Should do a copy constructor
+        this->id = settings.id;
         this->type = settings.type;
         this->editorCameraSettings = settings.editorCameraSettings;
         this->currentSceneRelativePath = settings.currentSceneRelativePath;

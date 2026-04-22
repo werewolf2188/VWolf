@@ -11,7 +11,7 @@
 
 #include "VWolf/Core/Render/Camera.h"
 #include "VWolf/Core/Render/Material.h"
-
+#include "VWolf/Core/Utils/UUID.h"
 #include "VWolf/Core/Math/VMath.h"
 
 namespace reactphysics3d {
@@ -69,6 +69,9 @@ namespace VWolf {
         void StopingPreview();
     public:
         std::vector<Ref<GameObject>> GetGameObjects() const { return isPreviewing ? previewGameObjects : gameObjects; }
+        const VWolf::UUID GetID() const { return id; }
+        VWolf::UUID& GetID() { return id; }
+        void SetID(VWolf::UUID value) { id = value; }
         std::string GetName() const { return name; }
         void SetName(std::string name) { this->name = name; }
         SceneBackground& GetSceneBackground() { return sceneBackGround; }
@@ -76,6 +79,7 @@ namespace VWolf {
         entt::registry& CurrentRegistry() { return isPreviewing ? m_previewRegistry : m_registry; }
     private:
         bool isPreviewing = false;
+        VWolf::UUID id;
         std::string name;
         entt::registry m_registry, m_previewRegistry;
 

@@ -26,7 +26,7 @@ if (component[gameObjectKeys[GameObjectConstantKeys::T]]) { \
 }
 
 enum class GameObjectConstantKeys {
-    Name, Components,
+    ID, Name, Components,
     COMPONENT_KEY(TransformComponent),
     COMPONENT_KEY(ShapeRendererComponent),
     COMPONENT_KEY(MeshFilterComponent),
@@ -42,6 +42,7 @@ enum class GameObjectConstantKeys {
 };
 
 static std::map<GameObjectConstantKeys, const char*> gameObjectKeys = {
+    { GameObjectConstantKeys::ID, "ID" },
     { GameObjectConstantKeys::Name, "Name" },
     { GameObjectConstantKeys::Components, "Components" },
     COMPONENT_KEY_VALUE(TransformComponent),
@@ -69,6 +70,9 @@ namespace YAML {
                 return false;
 
             rhs.AttachToScene(currentScene);
+            if (node[gameObjectKeys[GameObjectConstantKeys::ID]]) {
+                rhs.SetID(node[gameObjectKeys[GameObjectConstantKeys::ID]].as<VWolf::UUID>());
+            }
             rhs.SetName(node[gameObjectKeys[GameObjectConstantKeys::Name]].as<std::string>());
 
             if (node[gameObjectKeys[GameObjectConstantKeys::Components]]) {
@@ -97,6 +101,7 @@ namespace VWolf {
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::GameObject& v)
     {
         out << YAML::BeginMap;
+        out << YAML::Key << gameObjectKeys[GameObjectConstantKeys::ID] << YAML::Value << v.GetID();
         out << YAML::Key << gameObjectKeys[GameObjectConstantKeys::Name] << YAML::Value << v.GetName();
         out << YAML::Key << gameObjectKeys[GameObjectConstantKeys::Components];
         out << YAML::BeginSeq;

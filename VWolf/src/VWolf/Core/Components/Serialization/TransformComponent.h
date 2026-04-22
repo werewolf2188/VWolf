@@ -8,10 +8,11 @@
 #pragma once
 
 enum class TransformConstantKeys {
-    Position, Rotation, Scale
+    ID, Position, Rotation, Scale
 };
 
 static std::map<TransformConstantKeys, const char*> transformKeys = {
+    { TransformConstantKeys::ID, "ID" },
     { TransformConstantKeys::Position, "Position" },
     { TransformConstantKeys::Rotation, "Rotation" },
     { TransformConstantKeys::Scale, "Scale" },
@@ -26,6 +27,10 @@ namespace YAML {
             if (!node.IsMap())
                 return false;
             
+            if (node[transformKeys[TransformConstantKeys::ID]]) {
+                rhs.SetID(node[transformKeys[TransformConstantKeys::ID]].as<VWolf::UUID>());
+            }
+            
             rhs.SetPosition(node[transformKeys[TransformConstantKeys::Position]].as<VWolf::Vector3>());
             rhs.SetEulerAngles(node[transformKeys[TransformConstantKeys::Rotation]].as<VWolf::Vector3>());
             rhs.SetLocalScale(node[transformKeys[TransformConstantKeys::Scale]].as<VWolf::Vector3>());
@@ -38,6 +43,7 @@ namespace VWolf {
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::TransformComponent& v)
     {
         out << YAML::BeginMap;
+        out << YAML::Key << transformKeys[TransformConstantKeys::ID] << YAML::Value << v.GetID();
         out << YAML::Key << transformKeys[TransformConstantKeys::Position] << YAML::Value << v.GetPosition();
         out << YAML::Key << transformKeys[TransformConstantKeys::Rotation] << YAML::Value << v.GetEulerAngles();
         out << YAML::Key << transformKeys[TransformConstantKeys::Scale] << YAML::Value << v.GetLocalScale();
