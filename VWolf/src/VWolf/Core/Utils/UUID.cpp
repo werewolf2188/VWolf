@@ -99,4 +99,10 @@ namespace VWolf {
             return false;
         }
     }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::UUID& v) {
+        out << v.ToString();
+
+        return out;
+    }
 }

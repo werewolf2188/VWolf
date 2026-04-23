@@ -11,6 +11,7 @@
 
 #include "Components.h"
 
+#include "VWolf/Core/IIdentifiable.h"
 #include "VWolf/Core/SceneManagement/Scene.h"
 
 namespace reactphysics3d{
@@ -19,7 +20,7 @@ namespace reactphysics3d{
 
 namespace VWolf {
 
-    class GameObject {
+    class GameObject: public IIdentifiable {
     public:
         GameObject() = default;
         GameObject(std::string name);

@@ -9,6 +9,8 @@
 
 #include "entt/entt.hpp"
 
+#include "VWolf/Core/IIdentifiable.h"
+
 namespace VWolf {
 
     class GameObject;
@@ -16,7 +18,7 @@ namespace VWolf {
     template<typename T>
     class ComponentInspector;
 
-    class Component {
+    class Component: public IIdentifiable {
     public:
         Component(std::string name);
         ~Component();

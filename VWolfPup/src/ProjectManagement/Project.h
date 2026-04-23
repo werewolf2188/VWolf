@@ -47,7 +47,7 @@ namespace VWolfPup {
             float m_Distance = 10.0f;
         };
 
-        class Settings {
+        class Settings: public VWolf::IIdentifiable {
         public:
             Settings() = default;
             Settings(std::filesystem::path path);

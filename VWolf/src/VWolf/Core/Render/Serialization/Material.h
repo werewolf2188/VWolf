@@ -8,11 +8,12 @@
 #pragma once
 
 enum class MaterialObjectsConstantKeys {
-    Material, MaterialName, ShaderName, Colors, Vectors, Floats, PropertyKey, PropertyValue
+    Material, MaterialID, MaterialName, ShaderName, Colors, Vectors, Floats, PropertyKey, PropertyValue
 };
 
 static std::map<MaterialObjectsConstantKeys, const char*> materialKeys = {
     { MaterialObjectsConstantKeys::Material, "Material" },
+    { MaterialObjectsConstantKeys::MaterialID, "ID" },
     { MaterialObjectsConstantKeys::MaterialName, "Name" },
     { MaterialObjectsConstantKeys::ShaderName, "ShaderName" },
     { MaterialObjectsConstantKeys::Colors, "Colors" },
@@ -32,6 +33,9 @@ namespace YAML {
                 !node[materialKeys[MaterialObjectsConstantKeys::MaterialName]])
                 return false;
     
+            if (node[materialKeys[MaterialObjectsConstantKeys::MaterialID]]) {
+                rhs.SetID(node[materialKeys[MaterialObjectsConstantKeys::MaterialID]].as<VWolf::UUID>());
+            }
             std::string name = node[materialKeys[MaterialObjectsConstantKeys::MaterialName]].as<std::string>();
             std::string shaderName = node[materialKeys[MaterialObjectsConstantKeys::ShaderName]].as<std::string>();
 
@@ -72,6 +76,7 @@ namespace VWolf {
         out << YAML::BeginMap;
         out << YAML::Key << materialKeys[MaterialObjectsConstantKeys::Material];
         out << YAML::BeginMap;
+        out << YAML::Key << materialKeys[MaterialObjectsConstantKeys::MaterialID] << YAML::Value << v.GetID();
         out << YAML::Key << materialKeys[MaterialObjectsConstantKeys::MaterialName] << YAML::Value << v.GetName();
         out << YAML::Key << materialKeys[MaterialObjectsConstantKeys::ShaderName] << YAML::Value << v.GetShaderName();
         out << YAML::Key << materialKeys[MaterialObjectsConstantKeys::Colors];

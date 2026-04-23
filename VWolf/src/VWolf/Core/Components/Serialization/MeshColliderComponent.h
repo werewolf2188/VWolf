@@ -8,10 +8,11 @@
 #pragma once
 
 enum class MeshColliderConstantKeys {
-//    Mass, Drag, AngularDrag, UseGravity, BodyType
+    ID, //    Mass, Drag, AngularDrag, UseGravity, BodyType
 };
 
 static std::map<MeshColliderConstantKeys, const char*> meshColliderKeys = {
+    { MeshColliderConstantKeys::ID, "ID" }
 //    { RigidBodyConstantKeys::Mass, "Mass" },
 //    { RigidBodyConstantKeys::Drag, "Drag" },
 //    { RigidBodyConstantKeys::AngularDrag, "AngularDrag" },
@@ -28,6 +29,9 @@ namespace YAML {
             if (!node.IsMap())
                 return false;
             
+            if (node[meshColliderKeys[MeshColliderConstantKeys::ID]]) {
+                rhs.SetID(node[meshColliderKeys[MeshColliderConstantKeys::ID]].as<VWolf::UUID>());
+            }
 //            rhs.SetMass(node[rigidBodyKeys[RigidBodyConstantKeys::Mass]].as<float>());
 //            rhs.SetDrag(node[rigidBodyKeys[RigidBodyConstantKeys::Drag]].as<float>());
 //            rhs.SetAngularDrag(node[rigidBodyKeys[RigidBodyConstantKeys::AngularDrag]].as<float>());
@@ -42,6 +46,7 @@ namespace VWolf {
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::MeshColliderComponent& v)
     {
         out << YAML::BeginMap;
+        out << YAML::Key << meshColliderKeys[MeshColliderConstantKeys::ID] << YAML::Value << v.GetID();
 //        out << YAML::Key << rigidBodyKeys[RigidBodyConstantKeys::Mass] << YAML::Value << v.GetMass();
 //        out << YAML::Key << rigidBodyKeys[RigidBodyConstantKeys::Drag] << YAML::Value << v.GetDrag();
 //        out << YAML::Key << rigidBodyKeys[RigidBodyConstantKeys::AngularDrag] << YAML::Value << v.GetAngularDrag();

@@ -11,15 +11,16 @@
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 
+#include "yaml-cpp/yaml.h"
+
 namespace VWolf {
     struct UUID {
-    private:
+    public:
         UUID();
         UUID(const std::string& uuid);
 #if defined(VWOLF_CORE)
         UUID(boost::uuids::uuid uuid);
 #endif
-    public:
         UUID(const UUID& uuidClass);
         UUID(UUID& uuidClass);
         UUID(UUID&& uuidClass);
@@ -51,6 +52,19 @@ namespace VWolf {
         friend bool operator==(const UUID& lhs, const UUID& rhs);
         friend bool operator!=(const UUID& lhs, const UUID& rhs);
     };
+}
 
+namespace YAML {
+    template<>
+    struct convert<VWolf::UUID>
+    {
+        static bool decode(const Node& node, VWolf::UUID& rhs)
+        {
+            return VWolf::UUID::TryParse(node.as<std::string>(), rhs);
+        }
+    };
+}
 
+namespace VWolf {
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::UUID& v);
 }

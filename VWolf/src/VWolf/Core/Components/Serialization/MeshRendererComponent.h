@@ -8,10 +8,11 @@
 #pragma once
 
 enum class MeshRendererComponentKeys {
-    Material
+    ID, Material
 };
 
 static std::map<MeshRendererComponentKeys, const char*> meshRendererKeys = {
+    { MeshRendererComponentKeys::ID, "ID" },
     { MeshRendererComponentKeys::Material, "Material" }
 };
 
@@ -24,6 +25,9 @@ namespace YAML {
             if (!node.IsMap())
                 return false;
             
+            if (node[meshRendererKeys[MeshRendererComponentKeys::ID]]) {
+                rhs.SetID(node[meshRendererKeys[MeshRendererComponentKeys::ID]].as<VWolf::UUID>());
+            }
             std::string materialName = node[meshRendererKeys[MeshRendererComponentKeys::Material]].as<std::string>();
             
             rhs.SetMaterial(VWolf::MaterialLibrary::GetMaterial(materialName));
@@ -37,6 +41,7 @@ namespace VWolf {
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::MeshRendererComponent& v)
     {
         out << YAML::BeginMap;
+        out << YAML::Key << meshRendererKeys[MeshRendererComponentKeys::ID] << YAML::Value << v.GetID();
         out << YAML::Key << meshRendererKeys[MeshRendererComponentKeys::Material] << YAML::Value << v.GetMaterial().GetName();
         out << YAML::EndMap;
         return out;

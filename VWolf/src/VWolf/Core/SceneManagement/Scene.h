@@ -9,9 +9,9 @@
 
 #include "entt/entt.hpp"
 
+#include "VWolf/Core/IIdentifiable.h"
 #include "VWolf/Core/Render/Camera.h"
 #include "VWolf/Core/Render/Material.h"
-
 #include "VWolf/Core/Math/VMath.h"
 
 namespace reactphysics3d {
@@ -51,7 +51,7 @@ namespace VWolf {
         Ref<Camera> camera;
     };
 
-    class Scene {
+    class Scene: public IIdentifiable {
     public:
         Scene(std::string name);
         Scene() = default;

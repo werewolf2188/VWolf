@@ -2,6 +2,10 @@
 
 #include "Application.h"
 
+// https://learn.microsoft.com/en-us/windows/win32/learnwin32/winmain--the-application-entry-point
+// https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-winmain
+// https://www.youtube.com/watch?v=Hqw0barvNVk&t=4s
+
 extern VWolf::Application* getApplication();
 
 #define VWOLF_MAIN_APP(App) \

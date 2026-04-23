@@ -8,6 +8,7 @@
 #include "VWolf/Core/Input.h"
 #include "VWolf/Core/Assert.h"
 #include "VWolf/Core/Time.h"
+#include "VWolf/Core/IIdentifiable.h"
 
 #include "VWolf/Core/Debug/ShapeHelper.h"
 
