@@ -9,10 +9,11 @@
 
 #include "Shader.h"
 #include "Texture.h"
+#include "VWolf/Core/IIdentifiable.h"
 #include "VWolf/Core/Math/VMath.h"
 
 namespace VWolf {
-    class Material {
+    class Material: public IIdentifiable {
     public:
         Material() = default;
         Material(const char* shaderName);

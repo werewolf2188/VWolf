@@ -9,7 +9,7 @@
 
 #include "entt/entt.hpp"
 
-#include "VWolf/Core/Utils/UUID.h"
+#include "VWolf/Core/IIdentifiable.h"
 
 namespace VWolf {
 
@@ -18,23 +18,19 @@ namespace VWolf {
     template<typename T>
     class ComponentInspector;
 
-    class Component {
+    class Component: public IIdentifiable {
     public:
         Component(std::string name);
         ~Component();
     public:
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) = 0;
     public:
-        const VWolf::UUID GetID() const { return id; }
-        VWolf::UUID& GetID() { return id; }
-        void SetID(VWolf::UUID value) { id = value; }
         std::string GetName() const { return name; }
         virtual void OnInspector() {}
 
         void SetGameObject(GameObject* gameObject) { this->gameObject = gameObject; }
         GameObject* GetGameObject() { return gameObject; }
     private:
-        VWolf::UUID id;
         std::string name;
         GameObject* gameObject;
     };

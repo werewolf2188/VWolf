@@ -43,6 +43,7 @@ namespace VWolf {
     }
 
     Material::Material(Material& material) {
+        this->id = material.id;
         this->name = material.name;
         this->shaderName = material.shaderName;
         this->inputs = material.inputs;
@@ -55,6 +56,7 @@ namespace VWolf {
     }
 
     Material::Material(Material&& material) {
+        this->id = material.id;
         this->name = material.name;
         this->shaderName = material.shaderName;
         this->inputs = material.inputs;
@@ -65,6 +67,7 @@ namespace VWolf {
         this->textures = material.textures;
         this->properties = material.properties;
 
+        material.id = UUID::Empty;
         material.name = std::string();
         material.shaderName = std::string();
         material.size = 0;

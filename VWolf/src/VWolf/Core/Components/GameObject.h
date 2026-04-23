@@ -11,7 +11,7 @@
 
 #include "Components.h"
 
-#include "VWolf/Core/Utils/UUID.h"
+#include "VWolf/Core/IIdentifiable.h"
 #include "VWolf/Core/SceneManagement/Scene.h"
 
 namespace reactphysics3d{
@@ -20,7 +20,7 @@ namespace reactphysics3d{
 
 namespace VWolf {
 
-    class GameObject {
+    class GameObject: public IIdentifiable {
     public:
         GameObject() = default;
         GameObject(std::string name);
@@ -31,9 +31,6 @@ namespace VWolf {
     public:
         TransformComponent& GetTransform();
     public:
-        const VWolf::UUID GetID() const { return id; }
-        VWolf::UUID& GetID() { return id; }
-        void SetID(VWolf::UUID value) { id = value; }
         std::string GetName() const { return name; }
         void SetName(std::string name) { this->name = name; }
         entt::entity GetHandle() { return handle; }
@@ -96,7 +93,6 @@ namespace VWolf {
         reactphysics3d::RigidBody* GetRigidBody() { return mRigidBody; }
         void SetRigidBody(reactphysics3d::RigidBody* rigidBody) { mRigidBody = rigidBody; }
     private:
-        VWolf::UUID id;
         entt::entity handle { entt::null };
         Scene* scene;
         std::string name;
