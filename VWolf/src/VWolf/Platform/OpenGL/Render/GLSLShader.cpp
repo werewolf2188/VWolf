@@ -515,9 +515,9 @@ namespace VWolf {
 
     GLSLShader::GLSLShader(std::string name,
                            std::initializer_list<ShaderSource> otherShaders,
-                           ShaderConfiguration configuration): Shader(name,
-                                                                      otherShaders,
-                                                                      configuration)
+                           ShaderConfiguration configuration): PShader(name,
+                                                                       otherShaders,
+                                                                       configuration)
     {
         m_program = CreateRef<GLProgram>();
         for(ShaderSource source: m_otherShaders)
@@ -526,6 +526,10 @@ namespace VWolf {
 //        m_program->Validate();
         m_program->DettachShaders();
         m_program->RetrieveUniforms();
+    }
+
+    GLSLShader::GLSLShader(Shader& coreShader): PShader(coreShader) {
+        VWOLF_CORE_ASSERT(false, "Should not be using this class anymore")
     }
 
 	GLSLShader::~GLSLShader()
@@ -579,27 +583,28 @@ namespace VWolf {
 
     }
 
-    GLuint GetBlendFunction(ShaderConfiguration::Blend::Function function) {
+    GLuint GetBlendFunction(BlendFunction function) {
+        
         switch (function) {
-            case ShaderConfiguration::Blend::Function::Zero: return GL_ZERO;
-            case ShaderConfiguration::Blend::Function::One: return GL_ONE;
-            case ShaderConfiguration::Blend::Function::SrcColor: return GL_SRC_COLOR;
-            case ShaderConfiguration::Blend::Function::InvSrcColor: return GL_ONE_MINUS_SRC_COLOR;
-            case ShaderConfiguration::Blend::Function::DstColor: return GL_DST_COLOR;
-            case ShaderConfiguration::Blend::Function::InvDstColor: return GL_ONE_MINUS_DST_COLOR;
-            case ShaderConfiguration::Blend::Function::SrcAlpha: return GL_SRC_ALPHA;
-            case ShaderConfiguration::Blend::Function::InvSrcAlpha: return GL_ONE_MINUS_SRC_ALPHA;
-            case ShaderConfiguration::Blend::Function::DstAlpha: return GL_DST_ALPHA;
-            case ShaderConfiguration::Blend::Function::InvDstAlpha: return GL_ONE_MINUS_DST_ALPHA;
-            case ShaderConfiguration::Blend::Function::Src1Color: return GL_SRC1_COLOR;
-            case ShaderConfiguration::Blend::Function::InvSrc1Color: return GL_ONE_MINUS_SRC1_COLOR;
-            case ShaderConfiguration::Blend::Function::Src1Alpha: return GL_SRC1_ALPHA;
-            case ShaderConfiguration::Blend::Function::InvSrc1Alpha: return GL_ONE_MINUS_SRC1_ALPHA;
-            case ShaderConfiguration::Blend::Function::SrcAlphaSat: return GL_SRC_ALPHA_SATURATE;
-            case ShaderConfiguration::Blend::Function::CnstColor: return GL_CONSTANT_COLOR;
-            case ShaderConfiguration::Blend::Function::InvCnstColor: return GL_ONE_MINUS_CONSTANT_COLOR;
-            case ShaderConfiguration::Blend::Function::CnstAlpha: return GL_CONSTANT_ALPHA;
-            case ShaderConfiguration::Blend::Function::InvCnstAlpha: return GL_ONE_MINUS_CONSTANT_ALPHA;
+            case BlendFunction::Zero: return GL_ZERO;
+            case BlendFunction::One: return GL_ONE;
+            case BlendFunction::SrcColor: return GL_SRC_COLOR;
+            case BlendFunction::InvSrcColor: return GL_ONE_MINUS_SRC_COLOR;
+            case BlendFunction::DstColor: return GL_DST_COLOR;
+            case BlendFunction::InvDstColor: return GL_ONE_MINUS_DST_COLOR;
+            case BlendFunction::SrcAlpha: return GL_SRC_ALPHA;
+            case BlendFunction::InvSrcAlpha: return GL_ONE_MINUS_SRC_ALPHA;
+            case BlendFunction::DstAlpha: return GL_DST_ALPHA;
+            case BlendFunction::InvDstAlpha: return GL_ONE_MINUS_DST_ALPHA;
+            case BlendFunction::Src1Color: return GL_SRC1_COLOR;
+            case BlendFunction::InvSrc1Color: return GL_ONE_MINUS_SRC1_COLOR;
+            case BlendFunction::Src1Alpha: return GL_SRC1_ALPHA;
+            case BlendFunction::InvSrc1Alpha: return GL_ONE_MINUS_SRC1_ALPHA;
+            case BlendFunction::SrcAlphaSat: return GL_SRC_ALPHA_SATURATE;
+            case BlendFunction::CnstColor: return GL_CONSTANT_COLOR;
+            case BlendFunction::InvCnstColor: return GL_ONE_MINUS_CONSTANT_COLOR;
+            case BlendFunction::CnstAlpha: return GL_CONSTANT_ALPHA;
+            case BlendFunction::InvCnstAlpha: return GL_ONE_MINUS_CONSTANT_ALPHA;
         }
         return GL_ZERO;
     }
@@ -614,24 +619,24 @@ namespace VWolf {
         }
 
         GLuint sourceFunction, destinationFunction;
-        sourceFunction = GetBlendFunction(m_configuration.blend.sourceFunction);
-        destinationFunction = GetBlendFunction(m_configuration.blend.destinationFunction);
+        sourceFunction = GetBlendFunction((BlendFunction)m_configuration.blend.sourceFunction);
+        destinationFunction = GetBlendFunction((BlendFunction)m_configuration.blend.destinationFunction);
         GLThrowIfFailed(glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, sourceFunction, destinationFunction));
         
-        switch (m_configuration.blend.equation) {
-            case ShaderConfiguration::Blend::Equation::Add:
+        switch ((BlendEquation)m_configuration.blend.equation) {
+            case BlendEquation::Add:
                 GLThrowIfFailed(glBlendEquation(GL_FUNC_ADD));
                 break;
-            case ShaderConfiguration::Blend::Equation::Substract:
+            case BlendEquation::Substract:
                 GLThrowIfFailed(glBlendEquation(GL_FUNC_SUBTRACT));
                 break;
-            case ShaderConfiguration::Blend::Equation::ReverseSubstract:
+            case BlendEquation::ReverseSubstract:
                 GLThrowIfFailed(glBlendEquation(GL_FUNC_REVERSE_SUBTRACT));
                 break;
-            case ShaderConfiguration::Blend::Equation::Min:
+            case BlendEquation::Min:
                 GLThrowIfFailed(glBlendEquation(GL_MIN));
                 break;
-            case ShaderConfiguration::Blend::Equation::Max:
+            case BlendEquation::Max:
                 GLThrowIfFailed(glBlendEquation(GL_MAX));
                 break;
         }
@@ -646,29 +651,29 @@ namespace VWolf {
             GLThrowIfFailed(glDisable(GL_DEPTH_TEST));
         }
 
-        switch(m_configuration.depthStencil.depthFunction) {
-            case ShaderConfiguration::DepthStencil::DepthFunction::Never:
+        switch((DepthFunction)m_configuration.depthStencil.depthFunction) {
+            case DepthFunction::Never:
                 GLThrowIfFailed(glDepthFunc(GL_NEVER));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::Less:
+            case DepthFunction::Less:
                 GLThrowIfFailed(glDepthFunc(GL_LESS));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::LEqual:
+            case DepthFunction::LEqual:
                 GLThrowIfFailed(glDepthFunc(GL_LEQUAL));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::Equal:
+            case DepthFunction::Equal:
                 GLThrowIfFailed(glDepthFunc(GL_EQUAL));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::NotEqual:
+            case DepthFunction::NotEqual:
                 GLThrowIfFailed(glDepthFunc(GL_NOTEQUAL));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::GEqual:
+            case DepthFunction::GEqual:
                 GLThrowIfFailed(glDepthFunc(GL_GEQUAL));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::Greater:
+            case DepthFunction::Greater:
                 GLThrowIfFailed(glDepthFunc(GL_GREATER));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::Always:
+            case DepthFunction::Always:
                 GLThrowIfFailed(glDepthFunc(GL_ALWAYS));
                 break;
         }

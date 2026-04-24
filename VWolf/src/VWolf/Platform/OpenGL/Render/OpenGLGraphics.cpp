@@ -123,7 +123,7 @@ namespace VWolf {
                                              Quaternion::Euler(rotation.GetX(), rotation.GetY(), rotation.GetZ()),
                                              Vector3::One);
 
-        Ref<Shader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
+        Ref<PShader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
         void* material1 = material.GetDataPointer();
         Light* lights = this->lights.data();
         std::vector<ShaderInput> textures = shader->GetTextureInputs();
@@ -211,7 +211,7 @@ namespace VWolf {
         shadowMap->Bind();
         GLThrowIfFailed(glClear(GL_DEPTH_BUFFER_BIT));
         for (Light& light: lights) {
-            Ref<Shader> shader = ShaderLibrary::GetShader("Shadow"); // TODO: Organize this
+            Ref<PShader> shader = ShaderLibrary::GetShader("Shadow"); // TODO: Organize this
             for(Ref<RenderItem> item: items) {
                 auto& mesh = item->data;
 
@@ -279,7 +279,7 @@ namespace VWolf {
                 Time::GetDeltaTime()
             };
 
-            Ref<Shader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
+            Ref<PShader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
             void* material1 = material.GetDataPointer();
             Light* lights = this->lights.data();
             std::vector<ShaderInput> textures = shader->GetTextureInputs();

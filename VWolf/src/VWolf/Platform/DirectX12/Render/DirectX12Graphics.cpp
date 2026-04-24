@@ -61,7 +61,7 @@ namespace VWolf {
 				rotation.GetZ()), 
 			Vector3::One); 
 
-		Ref<Shader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
+		Ref<PShader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
 		void* material1 = material.GetDataPointer();
 		/*if (this->lights.size() == 0) {
 			this->lights.push_back(Light());
@@ -264,7 +264,7 @@ namespace VWolf {
 				vertices->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
 				index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
 
-				Ref<Shader> shader = ShaderLibrary::GetShader("Shadow");
+				Ref<PShader> shader = ShaderLibrary::GetShader("Shadow");
 
 				DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				group->Bind(DirectX12Driver::GetCurrent()->GetCommands());
@@ -329,7 +329,7 @@ namespace VWolf {
 				Time::GetDeltaTime()
 			};
 
-			Ref<Shader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
+			Ref<PShader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
 			void* material1 = material.GetDataPointer();
 			if (this->lights.size() == 0) {
 				this->lights.push_back(Light());

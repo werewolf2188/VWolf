@@ -1,18 +1,20 @@
 #pragma once
 
 #include "VWolf/Core/Render/Shader.h"
+#include "VWolf/Platform/PShader.h"
 
 struct GLFWwindow;
 
 namespace VWolf {
     class GLProgram;
 
-	class GLSLShader : public Shader {
+	class [[deprecated("This class is deprecated. Use HLSLOpenGLShader instead")]] GLSLShader : public PShader {
 	public:
         // TODO: Compute shader is the only one that is different.
         GLSLShader(std::string name,
                    std::initializer_list<ShaderSource> otherShaders,
                    ShaderConfiguration configuration = {});
+        GLSLShader(Shader& coreShader);
 		virtual ~GLSLShader();
 
 		virtual void Bind() const override;

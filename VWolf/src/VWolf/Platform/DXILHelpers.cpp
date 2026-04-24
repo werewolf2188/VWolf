@@ -49,11 +49,11 @@ namespace VWolf {
             }
         }
 
-        std::string ShaderFileName(ShaderSource shader) {
-            std::filesystem::path path = shader.shader;
+        std::string ShaderFileName(std::string shader, ShaderType _type) {
+            std::filesystem::path path = shader;
             
             std::string name = path.filename().string();
-            std::string type = ShaderTypeEquivalent(shader.type);
+            std::string type = ShaderTypeEquivalent(_type);
             
             return (name + "." + type + ".cso");
         }
@@ -64,10 +64,10 @@ namespace VWolf {
             return result;
         }
 
-        std::wstring ShaderWideFileName(ShaderSource shader) {
+        std::wstring ShaderWideFileName(std::string shader, ShaderType _type) {
             std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
             
-            std::string name = ShaderFileName(shader);
+            std::string name = ShaderFileName(shader, _type);
             std::wstring result = converter.from_bytes(name);
             return result;
         }
@@ -342,7 +342,13 @@ namespace VWolf {
     // MARK: Shader
         Shader::Shader() {}
     
-        Shader::Shader(ShaderSource otherShader, ArgumentType argumentType): otherShader(otherShader), name(ShaderFileName(otherShader)) {
+        Shader::Shader(ShaderSource otherShader, ArgumentType argumentType):
+        type(otherShader.type), sourceType(ShaderSourceType::File), shader(otherShader.shader), mainFunction(otherShader.mainFunction), name(ShaderFileName(otherShader.shader, otherShader.type)) {
+            CompileHLSLWithDirectXShaderCompiler(argumentType);
+        }
+    
+        Shader::Shader(VWolf::Stage& stageShader, std::string code, ArgumentType argumentType):
+        type(stageShader.GetStageType()), sourceType(ShaderSourceType::Text), shader(code), mainFunction(stageShader.GetFunctionName().c_str()) {
             CompileHLSLWithDirectXShaderCompiler(argumentType);
         }
     
@@ -355,8 +361,8 @@ namespace VWolf {
             // DirectX Shader Compiler execution
             // DirectX Shader Compiler arguments
             DXSC_INITIALIZE
-            std::wstring wide = converter.from_bytes(otherShader.shader);
-            const wchar_t* wFilename = wide.c_str();
+            std::wstring wide = converter.from_bytes(shader);
+            const wchar_t* wShader = wide.c_str();
             
             SmartPoint<IDxcUtils> utils;
             SmartPoint<IDxcCompiler3> compiler;
@@ -367,17 +373,32 @@ namespace VWolf {
             DXSC_EXECUTE(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler)));
             DXSC_EXECUTE(utils->CreateDefaultIncludeHandler(&includeHandler));
             
-            DXSC_EXECUTE(utils->LoadFile(wFilename, &codePage, &sourceBlob));
+            DxcBuffer src;
             
-            DxcBuffer src = {
-                sourceBlob->GetBufferPointer(),
-                sourceBlob->GetBufferSize(),
-                codePage
-            };
+            switch (sourceType) {
+                case VWolf::ShaderSourceType::File:
+                    {
+                        DXSC_EXECUTE(utils->LoadFile(wShader, &codePage, &sourceBlob));
+                        src = {
+                            sourceBlob->GetBufferPointer(),
+                            sourceBlob->GetBufferSize(),
+                            codePage
+                        };
+                    }
+                    break;
+                case VWolf::ShaderSourceType::Text:
+                    {
+                        src.Ptr = shader.c_str();
+                        src.Size = shader.size();
+                        src.Encoding = DXC_CP_UTF8;
+                    }
+                    break;
+                default: break;
+            }
             
-            wide = converter.from_bytes(otherShader.mainFunction);
-            std::wstring outputName = ShaderWideFileName(otherShader);
-            std::wstring type = ShaderTypeEquivalentWide(otherShader.type);
+            wide = converter.from_bytes(mainFunction);
+            std::wstring outputName = ShaderWideFileName(shader, this->type);
+            std::wstring type = ShaderTypeEquivalentWide(this->type);
             UINT32 argCount = 0;
             LPCWSTR* arguments;
             switch (argumentType) {
@@ -445,7 +466,7 @@ namespace VWolf {
             D3D12_SHADER_DESC shaderDesc{};
             DXSC_EXECUTE(shaderReflection->GetDesc(&shaderDesc));
             
-            if (otherShader.type == ShaderType::Vertex)
+            if (type == ShaderType::Vertex)
                 GetStageInAttributes(shaderReflection, &shaderDesc);
             GetInputBinds(shaderReflection, &shaderDesc);
         }

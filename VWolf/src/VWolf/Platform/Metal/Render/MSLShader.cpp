@@ -515,6 +515,10 @@ namespace VWolf {
         mlProgram = CreateRef<MLProgram>(name, otherShaders, configuration);
     }
 
+    MSLShader::MSLShader(Shader& coreShader): MetalShader(coreShader) {
+        
+    }
+
     MSLShader::~MSLShader() {
         
     }

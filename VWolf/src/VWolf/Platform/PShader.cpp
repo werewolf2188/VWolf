@@ -1,6 +1,8 @@
 #include "vwpch.h"
-#include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Core/Application.h"
+
+#include "VWolf/Core/Render/Shader.h"
+#include "VWolf/Platform/PShader.h"
 
 #include "VWolf/Platform/OpenGL/Render/GLSLShader.h"
 #include "VWolf/Platform/OpenGL/Render/HLSLOpenGLShader.h"
@@ -18,6 +20,30 @@ namespace VWolf {
         GLSL, MSL, HLSL, UNKNOWN
     };
 
+    Ref<PShader> LoadPlatformShader(Shader& coreShader) {
+        Ref<PShader> shader;
+        
+        switch(Application::GetApplication()->GetDriverType()) {
+            case DriverType::OpenGL:
+                shader = CreateRef<HLSLOpenGLShader>(coreShader);
+                break;
+#ifdef VWOLF_PLATFORM_WINDOWS
+            case DriverType::DirectX12:
+                shader = CreateRef<HLSLShader>(coreShader);
+                break;
+#endif
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+            case DriverType::Metal:
+                shader = CreateRef<HLSLMetalShader>(coreShader);
+                break;
+#endif
+            default:
+                VWOLF_CORE_ASSERT(false, "Shader: Not yet implemented");
+        }
+
+        return shader;
+    }
+
     ProgramType getShaderExtension(std::initializer_list<ShaderSource> otherShaders) {
         if (otherShaders.size() == 0) return ProgramType::UNKNOWN;
         
@@ -32,7 +58,7 @@ namespace VWolf {
         return ProgramType::UNKNOWN;
     }
 
-    std::vector<Ref<Shader>> ShaderLibrary::m_shaders;
+    std::vector<Ref<PShader>> ShaderLibrary::m_shaders;
     std::map<ShaderLibrary::ShaderSpecialty, std::string> ShaderLibrary::m_specialtiesShaders;
 
     // TODO: Remove
@@ -44,7 +70,7 @@ namespace VWolf {
     void ShaderLibrary::LoadShader(std::string name,
                                    std::initializer_list<ShaderSource> otherShaders,
                                    ShaderConfiguration configuration) {
-        Ref<Shader> shader;
+        Ref<PShader> shader;
         
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
@@ -98,7 +124,7 @@ namespace VWolf {
             m_shaders.push_back(shader);
     }
 
-    Ref<Shader> ShaderLibrary::GetShader(std::string name) {
+    Ref<PShader> ShaderLibrary::GetShader(std::string name) {
         for (auto shader: m_shaders) {
             std::string shaderName = shader->GetName();
             if (shaderName == name) {
@@ -108,7 +134,7 @@ namespace VWolf {
         return nullptr;
     }
 
-    Ref<Shader> ShaderLibrary::GetShader(ShaderSpecialty type) {
+    Ref<PShader> ShaderLibrary::GetShader(ShaderSpecialty type) {
         return GetShader(m_specialtiesShaders[type]);
     }
 

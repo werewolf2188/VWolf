@@ -801,7 +801,7 @@ namespace VWolf {
 
 	HLSLShader::HLSLShader(std::string name,
 						   std::initializer_list<ShaderSource> otherShaders,
-						   ShaderConfiguration configuration): Shader(name, otherShaders, configuration) {
+						   ShaderConfiguration configuration): PShader(name, otherShaders, configuration) {
 
 		m_program = CreateRef<HLProgram>(name, otherShaders, configuration);
 
@@ -815,6 +815,10 @@ namespace VWolf {
 			VWOLF_CORE_ASSERT(cb->GetUploadBuffer());			
 		}
 	}
+
+    HLSLShader::HLSLShader(Shader& coreShader): PShader(coreShader) {
+        
+    }
 
 	HLSLShader::~HLSLShader()
 	{

@@ -1,15 +1,18 @@
 #pragma once
 
 #include "VWolf/Core/Render/Shader.h"
+#include "VWolf/Platform/PShader.h"
+
 #ifdef VWOLF_PLATFORM_WINDOWS
 namespace VWolf {
 	class HLProgram;
 
-	class HLSLShader : public Shader {
+	class HLSLShader : public PShader {
 	public:
 		HLSLShader(std::string name,
 				   std::initializer_list<ShaderSource> otherShaders,
 				   ShaderConfiguration configuration = {});
+        HLSLShader(Shader& coreShader);
 		virtual ~HLSLShader();
 
 		virtual void Bind() const override;

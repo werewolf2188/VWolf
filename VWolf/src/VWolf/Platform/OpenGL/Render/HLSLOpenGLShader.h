@@ -8,6 +8,7 @@
 #pragma once
 
 #include "VWolf/Core/Render/Shader.h"
+#include "VWolf/Platform/PShader.h"
 
 struct GLFWwindow;
 
@@ -15,12 +16,13 @@ namespace VWolf {
 
     class HLOGLProgram;
 
-    class HLSLOpenGLShader : public Shader {
+    class HLSLOpenGLShader : public PShader {
     public:
         // TODO: Compute shader is the only one that is different.
         HLSLOpenGLShader(std::string name,
                          std::initializer_list<ShaderSource> otherShaders,
                          ShaderConfiguration configuration = {});
+        HLSLOpenGLShader(Shader& coreShader);
         virtual ~HLSLOpenGLShader();
 
         virtual void Bind() const override;
@@ -34,10 +36,12 @@ namespace VWolf {
     private:
         void SetConfiguration() const;
         void SetRasterization() const;
-        GLuint GetBlendFunction(ShaderConfiguration::Blend::Function function) const;
+        GLuint GetBlendFunction(BlendFunction function) const;
         void SetBlend() const;
         void SetDepthStencil() const;
     private:
         Ref<HLOGLProgram> m_program;
+        bool loadFromNewShader = false;
+        Settings settings;
     };
 }

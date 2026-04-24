@@ -157,8 +157,27 @@ namespace VWolf {
             CompileHLSLWithDirectXShaderCompiler(otherShaders);
             std::map<std::string, MTL::Library*> libraries = CompileDXILUsingIR();
             std::map<std::string, MTL::Function*> functions = ExtractFunctions(libraries);
-            ReflectLibraryAndCreateState(functions, configuration);
-            PrepareDepthStencilState(configuration);
+            ReflectLibraryAndCreateState(functions,
+                                         configuration.blend.enabled,
+                                         (BlendEquation)configuration.blend.equation,
+                                         (BlendFunction)configuration.blend.sourceFunction,
+                                         (BlendFunction)configuration.blend.destinationFunction);
+            PrepareDepthStencilState(configuration.depthStencil.depthTest, (DepthFunction)configuration.depthStencil.depthFunction);
+
+            RELEASEMAP(functions);
+            RELEASEMAP(libraries);
+        }
+        
+        HLMetalProgram(Shader& shader): name(shader.GetName()) {
+            CompileHLSLWithDirectXShaderCompiler(shader);
+            std::map<std::string, MTL::Library*> libraries = CompileDXILUsingIR();
+            std::map<std::string, MTL::Function*> functions = ExtractFunctions(libraries);
+            ReflectLibraryAndCreateState(functions,
+                                         shader.GetSettings().GetBlend().GetEnabled(),
+                                         shader.GetSettings().GetBlend().GetEquation(),
+                                         shader.GetSettings().GetBlend().GetSourceFunction(),
+                                         shader.GetSettings().GetBlend().GetDestinationFunction());
+            PrepareDepthStencilState(shader.GetSettings().GetDepthStencil().GetDepthTest(), shader.GetSettings().GetDepthStencil().GetDepthFunction());
 
             RELEASEMAP(functions);
             RELEASEMAP(libraries);
@@ -303,6 +322,35 @@ namespace VWolf {
             }
         }
         
+        void CompileHLSLWithDirectXShaderCompiler(Shader& shader) {
+            for (Stage otherShader: shader.GetSubShader().GetStages()) {
+                dxils.push_back(DXIL::Shader(otherShader, shader.GetSubShader().GetCode(), DXIL::Shader::ArgumentType::Metal));
+                
+                for(auto& dxil: dxils) {
+                    for (DXIL::Sampler& sampler: dxil.GetSamplers()) {
+                        auto it = samplers.find(sampler.GetName());
+                        if (it == samplers.end()) {
+                            samplers[sampler.GetName()] = DXIL::Sampler(sampler);
+                        }
+                    }
+                    
+                    for (DXIL::Texture& texture: dxil.GetTextures()) {
+                        auto it = textures.find(texture.GetName());
+                        if (it == textures.end()) {
+                            textures[texture.GetName()] = DXIL::Texture(texture);
+                        }
+                    }
+                    
+                    for (DXIL::ConstantBuffer& buffer: dxil.GetConstantBuffers()) {
+                        auto it = constantBuffers.find(buffer.GetName());
+                        if (it == constantBuffers.end()) {
+                            constantBuffers[buffer.GetName()] = DXIL::ConstantBuffer(buffer);
+                        }
+                    }
+                }
+            }
+        }
+        
         template<typename T, bool (*reflectFunction)(const IRShaderReflection*, IRReflectionVersion, T*)>
         bool reflectionJSON(const IRShaderReflection* reflection) {
             T info;
@@ -313,9 +361,8 @@ namespace VWolf {
             std::map<std::string, MTL::Library*> libraries;
             
             for(auto& dxil: dxils) {
-                ShaderSource& otherShader = dxil.GetShaderSource();
                 SmartPoint<IDxcBlob>& pShader = dxil.GetShader();
-                const char* entry = otherShader.mainFunction;
+                const char* entry = dxil.GetMainFunction();
                 
                 IRCompiler* pCompiler = IRCompilerCreate();
                 IRCompilerSetEntryPointName(pCompiler, entry);
@@ -335,18 +382,18 @@ namespace VWolf {
                 
                 // Reflection
                 IRShaderReflection* reflection = IRShaderReflectionCreate();
-                IRObjectGetReflection(pOutIR, ShaderTypeEquivalentIR(otherShader.type), reflection);
+                IRObjectGetReflection(pOutIR, ShaderTypeEquivalentIR(dxil.GetType()), reflection);
                 
                 std::string jsonString = IRShaderReflectionCopyJSONString(reflection);
                 boost::json::value root = boost::json::parse(jsonString);
                 
                 boost::json::array arguments = root.at("TopLevelArgumentBuffer").as_array();
                 for(auto argument : arguments) {
-                    Argument arg(argument, otherShader.type);
-                    topLevelArguments[otherShader.type][argument.at("Name").as_string().c_str()] = arg;
+                    Argument arg(argument, dxil.GetType());
+                    topLevelArguments[dxil.GetType()][argument.at("Name").as_string().c_str()] = arg;
                 }
                 
-                if (otherShader.type == ShaderType::Vertex) {
+                if (dxil.GetType() == ShaderType::Vertex) {
                     boost::json::array vertexInputs = root.at("state").at("vertex_inputs").as_array();
                     for(auto vertexInput : vertexInputs) {
                         stageInAttributes.push_back(StageInAttribute(vertexInput));
@@ -359,7 +406,7 @@ namespace VWolf {
                 
                 // Retrieve Metallib:
                 IRMetalLibBinary* pMetallib = IRMetalLibBinaryCreate();
-                IRObjectGetMetalLibBinary(pOutIR, ShaderTypeEquivalentIR(otherShader.type), pMetallib);
+                IRObjectGetMetalLibBinary(pOutIR, ShaderTypeEquivalentIR(dxil.GetType()), pMetallib);
                 
                 size_t metallibSize = IRMetalLibGetBytecodeSize(pMetallib);
                 uint8_t* metallib = new uint8_t[metallibSize];
@@ -407,7 +454,10 @@ namespace VWolf {
         }
         
         void ReflectLibraryAndCreateState(std::map<std::string, MTL::Function*> functions,
-                                          ShaderConfiguration configuration) {
+                                          bool blendEnabled,
+                                          BlendEquation equation,
+                                          BlendFunction sourceFunction,
+                                          BlendFunction destinationFunction) {
             MTL::RenderPipelineDescriptor* descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
 
             for(auto kv: functions) {
@@ -429,7 +479,7 @@ namespace VWolf {
                 descriptor->colorAttachments()->object(0)->setPixelFormat(MetalDriver::GetCurrent()->GetSurface()->GetPixelFormat());
             }
 
-            PrepareBlending(descriptor->colorAttachments()->object(0), configuration);
+            PrepareBlending(descriptor->colorAttachments()->object(0), blendEnabled, equation, sourceFunction, destinationFunction);
             descriptor->setDepthAttachmentPixelFormat(MetalDriver::GetCurrent()->GetSurface()->GetDepthStencilPixelFormat());
             descriptor->setStencilAttachmentPixelFormat(MetalDriver::GetCurrent()->GetSurface()->GetDepthStencilPixelFormat());
 
@@ -463,103 +513,109 @@ namespace VWolf {
             descriptor->release();
         }
         
-        void PrepareBlending(MTL::RenderPipelineColorAttachmentDescriptor* descriptor, ShaderConfiguration configuration) {
-            descriptor->setBlendingEnabled(configuration.blend.enabled);
-            descriptor->setRgbBlendOperation(GetOperation(configuration.blend.equation));
-            descriptor->setAlphaBlendOperation(GetOperation(configuration.blend.equation));
+        void PrepareBlending(
+                             MTL::RenderPipelineColorAttachmentDescriptor* descriptor,
+                             bool enabled,
+                             BlendEquation equation,
+                             BlendFunction sourceFunction,
+                             BlendFunction destinationFunction
+                             ) {
+            descriptor->setBlendingEnabled(enabled);
+            descriptor->setRgbBlendOperation(GetOperation(equation));
+            descriptor->setAlphaBlendOperation(GetOperation(equation));
             descriptor->setSourceRGBBlendFactor(MTL::BlendFactor::BlendFactorSourceAlpha);
             descriptor->setDestinationRGBBlendFactor(MTL::BlendFactor::BlendFactorOneMinusSourceAlpha);
-            descriptor->setSourceAlphaBlendFactor(GetFactor(configuration.blend.sourceFunction));
-            descriptor->setDestinationAlphaBlendFactor(GetFactor(configuration.blend.destinationFunction));
+            descriptor->setSourceAlphaBlendFactor(GetFactor(sourceFunction));
+            descriptor->setDestinationAlphaBlendFactor(GetFactor(destinationFunction));
             descriptor->setWriteMask(MTL::ColorWriteMaskAll);
         }
 
-        MTL::BlendOperation GetOperation(ShaderConfiguration::Blend::Equation equation) {
+        MTL::BlendOperation GetOperation(BlendEquation equation) {
             switch (equation) {
-                case ShaderConfiguration::Blend::Equation::Add:
+                case BlendEquation::Add:
                     return MTL::BlendOperation::BlendOperationAdd;
-                case ShaderConfiguration::Blend::Equation::Substract:
+                case BlendEquation::Substract:
                     return MTL::BlendOperation::BlendOperationSubtract;
-                case ShaderConfiguration::Blend::Equation::ReverseSubstract:
+                case BlendEquation::ReverseSubstract:
                     return MTL::BlendOperation::BlendOperationReverseSubtract;
-                case ShaderConfiguration::Blend::Equation::Min:
+                case BlendEquation::Min:
                     return MTL::BlendOperation::BlendOperationMin;
-                case ShaderConfiguration::Blend::Equation::Max:
+                case BlendEquation::Max:
                     return MTL::BlendOperation::BlendOperationMax;
             }
         }
 
-        MTL::BlendFactor GetFactor(ShaderConfiguration::Blend::Function function) {
+        MTL::BlendFactor GetFactor(BlendFunction function) {
             switch (function) {
-                case ShaderConfiguration::Blend::Function::Zero:
+                case BlendFunction::Zero:
                     return MTL::BlendFactor::BlendFactorZero;
-                case ShaderConfiguration::Blend::Function::One:
+                case BlendFunction::One:
                     return MTL::BlendFactor::BlendFactorOne;
-                case ShaderConfiguration::Blend::Function::SrcColor:
+                case BlendFunction::SrcColor:
                     return MTL::BlendFactor::BlendFactorSourceColor;
-                case ShaderConfiguration::Blend::Function::InvSrcColor:
+                case BlendFunction::InvSrcColor:
                     return MTL::BlendFactor::BlendFactorOneMinusSourceColor;
-                case ShaderConfiguration::Blend::Function::DstColor:
+                case BlendFunction::DstColor:
                     return MTL::BlendFactor::BlendFactorDestinationColor;
-                case ShaderConfiguration::Blend::Function::InvDstColor:
+                case BlendFunction::InvDstColor:
                     return MTL::BlendFactor::BlendFactorOneMinusDestinationColor;
-                case ShaderConfiguration::Blend::Function::SrcAlpha:
+                case BlendFunction::SrcAlpha:
                     return MTL::BlendFactor::BlendFactorSourceAlpha;
-                case ShaderConfiguration::Blend::Function::InvSrcAlpha:
+                case BlendFunction::InvSrcAlpha:
                     return MTL::BlendFactor::BlendFactorOneMinusSourceAlpha;
-                case ShaderConfiguration::Blend::Function::DstAlpha:
+                case BlendFunction::DstAlpha:
                     return MTL::BlendFactor::BlendFactorDestinationAlpha;
-                case ShaderConfiguration::Blend::Function::InvDstAlpha:
+                case BlendFunction::InvDstAlpha:
                     return MTL::BlendFactor::BlendFactorOneMinusDestinationAlpha;
-                case ShaderConfiguration::Blend::Function::Src1Color:
+                case BlendFunction::Src1Color:
                     return MTL::BlendFactor::BlendFactorSource1Color;
-                case ShaderConfiguration::Blend::Function::InvSrc1Color:
+                case BlendFunction::InvSrc1Color:
                     return MTL::BlendFactor::BlendFactorOneMinusSource1Color;
-                case ShaderConfiguration::Blend::Function::Src1Alpha:
+                case BlendFunction::Src1Alpha:
                     return MTL::BlendFactor::BlendFactorSource1Alpha;
-                case ShaderConfiguration::Blend::Function::InvSrc1Alpha:
+                case BlendFunction::InvSrc1Alpha:
                     return MTL::BlendFactor::BlendFactorOneMinusSource1Alpha;
-                case ShaderConfiguration::Blend::Function::SrcAlphaSat:
+                case BlendFunction::SrcAlphaSat:
                     return MTL::BlendFactor::BlendFactorSourceAlphaSaturated;
-                case ShaderConfiguration::Blend::Function::CnstColor:
+                case BlendFunction::CnstColor:
                     return MTL::BlendFactor::BlendFactorBlendColor;
-                case ShaderConfiguration::Blend::Function::InvCnstColor:
+                case BlendFunction::InvCnstColor:
                     return MTL::BlendFactor::BlendFactorOneMinusBlendColor;
-                case ShaderConfiguration::Blend::Function::CnstAlpha:
+                case BlendFunction::CnstAlpha:
                     return MTL::BlendFactor::BlendFactorBlendAlpha;
-                case ShaderConfiguration::Blend::Function::InvCnstAlpha:
+                case BlendFunction::InvCnstAlpha:
                     return MTL::BlendFactor::BlendFactorOneMinusBlendAlpha;
             }
         }
         
-        void PrepareDepthStencilState(ShaderConfiguration configuration) {
+        void PrepareDepthStencilState(bool depthTest, DepthFunction depthFunction) {
             MTL::DepthStencilDescriptor *descriptor = MTL::DepthStencilDescriptor::alloc()->init();
 
-            descriptor->setDepthWriteEnabled(configuration.depthStencil.depthTest);
+            descriptor->setDepthWriteEnabled(depthTest);
 
-            switch(configuration.depthStencil.depthFunction) {
-                case ShaderConfiguration::DepthStencil::DepthFunction::Never:
+            switch(depthFunction) {
+                case DepthFunction::Never:
                     descriptor->setDepthCompareFunction(MTL::CompareFunctionNever);
                     break;
-                case ShaderConfiguration::DepthStencil::DepthFunction::Less:
+                case DepthFunction::Less:
                     descriptor->setDepthCompareFunction(MTL::CompareFunctionLess);
                     break;
-                case ShaderConfiguration::DepthStencil::DepthFunction::LEqual:
+                case DepthFunction::LEqual:
                     descriptor->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
                     break;
-                case ShaderConfiguration::DepthStencil::DepthFunction::Equal:
+                case DepthFunction::Equal:
                     descriptor->setDepthCompareFunction(MTL::CompareFunctionEqual);
                     break;
-                case ShaderConfiguration::DepthStencil::DepthFunction::NotEqual:
+                case DepthFunction::NotEqual:
                     descriptor->setDepthCompareFunction(MTL::CompareFunctionNotEqual);
                     break;
-                case ShaderConfiguration::DepthStencil::DepthFunction::GEqual:
+                case DepthFunction::GEqual:
                     descriptor->setDepthCompareFunction(MTL::CompareFunctionGreaterEqual);
                     break;
-                case ShaderConfiguration::DepthStencil::DepthFunction::Greater:
+                case DepthFunction::Greater:
                     descriptor->setDepthCompareFunction(MTL::CompareFunctionGreater);
                     break;
-                case ShaderConfiguration::DepthStencil::DepthFunction::Always:
+                case DepthFunction::Always:
                     descriptor->setDepthCompareFunction(MTL::CompareFunctionAlways);
                     break;
             }
@@ -587,6 +643,12 @@ namespace VWolf {
                                      ShaderConfiguration configuration):
     MetalShader(name, otherShaders, configuration) {
         hlMetalProgram = CreateRef<HLMetalProgram>(name, otherShaders, configuration);
+    }
+
+    HLSLMetalShader::HLSLMetalShader(Shader& coreShader): MetalShader(coreShader) {
+        hlMetalProgram = CreateRef<HLMetalProgram>(coreShader);
+        loadFromNewShader = true;
+        settings = coreShader.GetSettings();
     }
 
     HLSLMetalShader::~HLSLMetalShader() {
@@ -700,25 +762,30 @@ namespace VWolf {
     }
 
     void HLSLMetalShader::SetRasterization() const {
-        if (m_configuration.rasterization.cullEnabled) {
-            switch (m_configuration.rasterization.cullMode) {
-                case ShaderConfiguration::Rasterization::CullMode::Front:
+        bool cullEnabled = loadFromNewShader ? settings.GetRasterization().GetCullEnabled() : m_configuration.rasterization.cullEnabled;
+        CullMode cullMode = loadFromNewShader ? settings.GetRasterization().GetCullMode() : (CullMode)m_configuration.rasterization.cullMode;
+        FillMode fillMode = loadFromNewShader ? settings.GetRasterization().GetFillMode() : (FillMode)m_configuration.rasterization.fillMode;
+        bool counterClockwise = loadFromNewShader ? settings.GetRasterization().GetCounterClockwise() : m_configuration.rasterization.counterClockwise;
+        
+        if (cullEnabled) {
+            switch (cullMode) {
+                case CullMode::Front:
                     encoder->setCullMode(MTL::CullMode::CullModeFront);
                     break;
-                case ShaderConfiguration::Rasterization::CullMode::Back:
+                case CullMode::Back:
                     encoder->setCullMode(MTL::CullMode::CullModeBack);
                     break;
-                case ShaderConfiguration::Rasterization::CullMode::FrontAndBack:
+                case CullMode::FrontAndBack:
                     encoder->setCullMode(MTL::CullMode::CullModeNone);
                     break;
             }
         } else
             encoder->setCullMode(MTL::CullMode::CullModeNone);
-        switch (m_configuration.rasterization.fillMode) {
-            case ShaderConfiguration::Rasterization::FillMode::Solid:
+        switch (fillMode) {
+            case FillMode::Solid:
                 encoder->setTriangleFillMode(MTL::TriangleFillMode::TriangleFillModeFill);
                 break;
-            case ShaderConfiguration::Rasterization::FillMode::Wireframe:
+            case FillMode::Wireframe:
                 encoder->setTriangleFillMode(MTL::TriangleFillMode::TriangleFillModeLines);
                 break;
         }

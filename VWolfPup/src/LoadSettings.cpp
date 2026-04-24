@@ -86,6 +86,15 @@ namespace VWolfPup {
     std::vector<VWolf::Ref<VWolf::Material>> materials;
     VWolf::ShaderConfiguration GetInitialConfiguration(std::string name);
 
+    void LoadShaders() {
+        std::filesystem::path shaderPath = "shaders/";
+        for (auto const& dir_entry : std::filesystem::directory_iterator(shaderPath)) {
+            if (dir_entry.is_directory()) continue;
+            if (dir_entry.path().filename() == ".DS_Store") continue;
+            VWolf::Shader(dir_entry.path());
+        }
+    }
+
     void LoadHLSLShaders() {
         std::filesystem::path shaderPath = "shaders/hlsl/";
         for (auto const& dir_entry : std::filesystem::directory_iterator(shaderPath)) {
@@ -125,6 +134,7 @@ namespace VWolfPup {
 
     // MARK: Public
     void InitialLoad() {
+        LoadShaders();
         LoadHLSLShaders();
         Defaults::Load();
     }

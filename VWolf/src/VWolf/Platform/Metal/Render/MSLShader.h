@@ -12,11 +12,12 @@
 namespace VWolf {
     class MLProgram;
 
-    class MSLShader: public MetalShader {
+    class [[deprecated("This class is deprecated. Use HLSLMetalShader instead")]] MSLShader: public MetalShader {
     public:
         MSLShader(std::string name,
                    std::initializer_list<ShaderSource> otherShaders,
                    ShaderConfiguration configuration = {});
+        MSLShader(Shader& coreShader);
         virtual ~MSLShader();
     public:
         virtual void Bind() const override;

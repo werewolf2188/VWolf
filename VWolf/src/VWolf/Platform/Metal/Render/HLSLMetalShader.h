@@ -18,6 +18,7 @@ namespace VWolf {
         HLSLMetalShader(std::string name,
                         std::initializer_list<ShaderSource> otherShaders,
                         ShaderConfiguration configuration = {});
+        HLSLMetalShader(Shader& coreShader);
         virtual ~HLSLMetalShader();
     public:
         virtual void Bind() const override;
@@ -44,5 +45,7 @@ namespace VWolf {
         uint32_t currentIndex = 0;
         Ref<HLMetalProgram> hlMetalProgram;
         MTL::RenderCommandEncoder* encoder = nullptr;
+        bool loadFromNewShader = false;
+        Settings settings;
     };
 }

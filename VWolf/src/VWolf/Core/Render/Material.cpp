@@ -7,11 +7,14 @@
 #include "vwpch.h"
 #include "Material.h"
 
+// TODO: For now. Remove
+#include "VWolf/Platform/PShader.h"
+
 namespace VWolf {
 
     Material::Material(const char* shaderName): Material(ShaderLibrary::GetShader(shaderName)) { }
 
-    Material::Material(Ref<Shader> shader) {
+    Material::Material(Ref<PShader> shader) {
         float floatValue = 0;
         inputs = shader->GetMaterialInputs();
         size = shader->GetMaterialSize();
@@ -100,7 +103,7 @@ namespace VWolf {
         float floatValue = 0;
         this->name = name;
         this->shaderName = shaderName;
-        Ref<Shader> shader = ShaderLibrary::GetShader(shaderName);
+        Ref<PShader> shader = ShaderLibrary::GetShader(shaderName);
         inputs = shader->GetMaterialInputs();
         size = shader->GetMaterialSize();
 
