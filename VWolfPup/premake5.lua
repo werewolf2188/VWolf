@@ -91,6 +91,7 @@ project "VWolfPup"
 
    filter "system:windows"
       systemversion "latest"
+	  buildoptions { "/Zc:preprocessor" }
 	  
    prebuildcommands {	  
 	  "{COPYFILE} %{wks.location}/VWolf/vendor/DirectXShaderCompiler/bin/x64/dxcompiler.dll %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/dxcompiler.dll",

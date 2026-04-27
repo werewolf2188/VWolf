@@ -402,6 +402,7 @@ namespace VWolf {
             UINT32 argCount = 0;
             LPCWSTR* arguments;
             switch (argumentType) {
+                case Shader::ArgumentType::DirectX:
                 case Shader::ArgumentType::Metal:
                     arguments = new LPCWSTR[] {
                         L"-E", wide.c_str(),                                    // Entry point name: "Main"
