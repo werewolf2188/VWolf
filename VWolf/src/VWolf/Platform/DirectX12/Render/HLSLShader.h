@@ -9,9 +9,6 @@ namespace VWolf {
 
 	class HLSLShader : public PShader {
 	public:
-		HLSLShader(std::string name,
-				   std::initializer_list<ShaderSource> otherShaders,
-				   ShaderConfiguration configuration = {});
         HLSLShader(Shader& coreShader);
 		virtual ~HLSLShader();
 

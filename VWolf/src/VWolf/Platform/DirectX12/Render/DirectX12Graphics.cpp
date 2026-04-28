@@ -61,7 +61,7 @@ namespace VWolf {
 				rotation.GetZ()), 
 			Vector3::One); 
 
-		Ref<PShader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
+		Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
 		void* material1 = material.GetDataPointer();
 		/*if (this->lights.size() == 0) {
 			this->lights.push_back(Light());
@@ -74,8 +74,8 @@ namespace VWolf {
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetPipelineState(pso.Get());
 		shader->Bind();
 
-		shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
-		shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shapes);
+		shader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), shapes);
+		shader->SetData(&transform, Shader::ObjectBufferName, sizeof(Matrix4x4), shapes);
 		shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
 		shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
 		std::vector<Matrix4x4> spaces;
@@ -264,7 +264,7 @@ namespace VWolf {
 				vertices->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
 				index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
 
-				Ref<PShader> shader = ShaderLibrary::GetShader("Shadow");
+				Ref<PShader> shader = Shader::GetShader("Shadow")->GetInternalShader();
 
 				DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				group->Bind(DirectX12Driver::GetCurrent()->GetCommands());
@@ -272,8 +272,8 @@ namespace VWolf {
 				DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetPipelineState(pso.Get());
 				shader->Bind();
 
-				shader->SetData(&viewProjection, ShaderLibrary::CameraBufferName, sizeof(Matrix4x4), shadowShapes);
-				shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shadowShapes);
+				shader->SetData(&viewProjection, Shader::CameraBufferName, sizeof(Matrix4x4), shadowShapes);
+				shader->SetData(&transform, Shader::ObjectBufferName, sizeof(Matrix4x4), shadowShapes);
 				void* material1 = material.GetDataPointer();
 				shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
 
@@ -329,7 +329,7 @@ namespace VWolf {
 				Time::GetDeltaTime()
 			};
 
-			Ref<PShader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
+			Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
 			void* material1 = material.GetDataPointer();
 			if (this->lights.size() == 0) {
 				this->lights.push_back(Light());
@@ -342,8 +342,8 @@ namespace VWolf {
 			auto pso = ((HLSLShader*)shader.get())->GetPipeline();
 			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetPipelineState(pso.Get());
 			shader->Bind();
-			shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
-			shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shapes);
+			shader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), shapes);
+			shader->SetData(&transform, Shader::ObjectBufferName, sizeof(Matrix4x4), shapes);
 			shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
 			shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);			
 			shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, shapes);

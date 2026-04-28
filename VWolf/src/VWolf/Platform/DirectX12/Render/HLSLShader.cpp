@@ -319,25 +319,10 @@ namespace VWolf {
 
 	class HLProgram {
 	public:
-		HLProgram(std::string name,
-				  std::initializer_list<ShaderSource> otherShaders,
-				  ShaderConfiguration configuration = {}):
-		name(name) {
-			for (ShaderSource source : otherShaders) {
-				CompileShaderIntoDXIL(source);
-			}
-			BuildRootSignature(UseDescriptorTable);
-			BuildPSO(
-				configuration.rasterization.cullEnabled, (CullMode)configuration.rasterization.cullMode, (FillMode)configuration.rasterization.fillMode, configuration.rasterization.counterClockwise,
-				configuration.blend.enabled, (BlendFunction)configuration.blend.sourceFunction, (BlendFunction)configuration.blend.destinationFunction, (BlendEquation)configuration.blend.equation,
-				configuration.depthStencil.depthTest, (DepthFunction)configuration.depthStencil.depthFunction
-			);
-		}
-
 		HLProgram(Shader& coreShader) :
 			name(name) {
 			for (Stage stage : coreShader.GetSubShader().GetStages()) {
-				CompileNewShaderIntoDXIL(stage, coreShader.GetSubShader().GetCode());
+				CompileNewShaderIntoDXIL(coreShader.GetName(), stage, coreShader.GetSubShader().GetCode());
 			}
 			BuildRootSignature(UseDescriptorTable);
 			BuildPSO(
@@ -398,14 +383,8 @@ namespace VWolf {
 			}
 		}
 
-		void CompileShaderIntoDXIL(ShaderSource source) {
-			DXIL::Shader newShader(source, DXIL::Shader::ArgumentType::DirectX);
-			ReflectFromDXIL(newShader);
-			dxils.push_back(newShader);
-		}
-
-		void CompileNewShaderIntoDXIL(Stage stage, std::string code) {
-			DXIL::Shader newShader(stage, code, DXIL::Shader::ArgumentType::DirectX);
+		void CompileNewShaderIntoDXIL(std::string name, Stage stage, std::string code) {
+			DXIL::Shader newShader(name, stage, code, DXIL::Shader::ArgumentType::DirectX);
 			ReflectFromDXIL(newShader);
 			dxils.push_back(newShader);
 		}
@@ -681,23 +660,6 @@ namespace VWolf {
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> mPSO = nullptr;
 	};
-
-	HLSLShader::HLSLShader(std::string name,
-						   std::initializer_list<ShaderSource> otherShaders,
-						   ShaderConfiguration configuration): PShader(name, otherShaders, configuration) {
-
-		m_program = CreateRef<HLProgram>(name, otherShaders, configuration);
-
-		// Constant Buffers
-		// TODO: This is an expected amount, but I'm not satisfied with this.
-		// TODO: I should be able to let resources grow and shrink
-		uint32_t expectedObjects = 100; 
-		for (std::pair<std::string, Ref<HLConstantBuffer>> param : m_program->GetConstantBuffers()) {
-			Ref<HLConstantBuffer> cb = param.second;
-			cb->CreateUploadBuffer(cb->GetSize(), expectedObjects, UseDescriptorTable);
-			VWOLF_CORE_ASSERT(cb->GetUploadBuffer());			
-		}
-	}
 
     HLSLShader::HLSLShader(Shader& coreShader): PShader(coreShader) {
 		m_program = CreateRef<HLProgram>(coreShader);
