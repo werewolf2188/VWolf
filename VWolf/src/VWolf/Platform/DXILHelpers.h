@@ -286,14 +286,13 @@ namespace VWolf {
             };
         public:
             Shader();
-            Shader(ShaderSource otherShader, ArgumentType argumentType);
-            Shader(VWolf::Stage& stageShader, std::string code, ArgumentType argumentType);
+            Shader(std::string name, VWolf::Stage& stageShader, std::string code, ArgumentType argumentType);
             ~Shader();
         public:
             ShaderType GetType() { return type; }
             ShaderSourceType GetSourceType() { return sourceType; }
             std::string& GetShaderSource() { return shader; }
-            const char* GetMainFunction() { return mainFunction; }
+            const char* GetMainFunction() { return mainFunction.c_str(); }
             SmartPoint<IDxcBlob>& GetShader() { return pShader; }
             std::string& GetName() { return name; }
             std::vector<Attribute>& GetStageInAttributes() { return stageInAttributes; }
@@ -309,7 +308,7 @@ namespace VWolf {
             ShaderType type;
             ShaderSourceType sourceType;
             std::string shader;
-            const char* mainFunction;
+            std::string mainFunction;
             
             SmartPoint<IDxcBlob> pShader;
             std::string name;

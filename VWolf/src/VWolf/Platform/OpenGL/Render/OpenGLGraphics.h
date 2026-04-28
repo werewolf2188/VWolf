@@ -9,7 +9,7 @@
 
 #include "VWolf/Core/Render/Graphics.h"
 
-#include "GLSLShader.h"
+#include "HLSLOpenGLShader.h"
 #include "OpenGLBuffer.h"
 #include "OpenGLVertexArray.h"
 #include "OpenGLTexture.h"

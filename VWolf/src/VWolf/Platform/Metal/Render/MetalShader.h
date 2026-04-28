@@ -18,9 +18,6 @@ namespace VWolf {
     class MetalShader: public PShader {
     public:
     public:
-        MetalShader(std::string name,
-                    std::initializer_list<ShaderSource> otherShaders,
-                    ShaderConfiguration configuration = {}): PShader(name, otherShaders, configuration) {}
         MetalShader(Shader& coreShader): PShader(coreShader) {};
         virtual ~MetalShader() {}
     public:

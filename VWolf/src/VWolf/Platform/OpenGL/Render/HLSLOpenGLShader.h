@@ -19,9 +19,6 @@ namespace VWolf {
     class HLSLOpenGLShader : public PShader {
     public:
         // TODO: Compute shader is the only one that is different.
-        HLSLOpenGLShader(std::string name,
-                         std::initializer_list<ShaderSource> otherShaders,
-                         ShaderConfiguration configuration = {});
         HLSLOpenGLShader(Shader& coreShader);
         virtual ~HLSLOpenGLShader();
 

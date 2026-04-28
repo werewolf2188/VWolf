@@ -15,18 +15,9 @@
 
 namespace VWolf {
     class HLOGLShaderSource {
-    public:
-        HLOGLShaderSource(ShaderSource source) {
-            shader = DXIL::Shader(source, DXIL::Shader::ArgumentType::OpenGL);
-            TranslateFromDXILToGLSL();
-            type = ShaderTypeEquivalent(shader.GetType());
-            shaderId = glCreateShader(type);
-            GLThrowIfFailedNoAction("glCreateShader");
-            Compile();
-        }
-        
-        HLOGLShaderSource(Stage source, std::string code) {
-            shader = DXIL::Shader(source, code, DXIL::Shader::ArgumentType::OpenGL);
+    public:        
+        HLOGLShaderSource(std::string name, Stage source, std::string code) {
+            shader = DXIL::Shader(name, source, code, DXIL::Shader::ArgumentType::OpenGL);
             TranslateFromDXILToGLSL();
             type = ShaderTypeEquivalent(shader.GetType());
             shaderId = glCreateShader(type);
@@ -606,25 +597,10 @@ namespace VWolf {
         std::map<std::string, Ref<HLOGLAttribute>> attributes;
     };
 
-    HLSLOpenGLShader::HLSLOpenGLShader(std::string name,
-                                       std::initializer_list<ShaderSource> otherShaders,
-                                       ShaderConfiguration configuration): PShader(name,
-                                                                                   otherShaders,
-                                                                                   configuration)
-    {
-        m_program = CreateRef<HLOGLProgram>();
-        for(ShaderSource source: m_otherShaders)
-           m_program->AttachShader(CreateRef<HLOGLShaderSource>(source));
-        m_program->Link();
-        //        m_program->Validate();
-        m_program->DettachShaders();
-        m_program->RetrieveUniforms();
-    }
-
     HLSLOpenGLShader::HLSLOpenGLShader(Shader& coreShader): PShader(coreShader) {
         m_program = CreateRef<HLOGLProgram>();
         for(Stage source: coreShader.GetSubShader().GetStages())
-           m_program->AttachShader(CreateRef<HLOGLShaderSource>(source, coreShader.GetSubShader().GetCode()));
+           m_program->AttachShader(CreateRef<HLOGLShaderSource>(coreShader.GetName(), source, coreShader.GetSubShader().GetCode()));
         m_program->Link();
         //        m_program->Validate();
         m_program->DettachShaders();
@@ -736,10 +712,10 @@ namespace VWolf {
 
     void HLSLOpenGLShader::SetRasterization() const {
         // Rasterization
-        bool cullEnabled = loadFromNewShader ? settings.GetRasterization().GetCullEnabled() : m_configuration.rasterization.cullEnabled;
-        CullMode cullMode = loadFromNewShader ? settings.GetRasterization().GetCullMode() : (CullMode)m_configuration.rasterization.cullMode;
-        FillMode fillMode = loadFromNewShader ? settings.GetRasterization().GetFillMode() : (FillMode)m_configuration.rasterization.fillMode;
-        bool counterClockwise = loadFromNewShader ? settings.GetRasterization().GetCounterClockwise() : m_configuration.rasterization.counterClockwise;
+        bool cullEnabled = settings.GetRasterization().GetCullEnabled();
+        CullMode cullMode = settings.GetRasterization().GetCullMode();
+        FillMode fillMode = settings.GetRasterization().GetFillMode();
+        bool counterClockwise = settings.GetRasterization().GetCounterClockwise();
         
         if (cullEnabled) {
             GLThrowIfFailed(glEnable(GL_CULL_FACE));
@@ -799,10 +775,10 @@ namespace VWolf {
 
     void HLSLOpenGLShader::SetBlend() const {
         // Blend
-        bool enabled = loadFromNewShader ? settings.GetBlend().GetEnabled() : m_configuration.blend.enabled;
-        BlendEquation equation = loadFromNewShader ? settings.GetBlend().GetEquation() : (BlendEquation)m_configuration.blend.equation;
-        BlendFunction sourceFunc = loadFromNewShader ? settings.GetBlend().GetSourceFunction() : (BlendFunction)m_configuration.blend.sourceFunction;
-        BlendFunction destinationFunc = loadFromNewShader ? settings.GetBlend().GetDestinationFunction() : (BlendFunction)m_configuration.blend.destinationFunction;
+        bool enabled = settings.GetBlend().GetEnabled();
+        BlendEquation equation = settings.GetBlend().GetEquation();
+        BlendFunction sourceFunc = settings.GetBlend().GetSourceFunction();
+        BlendFunction destinationFunc = settings.GetBlend().GetDestinationFunction();
         
         if (enabled) {
             GLThrowIfFailed(glEnable(GL_BLEND));
@@ -837,8 +813,8 @@ namespace VWolf {
 
     void HLSLOpenGLShader::SetDepthStencil() const {
         // Depth/Stencil
-        bool depthTest = loadFromNewShader ? settings.GetDepthStencil().GetDepthTest() : m_configuration.depthStencil.depthTest;
-        DepthFunction depthFunction = loadFromNewShader ? settings.GetDepthStencil().GetDepthFunction() : (DepthFunction)m_configuration.depthStencil.depthFunction;
+        bool depthTest = settings.GetDepthStencil().GetDepthTest();
+        DepthFunction depthFunction = settings.GetDepthStencil().GetDepthFunction();
         
         if (depthTest) {
             GLThrowIfFailed(glEnable(GL_DEPTH_TEST));

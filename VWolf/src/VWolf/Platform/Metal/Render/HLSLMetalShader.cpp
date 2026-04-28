@@ -150,24 +150,7 @@ namespace VWolf {
     };
 
     class HLMetalProgram {
-    public:
-        HLMetalProgram(std::string name,
-                       std::initializer_list<ShaderSource> otherShaders,
-                       ShaderConfiguration configuration): name(name) {
-            CompileHLSLWithDirectXShaderCompiler(otherShaders);
-            std::map<std::string, MTL::Library*> libraries = CompileDXILUsingIR();
-            std::map<std::string, MTL::Function*> functions = ExtractFunctions(libraries);
-            ReflectLibraryAndCreateState(functions,
-                                         configuration.blend.enabled,
-                                         (BlendEquation)configuration.blend.equation,
-                                         (BlendFunction)configuration.blend.sourceFunction,
-                                         (BlendFunction)configuration.blend.destinationFunction);
-            PrepareDepthStencilState(configuration.depthStencil.depthTest, (DepthFunction)configuration.depthStencil.depthFunction);
-
-            RELEASEMAP(functions);
-            RELEASEMAP(libraries);
-        }
-        
+    public:        
         HLMetalProgram(Shader& shader): name(shader.GetName()) {
             CompileHLSLWithDirectXShaderCompiler(shader);
             std::map<std::string, MTL::Library*> libraries = CompileDXILUsingIR();
@@ -292,39 +275,10 @@ namespace VWolf {
                 IRDescriptorTableSetBuffer(entry, gpuAddress, newOffset);
             }
         }
-    private:
-        void CompileHLSLWithDirectXShaderCompiler(std::initializer_list<ShaderSource> otherShaders) {
-            for (ShaderSource otherShader: otherShaders) {
-                dxils.push_back(DXIL::Shader(otherShader, DXIL::Shader::ArgumentType::Metal));
-                
-                for(auto& dxil: dxils) {
-                    for (DXIL::Sampler& sampler: dxil.GetSamplers()) {
-                        auto it = samplers.find(sampler.GetName());
-                        if (it == samplers.end()) {
-                            samplers[sampler.GetName()] = DXIL::Sampler(sampler);
-                        }
-                    }
-                    
-                    for (DXIL::Texture& texture: dxil.GetTextures()) {
-                        auto it = textures.find(texture.GetName());
-                        if (it == textures.end()) {
-                            textures[texture.GetName()] = DXIL::Texture(texture);
-                        }
-                    }
-                    
-                    for (DXIL::ConstantBuffer& buffer: dxil.GetConstantBuffers()) {
-                        auto it = constantBuffers.find(buffer.GetName());
-                        if (it == constantBuffers.end()) {
-                            constantBuffers[buffer.GetName()] = DXIL::ConstantBuffer(buffer);
-                        }
-                    }
-                }
-            }
-        }
-        
+    private:        
         void CompileHLSLWithDirectXShaderCompiler(Shader& shader) {
             for (Stage otherShader: shader.GetSubShader().GetStages()) {
-                dxils.push_back(DXIL::Shader(otherShader, shader.GetSubShader().GetCode(), DXIL::Shader::ArgumentType::Metal));
+                dxils.push_back(DXIL::Shader(shader.GetName(), otherShader, shader.GetSubShader().GetCode(), DXIL::Shader::ArgumentType::Metal));
                 
                 for(auto& dxil: dxils) {
                     for (DXIL::Sampler& sampler: dxil.GetSamplers()) {
@@ -638,13 +592,6 @@ namespace VWolf {
         std::map<ShaderType, std::map<std::string, std::vector<MTL::Buffer*>>> variableBuffers;
     };
 
-    HLSLMetalShader::HLSLMetalShader(std::string name,
-                                     std::initializer_list<ShaderSource> otherShaders,
-                                     ShaderConfiguration configuration):
-    MetalShader(name, otherShaders, configuration) {
-        hlMetalProgram = CreateRef<HLMetalProgram>(name, otherShaders, configuration);
-    }
-
     HLSLMetalShader::HLSLMetalShader(Shader& coreShader): MetalShader(coreShader) {
         hlMetalProgram = CreateRef<HLMetalProgram>(coreShader);
         loadFromNewShader = true;
@@ -762,10 +709,10 @@ namespace VWolf {
     }
 
     void HLSLMetalShader::SetRasterization() const {
-        bool cullEnabled = loadFromNewShader ? settings.GetRasterization().GetCullEnabled() : m_configuration.rasterization.cullEnabled;
-        CullMode cullMode = loadFromNewShader ? settings.GetRasterization().GetCullMode() : (CullMode)m_configuration.rasterization.cullMode;
-        FillMode fillMode = loadFromNewShader ? settings.GetRasterization().GetFillMode() : (FillMode)m_configuration.rasterization.fillMode;
-        bool counterClockwise = loadFromNewShader ? settings.GetRasterization().GetCounterClockwise() : m_configuration.rasterization.counterClockwise;
+        bool cullEnabled = settings.GetRasterization().GetCullEnabled();
+        CullMode cullMode = settings.GetRasterization().GetCullMode();
+        FillMode fillMode = settings.GetRasterization().GetFillMode();
+//        bool counterClockwise = settings.GetRasterization().GetCounterClockwise();
         
         if (cullEnabled) {
             switch (cullMode) {

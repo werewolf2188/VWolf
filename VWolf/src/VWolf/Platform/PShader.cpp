@@ -4,141 +4,46 @@
 #include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Platform/PShader.h"
 
-#include "VWolf/Platform/OpenGL/Render/GLSLShader.h"
 #include "VWolf/Platform/OpenGL/Render/HLSLOpenGLShader.h"
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "VWolf/Platform/DirectX12/Render/HLSLShader.h"
 #endif
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
-#include "VWolf/Platform/Metal/Render/MSLShader.h"
 #include "VWolf/Platform/Metal/Render/HLSLMetalShader.h"
 #endif
 
 namespace VWolf {
-
-    enum class ProgramType {
-        GLSL, MSL, HLSL, UNKNOWN
-    };
-
     Ref<PShader> LoadPlatformShader(Shader& coreShader) {
-        Ref<PShader> shader;
-        
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
-                shader = CreateRef<HLSLOpenGLShader>(coreShader);
+                return CreateRef<HLSLOpenGLShader>(coreShader);
                 break;
 #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
-                shader = CreateRef<HLSLShader>(coreShader);
+                return CreateRef<HLSLShader>(coreShader);
                 break;
 #endif
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
             case DriverType::Metal:
-                shader = CreateRef<HLSLMetalShader>(coreShader);
+                return CreateRef<HLSLMetalShader>(coreShader);
                 break;
 #endif
             default:
                 VWOLF_CORE_ASSERT(false, "Shader: Not yet implemented");
         }
 
-        return shader;
-    }
-
-    ProgramType getShaderExtension(std::initializer_list<ShaderSource> otherShaders) {
-        if (otherShaders.size() == 0) return ProgramType::UNKNOWN;
-        
-        const std::filesystem::path path = otherShaders.begin()->shader;
-        if (path.extension() == ".metal") { // OLD SHADER FILE
-            return ProgramType::MSL;
-        } else if (path.extension() == ".hlsl") { // NEW SHADER FILE
-            return ProgramType::HLSL;
-        } else if (path.extension() == ".glsl") { // OLD SHADER FILE
-            return ProgramType::GLSL;
-        }
-        return ProgramType::UNKNOWN;
-    }
-
-    std::vector<Ref<PShader>> ShaderLibrary::m_shaders;
-    std::map<ShaderLibrary::ShaderSpecialty, std::string> ShaderLibrary::m_specialtiesShaders;
-
-    // TODO: Remove
-    const char* ShaderLibrary::CameraBufferName = "Camera";
-
-    const char* ShaderLibrary::ObjectBufferName = "Object";
-    //
-
-    void ShaderLibrary::LoadShader(std::string name,
-                                   std::initializer_list<ShaderSource> otherShaders,
-                                   ShaderConfiguration configuration) {
-        Ref<PShader> shader;
-        
-        switch(Application::GetApplication()->GetDriverType()) {
-            case DriverType::OpenGL:
-                switch (getShaderExtension(otherShaders)) {
-                    case ProgramType::GLSL:
-                        shader = CreateRef<GLSLShader>(name,
-                                                       otherShaders,
-                                                       configuration);
-                        break;
-                    case ProgramType::HLSL:
-                        shader = CreateRef<HLSLOpenGLShader>(name,
-                                                             otherShaders,
-                                                             configuration);
-                        break;
-                    default:
-                        VWOLF_CORE_ASSERT("This file is unsupported");
-                }
-                
-                break;
-#ifdef VWOLF_PLATFORM_WINDOWS
-            case DriverType::DirectX12:
-                shader = CreateRef<HLSLShader>(name,
-                                               otherShaders,
-                                               configuration);
-                break;
-#endif
-#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
-            case DriverType::Metal:
-                
-                switch (getShaderExtension(otherShaders)) {
-                    case ProgramType::MSL:
-                        shader = CreateRef<MSLShader>(name,
-                                                      otherShaders,
-                                                      configuration);
-                        break;
-                    case ProgramType::HLSL:
-                        shader = CreateRef<HLSLMetalShader>(name,
-                                                            otherShaders,
-                                                            configuration);
-                        break;
-                    default:
-                        VWOLF_CORE_ASSERT("This file is unsupported");
-                }
-                break;
-#endif
-            default:
-                VWOLF_CORE_ASSERT(false, "Shader: Not yet implemented");
-        }
-
-        if (shader != nullptr)
-            m_shaders.push_back(shader);
-    }
-
-    Ref<PShader> ShaderLibrary::GetShader(std::string name) {
-        for (auto shader: m_shaders) {
-            std::string shaderName = shader->GetName();
-            if (shaderName == name) {
-                return shader;
-            }
-        }
         return nullptr;
     }
 
-    Ref<PShader> ShaderLibrary::GetShader(ShaderSpecialty type) {
-        return GetShader(m_specialtiesShaders[type]);
+    std::vector<Ref<ShaderInput>> GetMaterialInputs(Ref<PShader> pshader) {
+        return pshader->GetMaterialInputs();
     }
 
-    void ShaderLibrary::SetShaderSpecialty(std::string name, ShaderSpecialty type) {
-        m_specialtiesShaders[type] = name;
+    size_t GetMaterialSize(Ref<PShader> pshader) {
+        return pshader->GetMaterialSize();
+    }
+
+    std::vector<ShaderInput> GetTextureInputs(Ref<PShader> pshader) {
+        return pshader->GetTextureInputs();
     }
 }

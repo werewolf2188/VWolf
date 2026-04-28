@@ -57,6 +57,12 @@ namespace VWolf {
             
             return (name + "." + type + ".cso");
         }
+    
+        std::string ShaderName(std::string name, ShaderType _type) {
+            std::string type = ShaderTypeEquivalent(_type);
+            
+            return (name + "." + type + ".cso");
+        }
 
         std::wstring ShaderTypeEquivalentWide(ShaderType type) {
             std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
@@ -342,13 +348,9 @@ namespace VWolf {
     // MARK: Shader
         Shader::Shader() {}
     
-        Shader::Shader(ShaderSource otherShader, ArgumentType argumentType):
-        type(otherShader.type), sourceType(ShaderSourceType::File), shader(otherShader.shader), mainFunction(otherShader.mainFunction), name(ShaderFileName(otherShader.shader, otherShader.type)) {
-            CompileHLSLWithDirectXShaderCompiler(argumentType);
-        }
-    
-        Shader::Shader(VWolf::Stage& stageShader, std::string code, ArgumentType argumentType):
-        type(stageShader.GetStageType()), sourceType(ShaderSourceType::Text), shader(code), mainFunction(stageShader.GetFunctionName().c_str()) {
+        Shader::Shader(std::string name, VWolf::Stage& stageShader, std::string code, ArgumentType argumentType):
+        type(stageShader.GetStageType()), sourceType(ShaderSourceType::Text), shader(code), mainFunction(stageShader.GetFunctionName()),
+            name(ShaderName(name, stageShader.GetStageType())) {
             CompileHLSLWithDirectXShaderCompiler(argumentType);
         }
     

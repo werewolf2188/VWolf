@@ -123,7 +123,7 @@ namespace VWolf {
                                              Quaternion::Euler(rotation.GetX(), rotation.GetY(), rotation.GetZ()),
                                              Vector3::One);
 
-        Ref<PShader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
+        Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
         void* material1 = material.GetDataPointer();
         Light* lights = this->lights.data();
         std::vector<ShaderInput> textures = shader->GetTextureInputs();
@@ -141,8 +141,8 @@ namespace VWolf {
             }
         }
         shader->Bind();
-        shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
-        shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), 0);
+        shader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), 0);
+        shader->SetData(&transform, Shader::ObjectBufferName, sizeof(Matrix4x4), 0);
         shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
         if (lights) {
             shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);
@@ -211,7 +211,7 @@ namespace VWolf {
         shadowMap->Bind();
         GLThrowIfFailed(glClear(GL_DEPTH_BUFFER_BIT));
         for (Light& light: lights) {
-            Ref<PShader> shader = ShaderLibrary::GetShader("Shadow"); // TODO: Organize this
+            Ref<PShader> shader = Shader::GetShader("Shadow")->GetInternalShader();
             for(Ref<RenderItem> item: items) {
                 auto& mesh = item->data;
 
@@ -227,8 +227,8 @@ namespace VWolf {
                 Matrix4x4 transform = item->transform;
                 
                 shader->Bind();
-                shader->SetData(&viewProjection, ShaderLibrary::CameraBufferName, sizeof(Matrix4x4), 0);
-                shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), 0);
+                shader->SetData(&viewProjection, Shader::CameraBufferName, sizeof(Matrix4x4), 0);
+                shader->SetData(&transform, Shader::ObjectBufferName, sizeof(Matrix4x4), 0);
 
                 group->Bind();
                 vertices->Bind();
@@ -279,7 +279,7 @@ namespace VWolf {
                 Time::GetDeltaTime()
             };
 
-            Ref<PShader> shader = ShaderLibrary::GetShader(material.GetShaderName().c_str());
+            Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
             void* material1 = material.GetDataPointer();
             Light* lights = this->lights.data();
             std::vector<ShaderInput> textures = shader->GetTextureInputs();
@@ -297,8 +297,8 @@ namespace VWolf {
                     }
                 }
             }
-            shader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), 0);
-            shader->SetData(&transform, ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), 0);
+            shader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), 0);
+            shader->SetData(&transform, Shader::ObjectBufferName, sizeof(Matrix4x4), 0);
             shader->SetData(material1, materialName.c_str(), material.GetSize(), 0);
             if (lights) {
                 shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, 0);

@@ -15,9 +15,6 @@ namespace VWolf {
 
     class HLSLMetalShader: public MetalShader {
     public:
-        HLSLMetalShader(std::string name,
-                        std::initializer_list<ShaderSource> otherShaders,
-                        ShaderConfiguration configuration = {});
         HLSLMetalShader(Shader& coreShader);
         virtual ~HLSLMetalShader();
     public:

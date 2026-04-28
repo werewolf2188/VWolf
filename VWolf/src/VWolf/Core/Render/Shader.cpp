@@ -28,6 +28,20 @@ namespace YAML {
 }
 
 namespace VWolf {
+    extern Ref<PShader> LoadPlatformShader(Shader& coreShader);
+    extern std::vector<Ref<ShaderInput>> GetMaterialInputs(Ref<PShader> pshader);
+    extern size_t GetMaterialSize(Ref<PShader> pshader);
+    extern std::vector<ShaderInput> GetTextureInputs(Ref<PShader> pshader);
+
+    std::vector<Ref<Shader>> Shader::m_shaders;
+    std::map<Shader::ShaderSpecialty, std::string> Shader::m_specialtiesShaders;
+
+    // TODO: Remove
+    const char* Shader::CameraBufferName = "Camera";
+
+    const char* Shader::ObjectBufferName = "Object";
+    //
+
     Shader::Shader(std::filesystem::path path) {
         Deserialize(path);
     }
@@ -45,7 +59,40 @@ namespace VWolf {
             VWOLF_CORE_ERROR("Failed to load .material file '%s'\n     %s", path.string().c_str(), e.what());
         }
         (*this) = data[key].as<Shader>();
-        std::cout << this->name << std::endl;
-//        internalShader = LoadPlatformShader(*this);
+        internalShader = LoadPlatformShader(*this);
+    }
+
+    std::vector<Ref<ShaderInput>> Shader::GetMaterialInputs() const {
+        return VWolf::GetMaterialInputs(internalShader);
+    }
+
+    size_t Shader::GetMaterialSize() const {
+        return VWolf::GetMaterialSize(internalShader);
+    }
+
+    std::vector<ShaderInput> Shader::GetTextureInputs() const {
+        return VWolf::GetTextureInputs(internalShader);
+    }
+
+    void Shader::LoadShader(std::filesystem::path path) {
+        m_shaders.push_back(CreateRef<Shader>(path));
+    }
+
+    Ref<Shader> Shader::GetShader(std::string name) {
+        for (auto shader: m_shaders) {
+            std::string shaderName = shader->GetName();
+            if (shaderName == name) {
+                return shader;
+            }
+        }
+        return nullptr;
+    }
+
+    Ref<Shader> Shader::GetShader(ShaderSpecialty type) {
+        return GetShader(m_specialtiesShaders[type]);
+    }
+
+    void Shader::SetShaderSpecialty(std::string name, ShaderSpecialty type) {
+        m_specialtiesShaders[type] = name;
     }
 }

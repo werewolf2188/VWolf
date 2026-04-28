@@ -34,58 +34,6 @@ namespace VWolf {
         Sampler2D, SamplerCube
     };
 
-    struct ShaderConfiguration {
-        struct Rasterization {
-            bool cullEnabled = true;
-            enum class FillMode { Solid, Wireframe };
-            enum class CullMode { Back, Front, FrontAndBack };
-            
-            FillMode fillMode = FillMode::Solid;
-            CullMode cullMode = CullMode::Back;
-            bool counterClockwise = false;
-        };
-
-        struct DepthStencil {
-            bool depthTest = true;
-            enum class DepthFunction {
-                Never,
-                Less,
-                Equal,
-                LEqual,
-                Greater,
-                NotEqual,
-                GEqual,
-                Always
-            };
-
-            DepthFunction depthFunction = DepthFunction::Less;
-        };
-
-        struct Blend {
-            enum class Equation { Add, Substract, ReverseSubstract, Min, Max };
-            enum class Function {
-                Zero, One,
-                SrcColor, InvSrcColor,
-                DstColor, InvDstColor,
-                SrcAlpha, InvSrcAlpha,
-                DstAlpha, InvDstAlpha,
-                Src1Color, InvSrc1Color,
-                Src1Alpha, InvSrc1Alpha,
-                SrcAlphaSat,
-                CnstColor, InvCnstColor,
-                CnstAlpha, InvCnstAlpha
-            };
-            
-            bool enabled = true;
-            Equation equation = Equation::Add;
-            Function sourceFunction = Function::SrcAlpha;
-            Function destinationFunction = Function::InvSrcAlpha;
-        };
-        Rasterization rasterization = Rasterization();
-        DepthStencil depthStencil = DepthStencil();
-        Blend blend = Blend();
-    };
-
     struct ShaderInput {
     public:
         ShaderInput(std::string name, ShaderDataType type, uint32_t index, uint32_t size, uint32_t offset):
@@ -258,12 +206,30 @@ namespace VWolf {
 
     class Shader {
     public:
+        enum class ShaderSpecialty {
+            shadow
+        };
+        
+        // TODO: Not sure if this should live here.
+        static const char* CameraBufferName;
+        static const char* ObjectBufferName;
+    public:
         Shader() = default;
         Shader(std::filesystem::path path);
     public:
         const std::string GetName() const { return name; }
         SubShader GetSubShader() { return subShader; }
         Settings GetSettings() { return settings; }
+        Ref<PShader> GetInternalShader() { return internalShader; }
+    public:
+        std::vector<Ref<ShaderInput>> GetMaterialInputs() const;
+        size_t GetMaterialSize() const;
+        std::vector<ShaderInput> GetTextureInputs() const;
+    public:
+        static void LoadShader(std::filesystem::path path);
+        static Ref<Shader> GetShader(std::string name);
+        static Ref<Shader> GetShader(ShaderSpecialty type);
+        static void SetShaderSpecialty(std::string name, ShaderSpecialty type);
     private:
         void Deserialize(std::filesystem::path path);
     private:
@@ -273,39 +239,10 @@ namespace VWolf {
         
         BOOST_DESCRIBE_CLASS(Shader, (), (), (), (name, settings, subShader))
         
+        static std::vector<Ref<Shader>> m_shaders;
+        static std::map<ShaderSpecialty, std::string> m_specialtiesShaders;
+        
         Ref<PShader> internalShader;
         friend class PShader;
-    };
-
-    extern Ref<PShader> LoadPlatformShader(Shader& coreShader);
-
-    // TODO: Move
-
-    struct ShaderSource {
-        ShaderType type;
-        ShaderSourceType sourceType;
-        std::string shader;
-        const char* mainFunction = "main";
-    };
-
-    class ShaderLibrary {
-    public:
-        enum class ShaderSpecialty {
-            shadow
-        };
-        // TODO: Not sure if this should live here.
-        static const char* CameraBufferName;
-        static const char* ObjectBufferName;
-
-        static void LoadShader(std::string name,
-                               std::initializer_list<ShaderSource> otherShaders,
-                               ShaderConfiguration configuration = {});
-
-        static Ref<PShader> GetShader(std::string name);
-        static Ref<PShader> GetShader(ShaderSpecialty type);
-        static void SetShaderSpecialty(std::string name, ShaderSpecialty type);
-    private:
-        static std::vector<Ref<PShader>> m_shaders;
-        static std::map<ShaderSpecialty, std::string> m_specialtiesShaders;
     };
 }

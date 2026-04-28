@@ -17,7 +17,7 @@ namespace VWolf {
     public:
         Material() = default;
         Material(const char* shaderName);
-        Material(Ref<PShader> shader);
+        Material(Ref<Shader> shader);
         Material(Material& material);
         Material(Material&& material);
 
