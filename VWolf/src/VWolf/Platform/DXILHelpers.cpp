@@ -345,6 +345,66 @@ namespace VWolf {
             return *this;
         }
     
+    // MARK: Include handler
+    class VWolfDxcIncludeHandler : public IDxcIncludeHandler {
+    public:
+        VWolfDxcIncludeHandler(IDxcUtils* pUtils) : m_pUtils(pUtils), m_refCount(1) {}
+        /// \brief Load a source file to be included by the compiler.
+        ///
+        /// \param pFilename Candidate filename.
+        ///
+        /// \param ppIncludeSource Resultant source object for included file, nullptr
+        /// if not found.
+        HRESULT STDMETHODCALLTYPE
+        LoadSource(_In_z_ LPCWSTR pFilename,
+                   _COM_Outptr_result_maybenull_ IDxcBlob **ppIncludeSource) override {
+            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+
+            // TODO: Move this to add it from outside.
+            std::filesystem::path directory = "shaders/include/";
+            std::filesystem::path filename = converter.to_bytes(pFilename);
+            std::filesystem::path path = directory / filename.filename();
+            
+//            std::cout << "Including: " << path << std::endl;
+            HRESULT code;
+            if (std::filesystem::exists(path)) {
+                std::wstring widePath = converter.from_bytes(path.string());
+                const wchar_t* wPath = widePath.c_str();
+                uint32_t codePage = DXC_CP_UTF8;
+                code = m_pUtils->LoadFile(wPath, &codePage, (IDxcBlobEncoding**)ppIncludeSource);
+            } else {
+                code = m_pUtils->
+                CreateBlobFromPinned(emptyString.c_str(), (UINT32)emptyString.size(), CP_UTF8, (IDxcBlobEncoding**)ppIncludeSource);
+            }
+            
+            return code;
+        }
+        
+        HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) override {
+            if (riid == __uuidof(IDxcIncludeHandler) || riid == __uuidof(IUnknown)) {
+                *ppvObject = this;
+                AddRef();
+                return S_OK;
+            }
+            *ppvObject = nullptr;
+            return E_NOINTERFACE;
+        }
+        
+        ULONG STDMETHODCALLTYPE AddRef() override {
+            return ++m_refCount;
+        }
+        
+        ULONG STDMETHODCALLTYPE Release() override {
+            ULONG newCount = --m_refCount;
+            if (newCount == 0) delete this;
+            return newCount;
+        }
+    private:
+        std::atomic<long> m_refCount;
+        IDxcUtils* m_pUtils;
+        std::string emptyString = "";
+    };
+    
     // MARK: Shader
         Shader::Shader() {}
     
@@ -368,12 +428,14 @@ namespace VWolf {
             
             SmartPoint<IDxcUtils> utils;
             SmartPoint<IDxcCompiler3> compiler;
-            SmartPoint<IDxcIncludeHandler> includeHandler;
             SmartPoint<IDxcBlobEncoding> sourceBlob;
             
             DXSC_EXECUTE(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils)));
             DXSC_EXECUTE(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler)));
-            DXSC_EXECUTE(utils->CreateDefaultIncludeHandler(&includeHandler));
+            VWolfDxcIncludeHandler handler(utils.p);
+            SmartPoint<IDxcIncludeHandler> includeHandler(&handler);
+//            SmartPoint<IDxcIncludeHandler> includeHandler;
+//            DXSC_EXECUTE(utils->CreateDefaultIncludeHandler(&includeHandler));
             
             DxcBuffer src;
             

@@ -8,34 +8,7 @@ shader:
         - stageType: Fragment
           functionName: PS
       code: |
-        cbuffer cbPerCamera : register(b0)
-        {
-            float4x4 u_View;
-            float4x4 u_InvView;
-            float4x4 u_Proj;
-            float4x4 u_InvProj;
-            float4x4 u_ViewProjection;
-            float4x4 u_InvViewProjection;
-            float3 u_EyePosition;
-            float2 u_RenderTargetSize;
-            float2 u_InvRenderTargetSize;
-            float u_NearZ;
-            float u_FarZ;
-            float u_TotalTime;
-            float u_DeltaTime;
-        };
-
-        cbuffer cbPerObject : register(b1)
-        {
-            float4x4 u_Transform;
-        };
-
-        //cbuffer cbPerMaterial : register(b2) {
-        //    float4 u_ambientColor;
-        //    float4 u_diffuseColor;
-        //    float3 u_specular;
-        //    float u_shinines;
-        //};
+        #include "VWolf.hlsli"
 
         #define LIGHTS_MAX 8
 
@@ -72,9 +45,8 @@ shader:
         {
             VertexOut vout;
 
-             //Transform to homogeneous clip space.
-            vout.PosH = mul(u_Transform, float4(vin.PosL, 1.0f));
-            vout.PosH = mul(u_ViewProjection, vout.PosH);
+            //Transform to homogeneous clip space.
+            vout.PosH = VWolfTransformObjectSpaceToHClip(vin.PosL);
 
             // Just pass vertex color into the pixel shader.
             vout.Color = light[0].u_color;
