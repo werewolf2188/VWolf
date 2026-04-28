@@ -71,6 +71,7 @@ project "VWolf"
 
    filter "system:windows"
       systemversion "latest"
+      buildoptions { "/Zc:preprocessor" }
 
    includedirs
    {

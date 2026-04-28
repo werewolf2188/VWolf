@@ -15,15 +15,16 @@
 
 namespace VWolf {
     class HLOGLShaderSource {
-    public:
-        HLOGLShaderSource(ShaderSource source) {
-            shader = DXIL::Shader(source, DXIL::Shader::ArgumentType::OpenGL);
+    public:        
+        HLOGLShaderSource(std::string name, Stage source, std::string code) {
+            shader = DXIL::Shader(name, source, code, DXIL::Shader::ArgumentType::OpenGL);
             TranslateFromDXILToGLSL();
-            type = ShaderTypeEquivalent(source.type);
+            type = ShaderTypeEquivalent(shader.GetType());
             shaderId = glCreateShader(type);
             GLThrowIfFailedNoAction("glCreateShader");
             Compile();
         }
+        
         ~HLOGLShaderSource() {
             if (!HasBeenDeleted())
                 GLThrowIfFailed(glDeleteShader(shaderId));
@@ -69,10 +70,10 @@ namespace VWolf {
             // Get all sampled images in the shader.
             for (auto &resource : resources.stage_inputs)
             {
-                if (shader.GetShaderSource().type == ShaderType::Vertex) {
+                if (shader.GetType() == ShaderType::Vertex) {
                     std::string new_name = SanitizeNameForVertexForInput(resource.name);
                     glsl.set_name(resource.id, new_name);
-                } else if (shader.GetShaderSource().type == ShaderType::Fragment) {
+                } else if (shader.GetType() == ShaderType::Fragment) {
                     std::string new_name = SanitizeNameForVertexForOutputOrFragmentForInput(resource.name);
                     glsl.set_name(resource.id, new_name);
                 }
@@ -81,7 +82,7 @@ namespace VWolf {
             
             for (auto &resource : resources.stage_outputs)
             {
-                if (shader.GetShaderSource().type == ShaderType::Vertex) {
+                if (shader.GetType() == ShaderType::Vertex) {
                     std::string new_name = SanitizeNameForVertexForOutputOrFragmentForInput(resource.name);
                     glsl.set_name(resource.id, new_name);
                 }
@@ -596,19 +597,16 @@ namespace VWolf {
         std::map<std::string, Ref<HLOGLAttribute>> attributes;
     };
 
-    HLSLOpenGLShader::HLSLOpenGLShader(std::string name,
-                                       std::initializer_list<ShaderSource> otherShaders,
-                                       ShaderConfiguration configuration): Shader(name,
-                                                                                  otherShaders,
-                                                                                  configuration)
-    {
+    HLSLOpenGLShader::HLSLOpenGLShader(Shader& coreShader): PShader(coreShader) {
         m_program = CreateRef<HLOGLProgram>();
-        for(ShaderSource source: m_otherShaders)
-           m_program->AttachShader(CreateRef<HLOGLShaderSource>(source));
+        for(Stage source: coreShader.GetSubShader().GetStages())
+           m_program->AttachShader(CreateRef<HLOGLShaderSource>(coreShader.GetName(), source, coreShader.GetSubShader().GetCode()));
         m_program->Link();
         //        m_program->Validate();
         m_program->DettachShaders();
         m_program->RetrieveUniforms();
+        loadFromNewShader = true;
+        settings = coreShader.GetSettings();
     }
 
     HLSLOpenGLShader::~HLSLOpenGLShader() {
@@ -714,65 +712,75 @@ namespace VWolf {
 
     void HLSLOpenGLShader::SetRasterization() const {
         // Rasterization
-        if (m_configuration.rasterization.cullEnabled) {
+        bool cullEnabled = settings.GetRasterization().GetCullEnabled();
+        CullMode cullMode = settings.GetRasterization().GetCullMode();
+        FillMode fillMode = settings.GetRasterization().GetFillMode();
+        bool counterClockwise = settings.GetRasterization().GetCounterClockwise();
+        
+        if (cullEnabled) {
             GLThrowIfFailed(glEnable(GL_CULL_FACE));
         }
         else {
             GLThrowIfFailed(glDisable(GL_CULL_FACE));
         }
 
-        switch (m_configuration.rasterization.cullMode) {
-            case ShaderConfiguration::Rasterization::CullMode::Front:
+        switch (cullMode) {
+            case CullMode::Front:
                 GLThrowIfFailed(glCullFace(GL_FRONT));
                 break;
-            case ShaderConfiguration::Rasterization::CullMode::Back:
+            case CullMode::Back:
                 GLThrowIfFailed(glCullFace(GL_BACK));
                 break;
-            case ShaderConfiguration::Rasterization::CullMode::FrontAndBack:
+            case CullMode::FrontAndBack:
                 GLThrowIfFailed(glCullFace(GL_FRONT_AND_BACK));
                 break;
         }
 
-        switch (m_configuration.rasterization.fillMode) {
-            case ShaderConfiguration::Rasterization::FillMode::Wireframe:
+        switch (fillMode) {
+            case FillMode::Wireframe:
                 GLThrowIfFailed(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
                 break;
-            case ShaderConfiguration::Rasterization::FillMode::Solid:
+            case FillMode::Solid:
                 GLThrowIfFailed(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
                 break;
         }
 
-        GLThrowIfFailed(glFrontFace(m_configuration.rasterization.counterClockwise ? GL_CCW: GL_CW));
+        GLThrowIfFailed(glFrontFace(counterClockwise ? GL_CCW: GL_CW));
     }
 
-    GLuint HLSLOpenGLShader::GetBlendFunction(ShaderConfiguration::Blend::Function function) const {
+    GLuint HLSLOpenGLShader::GetBlendFunction(BlendFunction function) const {
         switch (function) {
-            case ShaderConfiguration::Blend::Function::Zero: return GL_ZERO;
-            case ShaderConfiguration::Blend::Function::One: return GL_ONE;
-            case ShaderConfiguration::Blend::Function::SrcColor: return GL_SRC_COLOR;
-            case ShaderConfiguration::Blend::Function::InvSrcColor: return GL_ONE_MINUS_SRC_COLOR;
-            case ShaderConfiguration::Blend::Function::DstColor: return GL_DST_COLOR;
-            case ShaderConfiguration::Blend::Function::InvDstColor: return GL_ONE_MINUS_DST_COLOR;
-            case ShaderConfiguration::Blend::Function::SrcAlpha: return GL_SRC_ALPHA;
-            case ShaderConfiguration::Blend::Function::InvSrcAlpha: return GL_ONE_MINUS_SRC_ALPHA;
-            case ShaderConfiguration::Blend::Function::DstAlpha: return GL_DST_ALPHA;
-            case ShaderConfiguration::Blend::Function::InvDstAlpha: return GL_ONE_MINUS_DST_ALPHA;
-            case ShaderConfiguration::Blend::Function::Src1Color: return GL_SRC1_COLOR;
-            case ShaderConfiguration::Blend::Function::InvSrc1Color: return GL_ONE_MINUS_SRC1_COLOR;
-            case ShaderConfiguration::Blend::Function::Src1Alpha: return GL_SRC1_ALPHA;
-            case ShaderConfiguration::Blend::Function::InvSrc1Alpha: return GL_ONE_MINUS_SRC1_ALPHA;
-            case ShaderConfiguration::Blend::Function::SrcAlphaSat: return GL_SRC_ALPHA_SATURATE;
-            case ShaderConfiguration::Blend::Function::CnstColor: return GL_CONSTANT_COLOR;
-            case ShaderConfiguration::Blend::Function::InvCnstColor: return GL_ONE_MINUS_CONSTANT_COLOR;
-            case ShaderConfiguration::Blend::Function::CnstAlpha: return GL_CONSTANT_ALPHA;
-            case ShaderConfiguration::Blend::Function::InvCnstAlpha: return GL_ONE_MINUS_CONSTANT_ALPHA;
+            case BlendFunction::Zero: return GL_ZERO;
+            case BlendFunction::One: return GL_ONE;
+            case BlendFunction::SrcColor: return GL_SRC_COLOR;
+            case BlendFunction::InvSrcColor: return GL_ONE_MINUS_SRC_COLOR;
+            case BlendFunction::DstColor: return GL_DST_COLOR;
+            case BlendFunction::InvDstColor: return GL_ONE_MINUS_DST_COLOR;
+            case BlendFunction::SrcAlpha: return GL_SRC_ALPHA;
+            case BlendFunction::InvSrcAlpha: return GL_ONE_MINUS_SRC_ALPHA;
+            case BlendFunction::DstAlpha: return GL_DST_ALPHA;
+            case BlendFunction::InvDstAlpha: return GL_ONE_MINUS_DST_ALPHA;
+            case BlendFunction::Src1Color: return GL_SRC1_COLOR;
+            case BlendFunction::InvSrc1Color: return GL_ONE_MINUS_SRC1_COLOR;
+            case BlendFunction::Src1Alpha: return GL_SRC1_ALPHA;
+            case BlendFunction::InvSrc1Alpha: return GL_ONE_MINUS_SRC1_ALPHA;
+            case BlendFunction::SrcAlphaSat: return GL_SRC_ALPHA_SATURATE;
+            case BlendFunction::CnstColor: return GL_CONSTANT_COLOR;
+            case BlendFunction::InvCnstColor: return GL_ONE_MINUS_CONSTANT_COLOR;
+            case BlendFunction::CnstAlpha: return GL_CONSTANT_ALPHA;
+            case BlendFunction::InvCnstAlpha: return GL_ONE_MINUS_CONSTANT_ALPHA;
         }
         return GL_ZERO;
     }
 
     void HLSLOpenGLShader::SetBlend() const {
         // Blend
-        if (m_configuration.blend.enabled) {
+        bool enabled = settings.GetBlend().GetEnabled();
+        BlendEquation equation = settings.GetBlend().GetEquation();
+        BlendFunction sourceFunc = settings.GetBlend().GetSourceFunction();
+        BlendFunction destinationFunc = settings.GetBlend().GetDestinationFunction();
+        
+        if (enabled) {
             GLThrowIfFailed(glEnable(GL_BLEND));
         }
         else {
@@ -780,24 +788,24 @@ namespace VWolf {
         }
 
         GLuint sourceFunction, destinationFunction;
-        sourceFunction = GetBlendFunction(m_configuration.blend.sourceFunction);
-        destinationFunction = GetBlendFunction(m_configuration.blend.destinationFunction);
+        sourceFunction = GetBlendFunction(sourceFunc);
+        destinationFunction = GetBlendFunction(destinationFunc);
         GLThrowIfFailed(glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, sourceFunction, destinationFunction));
         
-        switch (m_configuration.blend.equation) {
-            case ShaderConfiguration::Blend::Equation::Add:
+        switch (equation) {
+            case BlendEquation::Add:
                 GLThrowIfFailed(glBlendEquation(GL_FUNC_ADD));
                 break;
-            case ShaderConfiguration::Blend::Equation::Substract:
+            case BlendEquation::Substract:
                 GLThrowIfFailed(glBlendEquation(GL_FUNC_SUBTRACT));
                 break;
-            case ShaderConfiguration::Blend::Equation::ReverseSubstract:
+            case BlendEquation::ReverseSubstract:
                 GLThrowIfFailed(glBlendEquation(GL_FUNC_REVERSE_SUBTRACT));
                 break;
-            case ShaderConfiguration::Blend::Equation::Min:
+            case BlendEquation::Min:
                 GLThrowIfFailed(glBlendEquation(GL_MIN));
                 break;
-            case ShaderConfiguration::Blend::Equation::Max:
+            case BlendEquation::Max:
                 GLThrowIfFailed(glBlendEquation(GL_MAX));
                 break;
         }
@@ -805,36 +813,39 @@ namespace VWolf {
 
     void HLSLOpenGLShader::SetDepthStencil() const {
         // Depth/Stencil
-        if (m_configuration.depthStencil.depthTest) {
+        bool depthTest = settings.GetDepthStencil().GetDepthTest();
+        DepthFunction depthFunction = settings.GetDepthStencil().GetDepthFunction();
+        
+        if (depthTest) {
             GLThrowIfFailed(glEnable(GL_DEPTH_TEST));
         }
         else {
             GLThrowIfFailed(glDisable(GL_DEPTH_TEST));
         }
 
-        switch(m_configuration.depthStencil.depthFunction) {
-            case ShaderConfiguration::DepthStencil::DepthFunction::Never:
+        switch(depthFunction) {
+            case DepthFunction::Never:
                 GLThrowIfFailed(glDepthFunc(GL_NEVER));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::Less:
+            case DepthFunction::Less:
                 GLThrowIfFailed(glDepthFunc(GL_LESS));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::LEqual:
+            case DepthFunction::LEqual:
                 GLThrowIfFailed(glDepthFunc(GL_LEQUAL));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::Equal:
+            case DepthFunction::Equal:
                 GLThrowIfFailed(glDepthFunc(GL_EQUAL));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::NotEqual:
+            case DepthFunction::NotEqual:
                 GLThrowIfFailed(glDepthFunc(GL_NOTEQUAL));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::GEqual:
+            case DepthFunction::GEqual:
                 GLThrowIfFailed(glDepthFunc(GL_GEQUAL));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::Greater:
+            case DepthFunction::Greater:
                 GLThrowIfFailed(glDepthFunc(GL_GREATER));
                 break;
-            case ShaderConfiguration::DepthStencil::DepthFunction::Always:
+            case DepthFunction::Always:
                 GLThrowIfFailed(glDepthFunc(GL_ALWAYS));
                 break;
         }

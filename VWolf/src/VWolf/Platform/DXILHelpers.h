@@ -169,6 +169,8 @@ namespace VWolf {
             UINT GetOffset() { return offset; }
             UINT GetIndex() { return index; }
             DXGI_FORMAT GetFormat() { return format; }
+			UINT GetNumberOfElements() { return numberOfElements; }
+			BYTE GetElementType() { return elementType; }
         public:
             size_t GetSize();
         private:
@@ -194,6 +196,10 @@ namespace VWolf {
             size_t GetSize() { return size; }
             UINT GetOffset() { return offset; }
             UINT GetIndex() { return index; }
+        public:
+			UINT GetType() { return _type; }
+			UINT GetClass() { return _class; }
+			UINT GetColumns() { return _columns; }
         public:
             ShaderDataType GetShaderDataType();
         private:
@@ -274,15 +280,19 @@ namespace VWolf {
         struct Shader {
         public:
             enum class ArgumentType {
+                DirectX,
                 Metal,
                 OpenGL
             };
         public:
             Shader();
-            Shader(ShaderSource otherShader, ArgumentType argumentType);
+            Shader(std::string name, VWolf::Stage& stageShader, std::string code, ArgumentType argumentType);
             ~Shader();
         public:
-            ShaderSource& GetShaderSource() { return otherShader; }
+            ShaderType GetType() { return type; }
+            ShaderSourceType GetSourceType() { return sourceType; }
+            std::string& GetShaderSource() { return shader; }
+            const char* GetMainFunction() { return mainFunction.c_str(); }
             SmartPoint<IDxcBlob>& GetShader() { return pShader; }
             std::string& GetName() { return name; }
             std::vector<Attribute>& GetStageInAttributes() { return stageInAttributes; }
@@ -295,7 +305,11 @@ namespace VWolf {
             void GetStageInAttributes(SmartPoint<ID3D12ShaderReflection> shaderReflection, _D3D12_SHADER_DESC* shaderDesc);
             void GetInputBinds(SmartPoint<ID3D12ShaderReflection> shaderReflection, _D3D12_SHADER_DESC* shaderDesc);
         private:
-            ShaderSource otherShader;
+            ShaderType type;
+            ShaderSourceType sourceType;
+            std::string shader;
+            std::string mainFunction;
+            
             SmartPoint<IDxcBlob> pShader;
             std::string name;
             

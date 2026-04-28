@@ -70,13 +70,13 @@ namespace VWolf {
         }
 
         void* material1 = material.GetDataPointer();
-        MetalShader* metalShader = (MetalShader*)ShaderLibrary::GetShader(material.GetShaderName()).get();
+        MetalShader* metalShader = (MetalShader*)Shader::GetShader(material.GetShaderName())->GetInternalShader().get();
         metalShader->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
         metalShader->Bind();
         metalShader->SetObjectIndex(shapes);
         metalShader->SetVertexBufferIndex(bufferGroups[itemsCount]->GetVertexBuffer());
-        metalShader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
-        metalShader->SetData(&objectTransforms[itemsCount], ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shapes);
+        metalShader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), shapes);
+        metalShader->SetData(&objectTransforms[itemsCount], Shader::ObjectBufferName, sizeof(Matrix4x4), shapes);
         metalShader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
         metalShader->SetTextures(shadowMap, material);
         
@@ -179,13 +179,13 @@ namespace VWolf {
                     shadowBufferGroups[shadowShapes]->SetData(item->data);
                     shadowObjectTransforms[shadowShapes] = item->transform;
                 }
-                MetalShader* metalShader = (MetalShader*)ShaderLibrary::GetShader("Shadow").get();
+                MetalShader* metalShader = (MetalShader*)Shader::GetShader("Shadow")->GetInternalShader().get();
                 metalShader->UseShader(dsvEncoder);
                 metalShader->Bind();
                 metalShader->SetObjectIndex(shadowShapes);
                 metalShader->SetVertexBufferIndex(shadowBufferGroups[shadowShapes]->GetVertexBuffer());
-                metalShader->SetData(&viewProjection, ShaderLibrary::CameraBufferName, sizeof(Matrix4x4), shadowShapes);
-                metalShader->SetData(&shadowObjectTransforms[shadowShapes], ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shadowShapes);
+                metalShader->SetData(&viewProjection, Shader::CameraBufferName, sizeof(Matrix4x4), shadowShapes);
+                metalShader->SetData(&shadowObjectTransforms[shadowShapes], Shader::ObjectBufferName, sizeof(Matrix4x4), shadowShapes);
 
                 metalShader->Draw(MTL::PrimitiveType::PrimitiveTypeTriangle, shadowBufferGroups[shadowShapes]->GetIndexBuffer());
                 shadowShapes++;
@@ -247,13 +247,13 @@ namespace VWolf {
             }
 
             void* material1 = item->material.GetDataPointer();
-            MetalShader* metalShader = (MetalShader*)ShaderLibrary::GetShader(item->material.GetShaderName()).get();
+            MetalShader* metalShader = (MetalShader*)Shader::GetShader(item->material.GetShaderName())->GetInternalShader().get();
             metalShader->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
             metalShader->Bind();
             metalShader->SetObjectIndex(shapes);
             metalShader->SetVertexBufferIndex(bufferGroups[itemsCount]->GetVertexBuffer());
-            metalShader->SetData(&cameraPass, ShaderLibrary::CameraBufferName, sizeof(CameraPass), shapes);
-            metalShader->SetData(&objectTransforms[itemsCount], ShaderLibrary::ObjectBufferName, sizeof(Matrix4x4), shapes);
+            metalShader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), shapes);
+            metalShader->SetData(&objectTransforms[itemsCount], Shader::ObjectBufferName, sizeof(Matrix4x4), shapes);
             metalShader->SetData(material1, materialName.c_str(), item->material.GetSize(), shapes);
             metalShader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
             metalShader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, shapes);

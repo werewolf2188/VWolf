@@ -2,8 +2,8 @@
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "HLSLShader.h"
 
+#include "VWolf/Platform/DXILHelpers.h"
 #include "VWolf/Platform/DirectX12/DirectX12Driver.h"
-
 
 #include "VWolf/Platform/DirectX12/Core/DX12Core.h"
 #include "VWolf/Platform/DirectX12/Core/DX12Device.h"
@@ -35,52 +35,13 @@ namespace VWolf {
 	class HLAttribute {
 	public:
 		HLAttribute() = default;
-		HLAttribute(D3D12_SIGNATURE_PARAMETER_DESC desc, UINT index, UINT offset): 
-			index(index), offset(offset), elementType(desc.ComponentType) {
-			this->name = desc.SemanticName;
-			BYTE oneElement = 1, twoElement = 3, threeElement = 7, fourElement = 15;
-			
-			if (desc.Mask == oneElement)
-			{
-				numberOfElements = 1;
-				if (desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
-					this->format = DXGI_FORMAT_R32_UINT;
-				else if (desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
-					this->format = DXGI_FORMAT_R32_SINT;
-				else if (desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
-					this->format = DXGI_FORMAT_R32_FLOAT;
-			}
-			else if (desc.Mask <= twoElement)
-			{
-				numberOfElements = 2;
-				if (desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
-					this->format = DXGI_FORMAT_R32G32_UINT;
-				else if (desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
-					this->format = DXGI_FORMAT_R32G32_SINT;
-				else if (desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
-					this->format = DXGI_FORMAT_R32G32_FLOAT;
-			}
-			else if (desc.Mask <= threeElement)
-			{
-				numberOfElements = 3;
-				if (desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
-					this->format = DXGI_FORMAT_R32G32B32_UINT;
-				else if (desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
-					this->format = DXGI_FORMAT_R32G32B32_SINT;
-				else if (desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
-					this->format = DXGI_FORMAT_R32G32B32_FLOAT;
-			}
-			else if (desc.Mask <= fourElement)
-			{
-				numberOfElements = 4;
-				if (desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
-					this->format = DXGI_FORMAT_R32G32B32A32_UINT;
-				else if (desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
-					this->format = DXGI_FORMAT_R32G32B32A32_SINT;
-				else if (desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
-					this->format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-			}
-		}
+		HLAttribute(DXIL::Attribute& attribute):
+			name(attribute.GetName()),
+			index(attribute.GetIndex()), 
+			offset(attribute.GetOffset()), 
+			elementType(attribute.GetElementType()), 
+			numberOfElements(attribute.GetNumberOfElements()),
+			format((DXGI_FORMAT)attribute.GetFormat()){};
 
 		size_t GetSize() {
 			if (elementType == D3D_REGISTER_COMPONENT_UINT32)
@@ -115,28 +76,9 @@ namespace VWolf {
 	class HLConstantBufferVariable {
 	public:
 		HLConstantBufferVariable() = default;
-		HLConstantBufferVariable(ID3D12ShaderReflectionVariable* vCb, UINT index): index(index) {
-			// if NULL, throw exception
-			ID3D12ShaderReflectionType* vCbType = vCb->GetType();
-
-			D3D12_SHADER_VARIABLE_DESC vCbDesc;
-			ZeroMemory(&vCbDesc, sizeof(D3D12_SHADER_VARIABLE_DESC));
-			vCb->GetDesc(&vCbDesc);
-
-			//VWOLF_CORE_DEBUG("Constant buffer variable %s in index :%d, offset %d, size %d", vCbDesc.Name, index, vCbDesc.StartOffset, vCbDesc.Size);
-
-			D3D12_SHADER_TYPE_DESC vTypeCbDesc;
-			ZeroMemory(&vTypeCbDesc, sizeof(D3D12_SHADER_TYPE_DESC));
-			vCbType->GetDesc(&vTypeCbDesc);
-			/*VWOLF_CORE_DEBUG("Constant buffer variable type %s is type %d, class %d, rows %d, columns, %d, elements %d, members %d, offset %d",
-				vTypeCbDesc.Name, vTypeCbDesc.Class, vTypeCbDesc.Type, vTypeCbDesc.Rows, vTypeCbDesc.Columns, vTypeCbDesc.Elements, vTypeCbDesc.Members, vTypeCbDesc.Offset);*/
-
-			this->name = vCbDesc.Name;
-			this->offset = vCbDesc.StartOffset;
-			this->size = vCbDesc.Size;
-
-			this->desc = vCbDesc;
-			this->typeDesc = vTypeCbDesc;
+		HLConstantBufferVariable(DXIL::ConstantBufferVariable& cbv):
+			name(cbv.GetName()), offset(cbv.GetOffset()), size(cbv.GetSize()), index(cbv.GetIndex()),
+			typeDesc({ (D3D_SHADER_VARIABLE_CLASS)cbv.GetClass(), (D3D_SHADER_VARIABLE_TYPE)cbv.GetType(), 1, cbv.GetColumns(), 0, 0, 0, NULL }) {
 		}
 
 		std::string GetName() {
@@ -201,6 +143,9 @@ namespace VWolf {
 		HLConstantBuffer() = default;
 		HLConstantBuffer(D3D12_SHADER_BUFFER_DESC desc, UINT bindingIndex): 
 			name(desc.Name), size(desc.Size), bindingIndex(bindingIndex) {}
+		HLConstantBuffer(DXIL::ConstantBuffer& cb):
+			name(cb.GetName()), size(cb.GetSize()), bindingIndex(cb.GetBindingIndex()) {
+		}
 
 		std::string GetName() {
 			return name;
@@ -250,8 +195,13 @@ namespace VWolf {
 			GetUploadBuffer()->Unmap(0, &range);
 		}
 
-		void SetVariables(std::vector<HLConstantBufferVariable> variables) {
-			this->variables = variables;
+		void SetVariables(std::vector<DXIL::ConstantBufferVariable>& variables) {
+			std::vector<HLConstantBufferVariable> newVariables;
+
+			for (DXIL::ConstantBufferVariable& variable : variables) {
+				newVariables.push_back(HLConstantBufferVariable(variable));
+			}	
+			this->variables = newVariables;
 		}
 
 		std::vector<HLConstantBufferVariable> GetVariables() {
@@ -277,8 +227,11 @@ namespace VWolf {
 		HLTexture(): name(""), bindingIndex(0), returnType(D3D_RETURN_TYPE_UNORM), dimension(D3D_SRV_DIMENSION_UNKNOWN) {
 
 		}
-		HLTexture(D3D12_SHADER_INPUT_BIND_DESC& desc): 
-			name(desc.Name), bindingIndex(desc.BindPoint), returnType(desc.ReturnType), dimension(desc.Dimension) { }
+		HLTexture(DXIL::Texture& texture) :
+			name(texture.GetName()), 
+			bindingIndex(texture.GetBindingIndex()), 
+			returnType((D3D_RESOURCE_RETURN_TYPE)texture.GetReturnType()),
+			dimension((D3D_SRV_DIMENSION)texture.GetDimension()) { }
 		~HLTexture() {
 
 		}
@@ -347,8 +300,8 @@ namespace VWolf {
 		HLSampler() : name(""), bindingIndex(0), numSamples(0) {
 
 		}
-		HLSampler(D3D12_SHADER_INPUT_BIND_DESC& desc) :
-			name(desc.Name), bindingIndex(desc.BindPoint), numSamples(desc.NumSamples) { }
+
+		HLSampler(DXIL::Sampler& sampler): name(sampler.GetName()), bindingIndex(sampler.GetBindingIndex()), numSamples(sampler.GetNumSamples()) {}
 		~HLSampler() {
 
 		}
@@ -366,18 +319,17 @@ namespace VWolf {
 
 	class HLProgram {
 	public:
-		HLProgram(std::string name,
-				  std::initializer_list<ShaderSource> otherShaders,
-				  ShaderConfiguration configuration = {}):
-		name(name) {
-			std::map<ShaderType, Microsoft::WRL::ComPtr<ID3DBlob>> shaderBlobs;
-			for (ShaderSource source : otherShaders) {
-				auto blob = CompileShader(source);
-				ReflectHLSL(blob);
-				shaderBlobs[source.type] = blob;
+		HLProgram(Shader& coreShader) :
+			name(name) {
+			for (Stage stage : coreShader.GetSubShader().GetStages()) {
+				CompileNewShaderIntoDXIL(coreShader.GetName(), stage, coreShader.GetSubShader().GetCode());
 			}
 			BuildRootSignature(UseDescriptorTable);
-			BuildPSO(shaderBlobs, configuration);
+			BuildPSO(
+				coreShader.GetSettings().GetRasterization().GetCullEnabled(), coreShader.GetSettings().GetRasterization().GetCullMode(), coreShader.GetSettings().GetRasterization().GetFillMode(), coreShader.GetSettings().GetRasterization().GetCounterClockwise(),
+				coreShader.GetSettings().GetBlend().GetEnabled(), coreShader.GetSettings().GetBlend().GetSourceFunction(), coreShader.GetSettings().GetBlend().GetDestinationFunction(), coreShader.GetSettings().GetBlend().GetEquation(),
+				coreShader.GetSettings().GetDepthStencil().GetDepthTest(), coreShader.GetSettings().GetDepthStencil().GetDepthFunction()
+			);
 		}
 	public:
 		std::map<std::string, Ref<HLConstantBuffer>>& GetConstantBuffers() {
@@ -400,135 +352,41 @@ namespace VWolf {
 			return mPSO;
 		}
 	private:
-		void ReflectHLSL(Microsoft::WRL::ComPtr<ID3DBlob> byteCode) {
-			// Decompiling
-			HRESULT hr = S_OK;
-			ID3D12ShaderReflection* pReflector = NULL;			
-			hr = D3DReflect(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), IID_ID3D12ShaderReflection, (void**)&pReflector);
-			DXThrowIfFailed(hr);
-
-			// Getting description
-			D3D12_SHADER_DESC desc;
-			ZeroMemory(&desc, sizeof(D3D12_SHADER_DESC));
-			hr = pReflector->GetDesc(&desc);
-			DXThrowIfFailed(hr);
-
-			// Getting attributes
-			UINT offset = 0;
-			if (attributes.size() == 0) { // TODO: Change the condition
-				for (UINT index = 0; index < desc.InputParameters; index++) {
-					D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
-					ZeroMemory(&paramDesc, sizeof(D3D12_SIGNATURE_PARAMETER_DESC));
-					hr = pReflector->GetInputParameterDesc(index, &paramDesc);
-					DXThrowIfFailed(hr);
-
-					HLAttribute attr(paramDesc, index, offset);
-					offset += attr.GetSize();
-					attributes[paramDesc.SemanticName] = attr;
+		void ReflectFromDXIL(DXIL::Shader dxil) {
+			for (DXIL::Attribute& attribute : dxil.GetStageInAttributes	()) {
+				auto it = attributes.find(attribute.GetName());
+				if (it == attributes.end()) {
+					attributes[attribute.GetName()] = attribute;
 				}
 			}
 
-			// Constant buffer
-			for (UINT index = 0; index < desc.ConstantBuffers; index++) {
-				ID3D12ShaderReflectionConstantBuffer* cb = pReflector->GetConstantBufferByIndex(index);
-				D3D12_SHADER_BUFFER_DESC cbDesc;
-				ZeroMemory(&cbDesc, sizeof(D3D12_SHADER_BUFFER_DESC));
-				cb->GetDesc(&cbDesc);
-
-				if (constantBuffers.count(cbDesc.Name)) continue;
-
-				D3D12_SHADER_INPUT_BIND_DESC bindingDesc;
-				ZeroMemory(&bindingDesc, sizeof(D3D12_SHADER_INPUT_BIND_DESC));
-				pReflector->GetResourceBindingDescByName(cbDesc.Name, &bindingDesc);
-
-				// Variables
-				std::vector<HLConstantBufferVariable> variables;
-				for (UINT cbIndex = 0; cbIndex < cbDesc.Variables; cbIndex++) {
-					ID3D12ShaderReflectionVariable* vCb = cb->GetVariableByIndex(cbIndex);
-					HLConstantBufferVariable variable(vCb, cbIndex);
-					variables.push_back(variable);
-				}
-
-				Ref<HLConstantBuffer> cBuffer = CreateRef<HLConstantBuffer>(cbDesc, bindingDesc.BindPoint);
-				cBuffer->SetVariables(variables);
-				constantBuffers[cbDesc.Name] = cBuffer;
-			}
-
-			// Shader resource (textures) and samplers
-			if (desc.TextureNormalInstructions > 0) { // This could be more than sampling
-				for (UINT index = 0; index < desc.BoundResources; index++) {
-					D3D12_SHADER_INPUT_BIND_DESC bindingDesc;
-					pReflector->GetResourceBindingDesc(index, &bindingDesc);
-					switch (bindingDesc.Type) {
-					case D3D_SIT_TEXTURE: 
-						{
-							HLTexture texture(bindingDesc);
-							textures[bindingDesc.Name] = texture;
-						}
-						break;
-					case D3D_SIT_SAMPLER:
-						{
-							HLSampler sampler(bindingDesc);
-							samplers[bindingDesc.Name] = sampler;
-						}
-						break;
-					default: continue;
-					}					
+			for (DXIL::Sampler& sampler : dxil.GetSamplers()) {
+				auto it = samplers.find(sampler.GetName());
+				if (it == samplers.end()) {
+					samplers[sampler.GetName()] = sampler;
 				}
 			}
-			
 
-			pReflector->Release();
+			for (DXIL::Texture& texture : dxil.GetTextures()) {
+				auto it = textures.find(texture.GetName());
+				if (it == textures.end()) {
+					textures[texture.GetName()] = texture;
+				}
+			}
+
+			for (DXIL::ConstantBuffer& buffer : dxil.GetConstantBuffers()) {
+				auto it = constantBuffers.find(buffer.GetName());
+				if (it == constantBuffers.end()) {
+					constantBuffers[buffer.GetName()] = CreateRef<HLConstantBuffer>(buffer);
+					constantBuffers[buffer.GetName()]->SetVariables(buffer.GetVariables());
+				}
+			}
 		}
 
-		Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(ShaderSource source) {
-
-			const D3D_SHADER_MACRO* defines = nullptr;
-			UINT compileFlags = 0;
-#if defined(DEBUG) || defined(_DEBUG)  
-			compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_SKIP_VALIDATION;
-#endif
-
-			HRESULT hr = S_OK;
-			Microsoft::WRL::ComPtr<ID3DBlob> byteCode = nullptr;
-			Microsoft::WRL::ComPtr<ID3DBlob> errors;			
-
-			switch (source.sourceType) {
-			case ShaderSourceType::Text:
-				{
-					hr = D3DCompile(source.shader.c_str(), strlen(source.shader.c_str()), nullptr, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
-						source.mainFunction, ShaderTypeEquivalent(source.type).c_str(), compileFlags, 0, &byteCode, &errors);
-				}
-				break;
-			case ShaderSourceType::File:
-				{
-					std::wstring file = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(source.shader);
-					hr = D3DCompileFromFile(file.c_str(), defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
-						source.mainFunction, ShaderTypeEquivalent(source.type).c_str(), compileFlags, 0, &byteCode, &errors);
-				}
-				break;
-			case ShaderSourceType::Binary:
-				VWOLF_CORE_ASSERT(false, "Shader does not support binaries");
-				break;
-			}
-
-			if (errors != nullptr) {
-				VWOLF_CORE_ERROR((char*)errors->GetBufferPointer());
-				VWOLF_CORE_ASSERT(errors == nullptr, "Shader produce an error");
-			}
-			DXThrowIfFailedWithReturnValue(hr, nullptr);
-			return byteCode;
-		}
-
-		std::string ShaderTypeEquivalent(ShaderType type) {
-			switch (type) {
-			case ShaderType::Vertex: return "vs_5_0";
-			case ShaderType::Fragment: return "ps_5_0";
-			case ShaderType::Pre_Tesselator: return "hs_5_0";
-			case ShaderType::Post_Tesselator: return "ds_5_0";
-			case ShaderType::Geometry: return "gs_5_0";
-			case ShaderType::Compute: return "cs_5_0";
-			}
+		void CompileNewShaderIntoDXIL(std::string name, Stage stage, std::string code) {
+			DXIL::Shader newShader(name, stage, code, DXIL::Shader::ArgumentType::DirectX);
+			ReflectFromDXIL(newShader);
+			dxils.push_back(newShader);
 		}
 
 		void BuildRootSignature(bool useDescriptorTables) {
@@ -585,7 +443,11 @@ namespace VWolf {
 			VWOLF_CORE_ASSERT(mRootSignature);
 		}
 
-		void BuildPSO(std::map<ShaderType, Microsoft::WRL::ComPtr<ID3DBlob>> shaderBlobs, ShaderConfiguration configuration = {}) {
+		void BuildPSO(
+			bool cullEnabled, CullMode cullMode, FillMode fillMode, bool counterClockwise,
+			bool blendEnabled, BlendFunction sourceBlend, BlendFunction destinationBlend, BlendEquation blendEquation,
+			bool depthTestEnabled, DepthFunction depthFunction
+			) {
 			std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout(attributes.size());
 			
 			for (auto& [key, value] : attributes)
@@ -598,41 +460,41 @@ namespace VWolf {
 			psoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
 			psoDesc.pRootSignature = mRootSignature.Get();
 
-			for (auto [type, blob] : shaderBlobs) {
-				switch (type) {
+			for (auto& dxil : dxils) {
+				switch (dxil.GetType()) {
 				case ShaderType::Vertex:
 					psoDesc.VS =
 					{
-						reinterpret_cast<BYTE*>(blob->GetBufferPointer()),
-						blob->GetBufferSize()
+						reinterpret_cast<BYTE*>(dxil.GetShader()->GetBufferPointer()),
+						dxil.GetShader()->GetBufferSize()
 					};
 					break;
 				case ShaderType::Fragment:
 					psoDesc.PS =
 					{
-						reinterpret_cast<BYTE*>(blob->GetBufferPointer()),
-						blob->GetBufferSize()
+						reinterpret_cast<BYTE*>(dxil.GetShader()->GetBufferPointer()),
+						dxil.GetShader()->GetBufferSize()
 					};
 					break;
 				case ShaderType::Pre_Tesselator:
 					psoDesc.HS =
 					{
-						reinterpret_cast<BYTE*>(blob->GetBufferPointer()),
-						blob->GetBufferSize()
+						reinterpret_cast<BYTE*>(dxil.GetShader()->GetBufferPointer()),
+						dxil.GetShader()->GetBufferSize()
 					};
 					break;
 				case ShaderType::Post_Tesselator:
 					psoDesc.DS =
 					{
-						reinterpret_cast<BYTE*>(blob->GetBufferPointer()),
-						blob->GetBufferSize()
+						reinterpret_cast<BYTE*>(dxil.GetShader()->GetBufferPointer()),
+						dxil.GetShader()->GetBufferSize()
 					};
 					break;
 				case ShaderType::Geometry:
 					psoDesc.GS =
 					{
-						reinterpret_cast<BYTE*>(blob->GetBufferPointer()),
-						blob->GetBufferSize()
+						reinterpret_cast<BYTE*>(dxil.GetShader()->GetBufferPointer()),
+						dxil.GetShader()->GetBufferSize()
 					};
 					break;
 				case ShaderType::Compute:
@@ -648,31 +510,31 @@ namespace VWolf {
 			// Rasterization
 			{
 				psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				if (configuration.rasterization.cullEnabled) {
-					switch (configuration.rasterization.cullMode) {
-					case ShaderConfiguration::Rasterization::CullMode::Front:
+				if (cullEnabled) {
+					switch (cullMode) {
+					case CullMode::Front:
 						psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
 						break;
-					case ShaderConfiguration::Rasterization::CullMode::Back:
+					case CullMode::Back:
 						psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
 						break;
-					case ShaderConfiguration::Rasterization::CullMode::FrontAndBack:
+					case CullMode::FrontAndBack:
 						break;
 					}
 				}
 				else
 					psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 
-				switch (configuration.rasterization.fillMode) {
-				case ShaderConfiguration::Rasterization::FillMode::Wireframe:
+				switch (fillMode) {
+				case FillMode::Wireframe:
 					psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 					break;
-				case ShaderConfiguration::Rasterization::FillMode::Solid:
+				case FillMode::Solid:
 					psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 					break;
 				}
 
-				psoDesc.RasterizerState.FrontCounterClockwise = configuration.rasterization.counterClockwise;
+				psoDesc.RasterizerState.FrontCounterClockwise = counterClockwise;
 				if (name == "Shadow") { // TODO: Move this 
 					psoDesc.RasterizerState.DepthBias = 100000;
 					psoDesc.RasterizerState.DepthBiasClamp = 0.0f;
@@ -686,15 +548,14 @@ namespace VWolf {
 
 				D3D12_RENDER_TARGET_BLEND_DESC rtBlendDesc;
 
-				rtBlendDesc.BlendEnable = configuration.blend.enabled;
+				rtBlendDesc.BlendEnable = blendEnabled;
 				rtBlendDesc.LogicOpEnable = false;
-				rtBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;//GetBlendFunction(configuration.blend.sourceFunction);
-				rtBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;//GetBlendFunction(configuration.blend.destinationFunction);
-				rtBlendDesc.BlendOp = GetBlendOp(configuration.blend.equation);
-
-				rtBlendDesc.SrcBlendAlpha = GetBlendFunction(configuration.blend.sourceFunction);
-				rtBlendDesc.DestBlendAlpha = GetBlendFunction(configuration.blend.destinationFunction);
-				rtBlendDesc.BlendOpAlpha = GetBlendOp(configuration.blend.equation);
+				rtBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;//GetBlendFunction(sourceBlend);
+				rtBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;//GetBlendFunction(destinationBlend);
+				rtBlendDesc.BlendOp = GetBlendOp((BlendEquation)blendEquation);
+				rtBlendDesc.SrcBlendAlpha = GetBlendFunction((BlendFunction)sourceBlend);
+				rtBlendDesc.DestBlendAlpha = GetBlendFunction((BlendFunction)destinationBlend);
+				rtBlendDesc.BlendOpAlpha = GetBlendOp((BlendEquation)blendEquation);
 				rtBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
 				rtBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
@@ -704,30 +565,30 @@ namespace VWolf {
 			// Depth/Stencil 
 			{
 				psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-				psoDesc.DepthStencilState.DepthEnable = configuration.depthStencil.depthTest;
-				switch (configuration.depthStencil.depthFunction) {
-				case ShaderConfiguration::DepthStencil::DepthFunction::Never:
+				psoDesc.DepthStencilState.DepthEnable = depthTestEnabled;
+				switch (depthFunction) {
+				case DepthFunction::Never:
 					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_NEVER;
 					break;
-				case ShaderConfiguration::DepthStencil::DepthFunction::Less:
+				case DepthFunction::Less:
 					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
 					break;
-				case ShaderConfiguration::DepthStencil::DepthFunction::LEqual:
+				case DepthFunction::LEqual:
 					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 					break;
-				case ShaderConfiguration::DepthStencil::DepthFunction::Equal:
+				case DepthFunction::Equal:
 					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_EQUAL;
 					break;
-				case ShaderConfiguration::DepthStencil::DepthFunction::NotEqual:
+				case DepthFunction::NotEqual:
 					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_NOT_EQUAL;
 					break;
-				case ShaderConfiguration::DepthStencil::DepthFunction::GEqual:
+				case DepthFunction::GEqual:
 					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
 					break;
-				case ShaderConfiguration::DepthStencil::DepthFunction::Greater:
+				case DepthFunction::Greater:
 					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
 					break;
-				case ShaderConfiguration::DepthStencil::DepthFunction::Always:
+				case DepthFunction::Always:
 					psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 					break;
 				}
@@ -752,69 +613,67 @@ namespace VWolf {
 			VWOLF_CORE_ASSERT(mPSO.Get());
 		}
 
-		D3D12_BLEND GetBlendFunction(ShaderConfiguration::Blend::Function function) {
+		D3D12_BLEND GetBlendFunction(BlendFunction function) {
 			switch (function) {
-			case ShaderConfiguration::Blend::Function::Zero: return D3D12_BLEND_ZERO;
-			case ShaderConfiguration::Blend::Function::One: return D3D12_BLEND_ONE;
-			case ShaderConfiguration::Blend::Function::SrcColor: return D3D12_BLEND_SRC_COLOR;
-			case ShaderConfiguration::Blend::Function::InvSrcColor: return D3D12_BLEND_INV_SRC_COLOR;
-			case ShaderConfiguration::Blend::Function::DstColor: return D3D12_BLEND_DEST_COLOR;
-			case ShaderConfiguration::Blend::Function::InvDstColor: return D3D12_BLEND_INV_DEST_COLOR;
-			case ShaderConfiguration::Blend::Function::SrcAlpha: return D3D12_BLEND_SRC_ALPHA;
-			case ShaderConfiguration::Blend::Function::InvSrcAlpha: return D3D12_BLEND_INV_SRC_ALPHA;
-			case ShaderConfiguration::Blend::Function::DstAlpha: return D3D12_BLEND_DEST_ALPHA;
-			case ShaderConfiguration::Blend::Function::InvDstAlpha: return D3D12_BLEND_INV_DEST_ALPHA;
-			case ShaderConfiguration::Blend::Function::Src1Color: return D3D12_BLEND_SRC1_COLOR;
-			case ShaderConfiguration::Blend::Function::InvSrc1Color: return D3D12_BLEND_INV_SRC1_COLOR;
-			case ShaderConfiguration::Blend::Function::Src1Alpha: return D3D12_BLEND_SRC1_ALPHA;
-			case ShaderConfiguration::Blend::Function::InvSrc1Alpha: return D3D12_BLEND_INV_SRC1_ALPHA;
-			case ShaderConfiguration::Blend::Function::SrcAlphaSat: return D3D12_BLEND_SRC_ALPHA_SAT;
-			case ShaderConfiguration::Blend::Function::CnstColor: return D3D12_BLEND_BLEND_FACTOR;
-			case ShaderConfiguration::Blend::Function::InvCnstColor: return D3D12_BLEND_INV_BLEND_FACTOR;
+			case BlendFunction::Zero: return D3D12_BLEND_ZERO;
+			case BlendFunction::One: return D3D12_BLEND_ONE;
+			case BlendFunction::SrcColor: return D3D12_BLEND_SRC_COLOR;
+			case BlendFunction::InvSrcColor: return D3D12_BLEND_INV_SRC_COLOR;
+			case BlendFunction::DstColor: return D3D12_BLEND_DEST_COLOR;
+			case BlendFunction::InvDstColor: return D3D12_BLEND_INV_DEST_COLOR;
+			case BlendFunction::SrcAlpha: return D3D12_BLEND_SRC_ALPHA;
+			case BlendFunction::InvSrcAlpha: return D3D12_BLEND_INV_SRC_ALPHA;
+			case BlendFunction::DstAlpha: return D3D12_BLEND_DEST_ALPHA;
+			case BlendFunction::InvDstAlpha: return D3D12_BLEND_INV_DEST_ALPHA;
+			case BlendFunction::Src1Color: return D3D12_BLEND_SRC1_COLOR;
+			case BlendFunction::InvSrc1Color: return D3D12_BLEND_INV_SRC1_COLOR;
+			case BlendFunction::Src1Alpha: return D3D12_BLEND_SRC1_ALPHA;
+			case BlendFunction::InvSrc1Alpha: return D3D12_BLEND_INV_SRC1_ALPHA;
+			case BlendFunction::SrcAlphaSat: return D3D12_BLEND_SRC_ALPHA_SAT;
+			case BlendFunction::CnstColor: return D3D12_BLEND_BLEND_FACTOR;
+			case BlendFunction::InvCnstColor: return D3D12_BLEND_INV_BLEND_FACTOR;
 				/*case ShaderConfiguration::Blend::Function::CnstAlpha: return GL_CONSTANT_ALPHA;
 				case ShaderConfiguration::Blend::Function::InvCnstAlpha: return GL_ONE_MINUS_CONSTANT_ALPHA;*/
 			}
 			return D3D12_BLEND_ZERO;
 		}
 
-		D3D12_BLEND_OP GetBlendOp(ShaderConfiguration::Blend::Equation equation) {
+		D3D12_BLEND_OP GetBlendOp(BlendEquation equation) {
 			switch (equation) {
-			case ShaderConfiguration::Blend::Equation::Add: return D3D12_BLEND_OP_ADD;
-			case ShaderConfiguration::Blend::Equation::Substract: return D3D12_BLEND_OP_SUBTRACT;
-			case ShaderConfiguration::Blend::Equation::ReverseSubstract: return D3D12_BLEND_OP_REV_SUBTRACT;
-			case ShaderConfiguration::Blend::Equation::Min: return D3D12_BLEND_OP_MIN;
-			case ShaderConfiguration::Blend::Equation::Max: return D3D12_BLEND_OP_MAX;
+			case BlendEquation::Add: return D3D12_BLEND_OP_ADD;
+			case BlendEquation::Substract: return D3D12_BLEND_OP_SUBTRACT;
+			case BlendEquation::ReverseSubstract: return D3D12_BLEND_OP_REV_SUBTRACT;
+			case BlendEquation::Min: return D3D12_BLEND_OP_MIN;
+			case BlendEquation::Max: return D3D12_BLEND_OP_MAX;
 			}
 			return D3D12_BLEND_OP_ADD;
 		}
 	private:
+		std::vector<DXIL::Shader> dxils;
+
 		std::string name;
 		std::map<std::string, HLAttribute> attributes;
 		std::map<std::string, Ref<HLConstantBuffer>> constantBuffers;
 		std::map<std::string, HLTexture> textures;
 		std::map<std::string, HLSampler> samplers;
 
-
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> mPSO = nullptr;
 	};
 
-	HLSLShader::HLSLShader(std::string name,
-						   std::initializer_list<ShaderSource> otherShaders,
-						   ShaderConfiguration configuration): Shader(name, otherShaders, configuration) {
-
-		m_program = CreateRef<HLProgram>(name, otherShaders, configuration);
+    HLSLShader::HLSLShader(Shader& coreShader): PShader(coreShader) {
+		m_program = CreateRef<HLProgram>(coreShader);
 
 		// Constant Buffers
 		// TODO: This is an expected amount, but I'm not satisfied with this.
 		// TODO: I should be able to let resources grow and shrink
-		uint32_t expectedObjects = 100; 
+		uint32_t expectedObjects = 100;
 		for (std::pair<std::string, Ref<HLConstantBuffer>> param : m_program->GetConstantBuffers()) {
 			Ref<HLConstantBuffer> cb = param.second;
 			cb->CreateUploadBuffer(cb->GetSize(), expectedObjects, UseDescriptorTable);
-			VWOLF_CORE_ASSERT(cb->GetUploadBuffer());			
+			VWOLF_CORE_ASSERT(cb->GetUploadBuffer());
 		}
-	}
+    }
 
 	HLSLShader::~HLSLShader()
 	{

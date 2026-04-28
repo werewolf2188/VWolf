@@ -84,48 +84,20 @@ namespace VWolfPup {
     }
 
     std::vector<VWolf::Ref<VWolf::Material>> materials;
-    VWolf::ShaderConfiguration GetInitialConfiguration(std::string name);
 
-    void LoadHLSLShaders() {
-        std::filesystem::path shaderPath = "shaders/hlsl/";
+    void LoadShaders() {
+        std::filesystem::path shaderPath = "shaders/";
         for (auto const& dir_entry : std::filesystem::directory_iterator(shaderPath)) {
-            std::string filename = dir_entry.path().string();
-            std::string name = dir_entry.path().stem().string();
-            VWolf::ShaderSource vs = {
-                VWolf::ShaderType::Vertex,
-                VWolf::ShaderSourceType::File,
-                filename,
-                "VS"
-            };
-
-            VWolf::ShaderSource fs = {
-                VWolf::ShaderType::Fragment,
-                VWolf::ShaderSourceType::File,
-                filename,
-                "PS"
-            };
-            VWolf::ShaderLibrary::LoadShader(name, { vs, fs }, GetInitialConfiguration(name));
+            if (dir_entry.is_directory()) continue;
+            if (dir_entry.path().filename() == ".DS_Store") continue;
+            VWolf::Shader::LoadShader(dir_entry.path());
         }
     }
-
    
 // ----------------------------------------------- //
-
-    // MARK: Private
-    VWolf::ShaderConfiguration GetInitialConfiguration(std::string name) {
-        static const std::string DEFAULT_SKYBOX = "Skybox";
-        static const std::string DEBUG_RENDERER = "RainbowColor";
-        if (name == DEFAULT_SKYBOX)
-            return { VWolf::ShaderConfiguration::Rasterization(), { true, VWolf::ShaderConfiguration::DepthStencil::DepthFunction::LEqual }, VWolf::ShaderConfiguration::Blend() };
-        // TODO: Debug purposes
-        if (name == DEBUG_RENDERER)
-            return { { true, VWolf::ShaderConfiguration::Rasterization::FillMode::Wireframe, VWolf::ShaderConfiguration::Rasterization::CullMode::Back, false } , VWolf::ShaderConfiguration::DepthStencil(), VWolf::ShaderConfiguration::Blend() };
-        return VWolf::ShaderConfiguration();
-    }
-
     // MARK: Public
     void InitialLoad() {
-        LoadHLSLShaders();
+        LoadShaders();
         Defaults::Load();
     }
 }

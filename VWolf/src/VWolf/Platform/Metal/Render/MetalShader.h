@@ -9,17 +9,16 @@
 #include "VWolf/Platform/Metal/Core/Core.h"
 #include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Core/Render/Material.h"
+#include "VWolf/Platform/PShader.h"
 #include "VWolf/Platform/Metal/Render/MetalBufferGroup.h"
 #include "VWolf/Platform/Metal/Render/MetalTexture.h"
 
 namespace VWolf {
 
-    class MetalShader: public Shader {
+    class MetalShader: public PShader {
     public:
     public:
-        MetalShader(std::string name,
-                    std::initializer_list<ShaderSource> otherShaders,
-                    ShaderConfiguration configuration = {}): Shader(name, otherShaders, configuration) {}
+        MetalShader(Shader& coreShader): PShader(coreShader) {};
         virtual ~MetalShader() {}
     public:
         virtual void Bind() const = 0;

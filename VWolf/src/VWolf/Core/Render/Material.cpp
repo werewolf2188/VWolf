@@ -9,7 +9,7 @@
 
 namespace VWolf {
 
-    Material::Material(const char* shaderName): Material(ShaderLibrary::GetShader(shaderName)) { }
+    Material::Material(const char* shaderName): Material(Shader::GetShader(shaderName)) { }
 
     Material::Material(Ref<Shader> shader) {
         float floatValue = 0;
@@ -100,7 +100,7 @@ namespace VWolf {
         float floatValue = 0;
         this->name = name;
         this->shaderName = shaderName;
-        Ref<Shader> shader = ShaderLibrary::GetShader(shaderName);
+        Ref<Shader> shader = Shader::GetShader(shaderName);
         inputs = shader->GetMaterialInputs();
         size = shader->GetMaterialSize();
 
