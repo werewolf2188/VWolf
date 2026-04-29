@@ -13,17 +13,15 @@ shader:
             float4x4 u_ViewProjection;
         };
 
-        cbuffer cbPerObject : register(b1)
-        {
-            float4x4 u_Transform;
-        };
+        #include "Object.hlsli"
+        #include "Material.hlsli"
 
-        cbuffer cbPerMaterial : register(b2) {
+        BEGIN_MATERIAL(b2)
             float4 u_ambientColor;
             float4 u_diffuseColor;
             float3 u_specular;
             float u_shinines;
-        };
+        END_MATERIAL
 
         struct VertexIn
         {

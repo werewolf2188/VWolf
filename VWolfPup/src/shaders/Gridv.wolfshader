@@ -8,22 +8,7 @@ shader:
         - stageType: Fragment
           functionName: PS
       code: |
-        cbuffer cbPerCamera : register(b0)
-        {
-            float4x4 u_View;
-            float4x4 u_InvView;
-            float4x4 u_Proj;
-            float4x4 u_InvProj;
-            float4x4 u_ViewProjection;
-            float4x4 u_InvViewProjection;
-            float3 u_EyePosition;
-            float2 u_RenderTargetSize;
-            float2 u_InvRenderTargetSize;
-            float u_NearZ;
-            float u_FarZ;
-            float u_TotalTime;
-            float u_DeltaTime;
-        };
+        #include "Camera.hlsli"
 
         struct VertexOut {
             float4 position: SV_POSITION;
