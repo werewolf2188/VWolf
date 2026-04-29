@@ -13,6 +13,12 @@
 #include "d3d12shader.h"
 #endif
 
+#ifdef VWOLF_PLATFORM_WINDOWS
+#define GetPointer(SP) SP.Get()
+#elif defined(VWOLF_PLATFORM_MACOS)
+#define GetPointer(SP) SP.p
+#endif
+
 #define DXSC_INITIALIZE \
 HRESULT hr;
 
@@ -432,7 +438,7 @@ namespace VWolf {
             
             DXSC_EXECUTE(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils)));
             DXSC_EXECUTE(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler)));
-            VWolfDxcIncludeHandler handler(utils.p);
+            VWolfDxcIncludeHandler handler(GetPointer(utils));
             SmartPoint<IDxcIncludeHandler> includeHandler(&handler);
 //            SmartPoint<IDxcIncludeHandler> includeHandler;
 //            DXSC_EXECUTE(utils->CreateDefaultIncludeHandler(&includeHandler));
