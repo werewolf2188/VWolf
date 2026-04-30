@@ -2,6 +2,26 @@
 shader:
   name: BlinnPhong
   subShader:
+      properties:
+        - name: u_ambientColor
+          type: Color
+          value: [1, 1, 1, 1]
+        - name: u_diffuseColor
+          type: Color
+          value: [1, 1, 1, 1]
+        - name: u_specular
+          type: Color
+          value: [1, 1, 1, 1]
+        - name: u_shinines
+          type: Float
+          value: 0
+          range: [0, 180]
+        - name: Shadow
+          type: Texture2D
+          value: "White"        
+        - name: gDiffuseMap
+          type: Texture2D
+          value: "White"
       stages:
         - stageType: Vertex
           functionName: VS
@@ -13,7 +33,7 @@ shader:
         BEGIN_MATERIAL(b3)
             float4 u_ambientColor;
             float4 u_diffuseColor;
-            float3 u_specular;
+            float4 u_specular;
             float u_shinines;
         END_MATERIAL
         
@@ -124,7 +144,7 @@ shader:
                 if (sDotN > 0) {
                     float3 v = normalize(-position.xyz);
                     float3 h = normalize(v + s);
-                    spec = u_specular * pow(max(dot(h, n), 0.0), u_shinines);
+                    spec = u_specular.xyz * pow(max(dot(h, n), 0.0), u_shinines);
                 }
             }
         #ifndef OPENGL
@@ -154,7 +174,7 @@ shader:
             if (sDotN > 0) {
                 float3 v = normalize(-position.xyz);
                 float3 h = normalize(v + s);
-                spec = u_specular * pow(max(dot(h, n), 0.0), u_shinines);
+                spec = u_specular.xyz * pow(max(dot(h, n), 0.0), u_shinines);
             }
         #ifndef OPENGL
             float shadow = ShadowCalculation(FragPosLightSpace);
@@ -180,7 +200,7 @@ shader:
             if (sDotN > 0) {
                 float3 v = normalize(-position.xyz);
                 float3 h = normalize(v + s);
-                spec = u_specular * pow(max(dot(h, n), 0.0), u_shinines);
+                spec = u_specular.xyz * pow(max(dot(h, n), 0.0), u_shinines);
             }
         #ifndef OPENGL
             float shadow = ShadowCalculation(FragPosLightSpace);
@@ -237,5 +257,5 @@ shader:
         #else
             float4 sampleTexture = gDiffuseMap.Sample(gsamPointWrap, pin.TexC);
         #endif
-            return sampleTexture * float4(ComputeBlinnPhongLightColor(pin.PosL, pin.FragPosLightSpace, normalize(pin.Normal)), 1.0);
+            return sampleTexture * float4(ComputeBlinnPhongLightColor(pin.PosL, pin.FragPosLightSpace, normalize(pin.Normal)), u_ambientColor.a);
         }

@@ -5,6 +5,10 @@ shader:
     depthStencil:
       depthFunction: LEqual
   subShader:
+      properties:
+        - name: skybox
+          type: Cubemap
+          value: "White"
       stages:
         - stageType: Vertex
           functionName: VS
