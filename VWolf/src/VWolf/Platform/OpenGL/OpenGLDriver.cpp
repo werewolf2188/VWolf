@@ -57,6 +57,8 @@ namespace VWolf {
         GLThrowIfFailedNoAction("glGetString(GL_VERSION)");
         VWOLF_CORE_INFO("GL Shading Language version %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
         GLThrowIfFailedNoAction("glGetString(GL_SHADING_LANGUAGE_VERSION)");
+        glEnable(GL_FRAMEBUFFER_SRGB);
+        GLThrowIfFailedNoAction("glEnable(GL_FRAMEBUFFER_SRGB)");
 	}
 
 	void OpenGLDriver::Shutdown()
