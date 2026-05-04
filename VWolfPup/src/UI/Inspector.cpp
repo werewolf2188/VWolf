@@ -918,7 +918,7 @@ namespace VWolfPup {
                 ImGui::PopID();
                 break;
             case VWolf::ShaderDataType::Float3:
-                    DrawVec3Control(property.first, material.GetVector3(property.first));
+//                    DrawVec3Control(property.first, material.GetVector4(property.first));
                 break;
             case VWolf::ShaderDataType::Float:
                 ImGui::PushID(property.first.c_str());

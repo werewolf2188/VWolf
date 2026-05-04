@@ -5,6 +5,20 @@ shader:
     rasterization:
       fillMode: Wireframe
   subShader:
+      properties:
+        - name: u_ambientColor
+          type: Color
+          value: [1, 1, 1, 1]
+        - name: u_diffuseColor
+          type: Color
+          value: [1, 1, 1, 1]
+        - name: u_specular
+          type: Color
+          value: [1, 1, 1, 1]
+        - name: u_shinines
+          type: Float
+          value: 0
+          range: [0, 180]
       stages:
         - stageType: Vertex
           functionName: VS
@@ -16,7 +30,7 @@ shader:
         BEGIN_MATERIAL(b3)
             float4 u_ambientColor;
             float4 u_diffuseColor;
-            float3 u_specular;
+            float4 u_specular;
             float u_shinines;
         END_MATERIAL
         

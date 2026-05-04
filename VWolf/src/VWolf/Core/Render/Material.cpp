@@ -12,34 +12,10 @@ namespace VWolf {
     Material::Material(const char* shaderName): Material(Shader::GetShader(shaderName)) { }
 
     Material::Material(Ref<Shader> shader) {
-        float floatValue = 0;
-        inputs = shader->GetMaterialInputs();
-        size = shader->GetMaterialSize();
-
-        name = std::string(shader->GetName());
-        shaderName = std::string(shader->GetName()); // TODO: For now
+        name = shader->GetName();
+        shaderName = shader->GetName();
         MaterialLibrary::SetMaterial(name.c_str(), this);
-        for (auto input: inputs) {
-            switch (input->GetType()) {
-                case ShaderDataType::Float4:
-                    colors[input->GetName()] = Color(1, 1, 1, 1);
-                    break;
-                case ShaderDataType::Float3:
-                    vectors[input->GetName()] = Vector3(1, 1, 1);
-                    break;
-                case ShaderDataType::Float:                    
-                    floats[input->GetName()] = floatValue;
-                    break;
-                default: break;
-            }
-            properties[input->GetName()] = input->GetType();
-        }
-        for (auto input: shader->GetTextureInputs()) {
-            if (input.GetSize() == (int)ShaderSamplerType::Sampler2D)
-                textures[input.GetName()] = Texture::LoadTexture2D();
-            if (input.GetSize() == (int)ShaderSamplerType::SamplerCube)
-                textures[input.GetName()] = Texture::LoadCubemap();
-        }
+        InternalLoad(shader);
     }
 
     Material::Material(Material& material) {
@@ -96,13 +72,12 @@ namespace VWolf {
         this->properties = material.properties;
     }
 
-    void Material::Load(std::string name, std::string shaderName) {
+    void Material::InternalLoad(Ref<Shader> shader) {
         float floatValue = 0;
-        this->name = name;
-        this->shaderName = shaderName;
-        Ref<Shader> shader = Shader::GetShader(shaderName);
         inputs = shader->GetMaterialInputs();
         size = shader->GetMaterialSize();
+        shaderProperties = shader->GetSubShader().GetProperties();
+        std::cout << "Working" << std::endl;
 
         for (auto input: inputs) {
             switch (input->GetType()) {
@@ -127,6 +102,13 @@ namespace VWolf {
         }
     }
 
+    void Material::Load(std::string name, std::string shaderName) {
+        this->name = name;
+        this->shaderName = shaderName;
+        Ref<Shader> shader = Shader::GetShader(shaderName);
+        InternalLoad(shader);
+    }
+
     std::string Material::GetName() {
         return name;
     }
@@ -139,7 +121,7 @@ namespace VWolf {
         colors[name] = color;
     }
 
-    void Material::SetVector3(std::string name, Vector3 vector) {
+    void Material::SetVector4(std::string name, Vector3 vector) {
         vectors[name] = vector;
     }
 
@@ -151,7 +133,7 @@ namespace VWolf {
         return colors[name];
     }
 
-    Vector3& Material::GetVector3(std::string name) {
+    Vector4& Material::GetVector4(std::string name) {
         return vectors[name];
     }
 
@@ -180,13 +162,6 @@ namespace VWolf {
                     {
                         char * newP = pointer + input->GetOffset();
                         const Color& value = colors.find(input->GetName())->second;
-                        memcpy(newP, &value, input->GetSize());
-                    }
-                    break;
-                case VWolf::ShaderDataType::Float3:
-                    {
-                        char * newP = pointer + input->GetOffset();
-                        const Vector3& value = vectors.find(input->GetName())->second;
                         memcpy(newP, &value, input->GetSize());
                     }
                     break;

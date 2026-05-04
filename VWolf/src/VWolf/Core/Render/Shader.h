@@ -12,7 +12,7 @@
 
 #include "RenderStructs.h"
 
-#include <functional>
+#include <any>
 
 #include "yaml-cpp/yaml.h"
 #include <boost/describe.hpp>
@@ -117,6 +117,99 @@ namespace VWolf {
 
     BOOST_DESCRIBE_ENUM(BlendEquation, Add, Substract, ReverseSubstract, Min, Max)
 
+    enum class PropertyType {
+        Unknown,
+        Integer,
+        Float,
+        Texture2D,
+        Cubemap,
+        Color,
+        Vector
+    };
+    
+    BOOST_DESCRIBE_ENUM(PropertyType, Unknown, Integer, Float, Texture2D, Cubemap, Color, Vector)
+
+    class Property {
+    public:
+        Property() = default;
+    public:
+        std::string GetName() { return name; }
+        std::string GetDescription() { return description; }
+        std::string GetRelatedTo() { return relatedTo; }
+        PropertyType GetType() { return type; }
+        bool IsGamma() { return gamma; }
+        bool IsHDR() { return hdr; }
+        bool IsMainColor() { return mainColor; }
+        bool IsMainTexture() { return mainTexture; }
+        bool IsHidden() { return hidden; }
+        bool IsNormal() { return normal; }
+        bool IsTexture() {
+            switch (type) {
+                case PropertyType::Texture2D:
+                case PropertyType::Cubemap:
+                    return true;
+                default: break;
+            }
+            return false;
+        }
+        bool IsVector() {
+            switch (type) {
+                case PropertyType::Color:
+                case PropertyType::Vector:
+                    return true;
+                default: break;
+            }
+            return false;
+        }
+        bool IsScalar() {
+            switch (type) {
+                case PropertyType::Integer:
+                case PropertyType::Float:
+                    return true;
+                default: break;
+            }
+            return false;
+        }
+        Vector2 GetRange() { return range; }
+    public:
+        template<typename T>
+        T GetValue() {
+            try {
+                return std::any_cast<T>(value);
+            } catch (const std::bad_any_cast& e) {
+                throw e;
+            }
+        }
+        
+        template<typename T>
+        bool TryGetValue(T& newValue) {
+            try {
+                newValue =  std::any_cast<T>(value);
+                return true;
+            } catch (const std::bad_any_cast& e) {
+                return false;
+            }
+            return false;
+        }
+    private:
+        std::string name;
+        PropertyType type;
+        std::any value;
+        bool gamma = true;
+        bool hdr = false;
+        bool mainTexture = false;
+        bool mainColor = false;
+        bool noScaleOffset = false;
+        bool normal = false;
+        bool hidden = false;
+        Vector2 range;
+        std::string description;
+        std::string relatedTo;
+        BOOST_DESCRIBE_CLASS(Property, (), (), (), (name, type, gamma, hdr, mainTexture, mainColor, noScaleOffset, normal, hidden, range, description, relatedTo))
+        
+        friend YAML::convert<Property>;
+    };
+
     class Rasterization {
     public:
         Rasterization() = default;
@@ -196,10 +289,12 @@ namespace VWolf {
     public:
         std::vector<Stage> GetStages() { return stages; }
         std::string GetCode() { return code; }
+        std::vector<Property> GetProperties() { return properties; }
     private:
+        std::vector<Property> properties;
         std::vector<Stage> stages;
         std::string code;
-        BOOST_DESCRIBE_CLASS(SubShader, (), (), (), (code, stages))
+        BOOST_DESCRIBE_CLASS(SubShader, (), (), (), (properties, code, stages))
     };
 
     class PShader;

@@ -24,13 +24,13 @@ namespace VWolf {
         ~Material();
 
         void SetColor(std::string name, Color color);
-        void SetVector3(std::string name, Vector3 vector);
+        void SetVector4(std::string name, Vector3 vector);
         void SetFloat(std::string name, float floatNumber);
         void SetTexture(std::string name, Ref<Texture> texture);
         void SetAsDefault();
 
         Color& GetColor(std::string name);
-        Vector3& GetVector3(std::string name);
+        Vector4& GetVector4(std::string name);
         float& GetFloat(std::string name);
         Ref<Texture> GetTexture(std::string name);
         std::map<std::string, ShaderDataType> GetProperties();
@@ -43,21 +43,25 @@ namespace VWolf {
         void Load(std::string name, std::string shaderName);
     public:
         inline std::map<std::string, Color> GetColors() { return colors; }
-        inline std::map<std::string, Vector3> GetVectors() { return vectors; }
+        inline std::map<std::string, Vector4> GetVectors() { return vectors; }
         inline std::map<std::string, float> GetFloats() { return floats; }
 #endif
     public:
         void operator=(const Material& material);
     private:
+        void InternalLoad(Ref<Shader> shader);
+    private:
         std::string name;
         std::string shaderName;
         size_t size;
         std::map<std::string, Color> colors;
-        std::map<std::string, Vector3> vectors;
+        std::map<std::string, Vector4> vectors;
         std::map<std::string, float> floats;
         std::map<std::string, ShaderDataType> properties;
         std::map<std::string, Ref<Texture>> textures;
         std::vector<Ref<ShaderInput>> inputs;
+        
+        std::vector<Property> shaderProperties;
     };
 
 #ifdef VWOLF_CORE

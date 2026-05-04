@@ -52,8 +52,8 @@ namespace YAML {
             if (node[materialKeys[MaterialObjectsConstantKeys::Vectors]]) {
                 for (auto kv: node[materialKeys[MaterialObjectsConstantKeys::Vectors]]) {
                     std::string key = kv[materialKeys[MaterialObjectsConstantKeys::PropertyKey]].as<std::string>();
-                    VWolf::Vector3 value = kv[materialKeys[MaterialObjectsConstantKeys::PropertyValue]].as<VWolf::Vector3>();
-                    rhs.SetVector3(key, value);
+                    VWolf::Vector4 value = kv[materialKeys[MaterialObjectsConstantKeys::PropertyValue]].as<VWolf::Vector4>();
+                    rhs.SetVector4(key, value);
                 }
             }
 
