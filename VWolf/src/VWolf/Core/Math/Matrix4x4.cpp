@@ -10,6 +10,7 @@
 #include "Vector4.h"
 #include "Vector3.h"
 #include "Quaternion.h"
+#include "Matrix3x3.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
 
@@ -104,6 +105,14 @@ namespace VWolf {
     Matrix4x4::operator Quaternion() {
         glm::quat quat = glm::toQuat(_matrix4x4);
         return Quaternion(quat);
+    }
+
+    Matrix4x4::operator Matrix3x3() const {
+        return Matrix3x3(
+                         _matrix4x4[0][0], _matrix4x4[0][1], _matrix4x4[0][2],
+                         _matrix4x4[1][0], _matrix4x4[1][1], _matrix4x4[1][2],
+                         _matrix4x4[2][0], _matrix4x4[2][1], _matrix4x4[2][2]
+                         );
     }
 
     // MARK: Public Get methods
@@ -255,4 +264,6 @@ namespace VWolf {
 
         return mat;
     }
+
+    VWOLF_VMATH_SERIALIZATION_MATRIX_EMITTER(Matrix4x4, 4, 4)
 }

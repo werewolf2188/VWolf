@@ -325,4 +325,6 @@ namespace VWolf {
     Vector3 Vector3::SlerpUnclamped(Vector3 a, Vector3 b, float t) {
         throw std::exception();
     }
+
+    VWOLF_VMATH_SERIALIZATION_VECTOR_EMITTER(Vector3, 3)
 }

@@ -12,39 +12,42 @@
 #include "VWolf/Core/IIdentifiable.h"
 #include "VWolf/Core/Math/VMath.h"
 
+#include "VWolf/Core/Utils/GenericSerialization.h"
+
 namespace VWolf {
     class Material: public IIdentifiable {
     public:
         Material() = default;
+        Material(std::filesystem::path path);
         Material(const char* shaderName);
         Material(Ref<Shader> shader);
         Material(Material& material);
         Material(Material&& material);
 
         ~Material();
-
-        void SetColor(std::string name, Color color);
-        void SetVector4(std::string name, Vector3 vector);
-        void SetFloat(std::string name, float floatNumber);
-        void SetTexture(std::string name, Ref<Texture> texture);
-        void SetAsDefault();
-
-        Color& GetColor(std::string name);
-        Vector4& GetVector4(std::string name);
-        float& GetFloat(std::string name);
-        Ref<Texture> GetTexture(std::string name);
-        std::map<std::string, ShaderDataType> GetProperties();
+    public:
         std::string GetName();
         std::string GetShaderName();
+    public:
+        Color& GetColor(std::string name);
+        void SetColor(std::string name, Color color);
+        Vector4& GetVector4(std::string name);
+        void SetVector4(std::string name, Vector3 vector);
+        float& GetFloat(std::string name);
+        void SetFloat(std::string name, float floatNumber);
+        Ref<Texture> GetTexture(std::string name);
+        void SetTexture(std::string name, Ref<Texture> texture);
+        
+        void SetAsDefault();
+        std::vector<Property> GetProperties();
+    public:
+        void Save(std::filesystem::path path);
+    public:
+        static Ref<Material> Load(std::filesystem::path path);
 #ifdef VWOLF_CORE
+    public:
         void * GetDataPointer() const;
         size_t GetSize() const;
-    
-        void Load(std::string name, std::string shaderName);
-    public:
-        inline std::map<std::string, Color> GetColors() { return colors; }
-        inline std::map<std::string, Vector4> GetVectors() { return vectors; }
-        inline std::map<std::string, float> GetFloats() { return floats; }
 #endif
     public:
         void operator=(const Material& material);
@@ -57,11 +60,14 @@ namespace VWolf {
         std::map<std::string, Color> colors;
         std::map<std::string, Vector4> vectors;
         std::map<std::string, float> floats;
-        std::map<std::string, ShaderDataType> properties;
         std::map<std::string, Ref<Texture>> textures;
-        std::vector<Ref<ShaderInput>> inputs;
         
-        std::vector<Property> shaderProperties;
+        std::map<std::string, std::tuple<uint32_t, uint32_t, uint32_t>> inputs_information;
+        std::vector<Property> properties;
+        
+        BOOST_DESCRIBE_CLASS(Material, (IIdentifiable), (), (id), (name, shaderName, colors, vectors, floats))
+        
+        VWOLF_SERIALIZATION_FRIENDS(Material)
     };
 
 #ifdef VWOLF_CORE
@@ -76,5 +82,3 @@ namespace VWolf {
     };
 #endif
 }
-
-/* Material_hpp */

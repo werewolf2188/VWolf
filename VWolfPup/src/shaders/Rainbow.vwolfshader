@@ -13,7 +13,7 @@ shader:
           type: Color
           value: [1, 1, 1, 1]
         - name: u_specular
-          type: Color
+          type: Vector
           value: [1, 1, 1, 1]
         - name: u_shinines
           type: Float
@@ -94,5 +94,5 @@ shader:
 
         float4 PS(VertexOut pin) : SV_Target
         {
-            return pin.Color;
+            return u_diffuseColor;
         }

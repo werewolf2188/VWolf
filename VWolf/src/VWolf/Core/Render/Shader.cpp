@@ -8,7 +8,6 @@
 #include "vwpch.h"
 #include "Shader.h"
 
-#include "VWolf/Core/Math/Serialization/VMath.h"
 #include "VWolf/Core/Utils/GenericSerialization.h"
 
 namespace YAML {

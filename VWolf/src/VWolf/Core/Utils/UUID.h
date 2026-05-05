@@ -51,6 +51,9 @@ namespace VWolf {
         friend std::ostream& operator<<(std::ostream& os, const UUID& v);
         friend bool operator==(const UUID& lhs, const UUID& rhs);
         friend bool operator!=(const UUID& lhs, const UUID& rhs);
+        
+        friend YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::UUID& v);
+        friend YAML::Emitter& operator<<(YAML::Emitter& out, const VWolf::UUID& v);
     };
 }
 
@@ -63,8 +66,4 @@ namespace YAML {
             return VWolf::UUID::TryParse(node.as<std::string>(), rhs);
         }
     };
-}
-
-namespace VWolf {
-    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::UUID& v);
 }

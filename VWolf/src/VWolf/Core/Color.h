@@ -7,6 +7,7 @@
 
 #pragma once
 #include "VWolf/Core/Base.h"
+#include "yaml-cpp/yaml.h"
 
 namespace VWolf {
     struct Vector4;
@@ -80,6 +81,27 @@ namespace VWolf {
         friend Color operator-(const Color& lhs, const Color& rhs);
         friend Color operator*(const Color& lhs, const Color& rhs);
         friend Color operator/(const Color& lhs, const Color& rhs);
+        
+        friend YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Color& v);
+        friend YAML::Emitter& operator<<(YAML::Emitter& out, const VWolf::Color& v);
     };
 
+}
+
+namespace YAML {
+    template<>
+    struct convert<VWolf::Color>
+    {
+        static bool decode(const Node& node, VWolf::Color& rhs)
+        {
+            if (!node.IsSequence() || node.size() != 4)
+                return false;
+
+            rhs.SetR(node[0].as<float>());
+            rhs.SetG(node[1].as<float>());
+            rhs.SetB(node[2].as<float>());
+            rhs.SetA(node[3].as<float>());
+            return true;
+        }
+    };
 }

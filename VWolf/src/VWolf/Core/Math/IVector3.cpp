@@ -213,4 +213,6 @@ namespace VWolf {
     IVector3 IVector3::Scale(IVector3 a, IVector3 b) {
         return IVector3(a._vector3.x * b._vector3.x, a._vector3.y * b._vector3.y, a._vector3.z * b._vector3.z);
     }
+
+    VWOLF_VMATH_SERIALIZATION_VECTOR_EMITTER(IVector3, 3)
 }

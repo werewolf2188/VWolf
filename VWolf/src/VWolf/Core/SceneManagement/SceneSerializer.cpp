@@ -16,7 +16,6 @@
 VWolf::Scene * currentScene = nullptr;
 //
 
-#include "VWolf/Core/Math/Serialization/VMath.h"
 #include "VWolf/Core/Components/Serialization/TransformComponent.h"
 #include "VWolf/Core/Components/Serialization/LightComponent.h"
 #include "VWolf/Core/Components/Serialization/ShapeRendererComponent.h"

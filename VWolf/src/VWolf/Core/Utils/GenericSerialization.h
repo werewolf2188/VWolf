@@ -11,6 +11,12 @@
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
 #include <boost/preprocessor.hpp>
+#include <boost/algorithm/string.hpp>
+
+#define VWOLF_SERIALIZATION_FRIENDS(T) \
+friend YAML::Emitter& operator<<(YAML::Emitter& out, T& v);\
+friend YAML::Emitter& operator<<(YAML::Emitter& out, const T& v);\
+friend YAML::convert<T>;
 
 #define VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(T)\
 template<>\
@@ -20,6 +26,15 @@ struct convert<T> {\
         return DeserializeFromBoostDescribe(node, rhs);\
     }\
 };
+
+#define VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER(T)\
+YAML::Emitter& operator<<(YAML::Emitter& out, T& v) { \
+    return SerializeFromBoostDescribe(out, v, #T);\
+}\
+\
+YAML::Emitter& operator<<(YAML::Emitter& out, const T& v) { \
+    return SerializeFromBoostDescribe(out, v, #T);\
+}
 
 // 1. The operation to apply to each argument
 #define VWOLF_CREATE_CONVERT_GENERIC_ENUM_CONDITIONAL_EXPAND(T, x) if (val == #x) { rhs = T::x; return true; }
@@ -72,7 +87,7 @@ struct convert<T> {\
 
 namespace VWolf {
     template<class T,
-    class Md = boost::describe::describe_members<T,boost::describe:: mod_any_access>>
+    class Md = boost::describe::describe_members<T,boost::describe::mod_any_access>>
     bool DeserializeFromBoostDescribe(const YAML::Node& node, T& rhs) {
         boost::mp11::mp_for_each<Md>([&](auto D){
             using propertType = std::remove_reference_t<decltype(rhs.*D.pointer)>;
@@ -81,5 +96,37 @@ namespace VWolf {
             }
         });
         return true;
+    }
+
+    template<class T,
+    class Md = boost::describe::describe_members<T,boost::describe::mod_any_access>>
+    YAML::Emitter& SerializeFromBoostDescribe(YAML::Emitter& out, T& v)
+    {
+        out << YAML::BeginMap;
+        out << YAML::Key << typeid(T).name();
+        out << YAML::BeginMap;
+        boost::mp11::mp_for_each<Md>([&](auto D){
+            using propertType = std::remove_reference_t<decltype(v.*D.pointer)>;
+            out << YAML::Key << D.name << YAML::Value << v.*D.pointer;
+        });
+        out << YAML::EndMap;
+        out << YAML::EndMap;
+        return out;
+    }
+
+    template<class T,
+    class Md = boost::describe::describe_members<T,boost::describe::mod_any_access>>
+    YAML::Emitter& SerializeFromBoostDescribe(YAML::Emitter& out, const T& v, std::string name)
+    {
+        out << YAML::BeginMap;
+        out << YAML::Key << boost::algorithm::to_lower_copy(name);
+        out << YAML::BeginMap;
+        boost::mp11::mp_for_each<Md>([&](auto D){
+            using propertType = std::remove_reference_t<decltype(v.*D.pointer)>;
+            out << YAML::Key << D.name << YAML::Value << v.*D.pointer;
+        });
+        out << YAML::EndMap;
+        out << YAML::EndMap;
+        return out;
     }
 }

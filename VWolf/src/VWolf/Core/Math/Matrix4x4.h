@@ -7,16 +7,15 @@
 
 #pragma once
 
-#ifndef GLM_ENABLE_EXPERIMENTAL
-#define GLM_ENABLE_EXPERIMENTAL
-#endif
-
 #include <glm/glm.hpp>
+#include "VWolf/Core/Math/Serialization/glm.h"
+#include "VWolf/Core/Math/Serialization/VMath.h"
 
 namespace VWolf {
     struct Vector3;
     struct Vector4;
     struct Quaternion;
+    struct Matrix3x3;
 
     struct Matrix4x4 {
     public:
@@ -43,6 +42,7 @@ namespace VWolf {
         Matrix4x4 operator*(Matrix4x4 rhs);
         Vector4 operator[](int index) const;
         operator Quaternion();
+        operator Matrix3x3() const;
     public:
         float GetDeterminant() const;
         Matrix4x4 GetInverse() const;
@@ -78,9 +78,14 @@ namespace VWolf {
         friend std::ostream& operator<<(std::ostream& os, const Matrix4x4& q);
         friend bool operator==(const Matrix4x4& lhs, const Matrix4x4& rhs);
         friend Matrix4x4 operator*(const Matrix4x4& lhs, Matrix4x4 rhs);
-
+        
         friend struct Vector3;
         friend struct Quaternion;
+        
+        VWOLF_VMATH_SERIALIZATION_FRIENDS(Matrix4x4)
     };
 }
 
+namespace YAML {
+    VWOLF_VMATH_SERIALIZATION_MATRIX_DECODER(VWolf::Matrix4x4, glm::mat4x4, 4, 4)
+}

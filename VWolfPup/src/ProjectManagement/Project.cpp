@@ -187,7 +187,7 @@ namespace VWolfPup {
                 if (Extension::GetSceneExtension() == dir_entry.path().extension()) {
                     sceneFiles.push_back(dir_entry.path());
                 } else  if (Extension::GetMaterialExtension() == dir_entry.path().extension()) {
-                    VWolf::Ref<VWolf::Material> material = VWolf::MaterialSerializer::Deserialize(dir_entry.path());
+                    VWolf::Ref<VWolf::Material> material = VWolf::Material::Load(dir_entry.path());
                     materials[dir_entry.path()] = material;
                 }
             }
@@ -210,7 +210,7 @@ namespace VWolfPup {
             VWolf::SceneSerializer::Serialize(sceneKV.second, sceneKV.first);
         }
         for (auto materialKV: materials) {
-            VWolf::MaterialSerializer::Serialize(*materialKV.second, materialKV.first);
+            materialKV.second->Save(materialKV.first);
         }
     }
 
