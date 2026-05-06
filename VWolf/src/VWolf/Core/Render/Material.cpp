@@ -175,6 +175,11 @@ namespace VWolf {
         char * pointer = (char *)malloc(size);
         memset(pointer, 0, size);
         for (auto property: properties) {
+
+            if (property.GetType() == PropertyType::Texture2D || property.GetType() == PropertyType::Cubemap) {
+                continue;
+			}
+
             auto tuple = (*inputs_information.find(property.GetName())).second;
             char * newP = pointer + std::get<1>(tuple);
             uint32_t sizeP = std::get<2>(tuple);
