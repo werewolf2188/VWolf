@@ -260,7 +260,7 @@ namespace VWolf {
             metalShader->SetTextures(shadowMap, item->material);
             
             metalShader->Draw(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[itemsCount]->GetIndexBuffer());
-    
+            free(material1);
             itemsCount++;
             constantBufferIndexPerShader[item->material.GetShaderName()] = ++shapes;
         }

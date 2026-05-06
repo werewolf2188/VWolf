@@ -7,9 +7,35 @@
 #include "vwpch.h"
 #include "Material.h"
 
+namespace YAML {
+    template<>
+    struct convert<VWolf::Material>
+    {
+        static bool decode(const Node& node, VWolf::Material& rhs)
+        {
+            rhs.InternalLoad(VWolf::Shader::GetShader(node["shaderName"].as<std::string>()));
+            return DeserializeFromBoostDescribe(node, rhs);
+        }
+    };
+}
+
 namespace VWolf {
 
     Material::Material(const char* shaderName): Material(Shader::GetShader(shaderName)) { }
+
+    Material::Material(std::filesystem::path path) {
+        constexpr const char * key = "material";
+        YAML::Node data;
+        try
+        {
+            data = YAML::LoadFile(path.string());
+        }
+        catch (YAML::ParserException e)
+        {
+            VWOLF_CORE_ERROR("Failed to load .material file '%s'\n     %s", path.string().c_str(), e.what());
+        }
+        *this = data[key].as<Material>();
+    }
 
     Material::Material(Ref<Shader> shader) {
         name = shader->GetName();
@@ -22,38 +48,37 @@ namespace VWolf {
         this->id = material.id;
         this->name = material.name;
         this->shaderName = material.shaderName;
-        this->inputs = material.inputs;
         this->size = material.size;
         this->colors = material.colors;
         this->vectors = material.vectors;
         this->floats = material.floats;
         this->textures = material.textures;
         this->properties = material.properties;
+        this->inputs_information = material.inputs_information;
     }
 
     Material::Material(Material&& material) {
         this->id = material.id;
         this->name = material.name;
         this->shaderName = material.shaderName;
-        this->inputs = material.inputs;
         this->size = material.size;
         this->colors = material.colors;
         this->vectors = material.vectors;
         this->floats = material.floats;
         this->textures = material.textures;
         this->properties = material.properties;
+        this->inputs_information = material.inputs_information;
 
         material.id = UUID::Empty;
         material.name = std::string();
         material.shaderName = std::string();
         material.size = 0;
-        material.inputs.clear();
-        material.inputs.clear();
         material.colors.clear();
         material.vectors.clear();
         material.floats.clear();
         material.textures.clear();
         material.properties.clear();
+        material.inputs_information.clear();
     }
 
     Material::~Material() {
@@ -63,50 +88,45 @@ namespace VWolf {
     void Material::operator=(const Material& material) {
         this->name = material.name;
         this->shaderName = material.shaderName;
-        this->inputs = material.inputs;
         this->size = material.size;
         this->colors = material.colors;
         this->vectors = material.vectors;
         this->floats = material.floats;
         this->textures = material.textures;
         this->properties = material.properties;
+        this->inputs_information = material.inputs_information;
     }
 
     void Material::InternalLoad(Ref<Shader> shader) {
         float floatValue = 0;
-        inputs = shader->GetMaterialInputs();
+        
         size = shader->GetMaterialSize();
-        shaderProperties = shader->GetSubShader().GetProperties();
-        std::cout << "Working" << std::endl;
+        properties = shader->GetSubShader().GetProperties();
+        
+        for (auto input: shader->GetMaterialInputs()) {
+            inputs_information[input->GetName()] = std::make_tuple(input->GetIndex(), input->GetOffset(), input->GetSize());
+        }
 
-        for (auto input: inputs) {
-            switch (input->GetType()) {
-                case ShaderDataType::Float4:
-                    colors[input->GetName()] = Color(1, 1, 1, 1);
+        for (auto property: properties) {
+            switch (property.GetType()) {
+                case PropertyType::Color:
+                    colors[property.GetName()] = Color(1, 1, 1, 1);
                     break;
-                case ShaderDataType::Float3:
-                    vectors[input->GetName()] = Vector3(1, 1, 1);
+                case PropertyType::Vector:
+                    vectors[property.GetName()] = Vector4(1, 1, 1, 1);
                     break;
-                case ShaderDataType::Float:
-                    floats[input->GetName()] = floatValue;
+                case PropertyType::Float:
+                    floats[property.GetName()] = floatValue;
+                    break;
+                case PropertyType::Texture2D:
+                    textures[property.GetName()] = Texture::LoadTexture2D();
+                    break;
+                case PropertyType::Cubemap:
+                    textures[property.GetName()] = Texture::LoadCubemap();
                     break;
                 default: break;
             }
-            properties[input->GetName()] = input->GetType();
         }
-        for (auto input: shader->GetTextureInputs()) {
-            if (input.GetSize() == (int)ShaderSamplerType::Sampler2D)
-                textures[input.GetName()] = Texture::LoadTexture2D();
-            if (input.GetSize() == (int)ShaderSamplerType::SamplerCube)
-                textures[input.GetName()] = Texture::LoadCubemap();
-        }
-    }
-
-    void Material::Load(std::string name, std::string shaderName) {
-        this->name = name;
-        this->shaderName = shaderName;
-        Ref<Shader> shader = Shader::GetShader(shaderName);
-        InternalLoad(shader);
     }
 
     std::string Material::GetName() {
@@ -141,7 +161,7 @@ namespace VWolf {
         return floats[name];
     }
 
-    std::map<std::string, ShaderDataType> Material::GetProperties() {
+    std::vector<Property> Material::GetProperties() {
         return properties;
     }
 
@@ -156,19 +176,31 @@ namespace VWolf {
     void * Material::GetDataPointer() const {
         char * pointer = (char *)malloc(size);
         memset(pointer, 0, size);
-        for (auto input: inputs) {
-            switch(input->GetType()) {
-                case VWolf::ShaderDataType::Float4:
+        for (auto property: properties) {
+
+            if (property.GetType() == PropertyType::Texture2D || property.GetType() == PropertyType::Cubemap) {
+                continue;
+			}
+
+            auto tuple = (*inputs_information.find(property.GetName())).second;
+            char * newP = pointer + std::get<1>(tuple);
+            uint32_t sizeP = std::get<2>(tuple);
+            switch (property.GetType()) {
+                case PropertyType::Color:
                     {
-                        char * newP = pointer + input->GetOffset();
-                        const Color& value = colors.find(input->GetName())->second;
-                        memcpy(newP, &value, input->GetSize());
+                        const Color& value = colors.find(property.GetName())->second;
+                        memcpy(newP, &value, sizeP);
                     }
                     break;
-                case VWolf::ShaderDataType::Float:
+                case PropertyType::Vector:
                     {
-                        char * newP = pointer + input->GetOffset();
-                        memcpy(newP, &floats.find(input->GetName())->second, input->GetSize());
+                        const Vector4& value = vectors.find(property.GetName())->second;
+                        memcpy(newP, &value, sizeP);
+                    }
+                    break;
+                case PropertyType::Float:
+                    {
+                        memcpy(newP, &floats.find(property.GetName())->second, sizeP);
                     }
                     break;
                 default: break;
@@ -184,6 +216,22 @@ namespace VWolf {
     void Material::SetAsDefault() {
         MaterialLibrary::SetDefault(this);
     }
+
+    void Material::Save(std::filesystem::path path) {
+        YAML::Emitter out;
+        out << *this;
+        std::ofstream fout(path.string());
+        fout << out.c_str();
+    }
+
+    Ref<Material> Material::Load(std::filesystem::path path) {
+        Material m(path);
+        Ref<Material> refM = CreateRef<Material>(m);
+        MaterialLibrary::SetMaterial(m.GetName(), refM.get());
+        return refM;
+    }
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER(Material);
 
 #ifdef VWOLF_CORE
     const std::string defaultKey = "Default";

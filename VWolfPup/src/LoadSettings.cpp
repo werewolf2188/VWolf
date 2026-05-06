@@ -62,12 +62,12 @@ namespace VWolfPup {
         std::filesystem::path defaultMaterialGridPath = std::filesystem::current_path() / materialsPath / (defaultGridMaterial + materialExtension);
         std::filesystem::path defaultMaterialSkyboxPath = std::filesystem::current_path() / materialsPath / (defaultSkyBoxMaterial + materialExtension);
 
-        auto dfMat = VWolf::MaterialSerializer::Deserialize(defaultMaterialPath);
+        auto dfMat = VWolf::Material::Load(defaultMaterialPath);
         dfMat->SetAsDefault();
         materials[defaultMaterial] = dfMat;
-        auto dfgMat = VWolf::MaterialSerializer::Deserialize(defaultMaterialGridPath);
+        auto dfgMat = VWolf::Material::Load(defaultMaterialGridPath);
         materials[defaultGridMaterial] = dfgMat;
-        auto dfskbMat = VWolf::MaterialSerializer::Deserialize(defaultMaterialSkyboxPath);
+        auto dfskbMat = VWolf::Material::Load(defaultMaterialSkyboxPath);
         dfskbMat->SetTexture("skybox",
                             VWolf::Texture::LoadCubemap({ "assets/skybox/right.png",
                                                           "assets/skybox/left.png",
@@ -78,7 +78,7 @@ namespace VWolfPup {
         materials[defaultSkyBoxMaterial] = dfskbMat;
         // TODO: Debug purposes
         std::filesystem::path defaultDebugRenderPath = std::filesystem::current_path() / materialsPath / ("DebugRender" + materialExtension);
-        auto debugRenderer = VWolf::MaterialSerializer::Deserialize(defaultDebugRenderPath);
+        auto debugRenderer = VWolf::Material::Load(defaultDebugRenderPath);
         materials["RainbowColor"] = debugRenderer;
         
     }

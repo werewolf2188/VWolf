@@ -13,6 +13,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include "VWolf/Core/Math/Serialization/glm.h"
+#include "VWolf/Core/Math/Serialization/VMath.h"
 
 #include "Vector3.h"
 
@@ -84,5 +86,18 @@ namespace VWolf {
         friend Quaternion operator*(const Quaternion& lhs, Quaternion rhs);
 
         friend struct Matrix4x4;
+        
+        VWOLF_VMATH_SERIALIZATION_FRIENDS(Quaternion)
+    };
+}
+
+namespace YAML {
+    template<>
+    struct convert<VWolf::Quaternion> {
+        static bool decode(const Node& node, VWolf::Quaternion& rhs)
+        {
+            rhs.quat = node.as<glm::quat>();
+            return true;
+        }
     };
 }

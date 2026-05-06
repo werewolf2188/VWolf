@@ -319,4 +319,20 @@ namespace VWolf {
             H = 360 + H;
         }
     }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Color& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq << v.GetR() << v.GetG() << v.GetB() << v.GetA() << YAML::EndSeq;
+
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const VWolf::Color& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq << v.GetR() << v.GetG() << v.GetB() << v.GetA() << YAML::EndSeq;
+
+        return out;
+    }
 }

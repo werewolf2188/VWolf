@@ -214,4 +214,15 @@ namespace VWolf {
         glm::quat quat = glm::slerp(aa, bb, t);
         return Quaternion(quat.w, quat.x, quat.y, quat.z);
     }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, Quaternion& v) {
+        out << YAML::Flow;
+        out << YAML::BeginSeq;
+        out << v.quat.w;
+        out << v.quat.x;
+        out << v.quat.y;
+        out << v.quat.z;
+        out << YAML::EndSeq;
+        return out;
+    }
 }

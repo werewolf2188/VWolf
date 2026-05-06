@@ -246,4 +246,6 @@ namespace VWolf {
     float Vector2::SignedAngle(Vector2 from, Vector2 to) {
         return glm::angle(from._vector2, to._vector2);
     }
+
+    VWOLF_VMATH_SERIALIZATION_VECTOR_EMITTER(Vector2, 2)
 }

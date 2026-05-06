@@ -8,6 +8,7 @@
 #pragma once
 
 #include "VWolf/Core/Utils/UUID.h"
+#include <boost/describe.hpp>
 
 namespace VWolf {
     class IIdentifiable {
@@ -17,5 +18,7 @@ namespace VWolf {
         void SetID(VWolf::UUID value) { id = value; }
     protected:
         VWolf::UUID id;
+        
+        BOOST_DESCRIBE_CLASS(IIdentifiable, (), (), (id), ())
     };
 }

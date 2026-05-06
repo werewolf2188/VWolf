@@ -7,69 +7,57 @@
 
 #pragma once
 
-#include "VWolf/Core/Math/Vector2.h"
-#include "VWolf/Core/Math/Vector3.h"
-#include "VWolf/Core/Math/Vector4.h"
+#define VWOLF_VMATH_SERIALIZATION_FRIENDS(T) \
+friend YAML::Emitter& operator<<(YAML::Emitter& out, T& v);\
+friend YAML::Emitter& operator<<(YAML::Emitter& out, const T& v);\
+friend YAML::convert<T>;
 
-namespace YAML {
-    template<>
-    struct convert<VWolf::Color>
-    {
-        static bool decode(const Node& node, VWolf::Color& rhs)
-        {
-            if (!node.IsSequence() || node.size() != 4)
-                return false;
-
-            rhs.SetR(node[0].as<float>());
-            rhs.SetG(node[1].as<float>());
-            rhs.SetB(node[2].as<float>());
-            rhs.SetA(node[3].as<float>());
-            return true;
-        }
+#define VWOLF_VMATH_SERIALIZATION_VECTOR_DECODER(T, glmT, Size) \
+    template<> \
+    struct convert<T> { \
+        static bool decode(const Node& node, T& rhs) \
+        { \
+            rhs._vector##Size = node.as<glmT>(); \
+            return true; \
+        } \
     };
 
-    template<>
-    struct convert<VWolf::Vector2> {
-        static bool decode(const Node& node, VWolf::Vector2& rhs) {
-            if (!node.IsSequence() || node.size() != 2)
-                return false;
-            rhs.SetX(node[0].as<float>());
-            rhs.SetY(node[1].as<float>());
-            return true;
-        }
+#define VWOLF_VMATH_SERIALIZATION_MATRIX_DECODER(T, glmT, columnSize, rowSize) \
+    template<> \
+    struct convert<T> { \
+        static bool decode(const Node& node, T& rhs) \
+        { \
+            rhs._matrix##columnSize##x##rowSize = node.as<glmT>(); \
+            return true; \
+        } \
     };
 
-    template<>
-    struct convert<VWolf::Vector3> {
-        static bool decode(const Node& node, VWolf::Vector3& rhs) {
-            if (!node.IsSequence() || node.size() != 3)
-                return false;
-            rhs.SetX(node[0].as<float>());
-            rhs.SetY(node[1].as<float>());
-            rhs.SetZ(node[2].as<float>());
-            return true;
-        }
-    };
+#define VWOLF_VMATH_SERIALIZATION_VECTOR_EMITTER(T, Size) \
+    YAML::Emitter& operator<<(YAML::Emitter& out, T& v) { \
+        out << v._vector##Size; \
+        return out; \
+    } \
+\
+    YAML::Emitter& operator<<(YAML::Emitter& out, const T& v) { \
+        out << v._vector##Size; \
+        return out; \
+    }
 
-    template<>
-    struct convert<VWolf::Vector4> {
-        static bool decode(const Node& node, VWolf::Vector4& rhs) {
-            if (!node.IsSequence() || node.size() != 4)
-                return false;
-            rhs.SetX(node[0].as<float>());
-            rhs.SetY(node[1].as<float>());
-            rhs.SetZ(node[2].as<float>());
-            rhs.SetW(node[3].as<float>());
-            return true;
-        }
-    };
-
-}
-
-namespace VWolf {
-    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Color& v);
-
-    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector2& v);
-    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector3& v);
-    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Vector4& v);
-}
+#define VWOLF_VMATH_SERIALIZATION_MATRIX_EMITTER(T, columnSize, rowSize) \
+    YAML::Emitter& operator<<(YAML::Emitter& out, T& v) {\
+        out << YAML::Block;\
+        out << YAML::BeginSeq;\
+        for (int index = 0; index < columnSize; index ++)\
+            out << v._matrix##columnSize##x##rowSize[index];\
+        out << YAML::EndSeq;\
+        return out;\
+    } \
+\
+    YAML::Emitter& operator<<(YAML::Emitter& out, const T& v) {\
+        out << YAML::Block;\
+        out << YAML::BeginSeq;\
+        for (int index = 0; index < columnSize; index ++)\
+            out << v._matrix##columnSize##x##rowSize[index];\
+        out << YAML::EndSeq;\
+        return out;\
+    }

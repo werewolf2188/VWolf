@@ -197,4 +197,6 @@ namespace VWolf {
     IVector2 IVector2::Scale(IVector2 a, IVector2 b) {
         return IVector2(a._vector2.x * b._vector2.x, a._vector2.y * b._vector2.y);
     }
+
+    VWOLF_VMATH_SERIALIZATION_VECTOR_EMITTER(IVector2, 2)
 }

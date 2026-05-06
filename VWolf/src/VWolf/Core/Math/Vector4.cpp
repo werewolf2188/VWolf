@@ -260,4 +260,6 @@ namespace VWolf {
         glm::vec4 vec4 = glm::proj(vector._vector4, planeNormal._vector4);
         return Vector4(vec4.x, vec4.y, vec4.z, vec4.w);
     }
+
+    VWOLF_VMATH_SERIALIZATION_VECTOR_EMITTER(Vector4, 4)
 }

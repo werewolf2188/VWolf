@@ -9,6 +9,8 @@
 #include "VWolf/Core/Base.h"
 
 #include <glm/glm.hpp>
+#include "VWolf/Core/Math/Serialization/glm.h"
+#include "VWolf/Core/Math/Serialization/VMath.h"
 
 namespace VWolf {
     struct Vector2;
@@ -107,5 +109,10 @@ namespace VWolf {
 
         friend struct Quaternion;
         friend struct Matrix4x4;
+        VWOLF_VMATH_SERIALIZATION_FRIENDS(Vector3)
     };
+}
+
+namespace YAML {
+    VWOLF_VMATH_SERIALIZATION_VECTOR_DECODER(VWolf::Vector3, glm::vec3, 3)
 }

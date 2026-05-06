@@ -1,15 +1,12 @@
-Material:
-  ID: aa41371a-ef2b-415e-ad8b-9dcb7560e4ff
-  Name: BlinnPhong
-  ShaderName: BlinnPhong
-  Colors:
-    - Name: u_ambientColor
-      Value: [1, 0, 0, 1]
-    - Name: u_diffuseColor
-      Value: [1, 1, 1, 1]
-  Vectors:
-    - Name: u_specular
-      Value: [1, 1, 1, 1]
-  Floats:
-    - Name: u_shinines
-      Value: 0
+---
+material:
+  id: aa41371a-ef2b-415e-ad8b-9dcb7560e4ff
+  name: BlinnPhong
+  shaderName: BlinnPhong
+  colors:
+    u_ambientColor: [1, 0, 0, 1]
+    u_diffuseColor: [1, 1, 1, 1]
+  vectors:
+    u_specular: [1, 1, 1, 1]
+  floats:
+    u_shinines: 0
