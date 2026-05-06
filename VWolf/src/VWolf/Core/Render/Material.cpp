@@ -120,8 +120,10 @@ namespace VWolf {
                     break;
                 case PropertyType::Texture2D:
                     textures[property.GetName()] = Texture::LoadTexture2D();
+                    break;
                 case PropertyType::Cubemap:
                     textures[property.GetName()] = Texture::LoadCubemap();
+                    break;
                 default: break;
             }
         }
