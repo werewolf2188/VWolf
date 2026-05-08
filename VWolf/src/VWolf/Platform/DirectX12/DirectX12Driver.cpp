@@ -6,7 +6,6 @@
 #include "VWolf/Core/UI/UIManager.h"
 
 #include "VWolf/Platform/DirectX12/UI/DirectX12UIManager.h"
-#include "VWolf/Platform/DirectX12/Windows/WinWindow.h"
 
 #include "VWolf/Core/Render/Graphics.h"
 #include "VWolf/Platform/DirectX12/Render/DirectX12Graphics.h"
@@ -26,40 +25,13 @@ namespace VWolf {
 	const UINT numFrames = 2;
 	//HMODULE pixModule;
 
-	class WindowsTime : public Time {
-	public:
-		WindowsTime() {
-			QueryPerformanceFrequency((LARGE_INTEGER*)&m_frequency);
-			m_offset = Private_QueryTime();
-			
-		}
-	protected:
-		virtual float GetTime() override {
-			return Private_GetTime();
-		};
-	private:
-		double Private_GetTime() {
-			 return (double)(Private_QueryTime() - m_offset) /
-				 m_frequency;
-		}
-
-		uint64_t Private_QueryTime() {
-			uint64_t value;
-			QueryPerformanceCounter((LARGE_INTEGER*)&value);
-			return value;
-		}
-	private:
-		uint64_t m_frequency = 0;
-		uint64_t m_offset = 0;
-	};
-
 	DirectX12Driver* DirectX12Driver::currentDriver = nullptr;
 
 	void DirectX12Driver::Initialize(InitConfiguration config, WindowEventCallback& callback)
-	{		
+	{
 		handle = GetModuleHandle(nullptr);
 		this->callback = &callback;
-		window = CreateRef<WinWindow>(handle, config, *this);
+		window = CreateRef<GenericWindow>(DriverType::DirectX12, config, *this);
 		window->Initialize();		
 		currentDriver = this;
 
@@ -97,7 +69,7 @@ namespace VWolf {
 		}
 
 		UIManager::SetDefault(CreateRef<DirectX12UIManager>((HWND__*)window->GetNativeWindow()));
-		Time::SetTimeImplementation(CreateRef<WindowsTime>());
+		Time::SetTimeImplementation(CreateRef<GenericTimer>());
 		graphics = CreateRef<DirectX12Graphics>();
 		Graphics::SetGraphicsImpl(graphics);
 		graphics->Initialize();

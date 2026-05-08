@@ -7,6 +7,8 @@
 #include "VWolf/Core/Events/KeyEvent.h"
 #include "VWolf/Core/Events/ApplicationEvent.h"
 
+#include <functional>
+
 struct GLFWwindow;
 
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
@@ -14,6 +16,8 @@ namespace NS {
     class Window;
     class View;
 }
+#elif defined(VWOLF_PLATFORM_WINDOWS)
+struct HWND__;
 #endif
 
 namespace VWolf {
@@ -28,9 +32,11 @@ namespace VWolf {
 		virtual void Initialize() = 0;
 		virtual void OnUpdate() = 0;
 		virtual void* GetNativeWindow() = 0;
-
+        virtual WindowEventCallback& GetCallback() = 0;
 		inline int GetWidth() { return width;  }
 		inline int GetHeight() { return height; }
+        inline void SetWidth(int width) { this->width = width; }
+        inline void SetHeight(int height) { this->height = height; }
 	protected:
 		Window() {};
 	protected: 
@@ -39,23 +45,7 @@ namespace VWolf {
 		bool vsync = false;
 	};
 
-    class IWindowCallback {
-    public:
-        void InitializeEventHandler(GLFWwindow* m_window);
-    public:
-        virtual WindowEventCallback& GetCallback() = 0;
-        virtual void SetWidth(int width) = 0;
-        virtual void SetHeight(int height) = 0;
-    };
-
-    
-    KeyCode GetKeyCodeFrom(int key);
-    int GetKeyFrom(KeyCode key);
-    KeyMods GetKeyModsFrom(int mods);
-    int GetMouseFrom(MouseCode button);
-    MouseCode GetMouseCode(int button);
-
-    class GenericWindow: public Window, public MouseHandler, public KeyHandler, public IWindowCallback {
+    class GenericWindow: public Window, public MouseHandler, public KeyHandler {
     public:
         GenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer = [](){});
         virtual ~GenericWindow() override;
@@ -66,13 +56,16 @@ namespace VWolf {
         virtual bool IsKeyPressed(KeyCode key) override;
         virtual void* GetNativeWindow() override;
     public:
+        void InitializeEventHandler(GLFWwindow* m_window);
+    public:
         virtual WindowEventCallback& GetCallback() override { return callback; }
-        virtual void SetWidth(int width) override { this->width = width; }
-        virtual void SetHeight(int height) override { this->height = height; }
+        
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
         inline NS::View* GetView() { return m_view; }
         inline void SetView(NS::View* view) { m_view = view; }
         inline NS::Window* GetCocoaWindow() { return reinterpret_cast<NS::Window*>(GetNativeWindow()); }
+#elif defined(VWOLF_PLATFORM_WINDOWS)
+		inline HWND__* GetWin32Window() { return reinterpret_cast<HWND__*>(GetNativeWindow()); }
 #endif
     public:
         GLFWwindow* GetGLFWWindow() { return m_window; }
@@ -85,6 +78,8 @@ namespace VWolf {
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
         NS::Window* m_nativeWindow;
         NS::View* m_view;
+#elif defined(VWOLF_PLATFORM_WINDOWS)
+		HWND__* m_nativeWindow;
 #endif
     };
 }

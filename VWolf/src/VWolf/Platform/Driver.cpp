@@ -10,6 +10,11 @@
 #include "VWolf/Platform/Metal/MetalDriver.h"
 #endif
 
+static void GLFWVWolfErrorCallback(int error, const char* description)
+{
+	VWOLF_CORE_ERROR("GLFW Error (%d): %s", error, description);
+}
+
 namespace VWolf {
 	class NullDriver : public Driver {
     public:
@@ -21,6 +26,8 @@ namespace VWolf {
 	};
 
 	Scope<Driver> Driver::GetDriver(DriverType type) {
+		glfwInit();
+		glfwSetErrorCallback(GLFWVWolfErrorCallback);
 		switch (type) {
 #ifdef VWOLF_PLATFORM_WINDOWS
 		case DriverType::DirectX12: return CreateScope<DirectX12Driver>();
