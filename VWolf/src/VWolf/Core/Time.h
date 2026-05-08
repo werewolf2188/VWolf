@@ -42,8 +42,7 @@ namespace VWolf {
 		static long long m_frameCount;
 	};
 
-	class GenericTimer : public Time {
-	protected:
-		virtual float GetTime() override;
-	};
+    class GenericTime;
+
+    Ref<Time> CreateGenericTime();
 }

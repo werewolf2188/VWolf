@@ -38,7 +38,7 @@ namespace VWolf {
         graphics = CreateRef<MetalGraphics>();
         UIManager::SetDefault(CreateRef<MetalUIManager>());
         Graphics::SetGraphicsImpl(graphics);
-        Time::SetTimeImplementation(CreateRef<GenericTimer>());
+        Time::SetTimeImplementation(CreateGenericTime());
         graphics->Initialize();
     }
     void MetalDriver::Shutdown() {

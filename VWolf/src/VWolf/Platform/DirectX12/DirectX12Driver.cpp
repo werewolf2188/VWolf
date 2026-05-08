@@ -69,7 +69,7 @@ namespace VWolf {
 		}
 
 		UIManager::SetDefault(CreateRef<DirectX12UIManager>((HWND__*)window->GetNativeWindow()));
-		Time::SetTimeImplementation(CreateRef<GenericTimer>());
+		Time::SetTimeImplementation(CreateGenericTime());
 		graphics = CreateRef<DirectX12Graphics>();
 		Graphics::SetGraphicsImpl(graphics);
 		graphics->Initialize();

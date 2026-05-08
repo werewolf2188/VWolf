@@ -40,7 +40,7 @@ namespace VWolf {
 		UIManager::SetDefault(CreateRef<OpenGLUIManager>((GLFWwindow*)((GenericWindow*)window.get())->GetGLFWWindow()));
         Ref<OpenGLGraphics> graphics = CreateRef<OpenGLGraphics>();
         Graphics::SetGraphicsImpl(graphics);
-		Time::SetTimeImplementation(CreateRef<GenericTimer>());
+		Time::SetTimeImplementation(CreateGenericTime());
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
