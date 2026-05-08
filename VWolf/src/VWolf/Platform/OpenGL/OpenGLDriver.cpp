@@ -15,6 +15,8 @@
 #define OPENGL_PROFILE GLFW_OPENGL_CORE_PROFILE
 
 namespace VWolf {
+    extern GLFWwindow* GetGLFWWindow(Ref<Window> genericWindow);
+
 	void OpenGLDriver::Initialize(InitConfiguration config, WindowEventCallback& callback)
 	{
 		this->callback = &callback;
@@ -26,18 +28,18 @@ namespace VWolf {
         const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         VWOLF_CORE_INFO("Resolution %dx%d", mode->width, mode->height);
 
-        window = CreateRef<GenericWindow>(DriverType::OpenGL, config, callback, [this, mode](){
+        window = CreateGenericWindow(DriverType::OpenGL, config, callback, [this, mode](){
     #ifdef VWOLF_PLATFORM_MACOS
             int width;
             int height;
-            GLFWwindow * m_window = ((GenericWindow*)window.get())->GetGLFWWindow();
+            GLFWwindow * m_window = GetGLFWWindow(window);
             glfwGetFramebufferSize(m_window, &width, &height);
             GLThrowIfFailed(glViewport(0, 0, width, height));
     #else
             GLThrowIfFailed(glViewport(0, 0, mode->width, mode->height));
     #endif
         });
-		UIManager::SetDefault(CreateRef<OpenGLUIManager>((GLFWwindow*)((GenericWindow*)window.get())->GetGLFWWindow()));
+		UIManager::SetDefault(CreateRef<OpenGLUIManager>(GetGLFWWindow(window)));
         Ref<OpenGLGraphics> graphics = CreateRef<OpenGLGraphics>();
         Graphics::SetGraphicsImpl(graphics);
 		Time::SetTimeImplementation(CreateGenericTime());
@@ -69,7 +71,7 @@ namespace VWolf {
 
 	void OpenGLDriver::OnUpdate() {
 		window->OnUpdate();
-		glfwSwapBuffers((GLFWwindow*)((GenericWindow*)window.get())->GetGLFWWindow());
+		glfwSwapBuffers(GetGLFWWindow(window));
 	}
 
 	void OpenGLDriver::OnEvent(Event& evt) {
@@ -80,7 +82,7 @@ namespace VWolf {
 #ifdef VWOLF_PLATFORM_MACOS
         int width;
         int height;
-        glfwGetFramebufferSize((GLFWwindow*)((GenericWindow*)window.get())->GetGLFWWindow(), &width, &height);
+        glfwGetFramebufferSize(GetGLFWWindow(window), &width, &height);
         GLThrowIfFailed(glViewport(0, 0, width, height));
 #else
         GLThrowIfFailed(glViewport(0, 0, m_Width, m_Height));

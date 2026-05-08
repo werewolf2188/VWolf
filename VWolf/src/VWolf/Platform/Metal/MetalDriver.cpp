@@ -21,9 +21,11 @@
 namespace VWolf {
     MetalDriver* MetalDriver::currentDriver = nullptr;
 
+    extern void SetView(Ref<Window> window, NS::View* view);
+
     void MetalDriver::Initialize(InitConfiguration config, WindowEventCallback& callback) {
         this->callback = &callback;
-        window = CreateRef<GenericWindow>(DriverType::Metal, config, callback);
+        window = CreateGenericWindow(DriverType::Metal, config, callback);
         window->Initialize();
         currentDriver = this;
 
@@ -33,7 +35,7 @@ namespace VWolf {
 
         auto view = ConnectLayer(reinterpret_cast<NS::Window*>(MetalDriver::GetCurrent()->GetWindow()->GetNativeWindow()),
                                  surface->GetLayer());
-        dynamic_cast<VWolf::GenericWindow*>(MetalDriver::GetCurrent()->GetWindow().get())->SetView(view);
+        SetView(MetalDriver::GetCurrent()->GetWindow(), view);
 
         graphics = CreateRef<MetalGraphics>();
         UIManager::SetDefault(CreateRef<MetalUIManager>());

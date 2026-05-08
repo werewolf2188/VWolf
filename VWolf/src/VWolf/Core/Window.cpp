@@ -8,6 +8,16 @@
 #include "vwpch.h"
 #include "Window.h"
 
+struct GLFWwindow;
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+namespace NS {
+    class Window;
+    class View;
+}
+#elif defined(VWOLF_PLATFORM_WINDOWS)
+struct HWND__;
+#endif
+
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
 #define GLFW_EXPOSE_NATIVE_COCOA
 #elif defined(VWOLF_PLATFORM_WINDOWS)
@@ -324,6 +334,106 @@ namespace VWolf {
         return m;
     }
 
+    class GenericWindow: public Window, public MouseHandler, public KeyHandler {
+    public:
+        GenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer = [](){});
+        virtual ~GenericWindow() override;
+        virtual void Initialize() override;
+        virtual void OnUpdate() override;
+        virtual bool IsMouseButtonPressed(MouseCode button) override;
+        virtual std::pair<float, float> GetMousePosition() override;
+        virtual bool IsKeyPressed(KeyCode key) override;
+        virtual void* GetNativeWindow() override;
+    public:
+        void InitializeEventHandler(GLFWwindow* m_window);
+    public:
+        virtual WindowEventCallback& GetCallback() override { return callback; }
+        
+    #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        inline NS::View* GetView() { return m_view; }
+        inline void SetView(NS::View* view) { m_view = view; }
+        inline NS::Window* GetCocoaWindow() { return reinterpret_cast<NS::Window*>(GetNativeWindow()); }
+    #elif defined(VWOLF_PLATFORM_WINDOWS)
+        inline HWND__* GetWin32Window() { return reinterpret_cast<HWND__*>(GetNativeWindow()); }
+    #endif
+    public:
+        GLFWwindow* GetGLFWWindow() { return m_window; }
+    public:
+        
+    private:
+        std::function<void()> initializer;
+        GLFWwindow *m_window;
+        WindowEventCallback& callback;
+    #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        NS::Window* m_nativeWindow;
+        NS::View* m_view;
+    #elif defined(VWOLF_PLATFORM_WINDOWS)
+        HWND__* m_nativeWindow;
+    #endif
+    };
+
+    Ref<Window> CreateGenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer) {
+        return CreateRef<GenericWindow>(driverType, config, callback, initializer);
+    }
+
+    GLFWwindow* GetGLFWWindow(Ref<Window> window) {
+        return ((GenericWindow*)window.get())->GetGLFWWindow();
+    }
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+    NS::View* GetView(Ref<Window> window) {
+        return ((GenericWindow*)window.get())->GetView();
+    }
+
+    void SetView(Ref<Window> window, NS::View* view) {
+        return ((GenericWindow*)window.get())->SetView(view);
+    }
+#elif defined(VWOLF_PLATFORM_WINDOWS)
+
+#endif
+
+    GenericWindow::GenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer): Window(), callback(callback), initializer(initializer) {
+        this->width = config.width;
+        this->height = config.height;
+
+        if (driverType != DriverType::OpenGL)
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        
+        std::string appTitle = config.title;
+        // TODO: For now, leave it to see the current driver type
+        appTitle = appTitle + " - " + std::string(DriverName(driverType));
+        m_window = glfwCreateWindow(width, height, appTitle.c_str(), NULL, NULL);
+        if (m_window == NULL)
+        {
+            std::cout << "Failed to create GLFW window" << std::endl;
+            WindowCloseEvent evt;
+            GetCallback().OnEvent(evt);
+            glfwTerminate();
+        }
+        const GLFWvidmode& mode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
+        int w = mode.width, h = mode.height;
+        glfwSetWindowPos(m_window, (w / 2) - (width / 2), (h / 2) - (height / 2));
+        if (config.maximize)
+            glfwMaximizeWindow(m_window);
+        if (driverType == DriverType::OpenGL)
+            glfwMakeContextCurrent(m_window);
+        
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        void * window = glfwGetCocoaWindow(m_window);
+        m_nativeWindow = reinterpret_cast<NS::Window*>(glfwGetCocoaWindow(m_window));
+        VWOLF_CORE_ASSERT(window == m_nativeWindow);
+#elif defined(VWOLF_PLATFORM_WINDOWS)
+        void* window = glfwGetWin32Window(m_window);
+        m_nativeWindow = reinterpret_cast<HWND__*>(glfwGetWin32Window(m_window));
+		VWOLF_CORE_ASSERT(window == m_nativeWindow);
+#endif
+        
+        InitializeEventHandler(m_window);
+    }
+
+    GenericWindow::~GenericWindow() {
+        glfwDestroyWindow(m_window);
+    }
+
     void GenericWindow::InitializeEventHandler(GLFWwindow* m_window) {
         // Setting events
         glfwSetWindowUserPointer(m_window, this);
@@ -470,45 +580,6 @@ namespace VWolf {
             data.GetCallback().OnEvent(evt);
     #endif
         });
-    }
-
-    GenericWindow::GenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer): Window(), callback(callback), initializer(initializer) {
-        this->width = config.width;
-        this->height = config.height;
-
-        if (driverType != DriverType::OpenGL)
-            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        m_window = glfwCreateWindow(width, height, config.title, NULL, NULL);
-        if (m_window == NULL)
-        {
-            std::cout << "Failed to create GLFW window" << std::endl;
-            WindowCloseEvent evt;
-            GetCallback().OnEvent(evt);
-            glfwTerminate();
-        }
-        const GLFWvidmode& mode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
-        int w = mode.width, h = mode.height;
-        glfwSetWindowPos(m_window, (w / 2) - (width / 2), (h / 2) - (height / 2));
-        if (config.maximize)
-            glfwMaximizeWindow(m_window);
-        if (driverType == DriverType::OpenGL)
-            glfwMakeContextCurrent(m_window);
-        
-#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
-        void * window = glfwGetCocoaWindow(m_window);
-        m_nativeWindow = reinterpret_cast<NS::Window*>(glfwGetCocoaWindow(m_window));
-        VWOLF_CORE_ASSERT(window == m_nativeWindow);
-#elif defined(VWOLF_PLATFORM_WINDOWS)
-        void* window = glfwGetWin32Window(m_window);
-        m_nativeWindow = reinterpret_cast<HWND__*>(glfwGetWin32Window(m_window));
-		VWOLF_CORE_ASSERT(window == m_nativeWindow);
-#endif
-        
-        InitializeEventHandler(m_window);
-    }
-
-    GenericWindow::~GenericWindow() {
-        glfwDestroyWindow(m_window);
     }
 
     void GenericWindow::Initialize() {

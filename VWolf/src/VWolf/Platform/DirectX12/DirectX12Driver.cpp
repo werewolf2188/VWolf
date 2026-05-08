@@ -31,7 +31,7 @@ namespace VWolf {
 	{
 		handle = GetModuleHandle(nullptr);
 		this->callback = &callback;
-		window = CreateRef<GenericWindow>(DriverType::DirectX12, config, *this);
+		window = CreateGenericWindow(DriverType::DirectX12, config, *this);
 		window->Initialize();		
 		currentDriver = this;
 

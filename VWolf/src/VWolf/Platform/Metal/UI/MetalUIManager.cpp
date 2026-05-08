@@ -25,13 +25,15 @@
 
 namespace VWolf {
 
+    extern NS::View* GetView(Ref<Window> window);
+
     MetalUIManager::MetalUIManager() {}
 
     void MetalUIManager::Initialize() {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
 
-        ImGui_ImplOSX_Init(dynamic_cast<VWolf::GenericWindow*>(MetalDriver::GetCurrent()->GetWindow().get())->GetView());
+        ImGui_ImplOSX_Init(GetView(MetalDriver::GetCurrent()->GetWindow()));
         ImGui_ImplMetal_Init(MetalDriver::GetCurrent()->GetDevice()->GetDevice());
     }
 
@@ -51,7 +53,7 @@ namespace VWolf {
 
     void MetalUIManager::NewFrame() {
         ImGui_ImplMetal_NewFrame(MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor());
-        ImGui_ImplOSX_NewFrame(dynamic_cast<VWolf::GenericWindow*>(MetalDriver::GetCurrent()->GetWindow().get())->GetView());
+        ImGui_ImplOSX_NewFrame(GetView(MetalDriver::GetCurrent()->GetWindow()));
     }
     bool MetalUIManager::OnEvent(Event& evt) {
         return true;
