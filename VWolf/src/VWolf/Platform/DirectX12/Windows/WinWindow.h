@@ -1,7 +1,5 @@
 #pragma once
 #include "VWolf/Core/Window.h"
-#include "VWolf/Core/Events/MouseEvent.h"
-#include "VWolf/Core/Events/KeyEvent.h"
 
 struct HWND__;
 struct HINSTANCE__;

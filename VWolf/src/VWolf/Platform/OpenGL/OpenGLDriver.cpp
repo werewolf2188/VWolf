@@ -1,7 +1,6 @@
 #include "vwpch.h"
 #include "OpenGLDriver.h"
 
-#include "VWolf/Platform/OpenGL/Windows/GLFWWindow.h"
 #include "VWolf/Core/UI/UIManager.h"
 
 #include "VWolf/Platform/OpenGL/UI/OpenGLUIManager.h"
@@ -36,8 +35,18 @@ namespace VWolf {
         const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         VWOLF_CORE_INFO("Resolution %dx%d", mode->width, mode->height);
 
-		window = CreateRef<GLFWWindow>(config, callback);
-		UIManager::SetDefault(CreateRef<OpenGLUIManager>((GLFWwindow*)window->GetNativeWindow()));
+        window = CreateRef<GenericWindow>(DriverType::OpenGL, config, callback, [this](){
+    #ifdef VWOLF_PLATFORM_MACOS
+            int width;
+            int height;
+            GLFWwindow * m_window = ((GenericWindow*)window.get())->GetGLFWWindow();
+            glfwGetFramebufferSize(m_window, &width, &height);
+            GLThrowIfFailed(glViewport(0, 0, width, height));
+    #else
+            GLThrowIfFailed(glViewport(0, 0, width, height));
+    #endif
+        });
+		UIManager::SetDefault(CreateRef<OpenGLUIManager>((GLFWwindow*)((GenericWindow*)window.get())->GetGLFWWindow()));
         Ref<OpenGLGraphics> graphics = CreateRef<OpenGLGraphics>();
         Graphics::SetGraphicsImpl(graphics);
 		Time::SetTimeImplementation(CreateRef<GLFWTime>());
@@ -69,7 +78,7 @@ namespace VWolf {
 
 	void OpenGLDriver::OnUpdate() {
 		window->OnUpdate();
-		glfwSwapBuffers((GLFWwindow*)window->GetNativeWindow());
+		glfwSwapBuffers((GLFWwindow*)((GenericWindow*)window.get())->GetGLFWWindow());
 	}
 
 	void OpenGLDriver::OnEvent(Event& evt) {
@@ -80,7 +89,7 @@ namespace VWolf {
 #ifdef VWOLF_PLATFORM_MACOS
         int width;
         int height;
-        glfwGetFramebufferSize((GLFWwindow*)window->GetNativeWindow(), &width, &height);
+        glfwGetFramebufferSize((GLFWwindow*)((GenericWindow*)window.get())->GetGLFWWindow(), &width, &height);
         GLThrowIfFailed(glViewport(0, 0, width, height));
 #else
         GLThrowIfFailed(glViewport(0, 0, m_Width, m_Height));

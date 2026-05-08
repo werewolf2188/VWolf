@@ -10,8 +10,6 @@
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
 #include "MetalDriver.h"
 
-#include "VWolf/Platform/Metal/Windows/CocoaWindow.h"
-
 #include "VWolf/Core/UI/UIManager.h"
 #include "VWolf/Platform/Metal/UI/MetalUIManager.h"
 
@@ -45,7 +43,7 @@ namespace VWolf {
         // Using GLFW instead of normal application since its too complicated to do it the normal way
         glfwInit();
         glfwSetErrorCallback(MetalErrorCallback);
-        window = CreateRef<CocoaWindow>(config, callback);
+        window = CreateRef<GenericWindow>(DriverType::Metal, config, callback);
         window->Initialize();
         currentDriver = this;
 
@@ -55,7 +53,7 @@ namespace VWolf {
 
         auto view = ConnectLayer(reinterpret_cast<NS::Window*>(MetalDriver::GetCurrent()->GetWindow()->GetNativeWindow()),
                                  surface->GetLayer());
-        dynamic_cast<VWolf::CocoaWindow*>(MetalDriver::GetCurrent()->GetWindow().get())->SetView(view);
+        dynamic_cast<VWolf::GenericWindow*>(MetalDriver::GetCurrent()->GetWindow().get())->SetView(view);
 
         graphics = CreateRef<MetalGraphics>();
         UIManager::SetDefault(CreateRef<MetalUIManager>());
