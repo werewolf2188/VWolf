@@ -17,6 +17,8 @@
 namespace VWolf {
     extern GLFWwindow* GetGLFWWindow(Ref<Window> genericWindow);
 
+	OpenGLDriver* OpenGLDriver::currentDriver = nullptr;
+
 	void OpenGLDriver::Initialize(InitConfiguration config, WindowEventCallback& callback)
 	{
 		this->callback = &callback;
@@ -39,7 +41,8 @@ namespace VWolf {
             GLThrowIfFailed(glViewport(0, 0, mode->width, mode->height));
     #endif
         });
-		UIManager::SetDefault(CreateRef<OpenGLUIManager>(GetGLFWWindow(window)));
+		currentDriver = this;
+		UIManager::SetDefault(CreateRef<OpenGLUIManager>());
         Ref<OpenGLGraphics> graphics = CreateRef<OpenGLGraphics>();
         Graphics::SetGraphicsImpl(graphics);
 		Time::SetTimeImplementation(CreateGenericTime());

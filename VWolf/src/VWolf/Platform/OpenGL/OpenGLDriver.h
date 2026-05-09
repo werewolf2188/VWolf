@@ -11,7 +11,11 @@ namespace VWolf {
 		virtual void OnUpdate() override;
 		virtual void OnEvent(Event& evt) override;
         virtual void Resize(unsigned int m_Width, unsigned int m_Height) override;
+	public:
+		static OpenGLDriver* GetCurrentDriver() { return currentDriver; }
 	private:
 		WindowEventCallback* callback;
+
+		static OpenGLDriver* currentDriver;
 	};
 }

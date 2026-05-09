@@ -29,7 +29,7 @@ namespace VWolf {
 
 	void DirectX12Driver::Initialize(InitConfiguration config, WindowEventCallback& callback)
 	{
-		handle = GetModuleHandle(nullptr);
+		//handle = GetModuleHandle(nullptr);
 		this->callback = &callback;
 		window = CreateGenericWindow(DriverType::DirectX12, config, *this);
 		window->Initialize();		
@@ -68,7 +68,7 @@ namespace VWolf {
 			VWOLF_CORE_ASSERT(false, "Factory could not be initialized");
 		}
 
-		UIManager::SetDefault(CreateRef<DirectX12UIManager>((HWND__*)window->GetNativeWindow()));
+		UIManager::SetDefault(CreateRef<DirectX12UIManager>());
 		Time::SetTimeImplementation(CreateGenericTime());
 		graphics = CreateRef<DirectX12Graphics>();
 		Graphics::SetGraphicsImpl(graphics);
