@@ -42,8 +42,7 @@ namespace VWolf {
 		static long long m_frameCount;
 	};
 
-	inline Ref<Time> Time::m_instanceTime = nullptr;
-	inline float Time::m_deltaTime = 0;
-	inline float Time::m_lastFrame = 0;
-	inline long long Time::m_frameCount = 0;
+    class GenericTime;
+
+    Ref<Time> CreateGenericTime();
 }

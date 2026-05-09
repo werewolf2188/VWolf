@@ -17,9 +17,4 @@
 
 NS::View* ConnectLayer(NS::Window* window, CA::MetalLayer* layer);
 float GetFactorScale(NS::View* view);
-
-static void MetalErrorCallback(int error, const char* description)
-{
-    VWOLF_CORE_ERROR("GLFW Error (%d): %s", error, description);
-}
 #endif

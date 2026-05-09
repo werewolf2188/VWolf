@@ -43,11 +43,6 @@ static bool CheckForGLErrors(const char* file, const char* code, int line) {
     return false;
 }
 
-static void GLFWErrorCallback(int error, const char* description)
-{
-    VWOLF_CORE_ERROR("GLFW Error (%d): %s", error, description);
-}
-
 static void OpenGLMessageCallback(
     unsigned source,
     unsigned type,

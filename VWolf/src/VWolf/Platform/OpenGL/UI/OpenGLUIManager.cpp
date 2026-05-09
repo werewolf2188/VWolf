@@ -1,13 +1,17 @@
 #include "vwpch.h"
 #include "OpenGLUIManager.h"
 
+#include "VWolf/Platform/OpenGL/OpenGLDriver.h"
+
 #include <imgui.h>
 #include "VWolf/Platform/ImGUI/backends/imgui_impl_glfw.h"
 #include "VWolf/Platform/ImGUI/backends/imgui_impl_opengl3.h"
 #include "VWolf/Platform/ImGUI/backends/imgui_impl_opengl3_loader.h"
 
 namespace VWolf {
-	OpenGLUIManager::OpenGLUIManager(GLFWwindow* window): m_window(window)
+	extern GLFWwindow* GetGLFWWindow(Ref<Window> genericWindow);
+
+	OpenGLUIManager::OpenGLUIManager()
 	{
 	}
 	void OpenGLUIManager::Initialize()
@@ -17,7 +21,7 @@ namespace VWolf {
 //		ImGuiIO& io = ImGui::GetIO();
 
 		// setup platform/renderer bindings
-		VWOLF_CORE_ASSERT(ImGui_ImplGlfw_InitForOpenGL(m_window, true), 
+		VWOLF_CORE_ASSERT(ImGui_ImplGlfw_InitForOpenGL(GetGLFWWindow(OpenGLDriver::GetCurrentDriver()->GetWindow()), true),
 			"OpenGLUIManager - Could not initialize ImGUI");
 		VWOLF_CORE_ASSERT(ImGui_ImplOpenGL3_Init(),
 			"OpenGLUIManager - Could not initialize ImGUI");

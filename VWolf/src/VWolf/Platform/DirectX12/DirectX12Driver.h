@@ -38,7 +38,7 @@ namespace VWolf {
 
 		UINT GetNumberOfFrames();
 	private:
-		HINSTANCE__* handle;
+		//HINSTANCE__* handle;
 		WindowEventCallback* callback;
 		Ref<DX12Device> device;
 		Ref<DX12Command> commands;

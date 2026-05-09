@@ -1,167 +1,31 @@
 //
-//  Common.cpp
+//  Window.cpp
 //  VWolf
 //
-//  Created by Enrique Ricalde on 4/21/24.
+//  Created by Enrique Moises on 5/7/26.
 //
 
 #include "vwpch.h"
+#include "Window.h"
 
-#include "VWolf/Core/Events/ApplicationEvent.h"
-#include "VWolf/Core/Events/MouseEvent.h"
-#include "VWolf/Core/Events/KeyEvent.h"
+struct GLFWwindow;
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+namespace NS {
+    class Window;
+    class View;
+}
+#elif defined(VWOLF_PLATFORM_WINDOWS)
+struct HWND__;
+#endif
 
-#include "GLFWCommon.h"
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+#define GLFW_EXPOSE_NATIVE_COCOA
+#elif defined(VWOLF_PLATFORM_WINDOWS)
+#define GLFW_EXPOSE_NATIVE_WIN32
+#endif
+#include <GLFW/glfw3native.h>
 
 namespace VWolf {
-
-    void IWindowCallback::InitializeEventHandler(GLFWwindow* m_window) {
-        // Setting events
-        glfwSetWindowUserPointer(m_window, this);
-        glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window) {
-            IWindowCallback& data = *(IWindowCallback*)glfwGetWindowUserPointer(window);
-#if VWOLF_USE_EVENT_QUEUE
-            WindowCloseEvent* evt = new WindowCloseEvent;
-            EventQueue::defaultQueue->Queue(evt);
-            data.GetCallback().OnEvent(*evt);
-#else
-            WindowCloseEvent evt;
-            data.GetCallback().OnEvent(evt);
-#endif
-            });
-
-        glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height)
-        {
-            IWindowCallback& data = *(IWindowCallback*)glfwGetWindowUserPointer(window);
-            data.SetWidth(width);
-            data.SetHeight(height);
-#if VWOLF_USE_EVENT_QUEUE
-            WindowResizeEvent* evt = new WindowResizeEvent(width, height);
-            EventQueue::defaultQueue->Queue(evt);
-            data.GetCallback().OnEvent(*evt);
-#else
-            WindowResizeEvent evt(width, height);
-            data.GetCallback().OnEvent(evt);
-#endif
-        });
-
-        glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xPos, double yPos)
-        {
-            IWindowCallback& data = *(IWindowCallback*)glfwGetWindowUserPointer(window);
-#if VWOLF_USE_EVENT_QUEUE
-            MouseMovedEvent* evt = new MouseMovedEvent(xPos, yPos);
-            EventQueue::defaultQueue->Queue(evt);
-            data.GetCallback().OnEvent(*evt);
-#else
-            MouseMovedEvent evt(xPos, yPos);
-            data.GetCallback().OnEvent(evt);
-#endif
-        });
-
-        glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xOffset, double yOffset) {
-            IWindowCallback& data = *(IWindowCallback*)glfwGetWindowUserPointer(window);
-#if VWOLF_USE_EVENT_QUEUE
-            MouseScrolledEvent* evt = new MouseScrolledEvent(xOffset, yOffset);
-            EventQueue::defaultQueue->Queue(evt);
-            data.GetCallback().OnEvent(*evt);
-#else
-            MouseScrolledEvent evt(xOffset, yOffset);
-            data.GetCallback().OnEvent(evt);
-#endif
-        });
-
-        glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods)
-        {
-            IWindowCallback& data = *(IWindowCallback*)glfwGetWindowUserPointer(window);
-
-            switch (action) {
-            case GLFW_PRESS:
-            {
-#if VWOLF_USE_EVENT_QUEUE
-                MouseButtonPressedEvent* evt = new MouseButtonPressedEvent(GetMouseCode(button));
-                EventQueue::defaultQueue->Queue(evt);
-                data.GetCallback().OnEvent(*evt);
-#else
-                MouseButtonPressedEvent evt(GetMouseCode(button));
-                data.GetCallback().OnEvent(evt);
-#endif
-            }
-            break;
-            case GLFW_RELEASE:
-            {
-#if VWOLF_USE_EVENT_QUEUE
-                MouseButtonReleasedEvent* evt = new MouseButtonReleasedEvent(GetMouseCode(button));
-                EventQueue::defaultQueue->Queue(evt);
-                data.GetCallback().OnEvent(*evt);
-#else
-                MouseButtonReleasedEvent evt(GetMouseCode(button));
-                data.GetCallback().OnEvent(evt);
-#endif
-            }
-            break;
-            }
-        });
-
-        glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
-        {
-            IWindowCallback& data = *(IWindowCallback*)glfwGetWindowUserPointer(window);
-
-            switch (action)
-            {
-            case GLFW_PRESS:
-            {
-#if VWOLF_USE_EVENT_QUEUE
-                KeyPressedEvent* evt = new KeyPressedEvent(GetKeyCodeFrom(key), GetKeyModsFrom(mods), 0);
-                EventQueue::defaultQueue->Queue(evt);
-                data.GetCallback().OnEvent(*evt);
-#else
-                KeyPressedEvent evt(GetKeyCodeFrom(key), GetKeyModsFrom(mods), 0);
-                data.GetCallback().OnEvent(evt);
-#endif
-                break;
-            }
-            case GLFW_RELEASE:
-            {
-#if VWOLF_USE_EVENT_QUEUE
-                KeyReleasedEvent* evt = new KeyReleasedEvent(GetKeyCodeFrom(key), GetKeyModsFrom(mods));
-                EventQueue::defaultQueue->Queue(evt);
-                data.GetCallback().OnEvent(*evt);
-#else
-                KeyReleasedEvent evt(GetKeyCodeFrom(key), GetKeyModsFrom(mods));
-                data.GetCallback().OnEvent(evt);
-#endif
-                break;
-            }
-            case GLFW_REPEAT:
-            {
-#if VWOLF_USE_EVENT_QUEUE
-                KeyPressedEvent* evt = new KeyPressedEvent(GetKeyCodeFrom(key), GetKeyModsFrom(mods), true);
-                EventQueue::defaultQueue->Queue(evt);
-                data.GetCallback().OnEvent(*evt);
-#else
-                KeyPressedEvent evt(GetKeyCodeFrom(key), GetKeyModsFrom(mods), true);
-                data.GetCallback().OnEvent(evt);
-#endif
-                break;
-            }
-            }
-        });
-
-        glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int keycode)
-        {
-            IWindowCallback& data = *(IWindowCallback*)glfwGetWindowUserPointer(window);
-#if VWOLF_USE_EVENT_QUEUE
-            KeyTypedEvent* evt = new KeyTypedEvent(boost::lexical_cast<std::string>(static_cast<unsigned char>(keycode)));
-            EventQueue::defaultQueue->Queue(evt);
-            data.GetCallback().OnEvent(*evt);
-#else
-            // For now I'm only using char to string
-            // In the future it should wchar_t to wstring
-            KeyTypedEvent evt(boost::lexical_cast<std::string>(static_cast<unsigned char>(keycode)));
-            data.GetCallback().OnEvent(evt);
-#endif
-        });
-    }
 
     int GetMouseFrom(MouseCode button) {
         switch (button) {
@@ -201,10 +65,10 @@ namespace VWolf {
         case KeyCode::D6: return GLFW_KEY_6;
         case KeyCode::D7: return GLFW_KEY_7;
         case KeyCode::D8: return GLFW_KEY_8;
-        case KeyCode::D9: return GLFW_KEY_9 ;
+        case KeyCode::D9: return GLFW_KEY_9;
 
         case  KeyCode::Semicolon: return GLFW_KEY_SEMICOLON;
-        case KeyCode::Equal: return GLFW_KEY_EQUAL ;
+        case KeyCode::Equal: return GLFW_KEY_EQUAL;
 
         case KeyCode::A: return GLFW_KEY_A;
         case KeyCode::B: return GLFW_KEY_B;
@@ -319,7 +183,7 @@ namespace VWolf {
     }
 
     KeyCode GetKeyCodeFrom(int key) {
-        
+
         switch (key) {
         case GLFW_KEY_SPACE: return KeyCode::Space;
         case GLFW_KEY_APOSTROPHE: return KeyCode::Apostrophe;
@@ -468,5 +332,285 @@ namespace VWolf {
         if (mods & GLFW_MOD_NUM_LOCK)
             m |= KeyMods::NUM_LOCK;
         return m;
+    }
+
+    class GenericWindow: public Window, public MouseHandler, public KeyHandler {
+    public:
+        GenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer = [](){});
+        virtual ~GenericWindow() override;
+        virtual void Initialize() override;
+        virtual void OnUpdate() override;
+        virtual bool IsMouseButtonPressed(MouseCode button) override;
+        virtual std::pair<float, float> GetMousePosition() override;
+        virtual bool IsKeyPressed(KeyCode key) override;
+        virtual void* GetNativeWindow() override;
+    public:
+        void InitializeEventHandler(GLFWwindow* m_window);
+    public:
+        virtual WindowEventCallback& GetCallback() override { return callback; }
+        
+    #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        inline NS::View* GetView() { return m_view; }
+        inline void SetView(NS::View* view) { m_view = view; }
+        inline NS::Window* GetCocoaWindow() { return reinterpret_cast<NS::Window*>(GetNativeWindow()); }
+    #elif defined(VWOLF_PLATFORM_WINDOWS)
+        inline HWND__* GetWin32Window() { return reinterpret_cast<HWND__*>(GetNativeWindow()); }
+    #endif
+    public:
+        GLFWwindow* GetGLFWWindow() { return m_window; }
+    public:
+        
+    private:
+        std::function<void()> initializer;
+        GLFWwindow *m_window;
+        WindowEventCallback& callback;
+    #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        NS::Window* m_nativeWindow;
+        NS::View* m_view;
+    #elif defined(VWOLF_PLATFORM_WINDOWS)
+        HWND__* m_nativeWindow;
+    #endif
+    };
+
+    Ref<Window> CreateGenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer) {
+        return CreateRef<GenericWindow>(driverType, config, callback, initializer);
+    }
+
+    GLFWwindow* GetGLFWWindow(Ref<Window> window) {
+        return ((GenericWindow*)window.get())->GetGLFWWindow();
+    }
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+    NS::View* GetView(Ref<Window> window) {
+        return ((GenericWindow*)window.get())->GetView();
+    }
+
+    void SetView(Ref<Window> window, NS::View* view) {
+        return ((GenericWindow*)window.get())->SetView(view);
+    }
+#elif defined(VWOLF_PLATFORM_WINDOWS)
+
+#endif
+
+    GenericWindow::GenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer): Window(), callback(callback), initializer(initializer) {
+        this->width = config.width;
+        this->height = config.height;
+
+        if (driverType != DriverType::OpenGL)
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        
+        std::string appTitle = config.title;
+        // TODO: For now, leave it to see the current driver type
+        appTitle = appTitle + " - " + std::string(DriverName(driverType));
+        m_window = glfwCreateWindow(width, height, appTitle.c_str(), NULL, NULL);
+        if (m_window == NULL)
+        {
+            std::cout << "Failed to create GLFW window" << std::endl;
+            WindowCloseEvent evt;
+            GetCallback().OnEvent(evt);
+            glfwTerminate();
+        }
+        const GLFWvidmode& mode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
+        int w = mode.width, h = mode.height;
+        glfwSetWindowPos(m_window, (w / 2) - (width / 2), (h / 2) - (height / 2));
+        if (config.maximize)
+            glfwMaximizeWindow(m_window);
+        if (driverType == DriverType::OpenGL)
+            glfwMakeContextCurrent(m_window);
+        
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        void * window = glfwGetCocoaWindow(m_window);
+        m_nativeWindow = reinterpret_cast<NS::Window*>(glfwGetCocoaWindow(m_window));
+        VWOLF_CORE_ASSERT(window == m_nativeWindow);
+#elif defined(VWOLF_PLATFORM_WINDOWS)
+        void* window = glfwGetWin32Window(m_window);
+        m_nativeWindow = reinterpret_cast<HWND__*>(glfwGetWin32Window(m_window));
+		VWOLF_CORE_ASSERT(window == m_nativeWindow);
+#endif
+        
+        InitializeEventHandler(m_window);
+    }
+
+    GenericWindow::~GenericWindow() {
+        glfwDestroyWindow(m_window);
+    }
+
+    void GenericWindow::InitializeEventHandler(GLFWwindow* m_window) {
+        // Setting events
+        glfwSetWindowUserPointer(m_window, this);
+        glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window) {
+            GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+    #if VWOLF_USE_EVENT_QUEUE
+            WindowCloseEvent* evt = new WindowCloseEvent;
+            EventQueue::defaultQueue->Queue(evt);
+            data.GetCallback().OnEvent(*evt);
+    #else
+            WindowCloseEvent evt;
+            data.GetCallback().OnEvent(evt);
+    #endif
+            });
+
+        glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height)
+        {
+            GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+            data.SetWidth(width);
+            data.SetHeight(height);
+    #if VWOLF_USE_EVENT_QUEUE
+            WindowResizeEvent* evt = new WindowResizeEvent(width, height);
+            EventQueue::defaultQueue->Queue(evt);
+            data.GetCallback().OnEvent(*evt);
+    #else
+            WindowResizeEvent evt(width, height);
+            data.GetCallback().OnEvent(evt);
+    #endif
+        });
+
+        glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xPos, double yPos)
+        {
+            GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+    #if VWOLF_USE_EVENT_QUEUE
+            MouseMovedEvent* evt = new MouseMovedEvent(xPos, yPos);
+            EventQueue::defaultQueue->Queue(evt);
+            data.GetCallback().OnEvent(*evt);
+    #else
+            MouseMovedEvent evt(xPos, yPos);
+            data.GetCallback().OnEvent(evt);
+    #endif
+        });
+
+        glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xOffset, double yOffset) {
+            GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+    #if VWOLF_USE_EVENT_QUEUE
+            MouseScrolledEvent* evt = new MouseScrolledEvent(xOffset, yOffset);
+            EventQueue::defaultQueue->Queue(evt);
+            data.GetCallback().OnEvent(*evt);
+    #else
+            MouseScrolledEvent evt(xOffset, yOffset);
+            data.GetCallback().OnEvent(evt);
+    #endif
+        });
+
+        glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods)
+        {
+            GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+
+            switch (action) {
+            case GLFW_PRESS:
+            {
+    #if VWOLF_USE_EVENT_QUEUE
+                MouseButtonPressedEvent* evt = new MouseButtonPressedEvent(GetMouseCode(button));
+                EventQueue::defaultQueue->Queue(evt);
+                data.GetCallback().OnEvent(*evt);
+    #else
+                MouseButtonPressedEvent evt(GetMouseCode(button));
+                data.GetCallback().OnEvent(evt);
+    #endif
+            }
+            break;
+            case GLFW_RELEASE:
+            {
+    #if VWOLF_USE_EVENT_QUEUE
+                MouseButtonReleasedEvent* evt = new MouseButtonReleasedEvent(GetMouseCode(button));
+                EventQueue::defaultQueue->Queue(evt);
+                data.GetCallback().OnEvent(*evt);
+    #else
+                MouseButtonReleasedEvent evt(GetMouseCode(button));
+                data.GetCallback().OnEvent(evt);
+    #endif
+            }
+            break;
+            }
+        });
+
+        glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+        {
+            GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+
+            switch (action)
+            {
+            case GLFW_PRESS:
+            {
+    #if VWOLF_USE_EVENT_QUEUE
+                KeyPressedEvent* evt = new KeyPressedEvent(GetKeyCodeFrom(key), GetKeyModsFrom(mods), 0);
+                EventQueue::defaultQueue->Queue(evt);
+                data.GetCallback().OnEvent(*evt);
+    #else
+                KeyPressedEvent evt(GetKeyCodeFrom(key), GetKeyModsFrom(mods), 0);
+                data.GetCallback().OnEvent(evt);
+    #endif
+                break;
+            }
+            case GLFW_RELEASE:
+            {
+    #if VWOLF_USE_EVENT_QUEUE
+                KeyReleasedEvent* evt = new KeyReleasedEvent(GetKeyCodeFrom(key), GetKeyModsFrom(mods));
+                EventQueue::defaultQueue->Queue(evt);
+                data.GetCallback().OnEvent(*evt);
+    #else
+                KeyReleasedEvent evt(GetKeyCodeFrom(key), GetKeyModsFrom(mods));
+                data.GetCallback().OnEvent(evt);
+    #endif
+                break;
+            }
+            case GLFW_REPEAT:
+            {
+    #if VWOLF_USE_EVENT_QUEUE
+                KeyPressedEvent* evt = new KeyPressedEvent(GetKeyCodeFrom(key), GetKeyModsFrom(mods), true);
+                EventQueue::defaultQueue->Queue(evt);
+                data.GetCallback().OnEvent(*evt);
+    #else
+                KeyPressedEvent evt(GetKeyCodeFrom(key), GetKeyModsFrom(mods), true);
+                data.GetCallback().OnEvent(evt);
+    #endif
+                break;
+            }
+            }
+        });
+
+        glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int keycode)
+        {
+            GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+    #if VWOLF_USE_EVENT_QUEUE
+            KeyTypedEvent* evt = new KeyTypedEvent(boost::lexical_cast<std::string>(static_cast<unsigned char>(keycode)));
+            EventQueue::defaultQueue->Queue(evt);
+            data.GetCallback().OnEvent(*evt);
+    #else
+            // For now I'm only using char to string
+            // In the future it should wchar_t to wstring
+            KeyTypedEvent evt(boost::lexical_cast<std::string>(static_cast<unsigned char>(keycode)));
+            data.GetCallback().OnEvent(evt);
+    #endif
+        });
+    }
+
+    void GenericWindow::Initialize() {
+        initializer();
+    }
+
+    void GenericWindow::OnUpdate() {
+        glfwPollEvents();
+    }
+
+    bool GenericWindow::IsMouseButtonPressed(MouseCode button) {
+        return glfwGetMouseButton(m_window, GetMouseFrom(button)) == GLFW_PRESS;
+    }
+
+    std::pair<float, float> GenericWindow::GetMousePosition() {
+        double xpos, ypos;
+        glfwGetCursorPos(m_window, &xpos, &ypos);
+        // Not sure if clamping is the right way to go
+        xpos = std::clamp((int)xpos, 0, width);
+        ypos = std::clamp((int)ypos, 0, height);
+        return std::make_pair<float, float>((float)xpos, (float)ypos);
+    }
+    bool GenericWindow::IsKeyPressed(KeyCode key) {
+        return glfwGetKey(m_window, GetKeyFrom(key)) == GLFW_PRESS;
+    }
+
+    void* GenericWindow::GetNativeWindow() {
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+        return m_nativeWindow;
+#elif defined(VWOLF_PLATFORM_WINDOWS)
+        return m_nativeWindow;
+#endif
     }
 }

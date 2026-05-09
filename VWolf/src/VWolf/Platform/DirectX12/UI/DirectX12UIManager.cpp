@@ -10,7 +10,7 @@
 #include "VWolf/Platform/DirectX12/Core/DX12Device.h"
 #include "VWolf/Platform/DirectX12/Core/DX12Command.h"
 
-#include "VWolf/Platform/ImGUI/backends/imgui_impl_win32.h"
+#include "VWolf/Platform/ImGUI/backends/imgui_impl_glfw.h"
 #include "VWolf/Platform/ImGUI/backends/imgui_impl_dx12.h"
 
 #define NUM_FRAMES_IN_FLIGHT 2
@@ -19,7 +19,9 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 namespace VWolf {
 
-	DirectX12UIManager::DirectX12UIManager(HWND__* window) : m_window(window)
+	extern GLFWwindow* GetGLFWWindow(Ref<Window> genericWindow);
+	
+	DirectX12UIManager::DirectX12UIManager()
 	{
 		// TODO: Replace with heap inside driver instead
 		/*heap = CreateRef<DX12DescriptorHeap>(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -40,7 +42,7 @@ namespace VWolf {
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
 		// Setup Platform/Renderer backends
-		ImGui_ImplWin32_Init(m_window);
+		ImGui_ImplGlfw_InitForOther(GetGLFWWindow(DirectX12Driver::GetCurrent()->GetWindow()), true);
 		auto descriptor = DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap()->Allocate();
 		ImGui_ImplDX12_Init(DirectX12Driver::GetCurrent()->GetDevice()->GetDevice().Get(), NUM_FRAMES_IN_FLIGHT,
 			DXGI_FORMAT_R8G8B8A8_UNORM, DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap()->GetHeap().Get(),
@@ -50,7 +52,7 @@ namespace VWolf {
 	void DirectX12UIManager::Terminate()
 	{
 		ImGui_ImplDX12_Shutdown();
-		ImGui_ImplWin32_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
 	void DirectX12UIManager::Render()
@@ -61,14 +63,10 @@ namespace VWolf {
 	void DirectX12UIManager::NewFrame()
 	{
 		ImGui_ImplDX12_NewFrame();
-		ImGui_ImplWin32_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
 	}
 	bool DirectX12UIManager::OnEvent(Event& evt) {
 		return false;
-	}
-
-	LRESULT DirectX12UIManager::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
-		return ImGui_ImplWin32_WndProcHandler(m_window, uMsg, wParam, lParam);
 	}
 }
 #endif
