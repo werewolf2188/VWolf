@@ -42,7 +42,5 @@ namespace VWolf {
 		static long long m_frameCount;
 	};
 
-    class GenericTime;
-
     Ref<Time> CreateGenericTime();
 }

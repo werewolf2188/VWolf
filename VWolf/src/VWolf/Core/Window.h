@@ -34,7 +34,5 @@ namespace VWolf {
 		bool vsync = false;
 	};
 
-    class GenericWindow;
-
     Ref<Window> CreateGenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer = [](){});
 }
