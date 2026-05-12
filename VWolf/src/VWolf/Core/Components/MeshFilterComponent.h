@@ -11,6 +11,7 @@
 #include "VWolf/Core/Render/RenderStructs.h"
 
 #include "VWolf/Core/Utils/OBJLoader.h"
+#include "VWolf/Core/Utils/GenericSerialization.h"
 
 namespace VWolf {
     class MeshFilterComponent: public Component {
@@ -34,6 +35,13 @@ namespace VWolf {
     private:
         MeshData data;
         std::filesystem::path path;
-    VWOLF_COMPONENT_INSPECTOR_DEFINE(MeshFilterComponent);
+        VWOLF_COMPONENT_INSPECTOR_DEFINE(MeshFilterComponent);
+        BOOST_DESCRIBE_CLASS(MeshFilterComponent, (Component), (), (id), (path))
+        
+        VWOLF_SERIALIZATION_FRIENDS(MeshFilterComponent)
     };
+}
+
+namespace YAML {
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::MeshFilterComponent)
 }

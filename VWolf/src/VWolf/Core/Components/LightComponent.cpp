@@ -21,9 +21,11 @@ namespace VWolf {
         light.direction = { 0.0f, 0.0f, 0.0f, 0.0f };
     }
 
-    LightComponent::LightComponent(LightComponent& light): Component("Light"), light(light.light) {}
+    LightComponent::LightComponent(LightComponent& light):
+    Component("Light", light.id), light(light.light) {}
 
-    LightComponent::LightComponent(LightComponent&& light): Component("Light"), light(std::move(light.light)) {}
+    LightComponent::LightComponent(LightComponent&& light):
+    Component("Light", light.id), light(std::move(light.light)) {}
 
     LightComponent::~LightComponent() {}
 
@@ -46,4 +48,6 @@ namespace VWolf {
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(LightComponent);
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(LightComponent, "LightComponent")
 }

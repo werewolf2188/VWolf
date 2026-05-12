@@ -32,6 +32,13 @@ namespace VWolf {
         LightComponent& operator=(LightComponent& light);
     private:
         Light light;
-    VWOLF_COMPONENT_INSPECTOR_DEFINE(LightComponent);
+        VWOLF_COMPONENT_INSPECTOR_DEFINE(LightComponent);
+        BOOST_DESCRIBE_CLASS(LightComponent, (Component), (), (id), (light))
+        
+        VWOLF_SERIALIZATION_FRIENDS(LightComponent)
     };
+}
+
+namespace YAML {
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::LightComponent)
 }

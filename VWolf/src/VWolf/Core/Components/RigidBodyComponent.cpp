@@ -18,7 +18,8 @@ namespace VWolf {
 
     }
 
-    RigidBodyComponent::RigidBodyComponent(RigidBodyComponent& rigidBody): Component("RigidBody") {
+    RigidBodyComponent::RigidBodyComponent(RigidBodyComponent& rigidBody):
+    Component("RigidBody", rigidBody.id) {
         this->mMass = rigidBody.mMass;
         this->mDrag = rigidBody.mDrag;
         this->mAngularDrag = rigidBody.mAngularDrag;
@@ -26,7 +27,8 @@ namespace VWolf {
         this->mBodyType = rigidBody.mBodyType;
     }
 
-    RigidBodyComponent::RigidBodyComponent(RigidBodyComponent&& rigidBody): Component("RigidBody") {
+    RigidBodyComponent::RigidBodyComponent(RigidBodyComponent&& rigidBody):
+    Component("RigidBody", rigidBody.id) {
         this->mMass = rigidBody.mMass;
         this->mDrag = rigidBody.mDrag;
         this->mAngularDrag = rigidBody.mAngularDrag;
@@ -88,4 +90,6 @@ namespace VWolf {
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(RigidBodyComponent);
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(RigidBodyComponent, "RigidBodyComponent")
 }

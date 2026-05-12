@@ -21,12 +21,14 @@ namespace VWolf {
     }
 
     MeshFilterComponent::MeshFilterComponent(MeshFilterComponent& component):
-    Component("Mesh Filter"), data(component.data), path(component.path) {
+    Component("Mesh Filter", component.id), data(component.data), path(component.path) {
+        Load();
         this->SetGameObject(component.GetGameObject());
     }
 
     MeshFilterComponent::MeshFilterComponent(MeshFilterComponent&& component):
-    Component("Mesh Filter"), data(component.data), path(component.path) {
+    Component("Mesh Filter", component.id), data(component.data), path(component.path) {
+        Load();
         this->SetGameObject(component.GetGameObject());
     }
 
@@ -54,4 +56,5 @@ namespace VWolf {
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(MeshFilterComponent);
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(MeshFilterComponent, "MeshFilterComponent")
 }

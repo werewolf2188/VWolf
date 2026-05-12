@@ -10,6 +10,7 @@
 #include "entt/entt.hpp"
 
 #include "VWolf/Core/IIdentifiable.h"
+#include <boost/describe.hpp>
 
 namespace VWolf {
 
@@ -21,6 +22,7 @@ namespace VWolf {
     class Component: public IIdentifiable {
     public:
         Component(std::string name);
+        Component(std::string name, UUID id);
         ~Component();
     public:
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) = 0;
@@ -33,6 +35,8 @@ namespace VWolf {
     private:
         std::string name;
         GameObject* gameObject;
+        
+        BOOST_DESCRIBE_CLASS(Component, (IIdentifiable), (), (id), ())
     };
 
     template<typename T>

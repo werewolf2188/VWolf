@@ -9,6 +9,7 @@
 
 #include "BaseComponent.h"
 #include "VWolf/Core/Render/RenderStructs.h"
+#include "VWolf/Core/Utils/GenericSerialization.h"
 
 namespace reactphysics3d{
     class SphereShape;
@@ -42,5 +43,11 @@ namespace VWolf {
         float mRadius = 1;
 
         VWOLF_COMPONENT_INSPECTOR_DEFINE(SphereColliderComponent);
+        BOOST_DESCRIBE_CLASS(SphereColliderComponent, (Component), (), (id), (mRadius))
+        VWOLF_SERIALIZATION_FRIENDS(SphereColliderComponent)
     };
+}
+
+namespace YAML {
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::SphereColliderComponent)
 }

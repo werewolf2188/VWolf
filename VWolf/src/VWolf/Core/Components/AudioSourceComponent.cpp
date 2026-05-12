@@ -17,13 +17,15 @@ namespace VWolf {
         Initialize();
     }
 
-    AudioSourceComponent::AudioSourceComponent(AudioSourceComponent& audioSource): Component("AudioSource") {
+    AudioSourceComponent::AudioSourceComponent(AudioSourceComponent& audioSource):
+    Component("AudioSource", audioSource.id) {
         this->audioFilePath = audioSource.audioFilePath;
         this->mLoop = audioSource.mLoop;
         Initialize();
     }
 
-    AudioSourceComponent::AudioSourceComponent(AudioSourceComponent&& audioSource): Component("AudioSource") {
+    AudioSourceComponent::AudioSourceComponent(AudioSourceComponent&& audioSource):
+    Component("AudioSource", audioSource.id) {
         this->audioFilePath = audioSource.audioFilePath;
         this->mLoop = audioSource.mLoop;
 
@@ -111,4 +113,6 @@ namespace VWolf {
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(AudioSourceComponent);
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(AudioSourceComponent, "AudioSourceComponent")
 }

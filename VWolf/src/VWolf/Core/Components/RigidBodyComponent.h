@@ -9,6 +9,8 @@
 
 #include "BaseComponent.h"
 
+#include "VWolf/Core/Utils/GenericSerialization.h"
+
 namespace reactphysics3d {
     class RigidBody;
     class PhysicsWorld;
@@ -59,5 +61,11 @@ namespace VWolf {
         uint32_t mBodyType = 2; // enum class BodyType {STATIC, KINEMATIC, DYNAMIC};
         
         VWOLF_COMPONENT_INSPECTOR_DEFINE(RigidBodyComponent);
+        BOOST_DESCRIBE_CLASS(RigidBodyComponent, (Component), (), (id), (mMass, mDrag, mAngularDrag, mUseGravity, mBodyType))
+        VWOLF_SERIALIZATION_FRIENDS(RigidBodyComponent)
     };
+}
+
+namespace YAML {
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::RigidBodyComponent)
 }

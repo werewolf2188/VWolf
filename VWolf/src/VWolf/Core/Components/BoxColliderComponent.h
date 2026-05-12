@@ -10,6 +10,8 @@
 #include "BaseComponent.h"
 #include "VWolf/Core/Render/RenderStructs.h"
 
+#include "VWolf/Core/Utils/GenericSerialization.h"
+
 namespace reactphysics3d{
     class BoxShape;
     class Collider;
@@ -37,5 +39,11 @@ namespace VWolf {
         Vector3 scale;
 
         VWOLF_COMPONENT_INSPECTOR_DEFINE(BoxColliderComponent);
+        BOOST_DESCRIBE_CLASS(BoxColliderComponent, (Component), (), (id), ())
+        VWOLF_SERIALIZATION_FRIENDS(BoxColliderComponent)
     };
+}
+
+namespace YAML {
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::BoxColliderComponent)
 }

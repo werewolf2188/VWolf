@@ -18,6 +18,11 @@ if (v.HasComponent<T>()) {\
     out << YAML::EndMap;\
 }
 
+#define SERIALIZE_COMPONENT2(T) \
+if (v.HasComponent<T>()) {\
+    out << v.GetComponent<T>();\
+}
+
 #define DESERIALIZE_COMPONENT(T) \
 if (component[gameObjectKeys[GameObjectConstantKeys::T]]) { \
     VWolf::T temp = component[gameObjectKeys[GameObjectConstantKeys::T]] \
@@ -106,18 +111,18 @@ namespace VWolf {
         out << YAML::Key << gameObjectKeys[GameObjectConstantKeys::Components];
         out << YAML::BeginSeq;
 
-        SERIALIZE_COMPONENT(TransformComponent)
-        SERIALIZE_COMPONENT(ShapeRendererComponent)
-        SERIALIZE_COMPONENT(MeshFilterComponent)
-        SERIALIZE_COMPONENT(MeshRendererComponent)
-        SERIALIZE_COMPONENT(LightComponent)
-        SERIALIZE_COMPONENT(CameraComponent)
-        SERIALIZE_COMPONENT(RigidBodyComponent)
-        SERIALIZE_COMPONENT(MeshColliderComponent)
-        SERIALIZE_COMPONENT(SphereColliderComponent)
-        SERIALIZE_COMPONENT(BoxColliderComponent)
-        SERIALIZE_COMPONENT(AudioListenerComponent)
-        SERIALIZE_COMPONENT(AudioSourceComponent)
+        SERIALIZE_COMPONENT2(TransformComponent)
+        SERIALIZE_COMPONENT2(ShapeRendererComponent)
+        SERIALIZE_COMPONENT2(MeshFilterComponent)
+        SERIALIZE_COMPONENT2(MeshRendererComponent)
+        SERIALIZE_COMPONENT2(LightComponent)
+        SERIALIZE_COMPONENT2(CameraComponent)
+        SERIALIZE_COMPONENT2(RigidBodyComponent)
+        SERIALIZE_COMPONENT2(MeshColliderComponent)
+        SERIALIZE_COMPONENT2(SphereColliderComponent)
+        SERIALIZE_COMPONENT2(BoxColliderComponent)
+        SERIALIZE_COMPONENT2(AudioListenerComponent)
+        SERIALIZE_COMPONENT2(AudioSourceComponent)
 
         out << YAML::EndSeq;
         out << YAML::EndMap;

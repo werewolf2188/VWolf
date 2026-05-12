@@ -9,6 +9,7 @@
 
 #include "BaseComponent.h"
 #include "VWolf/Core/Math/VMath.h"
+#include "VWolf/Core/Utils/GenericSerialization.h"
 
 struct ma_engine;
 struct ma_sound;
@@ -43,11 +44,17 @@ namespace VWolf {
         std::filesystem::path audioFilePath;
         std::string fileTemp;
         bool mLoop;
+        BOOST_DESCRIBE_CLASS(AudioSourceComponent, (Component), (), (id), (audioFilePath, mLoop))
 
         ma_engine* engine = nullptr;
         ma_sound* sound = nullptr;
 
         Vector3 listenerPosition, listenerDirection;
-    VWOLF_COMPONENT_INSPECTOR_DEFINE(AudioSourceComponent);
+        VWOLF_COMPONENT_INSPECTOR_DEFINE(AudioSourceComponent);
+        VWOLF_SERIALIZATION_FRIENDS(AudioSourceComponent)
     };
+}
+
+namespace YAML {
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::AudioSourceComponent)
 }
