@@ -70,15 +70,3 @@ namespace VWolf {
 namespace YAML {
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::CameraComponent)
 }
-
-/*
- ID: ed229df6-1995-4db8-a5aa-c8905ce0ba7b
-             ViewportWidth: 1280
-             ViewportHeight: 720
-             FOV: 45
-             AspectRatio: 1.778
-             NearClip: 0.100000001
-             FarClip: 1000
-             Zoom: 0
-             IsOrthographic: false
- */

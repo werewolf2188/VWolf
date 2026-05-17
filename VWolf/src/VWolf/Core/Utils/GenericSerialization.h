@@ -151,6 +151,18 @@ namespace VWolf {
 
     template<class T,
     class Md = boost::describe::describe_members<T,boost::describe::mod_any_access>>
+    YAML::Emitter& SerializeFromBoostOnlyMembers(YAML::Emitter& out, const T& v)
+    {
+        boost::mp11::mp_for_each<Md>([&](auto D){
+            using propertType = std::remove_reference_t<decltype(v.*D.pointer)>;
+            out << YAML::Key << D.name << YAML::Value << v.*D.pointer;
+        });
+
+        return out;
+    }
+
+    template<class T,
+    class Md = boost::describe::describe_members<T,boost::describe::mod_any_access>>
     YAML::Emitter& SerializeFromBoostDescribeNoName(YAML::Emitter& out, const T& v)
     {
         out << YAML::BeginMap;
@@ -168,6 +180,28 @@ namespace VWolf {
     {
         out << YAML::BeginMap;
         out << YAML::Key << typeid(T).name();
+        SerializeFromBoostDescribeNoName(out, v);
+        out << YAML::EndMap;
+        return out;
+    }
+
+    template<class T,
+    class Md = boost::describe::describe_members<T,boost::describe::mod_any_access>>
+    YAML::Emitter& SerializeFromBoostDescribe(YAML::Emitter& out, const T& v)
+    {
+        out << YAML::BeginMap;
+        out << YAML::Key << typeid(T).name();
+        SerializeFromBoostDescribeNoName(out, v);
+        out << YAML::EndMap;
+        return out;
+    }
+
+    template<class T,
+    class Md = boost::describe::describe_members<T,boost::describe::mod_any_access>>
+    YAML::Emitter& SerializeFromBoostDescribe(YAML::Emitter& out, T& v, std::string name)
+    {
+        out << YAML::BeginMap;
+        out << YAML::Key << name;
         SerializeFromBoostDescribeNoName(out, v);
         out << YAML::EndMap;
         return out;

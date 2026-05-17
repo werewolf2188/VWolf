@@ -14,8 +14,18 @@
 #include "VWolf/Core/IIdentifiable.h"
 #include "VWolf/Core/SceneManagement/Scene.h"
 
+#include "VWolf/Core/Utils/GenericSerialization.h"
+
 namespace reactphysics3d{
     class RigidBody;
+}
+
+namespace VWolf {
+    class GameObject;
+}
+
+namespace YAML {
+    bool DeserializeComponents(const Node& node, VWolf::GameObject& rhs);
 }
 
 namespace VWolf {
@@ -60,9 +70,22 @@ namespace VWolf {
             VWOLF_CLIENT_ASSERT(HasComponent<T>(), "Entity does not have component!");
             return scene->CurrentRegistry().get<T>(handle);
         }
+        
+        template<typename T>
+        T& GetComponent() const
+        {
+            VWOLF_CLIENT_ASSERT(HasComponent<T>(), "Entity does not have component!");
+            return scene->CurrentRegistry().get<T>(handle);
+        }
 
         template<typename T>
         bool HasComponent()
+        {
+            return scene->CurrentRegistry().try_get<T>(handle);
+        }
+        
+        template<typename T>
+        bool HasComponent() const
         {
             return scene->CurrentRegistry().try_get<T>(handle);
         }
@@ -100,5 +123,23 @@ namespace VWolf {
         std::vector<Component*> currentComponents;
 
         reactphysics3d::RigidBody* mRigidBody = nullptr;
+        
+        BOOST_DESCRIBE_CLASS(GameObject, (IIdentifiable), (), (id), (name))
+        VWOLF_SERIALIZATION_FRIENDS(GameObject)
+        
+        friend bool YAML::DeserializeComponents(const YAML::Node& node, VWolf::GameObject& rhs);
+    };
+}
+
+namespace YAML {
+    template<>
+    struct convert<VWolf::GameObject> {
+        static bool decode(const Node& node, VWolf::GameObject& rhs)
+        {
+            bool boostDeserialization = DeserializeFromBoostDescribe(node, rhs);
+            bool componentsDeserialization = DeserializeComponents(node, rhs);
+            
+            return boostDeserialization && componentsDeserialization;
+        }
     };
 }
