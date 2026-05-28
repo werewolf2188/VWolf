@@ -40,7 +40,13 @@ namespace YAML {
         template <typename type>
         void operator()(type) const {
             std::string typeName = boost::typeindex::type_id_with_cvr<type>().pretty_name();
+
+#ifdef VWOLF_PLATFORM_WINDOWS
+            std::string toRemove = "class VWolf::";
+#elif defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
             std::string toRemove = "VWolf::";
+#endif
+
             size_t pos = typeName.find(toRemove);
             if (pos != std::string::npos) {
                 typeName.erase(pos, toRemove.length());
