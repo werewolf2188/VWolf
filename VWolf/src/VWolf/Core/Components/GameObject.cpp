@@ -10,37 +10,60 @@
 #include "GameObject.h"
 #include "Components.h"
 
-#define DESERIALIZE_COMPONENT(T) \
-if (nodeComponent[#T]) { \
-    VWolf::T temp  = nodeComponent[#T].as<VWolf::T>(); \
-    rhs.AddComponent<VWolf::T>(temp); \
-}
+#include <boost/type_index.hpp>
 
-#define SERIALIZE_COMPONENT(T) \
-if (v.HasComponent<T>()) {\
-    out << v.GetComponent<T>();\
-}
+template <typename... Ts>
+struct TypeList {
+    template <typename F>
+    static void for_each(F&& f) {
+        // Expand the pack Ts... and call f for each type T
+        (f.template operator()<Ts>(), ...);
+    }
+};
+
+using AllComponents = TypeList<
+                        VWolf::TransformComponent,
+                        VWolf::ShapeRendererComponent,
+                        VWolf::MeshFilterComponent,
+                        VWolf::MeshRendererComponent,
+                        VWolf::LightComponent,
+                        VWolf::CameraComponent,
+                        VWolf::RigidBodyComponent,
+                        VWolf::MeshColliderComponent,
+                        VWolf::SphereColliderComponent,
+                        VWolf::BoxColliderComponent,
+                        VWolf::AudioListenerComponent,
+                        VWolf::AudioSourceComponent
+                    >;
 
 const std::string componentKey = "Components";
 
 namespace YAML {
 
+    template<typename type>
+    bool DeserializeComponent(const Node& node, VWolf::GameObject& rhs) {
+
+        std::string typeName = boost::typeindex::type_id_with_cvr<type>().pretty_name();
+        std::string toRemove = "VWolf::";
+        size_t pos = typeName.find(toRemove);
+        if (pos != std::string::npos) {
+            typeName.erase(pos, toRemove.length());
+        }
+        if (node[typeName]) {
+            type temp  = node[typeName].as<type>();
+            rhs.AddComponent<type>(temp);
+        }
+        return true;
+    }
+
     bool DeserializeComponents(const Node& node, VWolf::GameObject& rhs) {
         rhs.AttachToScene(VWolf::Scene::currentScene);
         if (node[componentKey]) {
             for (auto& nodeComponent: node[componentKey]) {
-                DESERIALIZE_COMPONENT(TransformComponent)
-                DESERIALIZE_COMPONENT(ShapeRendererComponent)
-                DESERIALIZE_COMPONENT(MeshFilterComponent)
-                DESERIALIZE_COMPONENT(MeshRendererComponent)
-                DESERIALIZE_COMPONENT(LightComponent)
-                DESERIALIZE_COMPONENT(CameraComponent)
-                DESERIALIZE_COMPONENT(RigidBodyComponent)
-                DESERIALIZE_COMPONENT(MeshColliderComponent)
-                DESERIALIZE_COMPONENT(SphereColliderComponent)
-                DESERIALIZE_COMPONENT(BoxColliderComponent)
-                DESERIALIZE_COMPONENT(AudioListenerComponent)
-                DESERIALIZE_COMPONENT(AudioSourceComponent)
+                
+                AllComponents::for_each([&]<typename T>() {
+                    DeserializeComponent<T>(nodeComponent, rhs);
+                });
             }
         }
         return true;
@@ -49,22 +72,29 @@ namespace YAML {
 
 namespace VWolf {
     
+    template<typename T>
+    YAML::Emitter& SerializeComponent(YAML::Emitter& out, GameObject& v) {
+        if (v.HasComponent<T>()) {
+            out << v.GetComponent<T>();
+        }
+        return out;
+    }
+
+    template<typename T>
+    YAML::Emitter& SerializeComponent(YAML::Emitter& out, const GameObject& v) {
+        if (v.HasComponent<T>()) {
+            out << v.GetComponent<T>();
+        }
+        return out;
+    }
+
     YAML::Emitter& SerializeComponents(YAML::Emitter& out, GameObject& v) {
         out << YAML::Key << componentKey;
         out << YAML::BeginSeq;
 
-        SERIALIZE_COMPONENT(TransformComponent)
-        SERIALIZE_COMPONENT(ShapeRendererComponent)
-        SERIALIZE_COMPONENT(MeshFilterComponent)
-        SERIALIZE_COMPONENT(MeshRendererComponent)
-        SERIALIZE_COMPONENT(LightComponent)
-        SERIALIZE_COMPONENT(CameraComponent)
-        SERIALIZE_COMPONENT(RigidBodyComponent)
-        SERIALIZE_COMPONENT(MeshColliderComponent)
-        SERIALIZE_COMPONENT(SphereColliderComponent)
-        SERIALIZE_COMPONENT(BoxColliderComponent)
-        SERIALIZE_COMPONENT(AudioListenerComponent)
-        SERIALIZE_COMPONENT(AudioSourceComponent)
+        AllComponents::for_each([&]<typename T>() {
+            SerializeComponent<T>(out, v);
+        });
 
         out << YAML::EndSeq;
         return out;
@@ -74,18 +104,9 @@ namespace VWolf {
         out << YAML::Key << componentKey;
         out << YAML::BeginSeq;
 
-        SERIALIZE_COMPONENT(TransformComponent)
-        SERIALIZE_COMPONENT(ShapeRendererComponent)
-        SERIALIZE_COMPONENT(MeshFilterComponent)
-        SERIALIZE_COMPONENT(MeshRendererComponent)
-        SERIALIZE_COMPONENT(LightComponent)
-        SERIALIZE_COMPONENT(CameraComponent)
-        SERIALIZE_COMPONENT(RigidBodyComponent)
-        SERIALIZE_COMPONENT(MeshColliderComponent)
-        SERIALIZE_COMPONENT(SphereColliderComponent)
-        SERIALIZE_COMPONENT(BoxColliderComponent)
-        SERIALIZE_COMPONENT(AudioListenerComponent)
-        SERIALIZE_COMPONENT(AudioSourceComponent)
+        AllComponents::for_each([&]<typename T>() {
+            SerializeComponent<T>(out, v);
+        });
 
         out << YAML::EndSeq;
         return out;
