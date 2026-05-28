@@ -11,17 +11,10 @@
 #include "Components.h"
 
 #include <boost/type_index.hpp>
+#include <boost/mpl/list.hpp>
+#include <boost/mpl/for_each.hpp>
 
-template <typename... Ts>
-struct TypeList {
-    template <typename F>
-    static void for_each(F&& f) {
-        // Expand the pack Ts... and call f for each type T
-        (f.template operator()<Ts>(), ...);
-    }
-};
-
-using AllComponents = TypeList<
+using AllComponents = boost::mpl::list<
                         VWolf::TransformComponent,
                         VWolf::ShapeRendererComponent,
                         VWolf::MeshFilterComponent,
@@ -39,31 +32,34 @@ using AllComponents = TypeList<
 const std::string componentKey = "Components";
 
 namespace YAML {
-
-    template<typename type>
-    bool DeserializeComponent(const Node& node, VWolf::GameObject& rhs) {
-
-        std::string typeName = boost::typeindex::type_id_with_cvr<type>().pretty_name();
-        std::string toRemove = "VWolf::";
-        size_t pos = typeName.find(toRemove);
-        if (pos != std::string::npos) {
-            typeName.erase(pos, toRemove.length());
+    struct ComponentDeserializer {
+    public:
+        ComponentDeserializer(const Node& node, VWolf::GameObject& rhs):
+        node(node), rhs(rhs) {}
+        
+        template <typename type>
+        void operator()(type) const {
+            std::string typeName = boost::typeindex::type_id_with_cvr<type>().pretty_name();
+            std::string toRemove = "VWolf::";
+            size_t pos = typeName.find(toRemove);
+            if (pos != std::string::npos) {
+                typeName.erase(pos, toRemove.length());
+            }
+            if (node[typeName]) {
+                type temp  = node[typeName].as<type>();
+                rhs.AddComponent<type>(temp);
+            }
         }
-        if (node[typeName]) {
-            type temp  = node[typeName].as<type>();
-            rhs.AddComponent<type>(temp);
-        }
-        return true;
-    }
+    private:
+        const Node& node;
+        VWolf::GameObject& rhs;
+    };
 
     bool DeserializeComponents(const Node& node, VWolf::GameObject& rhs) {
         rhs.AttachToScene(VWolf::Scene::currentScene);
         if (node[componentKey]) {
             for (auto& nodeComponent: node[componentKey]) {
-                
-                AllComponents::for_each([&]<typename T>() {
-                    DeserializeComponent<T>(nodeComponent, rhs);
-                });
+                boost::mpl::for_each<AllComponents>(ComponentDeserializer(nodeComponent, rhs));
             }
         }
         return true;
@@ -72,29 +68,30 @@ namespace YAML {
 
 namespace VWolf {
     
-    template<typename T>
-    YAML::Emitter& SerializeComponent(YAML::Emitter& out, GameObject& v) {
-        if (v.HasComponent<T>()) {
-            out << v.GetComponent<T>();
+    struct ComponentSerializer {
+    public:
+        ComponentSerializer(YAML::Emitter& out, VWolf::GameObject& v):
+        out(out), v(v) {}
+        
+        ComponentSerializer(YAML::Emitter& out, const VWolf::GameObject& v):
+        out(out), v(v) {}
+        
+        template <typename T>
+        void operator()(T) const {
+            if (v.HasComponent<T>()) {
+                out << v.GetComponent<T>();
+            }
         }
-        return out;
-    }
-
-    template<typename T>
-    YAML::Emitter& SerializeComponent(YAML::Emitter& out, const GameObject& v) {
-        if (v.HasComponent<T>()) {
-            out << v.GetComponent<T>();
-        }
-        return out;
-    }
+    private:
+        YAML::Emitter& out;
+        const VWolf::GameObject& v;
+    };
 
     YAML::Emitter& SerializeComponents(YAML::Emitter& out, GameObject& v) {
         out << YAML::Key << componentKey;
         out << YAML::BeginSeq;
 
-        AllComponents::for_each([&]<typename T>() {
-            SerializeComponent<T>(out, v);
-        });
+        boost::mpl::for_each<AllComponents>(ComponentSerializer(out, v));
 
         out << YAML::EndSeq;
         return out;
@@ -104,10 +101,8 @@ namespace VWolf {
         out << YAML::Key << componentKey;
         out << YAML::BeginSeq;
 
-        AllComponents::for_each([&]<typename T>() {
-            SerializeComponent<T>(out, v);
-        });
-
+        boost::mpl::for_each<AllComponents>(ComponentSerializer(out, v));
+        
         out << YAML::EndSeq;
         return out;
     }

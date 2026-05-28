@@ -37,6 +37,7 @@ namespace VWolf {
     }
 
     void MeshFilterComponent::Load() {
+        if (path == "") return;
         data = OBJLoader::Load(path.string(), path.filename().string());
     }
 
