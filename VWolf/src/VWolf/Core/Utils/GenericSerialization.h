@@ -154,7 +154,6 @@ namespace VWolf {
     YAML::Emitter& SerializeFromBoostOnlyMembers(YAML::Emitter& out, const T& v)
     {
         boost::mp11::mp_for_each<Md>([&](auto D){
-            using propertType = std::remove_reference_t<decltype(v.*D.pointer)>;
             out << YAML::Key << D.name << YAML::Value << v.*D.pointer;
         });
 
@@ -167,8 +166,8 @@ namespace VWolf {
     {
         out << YAML::BeginMap;
         boost::mp11::mp_for_each<Md>([&](auto D){
-            using propertType = std::remove_reference_t<decltype(v.*D.pointer)>;
-            out << YAML::Key << D.name << YAML::Value << v.*D.pointer;
+			T& newV = const_cast<T&>(v);
+            out << YAML::Key << D.name << YAML::Value << newV.*D.pointer;
         });
         out << YAML::EndMap;
         return out;
