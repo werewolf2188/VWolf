@@ -11,9 +11,11 @@
 namespace VWolf {
     AudioListenerComponent::AudioListenerComponent(): Component("AudioListener") {}
 
-    AudioListenerComponent::AudioListenerComponent(AudioListenerComponent& audioListener): Component("AudioListener") {}
+    AudioListenerComponent::AudioListenerComponent(AudioListenerComponent& audioListener):
+    Component("AudioListener", audioListener.id) {}
 
-    AudioListenerComponent::AudioListenerComponent(AudioListenerComponent&& audioListener): Component("AudioListener") {}
+    AudioListenerComponent::AudioListenerComponent(AudioListenerComponent&& audioListener):
+    Component("AudioListener", audioListener.id) {}
 
     AudioListenerComponent::~AudioListenerComponent() {}
 
@@ -27,4 +29,6 @@ namespace VWolf {
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(AudioListenerComponent);
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(AudioListenerComponent, "AudioListenerComponent")
 }

@@ -12,7 +12,13 @@
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 
-#include "Serialization/Project.h"
+static std::string PROJECT_KEY = "Project";
+static std::string ID_KEY = "id";
+static std::string NAME_KEY = "name";
+static std::string DRIVER_KEY = "driver";
+static std::string EDITOR_CAMERA_KEY = "editor_camera";
+static std::string CURRENT_SCENE_KEY = "current_scene";
+static std::string RELATIVE_PATH_KEY = "relative_path";
 
 namespace VWolfPup {
 
@@ -123,6 +129,18 @@ namespace VWolfPup {
         m_Distance = controller->GetDistance();
     }
 
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolfPup::Project::EditorCamera& v)
+    {
+        out << YAML::Key << EDITOR_CAMERA_KEY;
+        return VWolf::SerializeFromBoostDescribeNoName(out, v);
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const VWolfPup::Project::EditorCamera& v)
+    {
+        out << YAML::Key << EDITOR_CAMERA_KEY;
+        return VWolf::SerializeFromBoostDescribeNoName(out, v);
+    }
+
     void Project::Settings::Save() {
         YAML::Emitter out;
         out << *this;
@@ -145,16 +163,58 @@ namespace VWolfPup {
             VWOLF_CLIENT_ERROR("Failed to load .project settings file '%s'\n     %s", path.string().c_str(), e.what());
             throw std::filesystem::filesystem_error("Failed to load .project settings file", path, std::error_code());
         }
-
-        if (!data[projectKeys[ProjectObjectsConstantKeys::Project]])
-            return;
         
-        Settings settings = data[projectKeys[ProjectObjectsConstantKeys::Project]].as<Settings>();
+        Settings settings = data[PROJECT_KEY].as<Settings>();
         // TODO: Should do a copy constructor
         this->id = settings.id;
         this->type = settings.type;
         this->editorCameraSettings = settings.editorCameraSettings;
         this->currentSceneRelativePath = settings.currentSceneRelativePath;
+    }
+
+    bool Project::Settings::Load(const YAML::Node &node) {
+        this->id = node[ID_KEY].as<VWolf::UUID>();
+        this->type = VWolf::GetDriverType(node[DRIVER_KEY].as<std::string>().c_str());
+        this->editorCameraSettings = node[EDITOR_CAMERA_KEY].as<VWolfPup::Project::EditorCamera>();
+        this->currentSceneRelativePath = node[CURRENT_SCENE_KEY][RELATIVE_PATH_KEY].as<std::string>();
+        
+        return true;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolfPup::Project::Settings& v)
+    {
+        out << YAML::BeginMap;
+        out << YAML::Key << PROJECT_KEY;
+        out << YAML::BeginMap;
+        out << YAML::Key << ID_KEY<< YAML::Value << v.id;
+        out << YAML::Key << NAME_KEY << YAML::Value << v.GetProjectName();
+        out << YAML::Key << DRIVER_KEY<< YAML::Value << VWolf::DriverName(v.GetType());
+        out << v.editorCameraSettings;
+        out << YAML::Key << CURRENT_SCENE_KEY;
+        out << YAML::BeginMap;
+        out << YAML::Key << RELATIVE_PATH_KEY << YAML::Value << v.GetCurrentSceneRelativePath();
+        out << YAML::EndMap;
+        out << YAML::EndMap;
+        out << YAML::EndMap;
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const VWolfPup::Project::Settings& v)
+    {
+        out << YAML::BeginMap;
+        out << YAML::Key << PROJECT_KEY;
+        out << YAML::BeginMap;
+        out << YAML::Key << ID_KEY << YAML::Value << v.id;
+        out << YAML::Key << NAME_KEY << YAML::Value << v.GetProjectName();
+        out << YAML::Key << DRIVER_KEY << YAML::Value << VWolf::DriverName(v.type);
+        out << v.editorCameraSettings;
+        out << YAML::Key << CURRENT_SCENE_KEY;
+        out << YAML::BeginMap;
+        out << YAML::Key << RELATIVE_PATH_KEY << YAML::Value << v.GetCurrentSceneRelativePath();
+        out << YAML::EndMap;
+        out << YAML::EndMap;
+        out << YAML::EndMap;
+        return out;
     }
 
     Project::Project(std::filesystem::path path):
@@ -171,7 +231,7 @@ namespace VWolfPup {
         std::vector<std::filesystem::path> sceneFiles;
         LoadObjects(GetAssetsPath(), sceneFiles);
         for(auto const& sceneFile : sceneFiles) {
-            VWolf::Ref<VWolf::Scene> scene = VWolf::SceneSerializer::Deserialize(sceneFile);
+            VWolf::Ref<VWolf::Scene> scene = VWolf::Scene::Load(sceneFile);
             auto path = GetAssetsPath() / settings.GetCurrentSceneRelativePath();
             if (path ==sceneFile)
                 currentScene = scene;
@@ -207,7 +267,7 @@ namespace VWolfPup {
     void Project::Save() {
         settings.Save();
         for (auto sceneKV: scenes) {
-            VWolf::SceneSerializer::Serialize(sceneKV.second, sceneKV.first);
+            sceneKV.second->Save(sceneKV.first);
         }
         for (auto materialKV: materials) {
             materialKV.second->Save(materialKV.first);

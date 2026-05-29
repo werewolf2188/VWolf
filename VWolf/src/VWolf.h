@@ -20,7 +20,6 @@
 #include "VWolf/Core/UI/UIManager.h"
 
 #include "VWolf/Core/SceneManagement/Scene.h"
-#include "VWolf/Core/SceneManagement/SceneSerializer.h"
 
 #include "VWolf/Core/Components/Components.h"
 #include "VWolf/Core/Components/GameObject.h"
@@ -42,5 +41,6 @@
 #include "VWolf/Core/Utils/File.h"
 #include "VWolf/Core/Utils/OBJLoader.h"
 #include "VWolf/Core/Utils/UUID.h"
+#include "VWolf/Core/Utils/GenericSerialization.h"
 
 #include "VWolf/Core/Physics/Physics.h"

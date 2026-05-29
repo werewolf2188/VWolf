@@ -15,14 +15,16 @@ namespace VWolf {
         localScale = Vector3(1, 1, 1);
     }
 
-    TransformComponent::TransformComponent(TransformComponent& transform): Component("Transform") {
+    TransformComponent::TransformComponent(TransformComponent& transform):
+    Component("Transform", transform.id) {
         this->position = transform.position;
         this->eulerAngles = transform.eulerAngles;
         this->localScale = transform.localScale;
         this->SetGameObject(transform.GetGameObject());
     }
 
-    TransformComponent::TransformComponent(TransformComponent&& transform): Component("Transform") {
+    TransformComponent::TransformComponent(TransformComponent&& transform):
+    Component("Transform", transform.id) {
         this->position = transform.position;
         this->eulerAngles = transform.eulerAngles;
         this->localScale = transform.localScale;
@@ -62,4 +64,6 @@ namespace VWolf {
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(TransformComponent);
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(TransformComponent, "TransformComponent")
 }

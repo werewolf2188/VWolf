@@ -8,6 +8,7 @@
 #pragma once
 
 #include "BaseComponent.h"
+#include "VWolf/Core/Utils/GenericSerialization.h"
 
 namespace VWolf {
     class AudioListenerComponent: public Component {
@@ -19,6 +20,13 @@ namespace VWolf {
     public:
         virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
-    VWOLF_COMPONENT_INSPECTOR_DEFINE(AudioListenerComponent);
+        BOOST_DESCRIBE_CLASS(AudioListenerComponent, (Component), (), (id), ())
+        
+        VWOLF_COMPONENT_INSPECTOR_DEFINE(AudioListenerComponent);
+        VWOLF_SERIALIZATION_FRIENDS(AudioListenerComponent)
     };
+}
+
+namespace YAML {
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::AudioListenerComponent)
 }

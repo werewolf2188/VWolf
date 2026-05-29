@@ -17,11 +17,13 @@ namespace VWolf {
 
     SphereColliderComponent::SphereColliderComponent(): Component("SphereCollider") {}
 
-    SphereColliderComponent::SphereColliderComponent(SphereColliderComponent& sphereCollider): Component("SphereCollider") {
+    SphereColliderComponent::SphereColliderComponent(SphereColliderComponent& sphereCollider):
+    Component("SphereCollider", sphereCollider.id) {
         this->mRadius = sphereCollider.mRadius;
     }
 
-    SphereColliderComponent::SphereColliderComponent(SphereColliderComponent&& sphereCollider): Component("SphereCollider") {
+    SphereColliderComponent::SphereColliderComponent(SphereColliderComponent&& sphereCollider):
+    Component("SphereCollider", sphereCollider.id) {
         this->mRadius = sphereCollider.mRadius;
 
         sphereCollider.mRadius = 0;
@@ -66,4 +68,6 @@ namespace VWolf {
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(SphereColliderComponent);
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(SphereColliderComponent, "SphereColliderComponent")
 }

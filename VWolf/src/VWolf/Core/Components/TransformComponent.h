@@ -9,6 +9,7 @@
 
 #include "BaseComponent.h"
 #include "VWolf/Core/Math/VMath.h"
+#include "VWolf/Core/Utils/GenericSerialization.h"
 
 namespace VWolf {
 
@@ -42,6 +43,14 @@ namespace VWolf {
         Vector3 eulerAngles;
         Vector3 localScale;
         Matrix4x4 matrix;
-    VWOLF_COMPONENT_INSPECTOR_DEFINE(TransformComponent);
+        VWOLF_COMPONENT_INSPECTOR_DEFINE(TransformComponent);
+        
+        BOOST_DESCRIBE_CLASS(TransformComponent, (Component), (), (id), (position, eulerAngles, localScale))
+        
+        VWOLF_SERIALIZATION_FRIENDS(TransformComponent)
     };
+}
+
+namespace YAML {
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::TransformComponent)
 }

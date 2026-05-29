@@ -45,6 +45,9 @@ namespace VWolfPup {
             float m_Yaw = -0.451f;
             // For zoom
             float m_Distance = 10.0f;
+            
+            BOOST_DESCRIBE_CLASS(EditorCamera, (), (), (), (m_Yaw, m_Pitch, m_Distance))
+            VWOLF_SERIALIZATION_FRIENDS(EditorCamera)
         };
 
         class Settings: public VWolf::IIdentifiable {
@@ -56,13 +59,17 @@ namespace VWolfPup {
             VWolf::DriverType GetType() { return type; }
             void SetType(VWolf::DriverType type) { this->type = type; }
             std::string GetCurrentSceneRelativePath() { return currentSceneRelativePath; }
+            const std::string GetCurrentSceneRelativePath() const { return currentSceneRelativePath; }
             void SetCurrentSceneRelativePath(std::string relativePath) { this->currentSceneRelativePath = relativePath; }
             std::string GetProjectName() { return path.filename().string(); }
+            const std::string GetProjectName() const { return path.filename().string(); }
             
             EditorCamera& GetEditorCameraSettings() { return editorCameraSettings; }
         public:
             void Save();
             void Load();
+        private:
+            bool Load(const YAML::Node& node);
         private:
 #ifdef VWOLF_PLATFORM_WINDOWS
         VWolf::DriverType type = VWolf::DriverType::DirectX12;
@@ -72,6 +79,9 @@ namespace VWolfPup {
             std::filesystem::path path;
             EditorCamera editorCameraSettings;
             std::string currentSceneRelativePath;
+            
+            BOOST_DESCRIBE_CLASS(Settings, (VWolf::IIdentifiable), (), (id), (editorCameraSettings))
+            VWOLF_SERIALIZATION_FRIENDS(Settings)
         };
     public:
         Project(std::filesystem::path path);
@@ -118,4 +128,23 @@ namespace VWolfPup {
     };
 
     VWolf::DriverType LoadProject();
+}
+
+namespace YAML {
+    template<>
+    struct convert<VWolfPup::Project::EditorCamera> {
+        static bool decode(const Node& node, VWolfPup::Project::EditorCamera& rhs)
+        {
+            return VWolf::DeserializeFromBoostDescribe(node, rhs);
+        }
+    };
+
+    template<>
+    struct convert<VWolfPup::Project::Settings>
+    {
+        static bool decode(const Node& node, VWolfPup::Project::Settings& rhs)
+        {
+            return rhs.Load(node);
+        }
+    };
 }

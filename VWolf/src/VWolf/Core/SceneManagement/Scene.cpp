@@ -12,12 +12,24 @@
 #include "Scene.h"
 
 #include "VWolf/Core/Render/Graphics.h"
-
 #include "VWolf/Core/Debug/ShapeHelper.h"
-
 #include "VWolf/Core/Physics/Physics.h"
-
 #include "VWolf/Core/Time.h"
+
+const std::string sceneBackgroundKey = "sceneBackGround";
+const std::string gameObjectsKey = "gameObjects";
+const std::string sceneKey = "Scene";
+
+namespace YAML {
+    bool DeserializeGameObjects(const Node& node, VWolf::Scene& rhs) {
+        for (auto gameObjectKeyValue: node[gameObjectsKey]) {
+            VWolf::GameObject object = gameObjectKeyValue.as<VWolf::GameObject>();
+            VWolf::Ref<VWolf::GameObject> gameObject = VWolf::CreateFromRef<VWolf::GameObject>(object);
+            rhs.AddExistingGameObject(gameObject);
+        }
+        return true;
+    }
+}
 
 namespace VWolf {
 
@@ -99,7 +111,24 @@ namespace VWolf {
         return *this;
     }
 
+    VWOLF_CREATE_CONVERT_GENERIC_ENUM_ENCODER(VWolf::SceneBackground::Type, Color, Skybox)
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::SceneBackground& v)
+    {
+        SerializeFromBoostDescribeNoName(out, v);
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const VWolf::SceneBackground& v)
+    {
+        SerializeFromBoostDescribeNoName(out, v);
+        return out;
+    }
+
     // --------------- SCENE ----------------------------
+
+    Scene* Scene::currentScene = nullptr;
+
     Scene::Scene(std::string name): name(name) {
         emptyMeshData = ShapeHelper::CreateEmpty();
         world = Physics::GetCommon().createPhysicsWorld();
@@ -515,7 +544,70 @@ namespace VWolf {
                            VWolf::Vector4(),
                            *MaterialLibrary::GetMaterial("RainbowColor"),
                            camera);
+    }
+
+    void Scene::Save(std::filesystem::path path) {
+        YAML::Emitter out;
+        out << *this;
+        std::ofstream fout(path.string());
+        fout << out.c_str();
+    }
+
+    Ref<Scene> Scene::Load(std::filesystem::path path) {
+        constexpr const char * defaultName = "Untitled";
+        YAML::Node data;
+        try
+        {
+            data = YAML::LoadFile(path.string());
+        }
+        catch (YAML::ParserException e)
+        {
+            VWOLF_CORE_ERROR("Failed to load .scene file '%s'\n     %s", path.string().c_str(), e.what());
+            return CreateRef<Scene>(defaultName);
+        }
+
+        if (!data[sceneKey])
+            return CreateRef<Scene>(defaultName);
+
+        Scene scene = data[sceneKey].as<Scene>();
+        Ref<Scene> sceneName = CreateFromRef<Scene>(scene);
+
+        return sceneName;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Scene& v)
+    {
+        out << YAML::BeginMap;
+        out << YAML::Key << sceneKey;
+        out << YAML::BeginMap;
+        SerializeFromBoostOnlyMembers(out, v);
+        out << YAML::Key << gameObjectsKey;
+        out << YAML::BeginSeq;
+        for (auto gameObject: v.GetGameObjects()) {
+            out << *gameObject.get();
+        }
+        out << YAML::EndSeq;
+        out << YAML::EndMap;
+        out << YAML::EndMap;
         
-//        VWOLF_CORE_INFO("Test");
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const VWolf::Scene& v)
+    {
+        out << YAML::BeginMap;
+        out << YAML::Key << sceneKey;
+        out << YAML::BeginMap;
+        SerializeFromBoostOnlyMembers(out, v);
+        out << YAML::Key << gameObjectsKey;
+        out << YAML::BeginSeq;
+        for (auto gameObject: v.GetGameObjects()) {
+            out << *gameObject.get();
+        }
+        out << YAML::EndSeq;
+        out << YAML::EndMap;
+        out << YAML::EndMap;
+        
+        return out;
     }
 }

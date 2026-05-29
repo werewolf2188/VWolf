@@ -17,10 +17,12 @@ namespace VWolf {
 
     BoxColliderComponent::BoxColliderComponent(): Component("BoxCollider") {}
 
-    BoxColliderComponent::BoxColliderComponent(BoxColliderComponent& sphereCollider): Component("BoxCollider") {
+    BoxColliderComponent::BoxColliderComponent(BoxColliderComponent& sphereCollider):
+    Component("BoxCollider", sphereCollider.id) {
     }
 
-    BoxColliderComponent::BoxColliderComponent(BoxColliderComponent&& sphereCollider): Component("BoxCollider") {
+    BoxColliderComponent::BoxColliderComponent(BoxColliderComponent&& sphereCollider):
+    Component("BoxCollider", sphereCollider.id) {
     }
 
     BoxColliderComponent::~BoxColliderComponent() {}
@@ -61,5 +63,7 @@ namespace VWolf {
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(BoxColliderComponent);
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(BoxColliderComponent, "BoxColliderComponent")
 }
 

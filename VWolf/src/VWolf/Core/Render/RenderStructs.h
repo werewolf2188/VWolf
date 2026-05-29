@@ -13,6 +13,8 @@
 #include <vector>
 #endif
 
+#include "VWolf/Core/Utils/GenericSerialization.h"
+
 /*
  To get the bounds from a mesh, you typically calculate an Axis-Aligned Bounding Box (AABB) by finding the minimum and maximum coordinates of all vertices along the X, Y, and Z axes.General Algorithm (Pseudocode)Initialize minX, minY, minZ to positive infinity.Initialize maxX, maxY, maxZ to negative infinity.For each vertex in the mesh:Update the min values if the current vertex's coordinates are smaller.Update the max values if the current vertex's coordinates are larger.The final min and max points define the corners of your bounding box.
  */
@@ -287,14 +289,26 @@ namespace VWolf {
     
             return lightProjection * lightView;
         }
+        
+        VWOLF_SERIALIZATION_FRIENDS(Light)
     public:
         static const char* LightName;
         static const char* LightSpaceName;
         static const int LightsMax;
     };
 
+    BOOST_DESCRIBE_ENUM(Light::LightType, Unknown, Directional, Spot, Point)
+    BOOST_DESCRIBE_STRUCT(Light, (), (color, position, direction, strength, cutOff, exponent, type))
+
     inline const char* Light::LightName = "Light";
     inline const char* Light::LightSpaceName = "LightSpace";
-    inline const int Light::LightsMax = 8;    
+    inline const int Light::LightsMax = 8;
+}
+
+
+
+namespace YAML {
+    VWOLF_CREATE_CONVERT_GENERIC_ENUM_DECODER(VWolf::Light::LightType, Unknown, Directional, Spot, Point)
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::Light)
 }
 

@@ -16,9 +16,11 @@
 namespace VWolf {
     MeshColliderComponent::MeshColliderComponent(): Component("MeshCollider") {}
 
-    MeshColliderComponent::MeshColliderComponent(MeshColliderComponent& meshCollider): Component("MeshCollider") {}
+    MeshColliderComponent::MeshColliderComponent(MeshColliderComponent& meshCollider):
+    Component("MeshCollider", meshCollider.id) {}
 
-    MeshColliderComponent::MeshColliderComponent(MeshColliderComponent&& meshCollider): Component("MeshCollider") {}
+    MeshColliderComponent::MeshColliderComponent(MeshColliderComponent&& meshCollider):
+    Component("MeshCollider", meshCollider.id) {}
 
     MeshColliderComponent::~MeshColliderComponent() {}
 
@@ -90,4 +92,6 @@ namespace VWolf {
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(MeshColliderComponent);
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(MeshColliderComponent, "MeshColliderComponent")
 }

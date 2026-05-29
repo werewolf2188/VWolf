@@ -11,6 +11,8 @@
 #include "VWolf/Core/Render/Camera.h"
 #include "VWolf/Core/Math/VMath.h"
 
+#include "VWolf/Core/Utils/GenericSerialization.h"
+
 namespace VWolf {
     class TransformComponent;
 
@@ -60,5 +62,11 @@ namespace VWolf {
         bool m_isOrthographic = false;
 
         VWOLF_COMPONENT_INSPECTOR_DEFINE(CameraComponent);
+        BOOST_DESCRIBE_CLASS(CameraComponent, (Component), (), (id), (m_ViewportWidth, m_ViewportHeight, m_FOV, m_AspectRatio, m_NearClip, m_FarClip, m_zoom, m_isOrthographic))
+        VWOLF_SERIALIZATION_FRIENDS(CameraComponent)
     };
+}
+
+namespace YAML {
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::CameraComponent)
 }

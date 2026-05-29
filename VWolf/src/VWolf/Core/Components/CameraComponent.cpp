@@ -17,7 +17,8 @@ namespace VWolf {
     m_FOV(m_camera->GetFOV()), m_AspectRatio(m_camera->GetAspectRatio()), m_NearClip(m_camera->GetNearZ()), m_FarClip(m_camera->GetFarZ()),
     m_isOrthographic(m_camera->IsOrtographic()), m_zoom(m_camera->GetZoom()) { }
 
-    CameraComponent::CameraComponent(CameraComponent& camera): Component("Camera"), m_camera(CreateRef<Camera>()) {
+    CameraComponent::CameraComponent(CameraComponent& camera):
+    Component("Camera", camera.id), m_camera(CreateRef<Camera>()) {
         this->m_ViewportWidth = camera.m_ViewportWidth;
         this->m_ViewportHeight = camera.m_ViewportHeight;
         this->m_FOV = camera.m_FOV;
@@ -36,7 +37,8 @@ namespace VWolf {
         m_camera->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
     }
 
-    CameraComponent::CameraComponent(CameraComponent&& camera): Component("Camera"), m_camera(CreateRef<Camera>()) {
+    CameraComponent::CameraComponent(CameraComponent&& camera):
+    Component("Camera", camera.id), m_camera(CreateRef<Camera>()) {
         this->m_ViewportWidth = camera.m_ViewportWidth;
         this->m_ViewportHeight = camera.m_ViewportHeight;
         this->m_FOV = camera.m_FOV;
@@ -93,4 +95,6 @@ namespace VWolf {
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(CameraComponent);
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(CameraComponent, "CameraComponent")
 }
