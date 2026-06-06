@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -14,10 +15,16 @@ namespace VWolfPup {
     class Extension {
     public:
         Extension() = default;
+        Extension(std::string extension);
+        Extension(std::filesystem::path path);
         Extension(std::string name, std::string extension);
+//        Extension(std::string name, std::filesystem::path path);
     public:
         inline std::string GetName() { return name; }
         inline std::string GetExtension() { return extension; }
+    public:
+        bool operator==(const Extension& other) const;
+        bool operator!=(const Extension& other) const;
     public:
         static Extension GetExtensionByName(std::string name);
         static Extension GetExtensionByExtension(std::string ext);

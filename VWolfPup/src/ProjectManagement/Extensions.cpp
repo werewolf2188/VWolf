@@ -12,6 +12,12 @@
 namespace VWolfPup {
     Extension::Extension(std::string name, std::string extension): name(name), extension(extension) {}
 
+    Extension::Extension(std::string extension): name(""), extension(extension) {}
+
+    Extension::Extension(std::filesystem::path path): Extension(path.extension().string()) {}
+
+//    Extension::Extension(std::string name, std::filesystem::path path): Extension(name, path.extension().string()) {}
+
     std::vector<Extension> Extension::extensions = {
         Extension("VWolf Project", ".vwolfproj"),
         Extension("Scene", ".scene"),
@@ -39,6 +45,14 @@ namespace VWolfPup {
         return (std::find_if(extensions.begin(), extensions.end(), [ext](Extension extension) {
                 return extension.GetExtension() == ext;
             })) != extensions.end();
+    }
+
+    bool Extension::operator==(const Extension& other) const {
+        return extension == other.extension;
+    }
+
+    bool Extension::operator!=(const Extension& other) const {
+        return extension != other.extension;
     }
 }
 

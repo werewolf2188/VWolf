@@ -1,0 +1,22 @@
+//
+//  MaterialImporter.cpp
+//  VWolfPup
+//
+//  Created by Enrique Moises on 6/6/26.
+//
+
+#include "MaterialImporter.h"
+
+namespace VWolfPup {
+    uint32_t MaterialImporter::LoadPriority() {
+        return 1;
+    }
+
+    const std::vector<Extension> MaterialImporter::Extensions() const {
+        return {
+            Extension("Material", ".vwolfmat")
+        };
+    }
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_NO_NAME(MaterialImporter);
+}

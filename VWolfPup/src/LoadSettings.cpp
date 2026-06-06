@@ -16,6 +16,7 @@
 
 #include <yaml-cpp/yaml.h>
 #include "Serialization/DefaultSettings.h"
+#include "AssetManagement/AssetMetaFile.h"
 
 namespace VWolfPup {
 
@@ -90,6 +91,7 @@ namespace VWolfPup {
         for (auto const& dir_entry : std::filesystem::directory_iterator(shaderPath)) {
             if (dir_entry.is_directory()) continue;
             if (dir_entry.path().filename() == ".DS_Store") continue;
+            if (dir_entry.path().extension() == AssetMetaFile::META_FILE_EXTENSION) continue;
             VWolf::Shader::LoadShader(dir_entry.path());
         }
     }

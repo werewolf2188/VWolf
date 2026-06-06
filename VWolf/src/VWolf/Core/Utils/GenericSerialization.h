@@ -23,35 +23,35 @@ template<>\
 struct convert<T> {\
     static bool decode(const Node& node, T& rhs)\
     {\
-        return DeserializeFromBoostDescribe(node, rhs);\
+        return VWolf::DeserializeFromBoostDescribe(node, rhs);\
     }\
 };
 
 #define VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER(T)\
 YAML::Emitter& operator<<(YAML::Emitter& out, T& v) { \
-    return SerializeFromBoostDescribe(out, v, ToLower(#T));\
+    return VWolf::SerializeFromBoostDescribe(out, v, ToLower(#T));\
 }\
 \
 YAML::Emitter& operator<<(YAML::Emitter& out, const T& v) { \
-    return SerializeFromBoostDescribe(out, v, ToLower(#T));\
+    return VWolf::SerializeFromBoostDescribe(out, v, ToLower(#T));\
 }
 
 #define VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(T, name)\
 YAML::Emitter& operator<<(YAML::Emitter& out, T& v) { \
-    return SerializeFromBoostDescribe(out, v, name);\
+    return VWolf::SerializeFromBoostDescribe(out, v, name);\
 }\
 \
 YAML::Emitter& operator<<(YAML::Emitter& out, const T& v) { \
-    return SerializeFromBoostDescribe(out, v, name);\
+    return VWolf::SerializeFromBoostDescribe(out, v, name);\
 }
 
 #define VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_NO_NAME(T)\
 YAML::Emitter& operator<<(YAML::Emitter& out, T& v) { \
-    return SerializeFromBoostDescribeNoName(out, v);\
+    return VWolf::SerializeFromBoostDescribeNoName(out, v);\
 }\
 \
 YAML::Emitter& operator<<(YAML::Emitter& out, const T& v) { \
-    return SerializeFromBoostDescribeNoName(out, v);\
+    return VWolf::SerializeFromBoostDescribeNoName(out, v);\
 }
 
 // 1. The operation to apply to each argument

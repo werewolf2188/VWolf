@@ -25,6 +25,8 @@
 
 #include "ProjectManagement/Project.h"
 
+#include "AssetManagement/AssetDatabase.h"
+
 VWolf::MeshData CreateGrid() {
     VWolf::MeshData meshData;
     meshData.SetName("Grid");
@@ -51,8 +53,8 @@ public:
 
     // UI
     VWolfPup::ContainerView* containerView;
-    VWolfPup::MenuItem *quit, *save;
-    VWolfPup::Menu * file;
+    VWolfPup::MenuItem *quit, *save, *createMetaFiles;
+    VWolfPup::Menu *file, *assets;
     VWolfPup::MenuBar * menuBar;
     VWolfPup::SceneHierarchy *sceneHierarchy;
     VWolfPup::Inspector *inspector;
@@ -67,6 +69,7 @@ public:
 public:
     RendererSandboxApplication(): Application(VWolfPup::LoadProject(), { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
         VWolfPup::InitialLoad();
+        VWolfPup::AssetDatabase::LoadMetaFilesForEditor();
         VWolfPup::InitializeEditor();
         
         camera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
@@ -100,7 +103,14 @@ public:
             VWolfPup::Project::CurrentProject()->Save();
         });
         file = new VWolfPup::Menu("File", { save, new VWolfPup::MenuItem(), quit });
-        menuBar = new VWolfPup::MenuBar("MenuBar", { file });
+        
+        createMetaFiles = new VWolfPup::MenuItem("Recreate meta files", [this](std::string title) {
+            VWolfPup::AssetDatabase::CreateMetaFilesForEditor();
+        });
+        
+        assets = new VWolfPup::Menu("Assets", { createMetaFiles });
+        
+        menuBar = new VWolfPup::MenuBar("MenuBar", { file, assets });
         containerView->SetMenuBar(menuBar);
 
         inspector = new VWolfPup::Inspector();
