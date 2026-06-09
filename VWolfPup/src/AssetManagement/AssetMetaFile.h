@@ -46,10 +46,11 @@ namespace VWolfPup {
     private:
         std::filesystem::path metafile, path;
         AssetImporter* importer;
+        long long lastModifiedTime;
     private:
         void SetPath(std::filesystem::path path);
     private:
-        BOOST_DESCRIBE_CLASS(AssetMetaFile, (VWolf::IIdentifiable), (), (id), (version))
+        BOOST_DESCRIBE_CLASS(AssetMetaFile, (VWolf::IIdentifiable), (), (id), (version, lastModifiedTime))
         VWOLF_SERIALIZATION_FRIENDS(AssetMetaFile)
         friend struct ImporterSerialier;
         friend struct ImporterExtensionValidator;

@@ -12,6 +12,7 @@
 #include <fstream>
 #include <boost/type_index.hpp>
 #include <boost/mpl/for_each.hpp>
+#include <chrono>
 
 #include <iostream>
 
@@ -122,6 +123,10 @@ namespace VWolfPup {
 
     AssetMetaFile::AssetMetaFile(std::filesystem::path path) {
         this->SetPath(path);
+        std::filesystem::file_time_type ftime = std::filesystem::last_write_time(path);
+        auto duration = ftime.time_since_epoch();
+        auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+        lastModifiedTime = seconds;
     }
 
     AssetMetaFile::AssetMetaFile(AssetMetaFile& asmf) {
@@ -130,6 +135,7 @@ namespace VWolfPup {
         this->importer = asmf.importer;
         this->path = asmf.path;
         this->metafile = asmf.metafile;
+        this->lastModifiedTime = asmf.lastModifiedTime;
     }
 
     AssetMetaFile::AssetMetaFile(const AssetMetaFile& asmf) {
@@ -138,6 +144,7 @@ namespace VWolfPup {
         this->importer = asmf.importer;
         this->path = asmf.path;
         this->metafile = asmf.metafile;
+        this->lastModifiedTime = asmf.lastModifiedTime;
     }
 
     AssetMetaFile::AssetMetaFile(AssetMetaFile&& asmf) {
@@ -146,16 +153,19 @@ namespace VWolfPup {
         this->importer = asmf.importer;
         this->path = asmf.path;
         this->metafile = asmf.metafile;
+        this->lastModifiedTime = asmf.lastModifiedTime;
         
         asmf.version = 0;
         asmf.id = VWolf::UUID::Empty;
         asmf.importer = nullptr;
+        asmf.lastModifiedTime = 0;
     }
 
     AssetMetaFile::~AssetMetaFile() {
         this->version = 0;
         this->id = VWolf::UUID::Empty;
         this->importer = nullptr;
+        this->lastModifiedTime = 0;
     }
 
     bool AssetMetaFile::IsMetafile(std::filesystem::path path) {
@@ -190,6 +200,7 @@ namespace VWolfPup {
         this->importer = other.importer;
         this->path = other.path;
         this->metafile = other.metafile;
+        this->lastModifiedTime = other.lastModifiedTime;
         
         return *this;
     }
@@ -200,10 +211,12 @@ namespace VWolfPup {
         this->importer = other.importer;
         this->path = other.path;
         this->metafile = other.metafile;
+        this->lastModifiedTime = other.lastModifiedTime;
         
         other.version = 0;
         other.id = VWolf::UUID::Empty;
         other.importer = nullptr;
+        other.lastModifiedTime = 0;
         
         return *this;
     }
