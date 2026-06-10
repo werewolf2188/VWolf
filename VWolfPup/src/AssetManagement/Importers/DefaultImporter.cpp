@@ -17,7 +17,7 @@ namespace VWolfPup {
         };
     }
 
-    bool DefaultImporter::Import(std::filesystem::path path) {
+    bool DefaultImporter::Import(std::filesystem::path path, VWolf::UUID _id) {
         return true;
     }
 

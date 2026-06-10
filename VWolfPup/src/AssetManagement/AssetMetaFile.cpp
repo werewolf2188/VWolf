@@ -241,7 +241,7 @@ namespace VWolfPup {
     }
 
     bool AssetMetaFile::Import() {
-        return importer->Import(path);
+        return importer->Import(path, this->id);
     }
 
     void AssetMetaFile::SetPath(std::filesystem::path path) {

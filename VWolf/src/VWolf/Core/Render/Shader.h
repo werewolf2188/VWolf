@@ -8,6 +8,7 @@
 #pragma once
 
 #include "VWolf/Core/Base.h"
+#include "VWolf/Core/IIdentifiable.h"
 #include "VWolf/Core/Math/VMath.h"
 
 #include "RenderStructs.h"
@@ -299,7 +300,7 @@ namespace VWolf {
 
     class PShader;
 
-    class Shader {
+    class Shader: IIdentifiable  {
     public:
         enum class ShaderSpecialty {
             shadow
@@ -310,7 +311,7 @@ namespace VWolf {
         static const char* ObjectBufferName;
     public:
         Shader() = default;
-        Shader(std::filesystem::path path);
+        Shader(std::filesystem::path path, UUID _id);
     public:
         const std::string GetName() const { return name; }
         SubShader GetSubShader() { return subShader; }
@@ -321,7 +322,7 @@ namespace VWolf {
         size_t GetMaterialSize() const;
         std::vector<ShaderInput> GetTextureInputs() const;
     public:
-        static void LoadShader(std::filesystem::path path);
+        static void LoadShader(std::filesystem::path path, UUID _id);
         static Ref<Shader> GetShader(std::string name);
         static Ref<Shader> GetShader(ShaderSpecialty type);
         static void SetShaderSpecialty(std::string name, ShaderSpecialty type);

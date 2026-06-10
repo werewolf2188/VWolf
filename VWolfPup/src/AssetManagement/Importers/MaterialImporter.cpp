@@ -12,7 +12,7 @@ namespace VWolfPup {
         return 1;
     }
 
-    bool MaterialImporter::Import(std::filesystem::path path) {
+    bool MaterialImporter::Import(std::filesystem::path path, VWolf::UUID _id) {
         return true;
     }
 
