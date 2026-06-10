@@ -12,6 +12,11 @@ namespace VWolfPup {
         return 1;
     }
 
+    bool MaterialImporter::Import(std::filesystem::path path) {
+        return true;
+    }
+
+
     const std::vector<Extension> MaterialImporter::Extensions() const {
         return {
             Extension("Material", ".vwolfmat")

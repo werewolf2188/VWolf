@@ -49,5 +49,14 @@ namespace VWolfPup {
                 metafiles.push_back(AssetMetaFile::Load(entry));
             }
         }
+        
+        std::sort(metafiles.begin(), metafiles.end(), [](const AssetMetaFile& fileA, const AssetMetaFile& fileB) {
+            return fileA.LoadPriority() > fileB.LoadPriority();
+        });
+        std::cout << "End" << std::endl;
+        std::for_each(metafiles.begin(), metafiles.end(), [](AssetMetaFile& file) {
+            file.Import();
+        });
+        std::cout << "End" << std::endl;
     }
 }

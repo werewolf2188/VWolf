@@ -240,6 +240,10 @@ namespace VWolfPup {
         return true;
     }
 
+    bool AssetMetaFile::Import() {
+        return importer->Import(path);
+    }
+
     void AssetMetaFile::SetPath(std::filesystem::path path) {
         if (path.extension() == AssetMetaFile::META_FILE_EXTENSION) {
             metafile = path;

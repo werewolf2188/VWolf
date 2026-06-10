@@ -31,8 +31,10 @@ namespace VWolfPup {
         ~AssetMetaFile();
     public:
         bool Exists() { return std::filesystem::exists(metafile); }
+        uint32_t LoadPriority() const { return importer->LoadPriority(); }
     public:
         bool Create();
+        bool Import();
     public:
         AssetMetaFile& operator=(const AssetMetaFile& other);
         AssetMetaFile& operator=(AssetMetaFile&& other);

@@ -13,9 +13,12 @@ namespace VWolfPup {
     class ShaderImporter: public AssetImporter {
     public:
         uint32_t LoadPriority() override;
+        bool Import(std::filesystem::path path) override;
     protected:
         const std::vector<Extension> Extensions() const override;
     private:
+        static Extension shaderExtension;
+        static Extension shaderLibraryExtension;
         BOOST_DESCRIBE_CLASS(ShaderImporter, (AssetImporter), (), (), ())
         VWOLF_SERIALIZATION_FRIENDS(ShaderImporter)
     };

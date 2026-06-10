@@ -15,6 +15,8 @@
 namespace VWolfPup {
     class AssetImporter {
     public:
+        virtual bool Import(std::filesystem::path path) { return true; }
+    public:
         virtual uint32_t LoadPriority() { return -1; };
     public:
         virtual const bool CanImport(std::filesystem::path path) const;

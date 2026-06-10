@@ -68,8 +68,8 @@ public:
     VWolf::Ref<VWolf::Scene> testScene;
 public:
     RendererSandboxApplication(): Application(VWolfPup::LoadProject(), { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
-        VWolfPup::InitialLoad();
         VWolfPup::AssetDatabase::LoadMetaFilesForEditor();
+        VWolfPup::InitialLoad();
         VWolfPup::InitializeEditor();
         
         camera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);

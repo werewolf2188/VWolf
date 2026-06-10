@@ -8,14 +8,25 @@
 #include "ShaderImporter.h"
 
 namespace VWolfPup {
+
+    Extension ShaderImporter::shaderExtension("Shader", ".vwolfshader");
+    Extension ShaderImporter::shaderLibraryExtension("Shader Dependency", ".hlsli");
+
     uint32_t ShaderImporter::LoadPriority() {
         return 0;
     }
 
+    bool ShaderImporter::Import(std::filesystem::path path) {
+        if (shaderExtension == path.extension().string()) {
+            VWolf::Shader::LoadShader(path);
+        }
+        return true;
+    }
+
     const std::vector<Extension> ShaderImporter::Extensions() const {
         return {
-            Extension("Shader", ".vwolfshader"),
-            Extension("Shader Dependency", ".hlsli")
+            shaderExtension,
+            shaderLibraryExtension
         };
     }
 

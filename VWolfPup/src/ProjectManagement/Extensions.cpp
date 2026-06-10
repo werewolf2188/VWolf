@@ -51,6 +51,10 @@ namespace VWolfPup {
         return extension == other.extension;
     }
 
+    bool Extension::operator==(const std::string extension) const {
+        return this->extension == extension;
+    }
+
     bool Extension::operator!=(const Extension& other) const {
         return extension != other.extension;
     }

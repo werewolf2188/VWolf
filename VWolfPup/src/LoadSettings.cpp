@@ -85,21 +85,10 @@ namespace VWolfPup {
     }
 
     std::vector<VWolf::Ref<VWolf::Material>> materials;
-
-    void LoadShaders() {
-        std::filesystem::path shaderPath = "shaders/";
-        for (auto const& dir_entry : std::filesystem::directory_iterator(shaderPath)) {
-            if (dir_entry.is_directory()) continue;
-            if (dir_entry.path().filename() == ".DS_Store") continue;
-            if (dir_entry.path().extension() == AssetMetaFile::META_FILE_EXTENSION) continue;
-            VWolf::Shader::LoadShader(dir_entry.path());
-        }
-    }
    
 // ----------------------------------------------- //
     // MARK: Public
     void InitialLoad() {
-        LoadShaders();
         Defaults::Load();
     }
 }

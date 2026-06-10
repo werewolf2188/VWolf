@@ -24,6 +24,7 @@ namespace VWolfPup {
         inline std::string GetExtension() { return extension; }
     public:
         bool operator==(const Extension& other) const;
+        bool operator==(const std::string extension) const;
         bool operator!=(const Extension& other) const;
     public:
         static Extension GetExtensionByName(std::string name);

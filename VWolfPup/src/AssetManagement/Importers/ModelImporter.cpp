@@ -12,6 +12,10 @@ namespace VWolfPup {
         return 1;
     }
 
+    bool ModelImporter::Import(std::filesystem::path path) {
+        return true;
+    }
+
     const std::vector<Extension> ModelImporter::Extensions() const {
         return {
             Extension("Object Model", ".obj")

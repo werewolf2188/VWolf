@@ -17,6 +17,10 @@ namespace VWolfPup {
         };
     }
 
+    bool DefaultImporter::Import(std::filesystem::path path) {
+        return true;
+    }
+
     const bool DefaultImporter::CanImport(std::filesystem::path path) const {
         if (std::filesystem::is_directory(path)) return true;
         
