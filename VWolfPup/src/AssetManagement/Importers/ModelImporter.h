@@ -12,7 +12,7 @@
 namespace VWolfPup {
     class ModelImporter: public AssetImporter {
     public:
-        uint32_t LoadPriority() override;
+        uint32_t LoadPriority(std::filesystem::path path) const override;
         bool Import(std::filesystem::path path, VWolf::UUID _id) override;
     protected:
         const std::vector<Extension> Extensions() const override;

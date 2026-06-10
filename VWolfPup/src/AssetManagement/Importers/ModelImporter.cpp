@@ -8,8 +8,8 @@
 #include "ModelImporter.h"
 
 namespace VWolfPup {
-    uint32_t ModelImporter::LoadPriority() {
-        return 1;
+    uint32_t ModelImporter::LoadPriority(std::filesystem::path path) const {
+        return 2;
     }
 
     bool ModelImporter::Import(std::filesystem::path path, VWolf::UUID _id) {

@@ -17,7 +17,7 @@ namespace VWolfPup {
     public:
         virtual bool Import(std::filesystem::path path, VWolf::UUID _id) { return true; }
     public:
-        virtual uint32_t LoadPriority() { return -1; };
+        virtual uint32_t LoadPriority(std::filesystem::path path) const { return -1; };
     public:
         virtual const bool CanImport(std::filesystem::path path) const;
     protected:

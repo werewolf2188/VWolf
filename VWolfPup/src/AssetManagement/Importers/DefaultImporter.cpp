@@ -8,7 +8,7 @@
 #include "DefaultImporter.h"
 
 namespace VWolfPup {
-    uint32_t DefaultImporter::LoadPriority() {
+    uint32_t DefaultImporter::LoadPriority(std::filesystem::path path) const {
         return std::numeric_limits<uint32_t>::max();
     }
 

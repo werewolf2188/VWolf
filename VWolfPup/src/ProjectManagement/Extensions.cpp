@@ -16,6 +16,24 @@ namespace VWolfPup {
 
     Extension::Extension(std::filesystem::path path): Extension(path.extension().string()) {}
 
+    Extension::Extension(const Extension& extension) {
+        this->name = extension.name;
+        this->extension = extension.extension;
+    }
+
+    Extension::Extension(Extension& extension) {
+        this->name = extension.name;
+        this->extension = extension.extension;
+    }
+
+    Extension::Extension(Extension&& extension) {
+        this->name = extension.name;
+        this->extension = extension.extension;
+        
+        extension.name = "";
+        extension.extension = "";
+    }
+
 //    Extension::Extension(std::string name, std::filesystem::path path): Extension(name, path.extension().string()) {}
 
     std::vector<Extension> Extension::extensions = {
@@ -47,12 +65,35 @@ namespace VWolfPup {
             })) != extensions.end();
     }
 
+    Extension& Extension::operator=(const Extension& other) {
+        this->name = other.name;
+        this->extension = other.extension;
+        
+        return *this;
+    }
+
+    Extension& Extension::operator=(Extension&& other) {
+        this->name = other.name;
+        this->extension = other.extension;
+        
+        other.name = "";
+        other.extension = "";
+        
+        return *this;
+    }
+
     bool Extension::operator==(const Extension& other) const {
         return extension == other.extension;
     }
 
     bool Extension::operator==(const std::string extension) const {
         return this->extension == extension;
+    }
+
+    bool Extension::operator==(const std::filesystem::path path) const {
+        if (std::filesystem::is_directory(path)) return false;
+        
+        return this->extension == path.extension().string();
     }
 
     bool Extension::operator!=(const Extension& other) const {

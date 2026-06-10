@@ -18,13 +18,21 @@ namespace VWolfPup {
         Extension(std::string extension);
         Extension(std::filesystem::path path);
         Extension(std::string name, std::string extension);
+        Extension(const Extension& extension);
+        Extension(Extension& extension);
+        Extension(Extension&& extension);
+
 //        Extension(std::string name, std::filesystem::path path);
     public:
         inline std::string GetName() { return name; }
         inline std::string GetExtension() { return extension; }
     public:
+        Extension& operator=(const Extension& other);
+        Extension& operator=(Extension&& other);
+
         bool operator==(const Extension& other) const;
         bool operator==(const std::string extension) const;
+        bool operator==(const std::filesystem::path path) const;
         bool operator!=(const Extension& other) const;
     public:
         static Extension GetExtensionByName(std::string name);

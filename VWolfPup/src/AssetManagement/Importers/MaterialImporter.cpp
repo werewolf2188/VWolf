@@ -8,8 +8,8 @@
 #include "MaterialImporter.h"
 
 namespace VWolfPup {
-    uint32_t MaterialImporter::LoadPriority() {
-        return 1;
+    uint32_t MaterialImporter::LoadPriority(std::filesystem::path path) const {
+        return 2;
     }
 
     bool MaterialImporter::Import(std::filesystem::path path, VWolf::UUID _id) {
