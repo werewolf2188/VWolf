@@ -23,9 +23,14 @@ namespace VWolfPup {
     }
 
     void AssetDatabase::CreateMetaFilesForEditor() {
-        // vwolfmat
+        // vwolfmat C:\Users\jenri\Projects\Desktop\VWolf\bin\Debug-windows-x86_64\VWolfPup
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
         std::filesystem::path editorAssetsFolder = "/Users/enriquemoises/Projects/Personal/VWolf/VWolfPup/src/assets/";
         std::filesystem::path editorShadersFolder = "/Users/enriquemoises/Projects/Personal/VWolf/VWolfPup/src/shaders/";
+#elif defined(VWOLF_PLATFORM_WINDOWS) 
+        std::filesystem::path editorAssetsFolder = "C:\\Users\\jenri\\Projects\\Desktop\\VWolf\\VWolfPup\\src\\assets";
+		std::filesystem::path editorShadersFolder = "C:\\Users\\jenri\\Projects\\Desktop\\VWolf\\VWolfPup\\src\\shaders";
+#endif
 
         for (const auto& entry : std::filesystem::recursive_directory_iterator(editorAssetsFolder)) {
             CreateMetaFile(entry);
