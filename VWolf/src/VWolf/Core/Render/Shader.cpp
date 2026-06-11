@@ -62,6 +62,7 @@ namespace VWolf {
     extern std::vector<ShaderInput> GetTextureInputs(Ref<PShader> pshader);
 
     std::vector<Ref<Shader>> Shader::m_shaders;
+    std::vector<ShaderDependency> Shader::m_shader_dependencies;
     std::map<Shader::ShaderSpecialty, std::string> Shader::m_specialtiesShaders;
 
     // TODO: Remove
@@ -123,5 +124,22 @@ namespace VWolf {
 
     void Shader::SetShaderSpecialty(std::string name, ShaderSpecialty type) {
         m_specialtiesShaders[type] = name;
+    }
+
+    std::filesystem::path Shader::GetShaderLibraryPath(std::string filename) {
+        auto pathIterator = std::find_if(
+                                         m_shader_dependencies.begin(),
+                                         m_shader_dependencies.end(),
+                                         [filename](ShaderDependency& path) {
+                                             std::filesystem::path filename_path = filename;
+                                             return filename_path.filename() == path.GetPath().filename();
+                                         });
+        
+        if (pathIterator == m_shader_dependencies.end()) return {};
+        return (*pathIterator).GetPath();
+    }
+
+    void Shader::LoadShaderLibrary(std::filesystem::path path, UUID _id) {
+        m_shader_dependencies.push_back(ShaderDependency(path, _id));
     }
 }

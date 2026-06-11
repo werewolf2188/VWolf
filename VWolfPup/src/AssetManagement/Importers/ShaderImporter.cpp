@@ -19,8 +19,10 @@ namespace VWolfPup {
     }
 
     bool ShaderImporter::Import(std::filesystem::path path, VWolf::UUID _id) {
-        if (shaderExtension == path.extension().string()) {
+        if (shaderExtension == path) {
             VWolf::Shader::LoadShader(path, _id);
+        } else if (shaderLibraryExtension == path) {
+            VWolf::Shader::LoadShaderLibrary(path, _id);
         }
         return true;
     }

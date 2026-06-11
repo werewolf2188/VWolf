@@ -365,13 +365,10 @@ namespace VWolf {
         LoadSource(_In_z_ LPCWSTR pFilename,
                    _COM_Outptr_result_maybenull_ IDxcBlob **ppIncludeSource) override {
             std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-
-            // TODO: Move this to add it from outside.
-            std::filesystem::path directory = "shaders/include/";
-            std::filesystem::path filename = converter.to_bytes(pFilename);
-            std::filesystem::path path = directory / filename.filename();
             
-//            std::cout << "Including: " << path << std::endl;
+            std::string filename = converter.to_bytes(pFilename);
+            std::filesystem::path path = VWolf::Shader::GetShaderLibraryPath(filename);
+            
             HRESULT code;
             if (std::filesystem::exists(path)) {
                 std::wstring widePath = converter.from_bytes(path.string());

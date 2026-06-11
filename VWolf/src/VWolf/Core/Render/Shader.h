@@ -298,9 +298,20 @@ namespace VWolf {
         BOOST_DESCRIBE_CLASS(SubShader, (), (), (), (properties, code, stages))
     };
 
+    struct ShaderDependency: public IIdentifiable {
+    public:
+        ShaderDependency(std::filesystem::path m_path, UUID id): m_path(m_path) {
+            this->id = id;
+        };
+    public:
+        std::filesystem::path& GetPath() { return m_path; }
+    private:
+        std::filesystem::path m_path;
+    };
+
     class PShader;
 
-    class Shader: IIdentifiable  {
+    class Shader: public IIdentifiable  {
     public:
         enum class ShaderSpecialty {
             shadow
@@ -323,8 +334,10 @@ namespace VWolf {
         std::vector<ShaderInput> GetTextureInputs() const;
     public:
         static void LoadShader(std::filesystem::path path, UUID _id);
+        static void LoadShaderLibrary(std::filesystem::path path, UUID _id);
         static Ref<Shader> GetShader(std::string name);
         static Ref<Shader> GetShader(ShaderSpecialty type);
+        static std::filesystem::path GetShaderLibraryPath(std::string filename);
         static void SetShaderSpecialty(std::string name, ShaderSpecialty type);
     private:
         void Deserialize(std::filesystem::path path);
@@ -336,6 +349,7 @@ namespace VWolf {
         BOOST_DESCRIBE_CLASS(Shader, (), (), (), (name, settings, subShader))
         
         static std::vector<Ref<Shader>> m_shaders;
+        static std::vector<ShaderDependency> m_shader_dependencies;
         static std::map<ShaderSpecialty, std::string> m_specialtiesShaders;
         
         Ref<PShader> internalShader;
