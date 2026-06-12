@@ -21,7 +21,7 @@ namespace YAML {
 
 namespace VWolf {
 
-    Material::Material(const char* shaderName): Material(Shader::GetShader(shaderName)) { }
+    Material::Material(std::string shaderName): Material(Shader::GetShader(shaderName)) { }
 
     Material::Material(std::filesystem::path path) {
         constexpr const char * key = "material";
