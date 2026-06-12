@@ -6,6 +6,8 @@
 //
 
 #include "DefaultImporter.h"
+#include "../ProjectManagement/Project.h"
+
 
 namespace VWolfPup {
     Extension DefaultImporter::sceneExtension("Scene", ".scene");
@@ -21,6 +23,12 @@ namespace VWolfPup {
     }
 
     bool DefaultImporter::Import(std::filesystem::path path, VWolf::UUID _id) {
+        if (std::filesystem::is_directory(path)) return true;
+        
+        if (sceneExtension == path) {
+            VWolf::Ref<VWolf::Scene> scene = VWolf::Scene::Load(path, _id);
+            Project::CurrentProject()->AddScene(path, scene);
+        }
         return true;
     }
 

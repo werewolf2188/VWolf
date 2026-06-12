@@ -82,7 +82,7 @@ namespace VWolf {
         void SetSceneBackground(SceneBackground& sceneBackground) { this->sceneBackGround = sceneBackground; }
         entt::registry& CurrentRegistry() { return isPreviewing ? m_previewRegistry : m_registry; }
     public:
-        static Ref<Scene> Load(std::filesystem::path path);
+        static Ref<Scene> Load(std::filesystem::path path, UUID _id);
     public:
         static Scene* currentScene;
     private:
@@ -99,7 +99,7 @@ namespace VWolf {
         float previewAccumulator = 0.2f;
         friend class GameObject;
         
-        BOOST_DESCRIBE_CLASS(Scene, (IIdentifiable), (), (id), (name, sceneBackGround))
+        BOOST_DESCRIBE_CLASS(Scene, (IIdentifiable), (), (), (name, sceneBackGround))
         VWOLF_SERIALIZATION_FRIENDS(Scene)
     };
 }

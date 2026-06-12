@@ -553,7 +553,7 @@ namespace VWolf {
         fout << out.c_str();
     }
 
-    Ref<Scene> Scene::Load(std::filesystem::path path) {
+    Ref<Scene> Scene::Load(std::filesystem::path path, UUID _id) {
         constexpr const char * defaultName = "Untitled";
         YAML::Node data;
         try
@@ -570,6 +570,7 @@ namespace VWolf {
             return CreateRef<Scene>(defaultName);
 
         Scene scene = data[sceneKey].as<Scene>();
+        scene.id = _id;
         Ref<Scene> sceneName = CreateFromRef<Scene>(scene);
 
         return sceneName;

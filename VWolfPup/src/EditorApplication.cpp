@@ -83,7 +83,6 @@ public:
         VWolfPup::Project::CurrentProject()->GetSettings().GetEditorCameraSettings().SetCameraControllerInformation(skyBoxController);
 
         // Scene
-        VWolfPup::Project::CurrentProject()->LoadAssets();
         testScene =  VWolfPup::Project::CurrentProject()->GetCurrentScene();
 //        testScene =  VWolf::CreateRef<VWolf::Scene>("Test");
 

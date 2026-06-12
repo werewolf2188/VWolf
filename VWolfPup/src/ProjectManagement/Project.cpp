@@ -227,28 +227,12 @@ namespace VWolfPup {
         fileWatcher->watch();
     }
 
-    void Project::LoadAssets() {
-        std::vector<std::filesystem::path> sceneFiles;
-        LoadObjects(GetAssetsPath(), sceneFiles);
-        for(auto const& sceneFile : sceneFiles) {
-            VWolf::Ref<VWolf::Scene> scene = VWolf::Scene::Load(sceneFile);
-            auto path = GetAssetsPath() / settings.GetCurrentSceneRelativePath();
-            if (path ==sceneFile)
-                currentScene = scene;
-            scenes[sceneFile] = scene;
+    void Project::AddScene(std::filesystem::path path, VWolf::Ref<VWolf::Scene> scene) {
+        auto scenePath = GetAssetsPath() / settings.GetCurrentSceneRelativePath();
+        if (path == scenePath) {
+            currentScene = scene;
         }
-    }
-
-    void Project::LoadObjects(std::filesystem::path path, std::vector<std::filesystem::path>& sceneFiles) {
-        for(auto const& dir_entry : std::filesystem::directory_iterator(path)) {
-            if (dir_entry.is_directory()){
-                LoadObjects(dir_entry.path(), sceneFiles);
-            } else if (Extension::HasExtension(dir_entry.path().extension().string())) {
-                if (Extension::GetSceneExtension() == dir_entry.path().extension()) {
-                    sceneFiles.push_back(dir_entry.path());
-                }
-            }
-        }
+        scenes[scenePath] = scene;
     }
 
     Project::~Project() {

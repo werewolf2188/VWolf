@@ -99,7 +99,7 @@ namespace VWolfPup {
         void Save();
         std::filesystem::path GetAssetsPath();
         VWolf::Ref<VWolf::Scene> GetCurrentScene();
-        void LoadAssets();
+        void AddScene(std::filesystem::path path, VWolf::Ref<VWolf::Scene> scene);
         VWolf::Ref<VWolf::Material> GetMaterial(std::filesystem::path inPath);
     public:
         template<typename T>
@@ -110,8 +110,6 @@ namespace VWolfPup {
     public:
         static void InitializeCurrentProject(VWolf::Ref<Project>);
         static VWolf::Ref<Project> CurrentProject();
-    private:
-        void LoadObjects(std::filesystem::path path, std::vector<std::filesystem::path>& sceneFiles);
     private:
         Settings settings;
         std::filesystem::path projectPath;
