@@ -52,43 +52,5 @@ namespace VWolfPup {
 
         Defaults defaults = data.as<Defaults>();
         Defaults::defaults = VWolf::CreateRef<Defaults>(defaults);
-        Defaults::defaults->PrepareMaterials();
-    }
-
-    void Defaults::PrepareMaterials() {
-        std::filesystem::path materialsPath = Folder::GetAssetsFolder() + "/Materials";
-        std::string materialExtension = Extension::GetMaterialExtension();
-
-        std::filesystem::path defaultMaterialPath = std::filesystem::current_path() / materialsPath / (defaultMaterial + materialExtension);
-        std::filesystem::path defaultMaterialGridPath = std::filesystem::current_path() / materialsPath / (defaultGridMaterial + materialExtension);
-        std::filesystem::path defaultMaterialSkyboxPath = std::filesystem::current_path() / materialsPath / (defaultSkyBoxMaterial + materialExtension);
-
-        auto dfMat = VWolf::Material::Load(defaultMaterialPath);
-        dfMat->SetAsDefault();
-        materials[defaultMaterial] = dfMat;
-        auto dfgMat = VWolf::Material::Load(defaultMaterialGridPath);
-        materials[defaultGridMaterial] = dfgMat;
-        auto dfskbMat = VWolf::Material::Load(defaultMaterialSkyboxPath);
-        dfskbMat->SetTexture("skybox",
-                            VWolf::Texture::LoadCubemap({ "assets/skybox/right.png",
-                                                          "assets/skybox/left.png",
-                                                          "assets/skybox/top.png",
-                                                          "assets/skybox/bottom.png",
-                                                          "assets/skybox/front.png",
-                                                          "assets/skybox/back.png" }));
-        materials[defaultSkyBoxMaterial] = dfskbMat;
-        // TODO: Debug purposes
-        std::filesystem::path defaultDebugRenderPath = std::filesystem::current_path() / materialsPath / ("DebugRender" + materialExtension);
-        auto debugRenderer = VWolf::Material::Load(defaultDebugRenderPath);
-        materials["RainbowColor"] = debugRenderer;
-        
-    }
-
-    std::vector<VWolf::Ref<VWolf::Material>> materials;
-   
-// ----------------------------------------------- //
-    // MARK: Public
-    void InitialLoad() {
-        Defaults::Load();
     }
 }

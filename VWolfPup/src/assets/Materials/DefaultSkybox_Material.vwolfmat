@@ -1,6 +1,5 @@
 ---
 material:
-  id: c60c6f1c-7dbe-4f01-86ab-4658dae4af3b
   name: Skybox
   shaderName: Skybox
   colors:

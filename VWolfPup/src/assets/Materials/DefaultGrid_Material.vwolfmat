@@ -1,6 +1,5 @@
 ---
 material:
-  id: 14602a0b-39f4-4aa5-8831-61b55ff5ce9e
   name: Grid
   shaderName: Grid
   colors:

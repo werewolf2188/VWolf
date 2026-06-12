@@ -224,8 +224,9 @@ namespace VWolf {
         fout << out.c_str();
     }
 
-    Ref<Material> Material::Load(std::filesystem::path path) {
+    Ref<Material> Material::Load(std::filesystem::path path, UUID _id) {
         Material m(path);
+        m.id = _id;
         Ref<Material> refM = CreateRef<Material>(m);
         MaterialLibrary::SetMaterial(m.GetName(), refM.get());
         return refM;

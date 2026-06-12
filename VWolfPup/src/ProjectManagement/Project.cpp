@@ -246,9 +246,6 @@ namespace VWolfPup {
             } else if (Extension::HasExtension(dir_entry.path().extension().string())) {
                 if (Extension::GetSceneExtension() == dir_entry.path().extension()) {
                     sceneFiles.push_back(dir_entry.path());
-                } else  if (Extension::GetMaterialExtension() == dir_entry.path().extension()) {
-                    VWolf::Ref<VWolf::Material> material = VWolf::Material::Load(dir_entry.path());
-                    materials[dir_entry.path()] = material;
                 }
             }
         }

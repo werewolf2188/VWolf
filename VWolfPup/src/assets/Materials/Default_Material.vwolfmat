@@ -1,6 +1,5 @@
 ---
 material:
-  id: aa41371a-ef2b-415e-ad8b-9dcb7560e4ff
   name: BlinnPhong
   shaderName: BlinnPhong
   colors:

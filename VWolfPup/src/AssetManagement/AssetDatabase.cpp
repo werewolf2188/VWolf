@@ -55,6 +55,12 @@ namespace VWolfPup {
             }
         }
         
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(Project::CurrentProject()->GetAssetsPath())) {
+            if (AssetMetaFile::IsMetafile(entry)) {
+                metafiles.push_back(AssetMetaFile::Load(entry));
+            }
+        }
+        
         std::sort(metafiles.begin(), metafiles.end(), [](const AssetMetaFile& fileA, const AssetMetaFile& fileB) {
             return fileA.LoadPriority() < fileB.LoadPriority();
         });

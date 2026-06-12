@@ -34,6 +34,8 @@ namespace VWolfPup {
         inline VWolf::Ref<VWolf::Material> GetDefaultGridMaterial() { return materials[defaultGridMaterial]; }
         inline VWolf::Ref<VWolf::Material> GetDefaultSkyBoxMaterial() { return materials[defaultSkyBoxMaterial]; }
     public:
+        void AddMaterial(std::string key, VWolf::Ref<VWolf::Material> material) { materials[key] = material; }
+    public:
         static VWolf::Ref<Defaults> Get() { return defaults; }
     public:
         static void Load();
@@ -48,7 +50,4 @@ namespace VWolfPup {
     private:
         static VWolf::Ref<Defaults> defaults;
     };
-
-// ----------------------------------------------- //
-    void InitialLoad();
 }

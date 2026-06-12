@@ -43,7 +43,7 @@ namespace VWolf {
     public:
         void Save(std::filesystem::path path);
     public:
-        static Ref<Material> Load(std::filesystem::path path);
+        static Ref<Material> Load(std::filesystem::path path, UUID _id);
 #ifdef VWOLF_CORE
     public:
         void * GetDataPointer() const;
@@ -65,7 +65,7 @@ namespace VWolf {
         std::map<std::string, std::tuple<uint32_t, uint32_t, uint32_t>> inputs_information;
         std::vector<Property> properties;
         
-        BOOST_DESCRIBE_CLASS(Material, (IIdentifiable), (), (id), (name, shaderName, colors, vectors, floats))
+        BOOST_DESCRIBE_CLASS(Material, (IIdentifiable), (), (), (name, shaderName, colors, vectors, floats))
         
         VWOLF_SERIALIZATION_FRIENDS(Material)
     };

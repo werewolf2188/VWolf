@@ -1,6 +1,5 @@
 ---
 material:
-  id: 7ca175ed-6877-4c8f-b44e-6ebf66a7a3ac
   name: RainbowColor
   shaderName: RainbowColor
   colors:
