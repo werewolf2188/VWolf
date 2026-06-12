@@ -33,7 +33,7 @@ namespace VWolfPup {
         } else if ("DebugRender" == path.stem().string()) {
             _defaults->AddMaterial("RainbowColor", mat);
         } else {
-            _defaults->AddMaterial(path, mat);
+            _defaults->AddMaterial(path.string(), mat);
         }
         
         return true;
