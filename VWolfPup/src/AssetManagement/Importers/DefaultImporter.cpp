@@ -8,12 +8,15 @@
 #include "DefaultImporter.h"
 
 namespace VWolfPup {
+    Extension DefaultImporter::sceneExtension("Scene", ".scene");
+
     uint32_t DefaultImporter::LoadPriority(std::filesystem::path path) const {
         return std::numeric_limits<uint32_t>::max();
     }
 
     const std::vector<Extension> DefaultImporter::Extensions() const {
         return {
+            sceneExtension
         };
     }
 

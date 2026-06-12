@@ -19,6 +19,7 @@ namespace VWolfPup {
     public:
         const bool CanImport(std::filesystem::path path) const override;
     private:
+        static Extension sceneExtension;
         BOOST_DESCRIBE_CLASS(DefaultImporter, (AssetImporter), (), (), ())
         VWOLF_SERIALIZATION_FRIENDS(DefaultImporter)
     };
