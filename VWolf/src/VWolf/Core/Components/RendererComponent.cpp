@@ -44,6 +44,11 @@ namespace VWolf {
         return &component;
     }
 
+    void MeshRendererComponent::SetMaterial(Ref<Material> material) {
+        this->material = material;
+        this->materialName = material->GetName();
+    }
+
     MeshRendererComponent& MeshRendererComponent::operator=(MeshRendererComponent t) {
         this->materialName = t.materialName;
         this->material = MaterialLibrary::GetMaterial(t.materialName);
@@ -110,6 +115,11 @@ namespace VWolf {
     void ShapeRendererComponent::SetShapeName(std::string name) {
         this->dataName = name;
         this->data = ShapeHelper::Create(dataName.c_str());
+    }
+
+    void ShapeRendererComponent::SetMaterial(Ref<Material> material) {
+        this->material = material;
+        this->materialName = material->GetName();
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(ShapeRendererComponent);

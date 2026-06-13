@@ -35,10 +35,10 @@ namespace VWolf {
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         Material& GetMaterial() { return *material; }
-        void SetMaterial(Ref<Material> material) { this->material = material; }
         std::string GetMaterialName() { return materialName; }
     public:
         void SetMaterialName(std::string name);
+        void SetMaterial(Ref<Material> material);
     public:
         MeshRendererComponent& operator=(MeshRendererComponent t);
     private:
@@ -64,12 +64,12 @@ namespace VWolf {
         MeshData& GetData() { return data; }
         void SetData(MeshData data) { this->data = data; }
         Material& GetMaterial() { return *material; }
-        void SetMaterial(Ref<Material> material) { this->material = material; }
         std::string GetMaterialName() { return materialName; }
         std::string GetShapeName() { return dataName; }
     public:
         void SetShapeName(std::string name);
         void SetMaterialName(std::string name);
+        void SetMaterial(Ref<Material> material);
     public:
         ShapeRendererComponent& operator=(ShapeRendererComponent t);
     private:

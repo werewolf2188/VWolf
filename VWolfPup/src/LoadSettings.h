@@ -37,5 +37,19 @@ namespace VWolfPup {
         std::string defaultGridMaterial;
     private:
         static VWolf::Ref<Defaults> defaults;
+        
+        BOOST_DESCRIBE_CLASS(Defaults, (), (), (), (defaultMaterial, defaultSkyBoxMaterial, defaultGridMaterial))
+        VWOLF_SERIALIZATION_FRIENDS(Defaults)
+    };
+}
+
+namespace YAML {
+template<>
+    struct convert<VWolfPup::Defaults>
+    {
+        static bool decode(const Node& node, VWolfPup::Defaults& rhs)
+        {
+            return VWolf::DeserializeFromBoostDescribe(node, rhs);
+        }
     };
 }

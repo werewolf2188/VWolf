@@ -15,8 +15,9 @@
 #include "../ProjectManagement/Folder.h"
 
 #include <yaml-cpp/yaml.h>
-#include "Serialization/DefaultSettings.h"
 #include "AssetManagement/AssetMetaFile.h"
+
+constexpr const char * keyName = "Defaults";
 
 namespace VWolfPup {
 
@@ -31,6 +32,7 @@ namespace VWolfPup {
 
     void Defaults::Load() {
         constexpr const char * fileName = "defaults.ini";
+        
         YAML::Node data;
         try
         {
@@ -41,7 +43,13 @@ namespace VWolfPup {
             VWOLF_CLIENT_ERROR("Failed to load .scene file '%s'\n     %s", fileName, e.what());
         }
 
-        Defaults defaults = data.as<Defaults>();
+        Defaults defaults = data[keyName].as<Defaults>();
         Defaults::defaults = VWolf::CreateRef<Defaults>(defaults);
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolfPup::Defaults& v)
+    {
+        VWolf::SerializeFromBoostDescribe(out, v, keyName);
+        return out;
     }
 }
