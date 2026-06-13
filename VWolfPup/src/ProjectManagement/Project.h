@@ -79,6 +79,7 @@ namespace VWolfPup {
             std::filesystem::path path;
             EditorCamera editorCameraSettings;
             std::string currentSceneRelativePath;
+            VWolf::UUID scene_id;
             
             BOOST_DESCRIBE_CLASS(Settings, (VWolf::IIdentifiable), (), (id), (editorCameraSettings))
             VWOLF_SERIALIZATION_FRIENDS(Settings)

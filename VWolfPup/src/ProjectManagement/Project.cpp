@@ -18,6 +18,7 @@ static std::string NAME_KEY = "name";
 static std::string DRIVER_KEY = "driver";
 static std::string EDITOR_CAMERA_KEY = "editor_camera";
 static std::string CURRENT_SCENE_KEY = "current_scene";
+static std::string SCENE_ID_KEY = "scene_id";
 static std::string RELATIVE_PATH_KEY = "relative_path";
 
 namespace VWolfPup {
@@ -176,6 +177,7 @@ namespace VWolfPup {
         this->id = node[ID_KEY].as<VWolf::UUID>();
         this->type = VWolf::GetDriverType(node[DRIVER_KEY].as<std::string>().c_str());
         this->editorCameraSettings = node[EDITOR_CAMERA_KEY].as<VWolfPup::Project::EditorCamera>();
+        this->scene_id = node[CURRENT_SCENE_KEY][SCENE_ID_KEY].as<VWolf::UUID>();
         this->currentSceneRelativePath = node[CURRENT_SCENE_KEY][RELATIVE_PATH_KEY].as<std::string>();
         
         return true;
@@ -192,6 +194,7 @@ namespace VWolfPup {
         out << v.editorCameraSettings;
         out << YAML::Key << CURRENT_SCENE_KEY;
         out << YAML::BeginMap;
+        out << YAML::Key << SCENE_ID_KEY << YAML::Value << v.scene_id;
         out << YAML::Key << RELATIVE_PATH_KEY << YAML::Value << v.GetCurrentSceneRelativePath();
         out << YAML::EndMap;
         out << YAML::EndMap;
