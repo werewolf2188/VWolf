@@ -360,9 +360,9 @@ namespace VWolfPup {
         //                comp->SetPath(path);
                         auto material = Project::CurrentProject()->GetMaterial(path);
                         if (material) {
-                            component.SetMaterial(material.get());
+                            component.SetMaterial(material);
                         } else {
-                            component.SetMaterial(Defaults::Get()->GetDefaultMaterial().get());                            
+                            component.SetMaterial(VWolf::MaterialLibrary::Default());
                         }
                     }));
                 }
@@ -880,7 +880,7 @@ namespace VWolfPup {
     }
 
     void Inspector::DrawMaterial(VWolf::Material& material) {
-        bool isDefault = Defaults::Get()->IsDefault(material);
+        bool isDefault = material.IsDefault();
         ImGui::PushID("MaterialName");
 
         ImGui::Columns(2);

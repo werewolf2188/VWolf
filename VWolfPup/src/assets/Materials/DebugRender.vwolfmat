@@ -1,6 +1,7 @@
 ---
 material:
   name: RainbowColor
+  isDefault: true
   shaderName: RainbowColor
   colors:
     u_ambientColor: [1, 0, 0, 1]

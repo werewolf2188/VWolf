@@ -1,6 +1,7 @@
 ---
 material:
   name: Grid
+  isDefault: true
   shaderName: Grid
   colors:
     {}

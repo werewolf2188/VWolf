@@ -1,6 +1,7 @@
 ---
 material:
   name: Skybox
+  isDefault: true
   shaderName: Skybox
   colors:
     {}

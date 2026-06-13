@@ -40,13 +40,14 @@ namespace VWolf {
     Material::Material(Ref<Shader> shader) {
         name = shader->GetName();
         shaderName = shader->GetName();
-        MaterialLibrary::SetMaterial(name.c_str(), this);
+        MaterialLibrary::SetMaterial(name, CreateRef<Material>(*this));
         InternalLoad(shader);
     }
 
     Material::Material(Material& material) {
         this->id = material.id;
         this->name = material.name;
+        this->isDefault = material.isDefault;
         this->shaderName = material.shaderName;
         this->size = material.size;
         this->colors = material.colors;
@@ -60,6 +61,7 @@ namespace VWolf {
     Material::Material(Material&& material) {
         this->id = material.id;
         this->name = material.name;
+        this->isDefault = material.isDefault;
         this->shaderName = material.shaderName;
         this->size = material.size;
         this->colors = material.colors;
@@ -71,6 +73,7 @@ namespace VWolf {
 
         material.id = UUID::Empty;
         material.name = std::string();
+        material.isDefault = false;
         material.shaderName = std::string();
         material.size = 0;
         material.colors.clear();
@@ -87,6 +90,7 @@ namespace VWolf {
 
     void Material::operator=(const Material& material) {
         this->name = material.name;
+        this->isDefault = material.isDefault;
         this->shaderName = material.shaderName;
         this->size = material.size;
         this->colors = material.colors;
@@ -131,6 +135,10 @@ namespace VWolf {
 
     std::string Material::GetName() {
         return name;
+    }
+
+    bool Material::IsDefault() {
+        return isDefault;
     }
 
     std::string Material::GetShaderName() {
@@ -214,7 +222,7 @@ namespace VWolf {
     }
 
     void Material::SetAsDefault() {
-        MaterialLibrary::SetDefault(this);
+        MaterialLibrary::SetDefault(CreateRef<Material>(*this));
     }
 
     void Material::Save(std::filesystem::path path) {
@@ -228,32 +236,31 @@ namespace VWolf {
         Material m(path);
         m.id = _id;
         Ref<Material> refM = CreateRef<Material>(m);
-        MaterialLibrary::SetMaterial(m.GetName(), refM.get());
+        MaterialLibrary::SetMaterial(m.GetName(), refM);
         return refM;
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER(Material);
 
-#ifdef VWOLF_CORE
     const std::string defaultKey = "Default";
 
-    std::map<std::string, Material*> MaterialLibrary::materials = {
-        { std::string(defaultKey), new Material() }
+    std::map<std::string, Ref<Material>> MaterialLibrary::materials = {
+        { std::string(defaultKey), CreateRef<Material>() }
     };
 
-    Material* MaterialLibrary::GetMaterial(std::string name) {
+    Ref<Material> MaterialLibrary::GetMaterial(std::string name) {
         return MaterialLibrary::materials[name];
     }
 
-    Material* MaterialLibrary::Default() {
+    Ref<Material> MaterialLibrary::Default() {
         return MaterialLibrary::GetMaterial(defaultKey);
     }
-
-    void MaterialLibrary::SetDefault(Material* material) {
+#ifdef VWOLF_CORE
+    void MaterialLibrary::SetDefault(Ref<Material> material) {
         SetMaterial(defaultKey, material);
     }
 
-    void MaterialLibrary::SetMaterial(std::string name, Material* material) {
+    void MaterialLibrary::SetMaterial(std::string name, Ref<Material> material) {
         MaterialLibrary::materials[name] = material;
     }
 #endif

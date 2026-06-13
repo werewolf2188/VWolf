@@ -29,15 +29,6 @@ namespace VWolfPup {
         this->defaultSkyBoxMaterial = defaults.defaultSkyBoxMaterial;
     }
 
-    bool Defaults::IsDefault(VWolf::Material& material) {
-        for(auto defaultMaterial: materials) {
-            if (defaultMaterial.second->GetName() == material.GetName()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     void Defaults::Load() {
         constexpr const char * fileName = "defaults.ini";
         YAML::Node data;

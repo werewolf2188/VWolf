@@ -177,8 +177,9 @@ public:
 //            material_2.SetTexture("gDiffuseMap", testTexture);
 //        }
 //#endif
-        
-        testScene->GetSceneBackground().SetSkyboxMaterial(*VWolfPup::Defaults::Get()->GetDefaultSkyBoxMaterial());
+        std::string skyMaterialName = VWolfPup::Defaults::Get()->GetDefaultSkyBoxMaterialName();
+        VWolf::Ref<VWolf::Material> skyMaterial = VWolf::MaterialLibrary::GetMaterial(skyMaterialName);
+        testScene->GetSceneBackground().SetSkyboxMaterial(*skyMaterial);
         // TODO: This should come from the same camera.
         testScene->GetSceneBackground().SetCamera(skyBoxCamera);
 
@@ -223,7 +224,7 @@ public:
             testScene->DrawPreviewEditor();
         else {
             testScene->DrawEditor(camera);
-            VWolf::Graphics::RenderMesh(gridData, VWolf::Matrix4x4(), *VWolfPup::Defaults::Get()->GetDefaultGridMaterial());
+            VWolf::Graphics::RenderMesh(gridData, VWolf::Matrix4x4(), *VWolf::MaterialLibrary::GetMaterial(VWolfPup::Defaults::Get()->GetDefaultGridMaterialName()));
         }
     }
 

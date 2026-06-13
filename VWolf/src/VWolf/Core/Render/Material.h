@@ -27,6 +27,7 @@ namespace VWolf {
         ~Material();
     public:
         std::string GetName();
+        bool IsDefault();
         std::string GetShaderName();
     public:
         Color& GetColor(std::string name);
@@ -55,6 +56,7 @@ namespace VWolf {
         void InternalLoad(Ref<Shader> shader);
     private:
         std::string name;
+        bool isDefault = false;
         std::string shaderName;
         size_t size;
         std::map<std::string, Color> colors;
@@ -65,20 +67,20 @@ namespace VWolf {
         std::map<std::string, std::tuple<uint32_t, uint32_t, uint32_t>> inputs_information;
         std::vector<Property> properties;
         
-        BOOST_DESCRIBE_CLASS(Material, (IIdentifiable), (), (), (name, shaderName, colors, vectors, floats))
+        BOOST_DESCRIBE_CLASS(Material, (IIdentifiable), (), (), (name, isDefault, shaderName, colors, vectors, floats))
         
         VWOLF_SERIALIZATION_FRIENDS(Material)
     };
 
-#ifdef VWOLF_CORE
     class MaterialLibrary {
     public:
-        static Material* GetMaterial(std::string name);
-        static Material* Default();
-        static void SetDefault(Material *);
-        static void SetMaterial(std::string name, Material* material);
-    private:
-        static std::map<std::string, Material*> materials;
-    };
+        static Ref<Material> GetMaterial(std::string name);
+        static Ref<Material> Default();
+#ifdef VWOLF_CORE
+        static void SetDefault(Ref<Material>);
+        static void SetMaterial(std::string name, Ref<Material> material);
 #endif
+    private:
+        static std::map<std::string, Ref<Material>> materials;
+    };
 }

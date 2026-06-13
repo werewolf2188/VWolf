@@ -16,11 +16,12 @@ namespace VWolfPup {
     bool MaterialImporter::Import(std::filesystem::path path, VWolf::UUID _id) {
         auto mat = VWolf::Material::Load(path, _id);
         VWolf::Ref<Defaults> _defaults = Defaults::Get();
-        if (_defaults->GetDefaultMaterialName() == path.stem().string()) {
+        
+        VWolf::Ref<VWolf::Material> newMat = VWolf::MaterialLibrary::GetMaterial(mat->GetName());
+        if (_defaults->GetDefaultMaterialName() == mat->GetName()) {
             mat->SetAsDefault();
-            _defaults->AddMaterial(Defaults::Get()->GetDefaultMaterialName(), mat);
-        } else if (_defaults->GetDefaultSkyBoxMaterialName() == path.stem().string()) {
-            _defaults->AddMaterial(Defaults::Get()->GetDefaultSkyBoxMaterialName(), mat);
+        } else if (_defaults->GetDefaultSkyBoxMaterialName() == mat->GetName()) {
+            VWolf::Ref<VWolf::Material> newMat2 = VWolf::MaterialLibrary::GetMaterial(_defaults->GetDefaultSkyBoxMaterialName());
             mat->SetTexture("skybox",
                             VWolf::Texture::LoadCubemap({ "assets/skybox/right.png",
                                                           "assets/skybox/left.png",
@@ -28,14 +29,7 @@ namespace VWolfPup {
                                                           "assets/skybox/bottom.png",
                                                           "assets/skybox/front.png",
                                                           "assets/skybox/back.png" }));
-        } else if (_defaults->GetDefaultGridMaterialName() == path.stem().string()) {
-            _defaults->AddMaterial(Defaults::Get()->GetDefaultGridMaterialName(), mat);
-        } else if ("DebugRender" == path.stem().string()) {
-            _defaults->AddMaterial("RainbowColor", mat);
-        } else {
-            _defaults->AddMaterial(path.string(), mat);
         }
-        
         return true;
     }
 

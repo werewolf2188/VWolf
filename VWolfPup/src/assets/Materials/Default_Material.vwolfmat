@@ -1,6 +1,7 @@
 ---
 material:
   name: BlinnPhong
+  isDefault: true
   shaderName: BlinnPhong
   colors:
     u_ambientColor: [1, 0, 0, 1]
