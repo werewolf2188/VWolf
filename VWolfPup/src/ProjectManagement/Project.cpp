@@ -273,5 +273,10 @@ namespace VWolfPup {
         return nullptr;
     }
 
+    // TODO: For now I'll keep this, to avoid issues with picking materials and the ObjectExplorer
+    void Project::SetMaterial(std::filesystem::path inPath, VWolf::Ref<VWolf::Material> material) {
+        materials[inPath] = material;
+    }
+
     VWolf::Ref<Project> Project::currentProject;
 }

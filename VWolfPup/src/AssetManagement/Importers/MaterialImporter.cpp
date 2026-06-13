@@ -7,6 +7,7 @@
 
 #include "MaterialImporter.h"
 #include "../LoadSettings.h"
+#include "../ProjectManagement/Project.h"
 
 namespace VWolfPup {
     uint32_t MaterialImporter::LoadPriority(std::filesystem::path path) const {
@@ -15,13 +16,14 @@ namespace VWolfPup {
 
     bool MaterialImporter::Import(std::filesystem::path path, VWolf::UUID _id) {
         auto mat = VWolf::Material::Load(path, _id);
+        
+        Project::CurrentProject()->SetMaterial(path, mat);
+        
         VWolf::Ref<Defaults> _defaults = Defaults::Get();
         
-        VWolf::Ref<VWolf::Material> newMat = VWolf::MaterialLibrary::GetMaterial(mat->GetName());
         if (_defaults->GetDefaultMaterialName() == mat->GetName()) {
             mat->SetAsDefault();
         } else if (_defaults->GetDefaultSkyBoxMaterialName() == mat->GetName()) {
-            VWolf::Ref<VWolf::Material> newMat2 = VWolf::MaterialLibrary::GetMaterial(_defaults->GetDefaultSkyBoxMaterialName());
             mat->SetTexture("skybox",
                             VWolf::Texture::LoadCubemap({ "assets/skybox/right.png",
                                                           "assets/skybox/left.png",

@@ -101,6 +101,7 @@ namespace VWolfPup {
         VWolf::Ref<VWolf::Scene> GetCurrentScene();
         void AddScene(std::filesystem::path path, VWolf::Ref<VWolf::Scene> scene);
         VWolf::Ref<VWolf::Material> GetMaterial(std::filesystem::path inPath);
+        void SetMaterial(std::filesystem::path inPath, VWolf::Ref<VWolf::Material> material);
     public:
         template<typename T>
         void AddObserver(T* obj, std::function<void(const std::string& path, const efsw::Action event)> value) {
