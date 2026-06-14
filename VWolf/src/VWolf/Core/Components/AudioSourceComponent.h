@@ -20,7 +20,7 @@ namespace VWolf {
     class AudioSourceComponent: public Component {
     public:
         AudioSourceComponent();
-        AudioSourceComponent(AudioSourceComponent& audioSource);
+        AudioSourceComponent(const AudioSourceComponent& audioSource);
         AudioSourceComponent(AudioSourceComponent&& audioSource);
         ~AudioSourceComponent();
     public:

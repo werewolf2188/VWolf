@@ -10,32 +10,12 @@
 
 #include <yaml-cpp/yaml.h>
 #include <fstream>
-#include <boost/type_index.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <chrono>
 
 #include <iostream>
 
 static std::string META_FILE_KEY_NAME = "AssetMetaFile";
-
-namespace VWolfPup {
-    template<typename T>
-    std::string GetClassName() {
-        std::string typeName = boost::typeindex::type_id_with_cvr<T>().pretty_name();
-
-    #ifdef VWOLF_PLATFORM_WINDOWS
-        std::string toRemove = "class VWolfPup::";
-    #elif defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
-        std::string toRemove = "VWolfPup::";
-    #endif
-
-        size_t pos = typeName.find(toRemove);
-        if (pos != std::string::npos) {
-            typeName.erase(pos, toRemove.length());
-        }
-        return typeName;
-    }
-}
 
 namespace YAML {
     struct ImporterDeserialier {
@@ -44,7 +24,7 @@ namespace YAML {
     public:
         template <typename type>
         void operator()(type) const {
-            std::string name = VWolfPup::GetClassName<type>();
+            std::string name = VWolf::ClassNameCleaner::Current().GetClassName<type>();
             if (node[name]) {
                 rhs.importer = new type;
             }
@@ -72,7 +52,7 @@ namespace VWolfPup {
             T* value = dynamic_cast<T*>(v.importer);
             
             if (value != nullptr) {
-                out << YAML::Key << GetClassName<T>();
+                out << YAML::Key << VWolf::ClassNameCleaner::Current().GetClassName<T>();
                 out << YAML::BeginMap;
                 VWolf::SerializeFromBoostOnlyMembers(out, *value);
                 out << YAML::EndMap;
@@ -111,7 +91,7 @@ namespace VWolfPup {
                 metaFileParent.importer = new T;
                 VWOLF_CLIENT_INFO("CREATE metafile %s with %s.",
                                   metaFileParent. metafile.string().c_str(),
-                                  GetClassName<T>().c_str());
+                                  VWolf::ClassNameCleaner::Current().GetClassName<T>().c_str());
             }
         }
     private:
@@ -121,7 +101,7 @@ namespace VWolfPup {
 
     std::string AssetMetaFile::META_FILE_EXTENSION = ".vpmeta";
 
-    AssetMetaFile::AssetMetaFile(std::filesystem::path path) {
+    AssetMetaFile::AssetMetaFile(std::filesystem::path path): Object(VWolf::UUID::NewUUID()) {
         this->SetPath(path);
         std::filesystem::file_time_type ftime = std::filesystem::last_write_time(path);
         auto duration = ftime.time_since_epoch();
@@ -129,7 +109,7 @@ namespace VWolfPup {
         lastModifiedTime = seconds;
     }
 
-    AssetMetaFile::AssetMetaFile(AssetMetaFile& asmf) {
+    AssetMetaFile::AssetMetaFile(const AssetMetaFile& asmf): Object(asmf.id) {
         this->id = asmf.id;
         this->version = asmf.version;
         this->importer = asmf.importer;
@@ -138,16 +118,7 @@ namespace VWolfPup {
         this->lastModifiedTime = asmf.lastModifiedTime;
     }
 
-    AssetMetaFile::AssetMetaFile(const AssetMetaFile& asmf) {
-        this->id = asmf.id;
-        this->version = asmf.version;
-        this->importer = asmf.importer;
-        this->path = asmf.path;
-        this->metafile = asmf.metafile;
-        this->lastModifiedTime = asmf.lastModifiedTime;
-    }
-
-    AssetMetaFile::AssetMetaFile(AssetMetaFile&& asmf) {
+    AssetMetaFile::AssetMetaFile(AssetMetaFile&& asmf): Object(asmf.id) {
         this->id = asmf.id;
         this->version = asmf.version;
         this->importer = asmf.importer;

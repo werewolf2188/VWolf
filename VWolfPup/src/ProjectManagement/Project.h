@@ -18,6 +18,7 @@
 #include <efsw/efsw.hpp>
 
 #include "../Camera/EditorCamera.h"
+#include "Extensions.h"
 
 namespace VWolfPup {
     class ProjectListener;
@@ -50,9 +51,9 @@ namespace VWolfPup {
             VWOLF_SERIALIZATION_FRIENDS(EditorCamera)
         };
 
-        class Settings: public VWolf::IIdentifiable {
+        class Settings: public VWolf::Object {
         public:
-            Settings() = default;
+            Settings(): Object(VWolf::UUID::NewUUID()) {};
             Settings(std::filesystem::path path);
             ~Settings();
         public:
@@ -81,7 +82,7 @@ namespace VWolfPup {
             std::string currentSceneRelativePath;
             VWolf::UUID scene_id;
             
-            BOOST_DESCRIBE_CLASS(Settings, (VWolf::IIdentifiable), (), (id), (editorCameraSettings))
+            BOOST_DESCRIBE_CLASS(Settings, (VWolf::Object), (), (id), (editorCameraSettings))
             VWOLF_SERIALIZATION_FRIENDS(Settings)
         };
     public:
@@ -112,6 +113,7 @@ namespace VWolfPup {
     public:
         static void InitializeCurrentProject(VWolf::Ref<Project>);
         static VWolf::Ref<Project> CurrentProject();
+        static Extension project_extension;
     private:
         Settings settings;
         std::filesystem::path projectPath;

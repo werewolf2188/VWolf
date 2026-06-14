@@ -16,7 +16,7 @@
 namespace VWolf {
     MeshColliderComponent::MeshColliderComponent(): Component("MeshCollider") {}
 
-    MeshColliderComponent::MeshColliderComponent(MeshColliderComponent& meshCollider):
+    MeshColliderComponent::MeshColliderComponent(const MeshColliderComponent& meshCollider):
     Component("MeshCollider", meshCollider.id) {}
 
     MeshColliderComponent::MeshColliderComponent(MeshColliderComponent&& meshCollider):

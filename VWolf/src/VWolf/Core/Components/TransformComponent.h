@@ -16,7 +16,7 @@ namespace VWolf {
     class TransformComponent: public Component {
     public:
         TransformComponent();
-        TransformComponent(TransformComponent& transform);
+        TransformComponent(const TransformComponent& transform);
         TransformComponent(TransformComponent&& transform);
         ~TransformComponent();
     public:

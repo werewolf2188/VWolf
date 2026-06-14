@@ -19,34 +19,29 @@ namespace VWolfPup {
         Extension(std::filesystem::path path);
         Extension(std::string name, std::string extension);
         Extension(const Extension& extension);
-        Extension(Extension& extension);
         Extension(Extension&& extension);
-
-//        Extension(std::string name, std::filesystem::path path);
     public:
-        inline std::string GetName() { return name; }
-        inline std::string GetExtension() { return extension; }
+        std::string GetExtension() const { return extension; }
+        operator std::string() const { return GetExtension(); }
+        operator std::filesystem::path() const { return GetExtension(); }
     public:
         Extension& operator=(const Extension& other);
         Extension& operator=(Extension&& other);
 
         bool operator==(const Extension& other) const;
-        bool operator==(const std::string extension) const;
-        bool operator==(const std::filesystem::path path) const;
         bool operator!=(const Extension& other) const;
-    public:
-        static Extension GetExtensionByName(std::string name);
-        static Extension GetExtensionByExtension(std::string ext);
-        static std::string GetExtension(std::string name);
-        static bool HasExtension(std::string ext);
-    public:
-        static inline std::string GetProjectExtension() { return GetExtension("VWolf Project"); }
-        static inline std::string GetSceneExtension() { return GetExtension("Scene"); }
-        static inline std::string GetMaterialExtension() { return GetExtension("Material"); }
+        
+        friend bool operator==(const std::string extension, const Extension& other);
+        friend bool operator==(const Extension& other, const std::string extension);
+        friend bool operator==(const std::filesystem::path path, const Extension& other);
+        friend bool operator==(const Extension& other, const std::filesystem::path path);
+        
+        friend const std::string operator+(const std::string extension, const Extension& other);
+        friend const std::string operator+(const Extension& other, const std::string extension);
+        friend const std::filesystem::path operator+(const std::filesystem::path path, const Extension& other);
+        friend const std::filesystem::path operator+(const Extension& other, const std::filesystem::path path);
     private:
         std::string name;
         std::string extension;
-    private:
-        static std::vector<Extension> extensions;
     };
 }

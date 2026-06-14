@@ -9,19 +9,19 @@
 
 #include "Shader.h"
 #include "Texture.h"
-#include "VWolf/Core/IIdentifiable.h"
+#include "VWolf/Core/Object.h"
 #include "VWolf/Core/Math/VMath.h"
 
 #include "VWolf/Core/Utils/GenericSerialization.h"
 
 namespace VWolf {
-    class Material: public IIdentifiable {
+    class Material: public Object {
     public:
-        Material() = default;
-        Material(std::filesystem::path path);
+        Material(): Object(UUID::NewUUID()) {};
+        Material(std::filesystem::path path, UUID _id);
         Material(std::string shaderName);
         Material(Ref<Shader> shader);
-        Material(Material& material);
+        Material(const Material& material);
         Material(Material&& material);
 
         ~Material();
@@ -51,7 +51,7 @@ namespace VWolf {
         size_t GetSize() const;
 #endif
     public:
-        void operator=(const Material& material);
+        Material& operator=(const Material& material);
     private:
         void InternalLoad(Ref<Shader> shader);
     private:
@@ -67,7 +67,7 @@ namespace VWolf {
         std::map<std::string, std::tuple<uint32_t, uint32_t, uint32_t>> inputs_information;
         std::vector<Property> properties;
         
-        BOOST_DESCRIBE_CLASS(Material, (IIdentifiable), (), (), (name, isDefault, shaderName, colors, vectors, floats))
+        BOOST_DESCRIBE_CLASS(Material, (Object), (), (), (name, isDefault, shaderName, colors, vectors, floats))
         
         VWOLF_SERIALIZATION_FRIENDS(Material)
     };

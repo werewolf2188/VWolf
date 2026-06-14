@@ -23,8 +23,6 @@ namespace VWolf {
 
     UUID::UUID(const UUID& uuidClass): _uuid(uuidClass._uuid) {}
 
-    UUID::UUID(UUID& uuidClass): _uuid(uuidClass._uuid) {}
-
     UUID::UUID(UUID&& uuidClass): _uuid(uuidClass._uuid) {
         uuidClass._uuid = boost::uuids::nil_generator()();
     }
@@ -54,6 +52,10 @@ namespace VWolf {
 
     bool UUID::operator!=(const UUID& rhs) {
         return this->_uuid != rhs._uuid;
+    }
+
+    bool UUID::operator<(const UUID& other) const {
+        return std::tie(_uuid) < std::tie(other._uuid);
     }
 
     bool operator!=(const UUID& lhs, const UUID& rhs) {

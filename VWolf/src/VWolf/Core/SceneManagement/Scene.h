@@ -28,7 +28,7 @@ namespace VWolf {
             Color, Skybox
         };
         SceneBackground();
-        SceneBackground(SceneBackground& scene);
+        SceneBackground(const SceneBackground& scene);
         SceneBackground(SceneBackground&& scene) = default;
         ~SceneBackground();
     public:
@@ -42,7 +42,7 @@ namespace VWolf {
         Type GetType() { return type; }
         void SetType(Type type) { this->type = type; }
     public:
-        SceneBackground& operator=(SceneBackground& t);
+        SceneBackground& operator=(const SceneBackground& t);
         SceneBackground& operator=(SceneBackground&& t);
     private:
         Color backgroundColor;
@@ -57,11 +57,12 @@ namespace VWolf {
 
     BOOST_DESCRIBE_ENUM(SceneBackground::Type, Color, Skybox)
 
-    class Scene: public IIdentifiable {
+    class Scene: public Object {
     public:
         Scene(std::string name);
-        Scene() = default;
-        Scene(Scene& scene);
+        Scene(): Object(UUID::NewUUID()) {};
+        Scene(std::filesystem::path path, UUID _id);
+        Scene(const Scene& scene);
         Scene(Scene&& scene);
         ~Scene();
     public:
@@ -82,6 +83,8 @@ namespace VWolf {
         void SetSceneBackground(SceneBackground& sceneBackground) { this->sceneBackGround = sceneBackground; }
         entt::registry& CurrentRegistry() { return isPreviewing ? m_previewRegistry : m_registry; }
     public:
+        Scene& operator=(const Scene& t);
+    public:
         static Ref<Scene> Load(std::filesystem::path path, UUID _id);
     public:
         static Scene* currentScene;
@@ -99,7 +102,7 @@ namespace VWolf {
         float previewAccumulator = 0.2f;
         friend class GameObject;
         
-        BOOST_DESCRIBE_CLASS(Scene, (IIdentifiable), (), (), (name, sceneBackGround))
+        BOOST_DESCRIBE_CLASS(Scene, (Object), (), (), (name, sceneBackGround))
         VWOLF_SERIALIZATION_FRIENDS(Scene)
     };
 }

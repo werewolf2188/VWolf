@@ -11,7 +11,7 @@
 
 #include "Components.h"
 
-#include "VWolf/Core/IIdentifiable.h"
+#include "VWolf/Core/Object.h"
 #include "VWolf/Core/SceneManagement/Scene.h"
 
 #include "VWolf/Core/Utils/GenericSerialization.h"
@@ -30,12 +30,12 @@ namespace YAML {
 
 namespace VWolf {
 
-    class GameObject: public IIdentifiable {
+    class GameObject: public Object {
     public:
-        GameObject() = default;
+        GameObject(): Object(UUID::NewUUID()) {};
         GameObject(std::string name);
         GameObject(std::string name, entt::entity handle, Scene* scene);
-        GameObject(GameObject& gameObject);
+        GameObject(const GameObject& gameObject);
         GameObject(GameObject&& gameObject) = default;
         ~GameObject();
     public:
@@ -124,7 +124,7 @@ namespace VWolf {
 
         reactphysics3d::RigidBody* mRigidBody = nullptr;
         
-        BOOST_DESCRIBE_CLASS(GameObject, (IIdentifiable), (), (id), (name))
+        BOOST_DESCRIBE_CLASS(GameObject, (Object), (), (id), (name))
         VWOLF_SERIALIZATION_FRIENDS(GameObject)
         
         friend bool YAML::DeserializeComponents(const YAML::Node& node, VWolf::GameObject& rhs);

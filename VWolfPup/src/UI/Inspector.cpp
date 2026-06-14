@@ -314,7 +314,7 @@ namespace VWolfPup {
                 if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
                 {
                     ContainerView::GetMainView()
-                    ->AddView(new ObjectExplorer(".obj", [comp](auto path){
+                    ->AddView(new FileExplorer(".obj", [comp](auto path){
 //                        VWOLF_CLIENT_INFO("Test");
                         comp->SetPath(path);
                     }));
@@ -356,12 +356,11 @@ namespace VWolfPup {
                 {
                     ContainerView::GetMainView()
                     // TODO: This is incorrect. It should come from a list of materials in the library, not from looking at paths
-                    ->AddView(new ObjectExplorer(Extension::GetMaterialExtension(), [this, &component](auto path){
+                    ->AddView(new ObjectExplorer<VWolf::Material>([this, &component](auto material) {
         //                        VWOLF_CLIENT_INFO("Test");
         //                comp->SetPath(path);
                         
                         // TODO: This is incorrect. It should come from a list of materials in the library, not from looking at paths
-                        auto material = Project::CurrentProject()->GetMaterial(path);
                         if (material) {
                             component.SetMaterial(material);
                         } else {
@@ -730,7 +729,7 @@ namespace VWolfPup {
                 if (ImGui::Button("...", ImVec2{ lineHeight, lineHeight }))
                 {
                     ContainerView::GetMainView()
-                    ->AddView(new ObjectExplorer(Extension::GetExtension("Audio"), [this, &component](auto path){
+                    ->AddView(new FileExplorer(".mp3", [this, &component](auto path){
                         component.SetAudioFile(path);
                     }));
                 }

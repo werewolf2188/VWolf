@@ -71,8 +71,7 @@ namespace VWolf {
     const char* Shader::ObjectBufferName = "Object";
     //
 
-    Shader::Shader(std::filesystem::path path, UUID _id) {
-        this->id = _id;
+    Shader::Shader(std::filesystem::path path, UUID _id): Object(_id) {
         Deserialize(path);
     }
 
@@ -105,7 +104,9 @@ namespace VWolf {
     }
 
     void Shader::LoadShader(std::filesystem::path path, UUID _id) {
-        m_shaders.push_back(CreateRef<Shader>(path, _id));
+        Ref<Shader> shader = CreateRef<Shader>(path, _id);
+        ObjectResourceManager::AddObject(_id, shader);
+        m_shaders.push_back(shader);
     }
 
     Ref<Shader> Shader::GetShader(std::string name) {

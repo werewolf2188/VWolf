@@ -91,12 +91,12 @@ namespace VWolf {
     // ---------------- SCENE BACKGROUND ----------------
     SceneBackground::SceneBackground(): backgroundColor(Color(0.0f, 0.0f, 0.0f, 1.0f )), skybox(CreateSkyBox()) {}
 
-    SceneBackground::SceneBackground(SceneBackground& scene): backgroundColor(scene.backgroundColor), skybox(CreateSkyBox()) {}
+    SceneBackground::SceneBackground(const SceneBackground& scene): backgroundColor(scene.backgroundColor), skybox(CreateSkyBox()) {}
     
 
     SceneBackground::~SceneBackground() {}
 
-    SceneBackground& SceneBackground::operator=(SceneBackground& t) {
+    SceneBackground& SceneBackground::operator=(const SceneBackground& t) {
         this->backgroundColor = t.backgroundColor;
         this->type = t.type;
         return *this;
@@ -129,17 +129,34 @@ namespace VWolf {
 
     Scene* Scene::currentScene = nullptr;
 
-    Scene::Scene(std::string name): name(name) {
+    Scene::Scene(std::string name): Object(UUID::NewUUID()), name(name) {
         emptyMeshData = ShapeHelper::CreateEmpty();
         world = Physics::GetCommon().createPhysicsWorld();
         world->setIsDebugRenderingEnabled(true);
     }
 
-    Scene::Scene(Scene& scene) {
-        this->id = scene.id;
+    Scene::Scene(std::filesystem::path path, UUID _id): Object(_id) {
+        YAML::Node data;
+        try
+        {
+            data = YAML::LoadFile(path.string());
+        }
+        catch (YAML::ParserException e)
+        {
+            VWOLF_CORE_ERROR("Failed to load .scene file '%s'\n     %s", path.string().c_str(), e.what());
+            throw;
+        }
+
+        if (!data[sceneKey])
+            throw;
+        
+        (*this) = data[sceneKey].as<Scene>();
+    }
+
+    Scene::Scene(const Scene& scene): Object(scene.id) {
         this->name = scene.name;
         this->sceneBackGround = scene.sceneBackGround;
-        this->m_registry = std::move(scene.m_registry);
+        this->m_registry.swap(const_cast<Scene&>(scene).m_registry);
         this->gameObjects = scene.gameObjects;
         for (auto gameObject: this->gameObjects) {
             gameObject->AttachToScene(this);
@@ -149,9 +166,8 @@ namespace VWolf {
         world->setIsDebugRenderingEnabled(true);
     }
 
-    Scene::Scene(Scene&& scene) {
+    Scene::Scene(Scene&& scene): Object(scene.id) {
         emptyMeshData = ShapeHelper::CreateEmpty();
-        this->id = scene.id;
         this->name = scene.name;
         this->sceneBackGround = scene.sceneBackGround;
         this->m_registry = std::move(scene.m_registry);
@@ -171,6 +187,21 @@ namespace VWolf {
         // TODO: Why is this failing?
 //        if (world)
 //            common.destroyPhysicsWorld(world);
+    }
+
+    Scene& Scene::operator=(const Scene& scene) {
+        this->name = scene.name;
+        this->sceneBackGround = scene.sceneBackGround;
+        this->m_registry.swap(const_cast<Scene&>(scene).m_registry);
+        this->gameObjects = scene.gameObjects;
+        for (auto gameObject: this->gameObjects) {
+            gameObject->AttachToScene(this);
+        }
+        emptyMeshData = ShapeHelper::CreateEmpty();
+        world = Physics::GetCommon().createPhysicsWorld();
+        world->setIsDebugRenderingEnabled(true);
+        
+        return *this;
     }
 
     Ref<GameObject> Scene::CreateGameObject(std::string name) {
@@ -554,25 +585,8 @@ namespace VWolf {
     }
 
     Ref<Scene> Scene::Load(std::filesystem::path path, UUID _id) {
-        constexpr const char * defaultName = "Untitled";
-        YAML::Node data;
-        try
-        {
-            data = YAML::LoadFile(path.string());
-        }
-        catch (YAML::ParserException e)
-        {
-            VWOLF_CORE_ERROR("Failed to load .scene file '%s'\n     %s", path.string().c_str(), e.what());
-            return CreateRef<Scene>(defaultName);
-        }
-
-        if (!data[sceneKey])
-            return CreateRef<Scene>(defaultName);
-
-        Scene scene = data[sceneKey].as<Scene>();
-        scene.id = _id;
-        Ref<Scene> sceneName = CreateFromRef<Scene>(scene);
-
+        Ref<Scene> sceneName = CreateRef<Scene>(path, _id);
+        ObjectResourceManager::AddObject(_id, sceneName);
         return sceneName;
     }
 

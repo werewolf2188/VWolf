@@ -23,7 +23,7 @@ namespace VWolf {
     class RigidBodyComponent: public Component {
     public:
         RigidBodyComponent();
-        RigidBodyComponent(RigidBodyComponent& rigidBody);
+        RigidBodyComponent(const RigidBodyComponent& rigidBody);
         RigidBodyComponent(RigidBodyComponent&& rigidBody);
         ~RigidBodyComponent();
     public:

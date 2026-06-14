@@ -12,16 +12,11 @@
 namespace VWolfPup {
     Extension::Extension(std::string name, std::string extension): name(name), extension(extension) {}
 
-    Extension::Extension(std::string extension): name(""), extension(extension) {}
+    Extension::Extension(std::string extension): name(extension), extension(extension) {}
 
-    Extension::Extension(std::filesystem::path path): Extension(path.extension().string()) {}
+    Extension::Extension(std::filesystem::path path): Extension(std::filesystem::is_directory(path) ? "" : path.extension().string()) {}
 
     Extension::Extension(const Extension& extension) {
-        this->name = extension.name;
-        this->extension = extension.extension;
-    }
-
-    Extension::Extension(Extension& extension) {
         this->name = extension.name;
         this->extension = extension.extension;
     }
@@ -32,37 +27,6 @@ namespace VWolfPup {
         
         extension.name = "";
         extension.extension = "";
-    }
-
-//    Extension::Extension(std::string name, std::filesystem::path path): Extension(name, path.extension().string()) {}
-
-    std::vector<Extension> Extension::extensions = {
-        Extension("VWolf Project", ".vwolfproj"),
-        Extension("Scene", ".scene"),
-        Extension("Material", ".vwolfmat"),
-        Extension("Audio", ".mp3")
-    };
-
-    std::string Extension::GetExtension(std::string name) {
-        return GetExtensionByName(name).GetExtension();
-    }
-    
-    Extension Extension::GetExtensionByName(std::string name) {
-        return (*std::find_if(extensions.begin(), extensions.end(), [name](Extension extension) {
-                return extension.GetName() == name;
-            }));
-    }
-
-    Extension Extension::GetExtensionByExtension(std::string ext) {
-        return (*std::find_if(extensions.begin(), extensions.end(), [ext](Extension extension) {
-                return extension.GetExtension() == ext;
-            }));
-    }
-
-    bool Extension::HasExtension(std::string ext) {
-        return (std::find_if(extensions.begin(), extensions.end(), [ext](Extension extension) {
-                return extension.GetExtension() == ext;
-            })) != extensions.end();
     }
 
     Extension& Extension::operator=(const Extension& other) {
@@ -86,19 +50,43 @@ namespace VWolfPup {
         return extension == other.extension;
     }
 
-    bool Extension::operator==(const std::string extension) const {
-        return this->extension == extension;
-    }
-
-    bool Extension::operator==(const std::filesystem::path path) const {
-        if (std::filesystem::is_directory(path)) return false;
-        
-        return this->extension == path.extension().string();
-    }
-
     bool Extension::operator!=(const Extension& other) const {
         return extension != other.extension;
     }
+
+    bool operator==(const std::string extension, const Extension& other) {
+        return other.extension == extension;
+    }
+
+    bool operator==(const Extension& other, const std::string extension) {
+        return other.extension == extension;
+    }
+
+    bool operator==(const std::filesystem::path path, const Extension& other) {
+        if (std::filesystem::is_directory(path)) return false;
+        
+        return other.extension == path.extension().string();
+    }
+
+    bool operator==(const Extension& other, const std::filesystem::path path) {
+        if (std::filesystem::is_directory(path)) return false;
+        
+        return other.extension == path.extension().string();
+    }
+
+    const std::string operator+(const std::string name, const Extension& other) {
+        return name + other.extension;
+    }
+
+    const std::string operator+(const Extension& other, const std::string name) {
+        return name + other.extension;
+    }
+
+    const std::filesystem::path operator+(const std::filesystem::path path, const Extension& other) {
+        return path.string() + other.extension;
+    }
+
+    const std::filesystem::path operator+(const Extension& other, const std::filesystem::path path) {
+        return path.string() + other.extension;
+    }
 }
-
-

@@ -20,10 +20,10 @@ namespace VWolf {
         Load();
     }
 
-    MeshFilterComponent::MeshFilterComponent(MeshFilterComponent& component):
+    MeshFilterComponent::MeshFilterComponent(const MeshFilterComponent& component):
     Component("Mesh Filter", component.id), data(component.data), path(component.path) {
         Load();
-        this->SetGameObject(component.GetGameObject());
+        this->SetGameObject(const_cast<MeshFilterComponent&>(component).GetGameObject());
     }
 
     MeshFilterComponent::MeshFilterComponent(MeshFilterComponent&& component):
@@ -45,9 +45,9 @@ namespace VWolf {
         MeshFilterComponent::componentInspector->OnInspector(this);
     }
 
-    MeshFilterComponent& MeshFilterComponent::operator=(MeshFilterComponent t) {
+    MeshFilterComponent& MeshFilterComponent::operator=(const MeshFilterComponent& t) {
         this->data = t.data;
-        this->SetGameObject(t.GetGameObject());
+        this->SetGameObject(const_cast<MeshFilterComponent&>(t).GetGameObject());
         return *this;
     }
 

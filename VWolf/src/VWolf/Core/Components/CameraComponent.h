@@ -19,7 +19,7 @@ namespace VWolf {
     class CameraComponent: public Component {
     public:
         CameraComponent();
-        CameraComponent(CameraComponent& camera);
+        CameraComponent(const CameraComponent& camera);
         CameraComponent(CameraComponent&& camera);
         ~CameraComponent();
     public:

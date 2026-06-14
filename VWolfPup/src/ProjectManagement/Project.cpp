@@ -6,7 +6,6 @@
 //
 
 #include "Project.h"
-#include "Extensions.h"
 #include "Folder.h"
 
 #include <yaml-cpp/yaml.h>
@@ -75,7 +74,7 @@ namespace VWolfPup {
     }
 
     bool ProjectExists(std::filesystem::path& path) {
-        std::string fileName = path.filename().string() + Extension::GetProjectExtension();
+        std::string fileName = path.filename() + Project::project_extension;
         return std::filesystem::exists(path) && std::filesystem::exists(path / Folder::GetAssetsFolder()) && std::filesystem::exists(path / fileName);
     }
 
@@ -105,7 +104,7 @@ namespace VWolfPup {
         return Project::CurrentProject()->GetType();
     }
 
-    Project::Settings::Settings(std::filesystem::path path): path(path) {
+    Project::Settings::Settings(std::filesystem::path path): Object(VWolf::UUID::NewUUID()), path(path) {
         if (!std::filesystem::exists(path)) {
             Save();
         } else {
@@ -220,9 +219,11 @@ namespace VWolfPup {
         return out;
     }
 
+    Extension Project::project_extension("VWolf Project", ".vwolfproj");
+
     Project::Project(std::filesystem::path path):
     projectPath(path),
-    settings((path / path.filename()).concat(Extension::GetProjectExtension())) {
+    settings((path / path.filename()).concat((std::string)project_extension)) {
         fileWatcher = new efsw::FileWatcher();
         listener = new ProjectListener(this);
 

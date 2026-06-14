@@ -12,6 +12,7 @@
 #include <boost/mp11.hpp>
 #include <boost/preprocessor.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/type_index.hpp>
 
 #define VWOLF_SERIALIZATION_FRIENDS(T) \
 friend YAML::Emitter& operator<<(YAML::Emitter& out, T& v);\
@@ -137,6 +138,57 @@ namespace std::filesystem {
 }
 
 namespace VWolf {
+    class ClassNameCleaner {
+    private:
+        ClassNameCleaner() = default;
+        ClassNameCleaner(const ClassNameCleaner&) = default;
+        ClassNameCleaner(ClassNameCleaner&&) = delete;
+    private:
+        std::string get_namespace_of_type(const std::type_info& ti) {
+            std::string name;
+        #if defined(__clang__) || defined(__GNUC__)
+            int status = -1;
+            std::unique_ptr<char, void(*)(void*)> res {
+                abi::__cxa_demangle(ti.name(), nullptr, nullptr, &status),
+                std::free
+            };
+            if (status == 0) name = res.get();
+        #else
+            name = ti.name(); // MSVC returns demangled names by default
+        #endif
+
+            // Parse out the type name to leave only the namespace
+            size_t last_colon = name.rfind("::");
+            if (last_colon != std::string::npos) {
+                return name.substr(0, last_colon);
+            }
+            return "";
+        }
+    public:
+        template<typename T>
+        std::string GetClassName() {
+            std::string namespaceName = get_namespace_of_type(typeid(T));
+            std::string typeName = boost::typeindex::type_id_with_cvr<T>().pretty_name();
+
+        #ifdef VWOLF_PLATFORM_WINDOWS
+            std::string toRemove = "class " + namespaceName + "::";
+        #elif defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+            std::string toRemove = namespaceName + "::";
+        #endif
+
+            size_t pos = typeName.find(toRemove);
+            if (pos != std::string::npos) {
+                typeName.erase(pos, toRemove.length());
+            }
+            return typeName;
+        }
+
+        static ClassNameCleaner Current() {
+            static ClassNameCleaner cleaner;
+            return cleaner;
+        }
+    };
+
     template<class T,
     class Md = boost::describe::describe_members<T,boost::describe::mod_any_access>>
     bool DeserializeFromBoostDescribe(const YAML::Node& node, T& rhs) {

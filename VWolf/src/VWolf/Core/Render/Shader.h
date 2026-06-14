@@ -8,7 +8,7 @@
 #pragma once
 
 #include "VWolf/Core/Base.h"
-#include "VWolf/Core/IIdentifiable.h"
+#include "VWolf/Core/Object.h"
 #include "VWolf/Core/Math/VMath.h"
 
 #include "RenderStructs.h"
@@ -298,10 +298,9 @@ namespace VWolf {
         BOOST_DESCRIBE_CLASS(SubShader, (), (), (), (properties, code, stages))
     };
 
-    struct ShaderDependency: public IIdentifiable {
+    struct ShaderDependency: public Object {
     public:
-        ShaderDependency(std::filesystem::path m_path, UUID id): m_path(m_path) {
-            this->id = id;
+        ShaderDependency(std::filesystem::path m_path, UUID id): Object(id), m_path(m_path) {
         };
     public:
         std::filesystem::path& GetPath() { return m_path; }
@@ -311,7 +310,7 @@ namespace VWolf {
 
     class PShader;
 
-    class Shader: public IIdentifiable  {
+    class Shader: public Object  {
     public:
         enum class ShaderSpecialty {
             shadow
@@ -321,7 +320,7 @@ namespace VWolf {
         static const char* CameraBufferName;
         static const char* ObjectBufferName;
     public:
-        Shader() = default;
+        Shader(): Object(UUID::NewUUID()) {};
         Shader(std::filesystem::path path, UUID _id);
     public:
         const std::string GetName() const { return name; }

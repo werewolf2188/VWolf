@@ -21,11 +21,10 @@ namespace YAML {
 }
 
 namespace VWolfPup {
-    struct AssetMetaFile: public VWolf::IIdentifiable {
+    struct AssetMetaFile: public VWolf::Object {
     public:
-        AssetMetaFile() = default;
+        AssetMetaFile(): Object(VWolf::UUID::NewUUID()) {};
         AssetMetaFile(std::filesystem::path path);
-        AssetMetaFile(AssetMetaFile& asmf);
         AssetMetaFile(const AssetMetaFile& asmf);
         AssetMetaFile(AssetMetaFile&& asmf);
         ~AssetMetaFile();
@@ -52,7 +51,7 @@ namespace VWolfPup {
     private:
         void SetPath(std::filesystem::path path);
     private:
-        BOOST_DESCRIBE_CLASS(AssetMetaFile, (VWolf::IIdentifiable), (), (id), (version, lastModifiedTime))
+        BOOST_DESCRIBE_CLASS(AssetMetaFile, (VWolf::Object), (), (id), (version, lastModifiedTime))
         VWOLF_SERIALIZATION_FRIENDS(AssetMetaFile)
         friend struct ImporterSerialier;
         friend struct ImporterExtensionValidator;

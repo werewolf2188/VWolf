@@ -10,9 +10,8 @@
 #include "BaseComponent.h"
 
 namespace VWolf {
-    Component::Component(std::string name): name(name) {}
-    Component::Component(std::string name, UUID id): name(name) {
-        this->SetID(id);
+    Component::Component(std::string name): Object(UUID::NewUUID()), name(name) {}
+    Component::Component(std::string name, UUID id): Object(id), name(name) {
     }
     Component::~Component() {}
 }

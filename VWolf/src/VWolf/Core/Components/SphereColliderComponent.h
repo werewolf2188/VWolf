@@ -22,7 +22,7 @@ namespace VWolf {
     class SphereColliderComponent: public Component {
     public:
         SphereColliderComponent();
-        SphereColliderComponent(SphereColliderComponent& sphereCollider);
+        SphereColliderComponent(const SphereColliderComponent& sphereCollider);
         SphereColliderComponent(SphereColliderComponent&& sphereCollider);
         ~SphereColliderComponent();
     public:
