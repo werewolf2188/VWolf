@@ -26,7 +26,7 @@ namespace VWolfPup {
             nodes.clear();
             if (isDirectory) {
                 for(auto const& dir_entry : std::filesystem::directory_iterator(entry.path())) {
-                    if (dir_entry.path().extension() == AssetMetaFile::META_FILE_EXTENSION) continue;
+                    if (dir_entry.path().extension().string() == AssetMetaFile::META_FILE_EXTENSION) continue;
                     nodes.push_back(VWolf::CreateRef<ProjectNode>(dir_entry));
                 }
                 
@@ -131,7 +131,7 @@ namespace VWolfPup {
         void Build(std::filesystem::path path) {
             nodes.clear();
             for(auto const& dir_entry : std::filesystem::directory_iterator(path)) {
-                if (dir_entry.path().extension() == AssetMetaFile::META_FILE_EXTENSION) continue;
+                if (dir_entry.path().extension().string() == AssetMetaFile::META_FILE_EXTENSION) continue;
                 nodes.push_back(VWolf::CreateRef<ProjectNode>(dir_entry));
             }
             selectedEntry = new ProjectNode(std::filesystem::directory_entry(path));

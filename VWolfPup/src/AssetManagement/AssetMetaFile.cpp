@@ -216,7 +216,7 @@ namespace VWolfPup {
     }
 
     void AssetMetaFile::SetPath(std::filesystem::path path) {
-        if (path.extension() == AssetMetaFile::META_FILE_EXTENSION) {
+        if (path.extension().string() == AssetMetaFile::META_FILE_EXTENSION) {
             metafile = path;
             this->path = path.parent_path() / path.stem();
         } else {

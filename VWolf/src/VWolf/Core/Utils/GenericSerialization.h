@@ -170,11 +170,7 @@ namespace VWolf {
             std::string namespaceName = get_namespace_of_type(typeid(T));
             std::string typeName = boost::typeindex::type_id_with_cvr<T>().pretty_name();
 
-        #ifdef VWOLF_PLATFORM_WINDOWS
-            std::string toRemove = "class " + namespaceName + "::";
-        #elif defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
-            std::string toRemove = namespaceName + "::";
-        #endif
+            std::string toRemove = namespaceName + "::";        
 
             size_t pos = typeName.find(toRemove);
             if (pos != std::string::npos) {

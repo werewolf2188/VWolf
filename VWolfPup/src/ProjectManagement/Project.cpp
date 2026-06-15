@@ -74,7 +74,7 @@ namespace VWolfPup {
     }
 
     bool ProjectExists(std::filesystem::path& path) {
-        std::string fileName = path.filename() + Project::project_extension;
+        std::string fileName = path.filename().string() + Project::project_extension;
         return std::filesystem::exists(path) && std::filesystem::exists(path / Folder::GetAssetsFolder()) && std::filesystem::exists(path / fileName);
     }
 
