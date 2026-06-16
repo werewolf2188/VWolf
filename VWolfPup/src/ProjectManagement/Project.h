@@ -55,20 +55,21 @@ namespace VWolfPup {
         public:
             Settings(): Object(VWolf::UUID::NewUUID()) {};
             Settings(std::filesystem::path path);
+            Settings(const Settings& other);
             ~Settings();
         public:
             VWolf::DriverType GetType() { return type; }
             void SetType(VWolf::DriverType type) { this->type = type; }
-            std::string GetCurrentSceneRelativePath() { return currentSceneRelativePath; }
-            const std::string GetCurrentSceneRelativePath() const { return currentSceneRelativePath; }
-            void SetCurrentSceneRelativePath(std::string relativePath) { this->currentSceneRelativePath = relativePath; }
             std::string GetProjectName() { return path.filename().string(); }
             const std::string GetProjectName() const { return path.filename().string(); }
             
             EditorCamera& GetEditorCameraSettings() { return editorCameraSettings; }
+            const VWolf::UUID& GetCurrentSceneID() { return scene_id; }
         public:
             void Save();
             void Load();
+        public:
+            Settings& operator=(const Settings& other);
         private:
             bool Load(const YAML::Node& node);
         private:
@@ -79,7 +80,6 @@ namespace VWolfPup {
 #endif
             std::filesystem::path path;
             EditorCamera editorCameraSettings;
-            std::string currentSceneRelativePath;
             VWolf::UUID scene_id;
             
             BOOST_DESCRIBE_CLASS(Settings, (VWolf::Object), (), (id), (editorCameraSettings))
@@ -117,8 +117,8 @@ namespace VWolfPup {
     private:
         Settings settings;
         std::filesystem::path projectPath;
-        efsw::FileWatcher* fileWatcher;
-        ProjectListener* listener;
+        VWolf::Ref<efsw::FileWatcher> fileWatcher;
+        VWolf::Ref<ProjectListener> listener;
         efsw::WatchID watchID;
         VWolf::Ref<VWolf::Scene> currentScene;
         std::map<std::uintptr_t, std::function<void(const std::string& path, const efsw::Action event)>> _observers;

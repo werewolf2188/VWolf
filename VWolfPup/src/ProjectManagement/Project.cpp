@@ -112,8 +112,25 @@ namespace VWolfPup {
         }
     }
 
+    Project::Settings::Settings(const Project::Settings& other): Object(other.id) {
+        path = other.path;
+        scene_id = other.scene_id;
+        type = other.type;
+        editorCameraSettings = other.editorCameraSettings;
+
+    }
+
     Project::Settings::~Settings() {
         
+    }
+
+    Project::Settings& Project::Settings::operator=(const Project::Settings& other) {
+        path = other.path;
+        scene_id = other.scene_id;
+        type = other.type;
+        editorCameraSettings = other.editorCameraSettings;
+        
+        return *this;
     }
 
     void Project::EditorCamera::SetCameraControllerInformation(VWolf::Ref<VWolfPup::CameraController> controller) {
@@ -164,12 +181,7 @@ namespace VWolfPup {
             throw std::filesystem::filesystem_error("Failed to load .project settings file", path, std::error_code());
         }
         
-        Settings settings = data[PROJECT_KEY].as<Settings>();
-        // TODO: Should do a copy constructor
-        this->id = settings.id;
-        this->type = settings.type;
-        this->editorCameraSettings = settings.editorCameraSettings;
-        this->currentSceneRelativePath = settings.currentSceneRelativePath;
+        (*this) = data[PROJECT_KEY].as<Settings>();
     }
 
     bool Project::Settings::Load(const YAML::Node &node) {
@@ -177,7 +189,6 @@ namespace VWolfPup {
         this->type = VWolf::GetDriverType(node[DRIVER_KEY].as<std::string>().c_str());
         this->editorCameraSettings = node[EDITOR_CAMERA_KEY].as<VWolfPup::Project::EditorCamera>();
         this->scene_id = node[CURRENT_SCENE_KEY][SCENE_ID_KEY].as<VWolf::UUID>();
-        this->currentSceneRelativePath = node[CURRENT_SCENE_KEY][RELATIVE_PATH_KEY].as<std::string>();
         
         return true;
     }
@@ -194,7 +205,6 @@ namespace VWolfPup {
         out << YAML::Key << CURRENT_SCENE_KEY;
         out << YAML::BeginMap;
         out << YAML::Key << SCENE_ID_KEY << YAML::Value << v.scene_id;
-        out << YAML::Key << RELATIVE_PATH_KEY << YAML::Value << v.GetCurrentSceneRelativePath();
         out << YAML::EndMap;
         out << YAML::EndMap;
         out << YAML::EndMap;
@@ -212,7 +222,7 @@ namespace VWolfPup {
         out << v.editorCameraSettings;
         out << YAML::Key << CURRENT_SCENE_KEY;
         out << YAML::BeginMap;
-        out << YAML::Key << RELATIVE_PATH_KEY << YAML::Value << v.GetCurrentSceneRelativePath();
+        out << YAML::Key << SCENE_ID_KEY << YAML::Value << v.scene_id;
         out << YAML::EndMap;
         out << YAML::EndMap;
         out << YAML::EndMap;
@@ -224,25 +234,22 @@ namespace VWolfPup {
     Project::Project(std::filesystem::path path):
     projectPath(path),
     settings((path / path.filename()).concat((std::string)project_extension)) {
-        fileWatcher = new efsw::FileWatcher();
-        listener = new ProjectListener(this);
+        fileWatcher = VWolf::CreateRef<efsw::FileWatcher>();
+        listener = VWolf::CreateRef<ProjectListener>(this);
 
-        watchID = fileWatcher->addWatch( path.string(), listener, true );
+        watchID = fileWatcher->addWatch(path.string(), listener.get(), true );
         fileWatcher->watch();
     }
 
     void Project::AddScene(std::filesystem::path path, VWolf::Ref<VWolf::Scene> scene) {
-        auto scenePath = GetAssetsPath() / settings.GetCurrentSceneRelativePath();
-        if (path == scenePath) {
+        if (scene->GetID() == settings.GetCurrentSceneID()) {
             currentScene = scene;
         }
-        scenes[scenePath] = scene;
+        scenes[path] = scene;
     }
 
     Project::~Project() {
         fileWatcher->removeWatch(watchID);
-        delete fileWatcher;
-        delete listener;
     }
 
     void Project::AddObserver(std::uintptr_t key, std::function<void(const std::string& path, const efsw::Action event)> value) {
