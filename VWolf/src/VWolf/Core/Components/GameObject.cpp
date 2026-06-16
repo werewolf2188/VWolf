@@ -103,12 +103,29 @@ namespace VWolf {
         return out;
     }
 
-    GameObject::GameObject(std::string name): Object(UUID::NewUUID()), name(name), scene(nullptr) { }
+    GameObject::GameObject(std::string name): Object(UUID::NewUUID()), scene(nullptr) {
+        this->name = name;
+    }
 
-    GameObject::GameObject(std::string name, entt::entity handle, Scene* scene): Object(UUID::NewUUID()), name(name), handle(handle), scene(scene) { }
+    GameObject::GameObject(std::string name, entt::entity handle, Scene* scene): Object(UUID::NewUUID()), handle(handle), scene(scene) {
+        this->name = name;
+    }
 
     GameObject::GameObject(const GameObject& gameObject): Object(gameObject.id) {
         this->name = gameObject.name;
+    }
+
+    GameObject::GameObject(GameObject&& gameObject): Object(gameObject.id) {
+        name = gameObject.name;
+        currentComponents = gameObject.currentComponents;
+        handle = gameObject.handle;
+        scene = gameObject.scene;
+        
+        gameObject.id = UUID::Empty;
+        gameObject.name = "";
+        gameObject.currentComponents.clear();
+        gameObject.handle = entt::null;
+        gameObject.scene = nullptr;
     }
 
     GameObject::~GameObject() { }

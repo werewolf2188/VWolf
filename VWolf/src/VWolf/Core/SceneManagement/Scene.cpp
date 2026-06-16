@@ -129,7 +129,8 @@ namespace VWolf {
 
     Scene* Scene::currentScene = nullptr;
 
-    Scene::Scene(std::string name): Object(UUID::NewUUID()), name(name) {
+    Scene::Scene(std::string name): Object(UUID::NewUUID()){
+        this->name = name;
         emptyMeshData = ShapeHelper::CreateEmpty();
         world = Physics::GetCommon().createPhysicsWorld();
         world->setIsDebugRenderingEnabled(true);

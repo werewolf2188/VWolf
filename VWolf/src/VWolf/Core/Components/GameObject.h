@@ -36,13 +36,14 @@ namespace VWolf {
         GameObject(std::string name);
         GameObject(std::string name, entt::entity handle, Scene* scene);
         GameObject(const GameObject& gameObject);
-        GameObject(GameObject&& gameObject) = default;
+        GameObject(GameObject&& gameObject);
         ~GameObject();
     public:
         TransformComponent& GetTransform();
     public:
-        std::string GetName() const { return name; }
-        void SetName(std::string name) { this->name = name; }
+        void SetName(const std::string& name) {
+            this->name = name;
+        }
         entt::entity GetHandle() { return handle; }
     public:
         template<typename T, typename... Args>
@@ -118,13 +119,12 @@ namespace VWolf {
     private:
         entt::entity handle { entt::null };
         Scene* scene;
-        std::string name;
 
         std::vector<Component*> currentComponents;
 
         reactphysics3d::RigidBody* mRigidBody = nullptr;
         
-        BOOST_DESCRIBE_CLASS(GameObject, (Object), (), (id), (name))
+        BOOST_DESCRIBE_CLASS(GameObject, (Object), (), (id, name), ())
         VWOLF_SERIALIZATION_FRIENDS(GameObject)
         
         friend bool YAML::DeserializeComponents(const YAML::Node& node, VWolf::GameObject& rhs);

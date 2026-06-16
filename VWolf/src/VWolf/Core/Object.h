@@ -20,6 +20,7 @@ namespace VWolf {
         virtual ~Object();
     public:
         const UUID& GetID() const { return id; }
+        const std::string& GetName() const { return name; }
     public:
         std::string ToString();
         size_t HashCode();
@@ -29,8 +30,9 @@ namespace VWolf {
         bool operator!=(Object& object);
     protected:
         UUID id;
+        std::string name = "";
         
-        BOOST_DESCRIBE_CLASS(Object, (), (), (id), ())
+        BOOST_DESCRIBE_CLASS(Object, (), (), (id, name), ())
     };
 
     class ObjectResourceManager {

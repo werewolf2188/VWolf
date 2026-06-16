@@ -105,6 +105,7 @@ namespace VWolfPup {
     }
 
     Project::Settings::Settings(std::filesystem::path path): Object(VWolf::UUID::NewUUID()), path(path) {
+        name = path.filename().string();
         if (!std::filesystem::exists(path)) {
             Save();
         } else {
@@ -113,6 +114,7 @@ namespace VWolfPup {
     }
 
     Project::Settings::Settings(const Project::Settings& other): Object(other.id) {
+        name = other.name;
         path = other.path;
         scene_id = other.scene_id;
         type = other.type;
@@ -125,6 +127,7 @@ namespace VWolfPup {
     }
 
     Project::Settings& Project::Settings::operator=(const Project::Settings& other) {
+        name = other.name;
         path = other.path;
         scene_id = other.scene_id;
         type = other.type;
@@ -199,7 +202,7 @@ namespace VWolfPup {
         out << YAML::Key << PROJECT_KEY;
         out << YAML::BeginMap;
         out << YAML::Key << ID_KEY<< YAML::Value << v.id;
-        out << YAML::Key << NAME_KEY << YAML::Value << v.GetProjectName();
+        out << YAML::Key << NAME_KEY << YAML::Value << v.GetName();
         out << YAML::Key << DRIVER_KEY<< YAML::Value << VWolf::DriverName(v.GetType());
         out << v.editorCameraSettings;
         out << YAML::Key << CURRENT_SCENE_KEY;
@@ -217,7 +220,7 @@ namespace VWolfPup {
         out << YAML::Key << PROJECT_KEY;
         out << YAML::BeginMap;
         out << YAML::Key << ID_KEY << YAML::Value << v.id;
-        out << YAML::Key << NAME_KEY << YAML::Value << v.GetProjectName();
+        out << YAML::Key << NAME_KEY << YAML::Value << v.GetName();
         out << YAML::Key << DRIVER_KEY << YAML::Value << VWolf::DriverName(v.type);
         out << v.editorCameraSettings;
         out << YAML::Key << CURRENT_SCENE_KEY;

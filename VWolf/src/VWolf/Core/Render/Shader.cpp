@@ -75,6 +75,23 @@ namespace VWolf {
         Deserialize(path);
     }
 
+    Shader::Shader(const Shader& other): Object(other.id) {
+        name = other.name;
+        settings = other.settings;
+        subShader = other.subShader;
+        internalShader = other.internalShader;
+    }
+
+    Shader& Shader::operator=(const Shader& other) {
+        id = other.id;
+        name = other.name;
+        settings = other.settings;
+        subShader = other.subShader;
+        internalShader = other.internalShader;
+        
+        return *this;
+    }
+
     void Shader::Deserialize(std::filesystem::path path) {
         constexpr const char * key = "shader";
         

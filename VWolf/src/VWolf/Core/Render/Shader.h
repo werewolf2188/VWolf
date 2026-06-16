@@ -322,8 +322,8 @@ namespace VWolf {
     public:
         Shader(): Object(UUID::NewUUID()) {};
         Shader(std::filesystem::path path, UUID _id);
+        Shader(const Shader& other);
     public:
-        const std::string GetName() const { return name; }
         SubShader GetSubShader() { return subShader; }
         Settings GetSettings() { return settings; }
         Ref<PShader> GetInternalShader() { return internalShader; }
@@ -331,6 +331,8 @@ namespace VWolf {
         std::vector<Ref<ShaderInput>> GetMaterialInputs() const;
         size_t GetMaterialSize() const;
         std::vector<ShaderInput> GetTextureInputs() const;
+    public:
+        Shader& operator=(const Shader& other);
     public:
         static void LoadShader(std::filesystem::path path, UUID _id);
         static void LoadShaderLibrary(std::filesystem::path path, UUID _id);
@@ -341,11 +343,10 @@ namespace VWolf {
     private:
         void Deserialize(std::filesystem::path path);
     private:
-        std::string name;
         Settings settings;
         SubShader subShader;
         
-        BOOST_DESCRIBE_CLASS(Shader, (), (), (), (name, settings, subShader))
+        BOOST_DESCRIBE_CLASS(Shader, (), (), (name), (settings, subShader))
         
         static std::vector<Ref<Shader>> m_shaders;
         static std::vector<ShaderDependency> m_shader_dependencies;

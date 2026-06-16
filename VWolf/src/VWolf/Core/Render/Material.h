@@ -26,7 +26,6 @@ namespace VWolf {
 
         ~Material();
     public:
-        std::string GetName();
         bool IsDefault();
         std::string GetShaderName();
     public:
@@ -55,7 +54,6 @@ namespace VWolf {
     private:
         void InternalLoad(Ref<Shader> shader);
     private:
-        std::string name;
         bool isDefault = false;
         std::string shaderName;
         size_t size;
@@ -67,7 +65,7 @@ namespace VWolf {
         std::map<std::string, std::tuple<uint32_t, uint32_t, uint32_t>> inputs_information;
         std::vector<Property> properties;
         
-        BOOST_DESCRIBE_CLASS(Material, (Object), (), (), (name, isDefault, shaderName, colors, vectors, floats))
+        BOOST_DESCRIBE_CLASS(Material, (Object), (), (name), (isDefault, shaderName, colors, vectors, floats))
         
         VWOLF_SERIALIZATION_FRIENDS(Material)
     };

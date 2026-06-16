@@ -224,6 +224,7 @@ namespace VWolfPup {
             metafile = path;
             metafile += AssetMetaFile::META_FILE_EXTENSION;
         }
+        name = path.filename().string();
     }
 
     YAML::Emitter& operator<<(YAML::Emitter& out, AssetMetaFile& v) {

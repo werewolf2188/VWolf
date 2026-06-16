@@ -60,7 +60,6 @@ namespace VWolfPup {
         public:
             VWolf::DriverType GetType() { return type; }
             void SetType(VWolf::DriverType type) { this->type = type; }
-            std::string GetProjectName() { return path.filename().string(); }
             const std::string GetProjectName() const { return path.filename().string(); }
             
             EditorCamera& GetEditorCameraSettings() { return editorCameraSettings; }

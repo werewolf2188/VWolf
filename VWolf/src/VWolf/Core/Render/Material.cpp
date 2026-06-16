@@ -134,10 +134,6 @@ namespace VWolf {
         }
     }
 
-    std::string Material::GetName() {
-        return name;
-    }
-
     bool Material::IsDefault() {
         return isDefault;
     }

@@ -27,13 +27,11 @@ namespace VWolf {
     public:
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) = 0;
     public:
-        std::string GetName() const { return name; }
         virtual void OnInspector() {}
 
-        void SetGameObject(GameObject* gameObject) { this->gameObject = gameObject; }
+        void SetGameObject(GameObject* gameObject);
         GameObject* GetGameObject() { return gameObject; }
     private:
-        std::string name;
         GameObject* gameObject;
         
         BOOST_DESCRIBE_CLASS(Component, (Object), (), (id), ())

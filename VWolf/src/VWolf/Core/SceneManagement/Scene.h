@@ -77,7 +77,6 @@ namespace VWolf {
         void Save(std::filesystem::path path);
     public:
         std::vector<Ref<GameObject>> GetGameObjects() const { return isPreviewing ? previewGameObjects : gameObjects; }
-        std::string GetName() const { return name; }
         void SetName(std::string name) { this->name = name; }
         SceneBackground& GetSceneBackground() { return sceneBackGround; }
         void SetSceneBackground(SceneBackground& sceneBackground) { this->sceneBackGround = sceneBackground; }
@@ -90,7 +89,6 @@ namespace VWolf {
         static Scene* currentScene;
     private:
         bool isPreviewing = false;
-        std::string name;
         entt::registry m_registry, m_previewRegistry;
 
         std::vector<Ref<GameObject>> gameObjects, previewGameObjects;
@@ -102,7 +100,7 @@ namespace VWolf {
         float previewAccumulator = 0.2f;
         friend class GameObject;
         
-        BOOST_DESCRIBE_CLASS(Scene, (Object), (), (), (name, sceneBackGround))
+        BOOST_DESCRIBE_CLASS(Scene, (Object), (), (name), (sceneBackGround))
         VWOLF_SERIALIZATION_FRIENDS(Scene)
     };
 }
