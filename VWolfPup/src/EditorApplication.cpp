@@ -25,6 +25,8 @@
 
 #include "ProjectManagement/Project.h"
 
+#include "AssetManagement/AssetDatabase.h"
+
 VWolf::MeshData CreateGrid() {
     VWolf::MeshData meshData;
     meshData.SetName("Grid");
@@ -51,8 +53,8 @@ public:
 
     // UI
     VWolfPup::ContainerView* containerView;
-    VWolfPup::MenuItem *quit, *save;
-    VWolfPup::Menu * file;
+    VWolfPup::MenuItem *quit, *save, *createMetaFiles;
+    VWolfPup::Menu *file, *assets;
     VWolfPup::MenuBar * menuBar;
     VWolfPup::SceneHierarchy *sceneHierarchy;
     VWolfPup::Inspector *inspector;
@@ -66,7 +68,8 @@ public:
     VWolf::Ref<VWolf::Scene> testScene;
 public:
     RendererSandboxApplication(): Application(VWolfPup::LoadProject(), { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
-        VWolfPup::InitialLoad();
+        VWolfPup::Defaults::Load();
+        VWolfPup::AssetDatabase::LoadMetaFilesForEditor();
         VWolfPup::InitializeEditor();
         
         camera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
@@ -80,7 +83,6 @@ public:
         VWolfPup::Project::CurrentProject()->GetSettings().GetEditorCameraSettings().SetCameraControllerInformation(skyBoxController);
 
         // Scene
-        VWolfPup::Project::CurrentProject()->LoadAssets();
         testScene =  VWolfPup::Project::CurrentProject()->GetCurrentScene();
 //        testScene =  VWolf::CreateRef<VWolf::Scene>("Test");
 
@@ -100,7 +102,14 @@ public:
             VWolfPup::Project::CurrentProject()->Save();
         });
         file = new VWolfPup::Menu("File", { save, new VWolfPup::MenuItem(), quit });
-        menuBar = new VWolfPup::MenuBar("MenuBar", { file });
+        
+        createMetaFiles = new VWolfPup::MenuItem("Recreate meta files", [this](std::string title) {
+            VWolfPup::AssetDatabase::CreateMetaFilesForEditor();
+        });
+        
+        assets = new VWolfPup::Menu("Assets", { createMetaFiles });
+        
+        menuBar = new VWolfPup::MenuBar("MenuBar", { file, assets });
         containerView->SetMenuBar(menuBar);
 
         inspector = new VWolfPup::Inspector();
@@ -168,8 +177,9 @@ public:
 //            material_2.SetTexture("gDiffuseMap", testTexture);
 //        }
 //#endif
-        
-        testScene->GetSceneBackground().SetSkyboxMaterial(*VWolfPup::Defaults::Get()->GetDefaultSkyBoxMaterial());
+        std::string skyMaterialName = VWolfPup::Defaults::Get()->GetDefaultSkyBoxMaterialName();
+        VWolf::Ref<VWolf::Material> skyMaterial = VWolf::MaterialLibrary::GetMaterial(skyMaterialName);
+        testScene->GetSceneBackground().SetSkyboxMaterial(*skyMaterial);
         // TODO: This should come from the same camera.
         testScene->GetSceneBackground().SetCamera(skyBoxCamera);
 
@@ -214,7 +224,7 @@ public:
             testScene->DrawPreviewEditor();
         else {
             testScene->DrawEditor(camera);
-            VWolf::Graphics::RenderMesh(gridData, VWolf::Matrix4x4(), *VWolfPup::Defaults::Get()->GetDefaultGridMaterial());
+            VWolf::Graphics::RenderMesh(gridData, VWolf::Matrix4x4(), *VWolf::MaterialLibrary::GetMaterial(VWolfPup::Defaults::Get()->GetDefaultGridMaterialName()));
         }
     }
 

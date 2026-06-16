@@ -15,12 +15,12 @@ namespace VWolf {
         localScale = Vector3(1, 1, 1);
     }
 
-    TransformComponent::TransformComponent(TransformComponent& transform):
+    TransformComponent::TransformComponent(const TransformComponent& transform):
     Component("Transform", transform.id) {
         this->position = transform.position;
         this->eulerAngles = transform.eulerAngles;
         this->localScale = transform.localScale;
-        this->SetGameObject(transform.GetGameObject());
+        this->SetGameObject(const_cast<TransformComponent&>(transform).GetGameObject());
     }
 
     TransformComponent::TransformComponent(TransformComponent&& transform):

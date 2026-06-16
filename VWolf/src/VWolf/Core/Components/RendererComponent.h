@@ -27,7 +27,7 @@ namespace VWolf {
     public:
         MeshRendererComponent();
         MeshRendererComponent(Material& material);
-        MeshRendererComponent(MeshRendererComponent& component);
+        MeshRendererComponent(const MeshRendererComponent& component);
         MeshRendererComponent(MeshRendererComponent&& component);
         ~MeshRendererComponent();
     public:
@@ -35,17 +35,16 @@ namespace VWolf {
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         Material& GetMaterial() { return *material; }
-        void SetMaterial(Material* material) { this->material = material; }
         std::string GetMaterialName() { return materialName; }
     public:
-        void SetMaterialName(std::string name);
+        void SetMaterial(Ref<Material> material);
     public:
-        MeshRendererComponent& operator=(MeshRendererComponent t);
+        MeshRendererComponent& operator=(const MeshRendererComponent t);
     private:
-        std::string materialName;
-        Material* material;
+        UUID materialId;
+        Ref<Material> material;
         VWOLF_COMPONENT_INSPECTOR_DEFINE(MeshRendererComponent);
-        BOOST_DESCRIBE_CLASS(MeshRendererComponent, (RendererComponent), (), (id), (materialName))
+        BOOST_DESCRIBE_CLASS(MeshRendererComponent, (RendererComponent), (), (id), (materialId))
         VWOLF_SERIALIZATION_FRIENDS(MeshRendererComponent)
     };
 
@@ -54,7 +53,7 @@ namespace VWolf {
     public:
         ShapeRendererComponent();
         ShapeRendererComponent(MeshData data, Material& material);
-        ShapeRendererComponent(ShapeRendererComponent& component);
+        ShapeRendererComponent(const ShapeRendererComponent& component);
         ShapeRendererComponent(ShapeRendererComponent&& component);
         ~ShapeRendererComponent();
     public:
@@ -64,22 +63,19 @@ namespace VWolf {
         MeshData& GetData() { return data; }
         void SetData(MeshData data) { this->data = data; }
         Material& GetMaterial() { return *material; }
-        void SetMaterial(Material* material) { this->material = material; }
-        std::string GetMaterialName() { return materialName; }
         std::string GetShapeName() { return dataName; }
     public:
         void SetShapeName(std::string name);
-        void SetMaterialName(std::string name);
+        void SetMaterial(Ref<Material> material);
     public:
-        ShapeRendererComponent& operator=(ShapeRendererComponent t);
+        ShapeRendererComponent& operator=(const ShapeRendererComponent& t);
     private:
         std::string dataName;
-        std::string materialName;
-        
+        UUID materialId;
         MeshData data;
-        Material* material;
+        Ref<Material> material;
         VWOLF_COMPONENT_INSPECTOR_DEFINE(ShapeRendererComponent);
-        BOOST_DESCRIBE_CLASS(ShapeRendererComponent, (RendererComponent), (), (id), (dataName, materialName))
+        BOOST_DESCRIBE_CLASS(ShapeRendererComponent, (RendererComponent), (), (id), (dataName, materialId))
         VWOLF_SERIALIZATION_FRIENDS(ShapeRendererComponent)
     };
 }

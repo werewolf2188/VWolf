@@ -18,19 +18,19 @@ namespace VWolf {
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(RendererComponent);
 
     MeshRendererComponent::MeshRendererComponent():
-    RendererComponent("Mesh Renderer"), material(MaterialLibrary::Default()), materialName(MaterialLibrary::Default()->GetName()) {}
+    RendererComponent("Mesh Renderer"), material(MaterialLibrary::Default()), materialId(MaterialLibrary::Default()->GetID()) {}
 
     MeshRendererComponent::MeshRendererComponent(Material& material):
-    RendererComponent("Mesh Renderer"), material(&material), materialName(material.GetName()) {}
+    RendererComponent("Mesh Renderer"), material(&material), materialId(material.GetID()) {}
 
-    MeshRendererComponent::MeshRendererComponent(MeshRendererComponent& component):
-    RendererComponent("Mesh Renderer", component.id), materialName(component.materialName) {
-        this->material = MaterialLibrary::GetMaterial(materialName);
-        this->SetGameObject(component.GetGameObject());
+    MeshRendererComponent::MeshRendererComponent(const MeshRendererComponent& component):
+    RendererComponent("Mesh Renderer", component.id), materialId(component.materialId) {
+        this->material = ObjectResourceManager::Get<Material>(component.materialId);
+        this->SetGameObject(const_cast<MeshRendererComponent&>(component).GetGameObject());
     }
     MeshRendererComponent::MeshRendererComponent(MeshRendererComponent&& component):
-    RendererComponent("Mesh Renderer", component.id), materialName(component.materialName) {
-        this->material = MaterialLibrary::GetMaterial(materialName);
+    RendererComponent("Mesh Renderer", component.id), materialId(component.materialId) {
+        this->material = ObjectResourceManager::Get<Material>(component.materialId);
         this->SetGameObject(component.GetGameObject());
     }
     MeshRendererComponent::~MeshRendererComponent() {}
@@ -44,16 +44,16 @@ namespace VWolf {
         return &component;
     }
 
-    MeshRendererComponent& MeshRendererComponent::operator=(MeshRendererComponent t) {
-        this->materialName = t.materialName;
-        this->material = MaterialLibrary::GetMaterial(t.materialName);
-        this->SetGameObject(t.GetGameObject());
-        return *this;
+    void MeshRendererComponent::SetMaterial(Ref<Material> material) {
+        this->material = material;
+        this->materialId = material->GetID();
     }
 
-    void MeshRendererComponent::SetMaterialName(std::string name) {
-        this->materialName = name;
-        this->material = MaterialLibrary::GetMaterial(name);
+    MeshRendererComponent& MeshRendererComponent::operator=(const MeshRendererComponent t) {
+        this->materialId = t.materialId;
+        this->material = ObjectResourceManager::Get<Material>(t.materialId);
+        this->SetGameObject(const_cast<MeshRendererComponent&>(t).GetGameObject());
+        return *this;
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(MeshRendererComponent);
@@ -63,22 +63,22 @@ namespace VWolf {
     // TODO: Test. Will remove later
     ShapeRendererComponent::ShapeRendererComponent():
     RendererComponent("Shape Renderer"),
-    material(MaterialLibrary::Default()), materialName(MaterialLibrary::Default()->GetName()),
+    material(MaterialLibrary::Default()), materialId(MaterialLibrary::Default()->GetID()),
     data(ShapeHelper::CreateTriangle()), dataName(ShapeHelper::CreateTriangle().GetName()) {}
 
     ShapeRendererComponent::ShapeRendererComponent(MeshData data, Material& material):
     RendererComponent("Shape Renderer"), data(data), dataName(data.GetName()),
-    material(&material), materialName(material.GetName()) {}
+    material(&material), materialId(material.GetID())  {}
 
-    ShapeRendererComponent::ShapeRendererComponent(ShapeRendererComponent& component):
-    RendererComponent("Shape Renderer", component.id), dataName(component.dataName), materialName(component.materialName) {
-        this->material = MaterialLibrary::GetMaterial(materialName);
+    ShapeRendererComponent::ShapeRendererComponent(const ShapeRendererComponent& component):
+    RendererComponent("Shape Renderer", component.id), dataName(component.dataName), materialId(component.materialId) {
+        this->material = ObjectResourceManager::Get<Material>(component.materialId);
         this->data = ShapeHelper::Create(dataName.c_str());
-        this->SetGameObject(component.GetGameObject());
+        this->SetGameObject(const_cast<ShapeRendererComponent&>(component).GetGameObject());
     }
     ShapeRendererComponent::ShapeRendererComponent(ShapeRendererComponent&& component):
-    RendererComponent("Shape Renderer", component.id), dataName(component.dataName), materialName(component.materialName) {
-        this->material = MaterialLibrary::GetMaterial(materialName);
+    RendererComponent("Shape Renderer", component.id), dataName(component.dataName), materialId(component.materialId) {
+        this->material = ObjectResourceManager::Get<Material>(component.materialId);
         this->data = ShapeHelper::Create(dataName.c_str());
         this->SetGameObject(component.GetGameObject());
     }
@@ -93,23 +93,23 @@ namespace VWolf {
         return &component;
     }
 
-    ShapeRendererComponent& ShapeRendererComponent::operator=(ShapeRendererComponent t) {
+    ShapeRendererComponent& ShapeRendererComponent::operator=(const ShapeRendererComponent& t) {
         this->data = t.data;
         this->dataName = t.dataName;
-        this->materialName = t.materialName;
+        this->materialId = t.materialId;
         this->material = t.material;
-        this->SetGameObject(t.GetGameObject());
+        this->SetGameObject(const_cast<ShapeRendererComponent&>(t).GetGameObject());
         return *this;
-    }
-
-    void ShapeRendererComponent::SetMaterialName(std::string name) {
-        this->materialName = name;
-        this->material = MaterialLibrary::GetMaterial(name);
     }
 
     void ShapeRendererComponent::SetShapeName(std::string name) {
         this->dataName = name;
         this->data = ShapeHelper::Create(dataName.c_str());
+    }
+
+    void ShapeRendererComponent::SetMaterial(Ref<Material> material) {
+        this->material = material;
+        this->materialId = material->GetID();
     }
 
     VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(ShapeRendererComponent);

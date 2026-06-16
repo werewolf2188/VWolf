@@ -17,7 +17,7 @@ namespace VWolf {
 
     BoxColliderComponent::BoxColliderComponent(): Component("BoxCollider") {}
 
-    BoxColliderComponent::BoxColliderComponent(BoxColliderComponent& sphereCollider):
+    BoxColliderComponent::BoxColliderComponent(const BoxColliderComponent& sphereCollider):
     Component("BoxCollider", sphereCollider.id) {
     }
 

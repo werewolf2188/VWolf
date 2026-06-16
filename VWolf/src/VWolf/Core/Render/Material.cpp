@@ -7,13 +7,17 @@
 #include "vwpch.h"
 #include "Material.h"
 
+const std::string MATERIAL_KEY = "material";
+const std::string SHADER_KEY = "shaderName";
+const std::string defaultKey = "Default";
+
 namespace YAML {
     template<>
     struct convert<VWolf::Material>
     {
         static bool decode(const Node& node, VWolf::Material& rhs)
         {
-            rhs.InternalLoad(VWolf::Shader::GetShader(node["shaderName"].as<std::string>()));
+            rhs.InternalLoad(VWolf::Shader::GetShader(node[SHADER_KEY].as<std::string>()));
             return DeserializeFromBoostDescribe(node, rhs);
         }
     };
@@ -21,10 +25,9 @@ namespace YAML {
 
 namespace VWolf {
 
-    Material::Material(const char* shaderName): Material(Shader::GetShader(shaderName)) { }
+    Material::Material(std::string shaderName): Material(Shader::GetShader(shaderName)) { }
 
-    Material::Material(std::filesystem::path path) {
-        constexpr const char * key = "material";
+    Material::Material(std::filesystem::path path, UUID _id): Object(_id) {
         YAML::Node data;
         try
         {
@@ -34,19 +37,19 @@ namespace VWolf {
         {
             VWOLF_CORE_ERROR("Failed to load .material file '%s'\n     %s", path.string().c_str(), e.what());
         }
-        *this = data[key].as<Material>();
+        *this = data[MATERIAL_KEY].as<Material>();
     }
 
-    Material::Material(Ref<Shader> shader) {
+    Material::Material(Ref<Shader> shader): Object(UUID::NewUUID()) {
         name = shader->GetName();
         shaderName = shader->GetName();
-        MaterialLibrary::SetMaterial(name.c_str(), this);
+        MaterialLibrary::SetMaterial(name, CreateRef<Material>(*this));
         InternalLoad(shader);
     }
 
-    Material::Material(Material& material) {
-        this->id = material.id;
+    Material::Material(const Material& material): Object(material.id) {
         this->name = material.name;
+        this->isDefault = material.isDefault;
         this->shaderName = material.shaderName;
         this->size = material.size;
         this->colors = material.colors;
@@ -57,9 +60,9 @@ namespace VWolf {
         this->inputs_information = material.inputs_information;
     }
 
-    Material::Material(Material&& material) {
-        this->id = material.id;
+    Material::Material(Material&& material): Object(material.id) {
         this->name = material.name;
+        this->isDefault = material.isDefault;
         this->shaderName = material.shaderName;
         this->size = material.size;
         this->colors = material.colors;
@@ -69,8 +72,8 @@ namespace VWolf {
         this->properties = material.properties;
         this->inputs_information = material.inputs_information;
 
-        material.id = UUID::Empty;
         material.name = std::string();
+        material.isDefault = false;
         material.shaderName = std::string();
         material.size = 0;
         material.colors.clear();
@@ -85,8 +88,9 @@ namespace VWolf {
 
     }
 
-    void Material::operator=(const Material& material) {
+    Material& Material::operator=(const Material& material) {
         this->name = material.name;
+        this->isDefault = material.isDefault;
         this->shaderName = material.shaderName;
         this->size = material.size;
         this->colors = material.colors;
@@ -95,6 +99,7 @@ namespace VWolf {
         this->textures = material.textures;
         this->properties = material.properties;
         this->inputs_information = material.inputs_information;
+        return *this;
     }
 
     void Material::InternalLoad(Ref<Shader> shader) {
@@ -129,8 +134,8 @@ namespace VWolf {
         }
     }
 
-    std::string Material::GetName() {
-        return name;
+    bool Material::IsDefault() {
+        return isDefault;
     }
 
     std::string Material::GetShaderName() {
@@ -214,7 +219,7 @@ namespace VWolf {
     }
 
     void Material::SetAsDefault() {
-        MaterialLibrary::SetDefault(this);
+        MaterialLibrary::SetDefault(CreateRef<Material>(*this));
     }
 
     void Material::Save(std::filesystem::path path) {
@@ -224,35 +229,32 @@ namespace VWolf {
         fout << out.c_str();
     }
 
-    Ref<Material> Material::Load(std::filesystem::path path) {
-        Material m(path);
-        Ref<Material> refM = CreateRef<Material>(m);
-        MaterialLibrary::SetMaterial(m.GetName(), refM.get());
+    Ref<Material> Material::Load(std::filesystem::path path, UUID _id) {
+        Ref<Material> refM = CreateRef<Material>(path, _id);
+        ObjectResourceManager::AddObject(_id, refM);
+        MaterialLibrary::SetMaterial(refM->GetName(), refM);
         return refM;
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER(Material);
 
-#ifdef VWOLF_CORE
-    const std::string defaultKey = "Default";
-
-    std::map<std::string, Material*> MaterialLibrary::materials = {
-        { std::string(defaultKey), new Material() }
+    std::map<std::string, Ref<Material>> MaterialLibrary::materials = {
+        { std::string(defaultKey), CreateRef<Material>() }
     };
 
-    Material* MaterialLibrary::GetMaterial(std::string name) {
+    Ref<Material> MaterialLibrary::GetMaterial(std::string name) {
         return MaterialLibrary::materials[name];
     }
 
-    Material* MaterialLibrary::Default() {
+    Ref<Material> MaterialLibrary::Default() {
         return MaterialLibrary::GetMaterial(defaultKey);
     }
-
-    void MaterialLibrary::SetDefault(Material* material) {
+#ifdef VWOLF_CORE
+    void MaterialLibrary::SetDefault(Ref<Material> material) {
         SetMaterial(defaultKey, material);
     }
 
-    void MaterialLibrary::SetMaterial(std::string name, Material* material) {
+    void MaterialLibrary::SetMaterial(std::string name, Ref<Material> material) {
         MaterialLibrary::materials[name] = material;
     }
 #endif

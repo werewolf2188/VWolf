@@ -62,6 +62,7 @@ namespace VWolf {
     extern std::vector<ShaderInput> GetTextureInputs(Ref<PShader> pshader);
 
     std::vector<Ref<Shader>> Shader::m_shaders;
+    std::vector<ShaderDependency> Shader::m_shader_dependencies;
     std::map<Shader::ShaderSpecialty, std::string> Shader::m_specialtiesShaders;
 
     // TODO: Remove
@@ -70,8 +71,25 @@ namespace VWolf {
     const char* Shader::ObjectBufferName = "Object";
     //
 
-    Shader::Shader(std::filesystem::path path) {
+    Shader::Shader(std::filesystem::path path, UUID _id): Object(_id) {
         Deserialize(path);
+    }
+
+    Shader::Shader(const Shader& other): Object(other.id) {
+        name = other.name;
+        settings = other.settings;
+        subShader = other.subShader;
+        internalShader = other.internalShader;
+    }
+
+    Shader& Shader::operator=(const Shader& other) {
+        id = other.id;
+        name = other.name;
+        settings = other.settings;
+        subShader = other.subShader;
+        internalShader = other.internalShader;
+        
+        return *this;
     }
 
     void Shader::Deserialize(std::filesystem::path path) {
@@ -102,8 +120,10 @@ namespace VWolf {
         return VWolf::GetTextureInputs(internalShader);
     }
 
-    void Shader::LoadShader(std::filesystem::path path) {
-        m_shaders.push_back(CreateRef<Shader>(path));
+    void Shader::LoadShader(std::filesystem::path path, UUID _id) {
+        Ref<Shader> shader = CreateRef<Shader>(path, _id);
+        ObjectResourceManager::AddObject(_id, shader);
+        m_shaders.push_back(shader);
     }
 
     Ref<Shader> Shader::GetShader(std::string name) {
@@ -122,5 +142,22 @@ namespace VWolf {
 
     void Shader::SetShaderSpecialty(std::string name, ShaderSpecialty type) {
         m_specialtiesShaders[type] = name;
+    }
+
+    std::filesystem::path Shader::GetShaderLibraryPath(std::string filename) {
+        auto pathIterator = std::find_if(
+                                         m_shader_dependencies.begin(),
+                                         m_shader_dependencies.end(),
+                                         [filename](ShaderDependency& path) {
+                                             std::filesystem::path filename_path = filename;
+                                             return filename_path.filename() == path.GetPath().filename();
+                                         });
+        
+        if (pathIterator == m_shader_dependencies.end()) return {};
+        return (*pathIterator).GetPath();
+    }
+
+    void Shader::LoadShaderLibrary(std::filesystem::path path, UUID _id) {
+        m_shader_dependencies.push_back(ShaderDependency(path, _id));
     }
 }

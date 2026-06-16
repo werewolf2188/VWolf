@@ -17,7 +17,7 @@ namespace VWolf {
         Initialize();
     }
 
-    AudioSourceComponent::AudioSourceComponent(AudioSourceComponent& audioSource):
+    AudioSourceComponent::AudioSourceComponent(const AudioSourceComponent& audioSource):
     Component("AudioSource", audioSource.id) {
         this->audioFilePath = audioSource.audioFilePath;
         this->mLoop = audioSource.mLoop;

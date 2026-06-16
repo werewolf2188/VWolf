@@ -8,6 +8,7 @@
 #pragma once
 
 #include "VWolf/Core/Base.h"
+#include "VWolf/Core/Object.h"
 #include "VWolf/Core/Math/VMath.h"
 
 #include "RenderStructs.h"
@@ -297,9 +298,19 @@ namespace VWolf {
         BOOST_DESCRIBE_CLASS(SubShader, (), (), (), (properties, code, stages))
     };
 
+    struct ShaderDependency: public Object {
+    public:
+        ShaderDependency(std::filesystem::path m_path, UUID id): Object(id), m_path(m_path) {
+        };
+    public:
+        std::filesystem::path& GetPath() { return m_path; }
+    private:
+        std::filesystem::path m_path;
+    };
+
     class PShader;
 
-    class Shader {
+    class Shader: public Object  {
     public:
         enum class ShaderSpecialty {
             shadow
@@ -309,10 +320,10 @@ namespace VWolf {
         static const char* CameraBufferName;
         static const char* ObjectBufferName;
     public:
-        Shader() = default;
-        Shader(std::filesystem::path path);
+        Shader(): Object(UUID::NewUUID()) {};
+        Shader(std::filesystem::path path, UUID _id);
+        Shader(const Shader& other);
     public:
-        const std::string GetName() const { return name; }
         SubShader GetSubShader() { return subShader; }
         Settings GetSettings() { return settings; }
         Ref<PShader> GetInternalShader() { return internalShader; }
@@ -321,20 +332,24 @@ namespace VWolf {
         size_t GetMaterialSize() const;
         std::vector<ShaderInput> GetTextureInputs() const;
     public:
-        static void LoadShader(std::filesystem::path path);
+        Shader& operator=(const Shader& other);
+    public:
+        static void LoadShader(std::filesystem::path path, UUID _id);
+        static void LoadShaderLibrary(std::filesystem::path path, UUID _id);
         static Ref<Shader> GetShader(std::string name);
         static Ref<Shader> GetShader(ShaderSpecialty type);
+        static std::filesystem::path GetShaderLibraryPath(std::string filename);
         static void SetShaderSpecialty(std::string name, ShaderSpecialty type);
     private:
         void Deserialize(std::filesystem::path path);
     private:
-        std::string name;
         Settings settings;
         SubShader subShader;
         
-        BOOST_DESCRIBE_CLASS(Shader, (), (), (), (name, settings, subShader))
+        BOOST_DESCRIBE_CLASS(Shader, (), (), (name), (settings, subShader))
         
         static std::vector<Ref<Shader>> m_shaders;
+        static std::vector<ShaderDependency> m_shader_dependencies;
         static std::map<ShaderSpecialty, std::string> m_specialtiesShaders;
         
         Ref<PShader> internalShader;

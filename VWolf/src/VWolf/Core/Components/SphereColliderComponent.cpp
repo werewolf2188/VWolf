@@ -17,7 +17,7 @@ namespace VWolf {
 
     SphereColliderComponent::SphereColliderComponent(): Component("SphereCollider") {}
 
-    SphereColliderComponent::SphereColliderComponent(SphereColliderComponent& sphereCollider):
+    SphereColliderComponent::SphereColliderComponent(const SphereColliderComponent& sphereCollider):
     Component("SphereCollider", sphereCollider.id) {
         this->mRadius = sphereCollider.mRadius;
     }

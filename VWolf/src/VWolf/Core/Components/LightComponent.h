@@ -29,7 +29,7 @@ namespace VWolf {
         virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
-        LightComponent& operator=(LightComponent& light);
+        LightComponent& operator=(const LightComponent& light);
     private:
         Light light;
         VWOLF_COMPONENT_INSPECTOR_DEFINE(LightComponent);

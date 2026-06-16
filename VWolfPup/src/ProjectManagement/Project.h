@@ -18,6 +18,7 @@
 #include <efsw/efsw.hpp>
 
 #include "../Camera/EditorCamera.h"
+#include "Extensions.h"
 
 namespace VWolfPup {
     class ProjectListener;
@@ -50,24 +51,24 @@ namespace VWolfPup {
             VWOLF_SERIALIZATION_FRIENDS(EditorCamera)
         };
 
-        class Settings: public VWolf::IIdentifiable {
+        class Settings: public VWolf::Object {
         public:
-            Settings() = default;
+            Settings(): Object(VWolf::UUID::NewUUID()) {};
             Settings(std::filesystem::path path);
+            Settings(const Settings& other);
             ~Settings();
         public:
             VWolf::DriverType GetType() { return type; }
             void SetType(VWolf::DriverType type) { this->type = type; }
-            std::string GetCurrentSceneRelativePath() { return currentSceneRelativePath; }
-            const std::string GetCurrentSceneRelativePath() const { return currentSceneRelativePath; }
-            void SetCurrentSceneRelativePath(std::string relativePath) { this->currentSceneRelativePath = relativePath; }
-            std::string GetProjectName() { return path.filename().string(); }
             const std::string GetProjectName() const { return path.filename().string(); }
             
             EditorCamera& GetEditorCameraSettings() { return editorCameraSettings; }
+            const VWolf::UUID& GetCurrentSceneID() { return scene_id; }
         public:
             void Save();
             void Load();
+        public:
+            Settings& operator=(const Settings& other);
         private:
             bool Load(const YAML::Node& node);
         private:
@@ -78,9 +79,9 @@ namespace VWolfPup {
 #endif
             std::filesystem::path path;
             EditorCamera editorCameraSettings;
-            std::string currentSceneRelativePath;
+            VWolf::UUID scene_id;
             
-            BOOST_DESCRIBE_CLASS(Settings, (VWolf::IIdentifiable), (), (id), (editorCameraSettings))
+            BOOST_DESCRIBE_CLASS(Settings, (VWolf::Object), (), (id), (editorCameraSettings))
             VWOLF_SERIALIZATION_FRIENDS(Settings)
         };
     public:
@@ -99,8 +100,9 @@ namespace VWolfPup {
         void Save();
         std::filesystem::path GetAssetsPath();
         VWolf::Ref<VWolf::Scene> GetCurrentScene();
-        void LoadAssets();
+        void AddScene(std::filesystem::path path, VWolf::Ref<VWolf::Scene> scene);
         VWolf::Ref<VWolf::Material> GetMaterial(std::filesystem::path inPath);
+        void SetMaterial(std::filesystem::path inPath, VWolf::Ref<VWolf::Material> material);
     public:
         template<typename T>
         void AddObserver(T* obj, std::function<void(const std::string& path, const efsw::Action event)> value) {
@@ -110,13 +112,12 @@ namespace VWolfPup {
     public:
         static void InitializeCurrentProject(VWolf::Ref<Project>);
         static VWolf::Ref<Project> CurrentProject();
-    private:
-        void LoadObjects(std::filesystem::path path, std::vector<std::filesystem::path>& sceneFiles);
+        static Extension project_extension;
     private:
         Settings settings;
         std::filesystem::path projectPath;
-        efsw::FileWatcher* fileWatcher;
-        ProjectListener* listener;
+        VWolf::Ref<efsw::FileWatcher> fileWatcher;
+        VWolf::Ref<ProjectListener> listener;
         efsw::WatchID watchID;
         VWolf::Ref<VWolf::Scene> currentScene;
         std::map<std::uintptr_t, std::function<void(const std::string& path, const efsw::Action event)>> _observers;

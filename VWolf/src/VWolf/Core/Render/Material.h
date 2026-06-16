@@ -9,24 +9,24 @@
 
 #include "Shader.h"
 #include "Texture.h"
-#include "VWolf/Core/IIdentifiable.h"
+#include "VWolf/Core/Object.h"
 #include "VWolf/Core/Math/VMath.h"
 
 #include "VWolf/Core/Utils/GenericSerialization.h"
 
 namespace VWolf {
-    class Material: public IIdentifiable {
+    class Material: public Object {
     public:
-        Material() = default;
-        Material(std::filesystem::path path);
-        Material(const char* shaderName);
+        Material(): Object(UUID::NewUUID()) {};
+        Material(std::filesystem::path path, UUID _id);
+        Material(std::string shaderName);
         Material(Ref<Shader> shader);
-        Material(Material& material);
+        Material(const Material& material);
         Material(Material&& material);
 
         ~Material();
     public:
-        std::string GetName();
+        bool IsDefault();
         std::string GetShaderName();
     public:
         Color& GetColor(std::string name);
@@ -43,18 +43,18 @@ namespace VWolf {
     public:
         void Save(std::filesystem::path path);
     public:
-        static Ref<Material> Load(std::filesystem::path path);
+        static Ref<Material> Load(std::filesystem::path path, UUID _id);
 #ifdef VWOLF_CORE
     public:
         void * GetDataPointer() const;
         size_t GetSize() const;
 #endif
     public:
-        void operator=(const Material& material);
+        Material& operator=(const Material& material);
     private:
         void InternalLoad(Ref<Shader> shader);
     private:
-        std::string name;
+        bool isDefault = false;
         std::string shaderName;
         size_t size;
         std::map<std::string, Color> colors;
@@ -65,20 +65,20 @@ namespace VWolf {
         std::map<std::string, std::tuple<uint32_t, uint32_t, uint32_t>> inputs_information;
         std::vector<Property> properties;
         
-        BOOST_DESCRIBE_CLASS(Material, (IIdentifiable), (), (id), (name, shaderName, colors, vectors, floats))
+        BOOST_DESCRIBE_CLASS(Material, (Object), (), (name), (isDefault, shaderName, colors, vectors, floats))
         
         VWOLF_SERIALIZATION_FRIENDS(Material)
     };
 
-#ifdef VWOLF_CORE
     class MaterialLibrary {
     public:
-        static Material* GetMaterial(std::string name);
-        static Material* Default();
-        static void SetDefault(Material *);
-        static void SetMaterial(std::string name, Material* material);
-    private:
-        static std::map<std::string, Material*> materials;
-    };
+        static Ref<Material> GetMaterial(std::string name);
+        static Ref<Material> Default();
+#ifdef VWOLF_CORE
+        static void SetDefault(Ref<Material>);
+        static void SetMaterial(std::string name, Ref<Material> material);
 #endif
+    private:
+        static std::map<std::string, Ref<Material>> materials;
+    };
 }

@@ -18,7 +18,7 @@ namespace VWolf {
 
     }
 
-    RigidBodyComponent::RigidBodyComponent(RigidBodyComponent& rigidBody):
+    RigidBodyComponent::RigidBodyComponent(const RigidBodyComponent& rigidBody):
     Component("RigidBody", rigidBody.id) {
         this->mMass = rigidBody.mMass;
         this->mDrag = rigidBody.mDrag;

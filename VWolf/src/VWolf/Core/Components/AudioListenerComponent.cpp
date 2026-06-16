@@ -11,7 +11,7 @@
 namespace VWolf {
     AudioListenerComponent::AudioListenerComponent(): Component("AudioListener") {}
 
-    AudioListenerComponent::AudioListenerComponent(AudioListenerComponent& audioListener):
+    AudioListenerComponent::AudioListenerComponent(const AudioListenerComponent& audioListener):
     Component("AudioListener", audioListener.id) {}
 
     AudioListenerComponent::AudioListenerComponent(AudioListenerComponent&& audioListener):

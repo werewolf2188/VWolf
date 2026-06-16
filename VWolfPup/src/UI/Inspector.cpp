@@ -314,7 +314,7 @@ namespace VWolfPup {
                 if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
                 {
                     ContainerView::GetMainView()
-                    ->AddView(new ObjectExplorer(".obj", [comp](auto path){
+                    ->AddView(new FileExplorer(".obj", [comp](auto path){
 //                        VWOLF_CLIENT_INFO("Test");
                         comp->SetPath(path);
                     }));
@@ -355,14 +355,16 @@ namespace VWolfPup {
                 if (ImGui::Button("...", ImVec2{ lineHeight, lineHeight }))
                 {
                     ContainerView::GetMainView()
-                    ->AddView(new ObjectExplorer(Extension::GetMaterialExtension(), [this, &component](auto path){
+                    // TODO: This is incorrect. It should come from a list of materials in the library, not from looking at paths
+                    ->AddView(new ObjectExplorer<VWolf::Material>([this, &component](auto material) {
         //                        VWOLF_CLIENT_INFO("Test");
         //                comp->SetPath(path);
-                        auto material = Project::CurrentProject()->GetMaterial(path);
+                        
+                        // TODO: This is incorrect. It should come from a list of materials in the library, not from looking at paths
                         if (material) {
-                            component.SetMaterial(material.get());
+                            component.SetMaterial(material);
                         } else {
-                            component.SetMaterial(Defaults::Get()->GetDefaultMaterial().get());                            
+                            component.SetMaterial(VWolf::MaterialLibrary::Default());
                         }
                     }));
                 }
@@ -727,7 +729,7 @@ namespace VWolfPup {
                 if (ImGui::Button("...", ImVec2{ lineHeight, lineHeight }))
                 {
                     ContainerView::GetMainView()
-                    ->AddView(new ObjectExplorer(Extension::GetExtension("Audio"), [this, &component](auto path){
+                    ->AddView(new FileExplorer(".mp3", [this, &component](auto path){
                         component.SetAudioFile(path);
                     }));
                 }
@@ -880,7 +882,7 @@ namespace VWolfPup {
     }
 
     void Inspector::DrawMaterial(VWolf::Material& material) {
-        bool isDefault = Defaults::Get()->IsDefault(material);
+        bool isDefault = material.IsDefault();
         ImGui::PushID("MaterialName");
 
         ImGui::Columns(2);

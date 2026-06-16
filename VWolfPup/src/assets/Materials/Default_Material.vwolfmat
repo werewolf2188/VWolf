@@ -1,7 +1,7 @@
 ---
 material:
-  id: aa41371a-ef2b-415e-ad8b-9dcb7560e4ff
   name: BlinnPhong
+  isDefault: true
   shaderName: BlinnPhong
   colors:
     u_ambientColor: [1, 0, 0, 1]

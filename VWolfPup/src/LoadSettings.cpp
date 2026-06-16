@@ -15,7 +15,9 @@
 #include "../ProjectManagement/Folder.h"
 
 #include <yaml-cpp/yaml.h>
-#include "Serialization/DefaultSettings.h"
+#include "AssetManagement/AssetMetaFile.h"
+
+constexpr const char * keyName = "Defaults";
 
 namespace VWolfPup {
 
@@ -28,17 +30,9 @@ namespace VWolfPup {
         this->defaultSkyBoxMaterial = defaults.defaultSkyBoxMaterial;
     }
 
-    bool Defaults::IsDefault(VWolf::Material& material) {
-        for(auto defaultMaterial: materials) {
-            if (defaultMaterial.second->GetName() == material.GetName()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     void Defaults::Load() {
         constexpr const char * fileName = "defaults.ini";
+        
         YAML::Node data;
         try
         {
@@ -49,55 +43,13 @@ namespace VWolfPup {
             VWOLF_CLIENT_ERROR("Failed to load .scene file '%s'\n     %s", fileName, e.what());
         }
 
-        Defaults defaults = data.as<Defaults>();
+        Defaults defaults = data[keyName].as<Defaults>();
         Defaults::defaults = VWolf::CreateRef<Defaults>(defaults);
-        Defaults::defaults->PrepareMaterials();
     }
 
-    void Defaults::PrepareMaterials() {
-        std::filesystem::path materialsPath = Folder::GetAssetsFolder() + "/Materials";
-        std::string materialExtension = Extension::GetMaterialExtension();
-
-        std::filesystem::path defaultMaterialPath = std::filesystem::current_path() / materialsPath / (defaultMaterial + materialExtension);
-        std::filesystem::path defaultMaterialGridPath = std::filesystem::current_path() / materialsPath / (defaultGridMaterial + materialExtension);
-        std::filesystem::path defaultMaterialSkyboxPath = std::filesystem::current_path() / materialsPath / (defaultSkyBoxMaterial + materialExtension);
-
-        auto dfMat = VWolf::Material::Load(defaultMaterialPath);
-        dfMat->SetAsDefault();
-        materials[defaultMaterial] = dfMat;
-        auto dfgMat = VWolf::Material::Load(defaultMaterialGridPath);
-        materials[defaultGridMaterial] = dfgMat;
-        auto dfskbMat = VWolf::Material::Load(defaultMaterialSkyboxPath);
-        dfskbMat->SetTexture("skybox",
-                            VWolf::Texture::LoadCubemap({ "assets/skybox/right.png",
-                                                          "assets/skybox/left.png",
-                                                          "assets/skybox/top.png",
-                                                          "assets/skybox/bottom.png",
-                                                          "assets/skybox/front.png",
-                                                          "assets/skybox/back.png" }));
-        materials[defaultSkyBoxMaterial] = dfskbMat;
-        // TODO: Debug purposes
-        std::filesystem::path defaultDebugRenderPath = std::filesystem::current_path() / materialsPath / ("DebugRender" + materialExtension);
-        auto debugRenderer = VWolf::Material::Load(defaultDebugRenderPath);
-        materials["RainbowColor"] = debugRenderer;
-        
-    }
-
-    std::vector<VWolf::Ref<VWolf::Material>> materials;
-
-    void LoadShaders() {
-        std::filesystem::path shaderPath = "shaders/";
-        for (auto const& dir_entry : std::filesystem::directory_iterator(shaderPath)) {
-            if (dir_entry.is_directory()) continue;
-            if (dir_entry.path().filename() == ".DS_Store") continue;
-            VWolf::Shader::LoadShader(dir_entry.path());
-        }
-    }
-   
-// ----------------------------------------------- //
-    // MARK: Public
-    void InitialLoad() {
-        LoadShaders();
-        Defaults::Load();
+    YAML::Emitter& operator<<(YAML::Emitter& out, VWolfPup::Defaults& v)
+    {
+        VWolf::SerializeFromBoostDescribe(out, v, keyName);
+        return out;
     }
 }

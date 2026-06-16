@@ -10,21 +10,19 @@
 #include "../ProjectManagement/Project.h"
 #include "../ProjectManagement/Folder.h"
 
-#include <imgui/imgui.h>
-
 namespace VWolfPup {
     static const std::string MAIN_STATIC_ASSETS_LIBRARY = "assets";
 
-    ObjectExplorer::ObjectExplorer(std::string extension, std::function<void(std::filesystem::path)> onSelection):
+    FileExplorer::FileExplorer(std::string extension, std::function<void(std::filesystem::path)> onSelection):
     View(std::string("List of .") + extension + std::string(" files")), extension(extension), onSelection(onSelection) {
         FindObjects();
     }
 
-    ObjectExplorer::~ObjectExplorer() {
+    FileExplorer::~FileExplorer() {
         
     }
 
-    void ObjectExplorer::OnGui() {
+    void FileExplorer::OnGui() {
         if (!isOpen) {
             ContainerView::GetMainView()->RemoveView(this);
         };
@@ -40,7 +38,7 @@ namespace VWolfPup {
         ImGui::End();
     }
 
-    void ObjectExplorer::FindObjects() {
+    void FileExplorer::FindObjects() {
         // We find objects in the main assets directory
         std::filesystem::path mainAssetsPath = std::filesystem::current_path() / MAIN_STATIC_ASSETS_LIBRARY;
         FindObjects(mainAssetsPath);
@@ -49,7 +47,7 @@ namespace VWolfPup {
         FindObjects(projectAssetsPath);
     }
 
-    void ObjectExplorer::FindObjects(std::filesystem::path path) {
+    void FileExplorer::FindObjects(std::filesystem::path path) {
         std::filesystem::directory_entry entry(path);
         if (entry.is_directory()) {
             for (auto entry: std::filesystem::directory_iterator(path)) {

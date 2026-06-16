@@ -17,7 +17,7 @@ namespace VWolf {
     m_FOV(m_camera->GetFOV()), m_AspectRatio(m_camera->GetAspectRatio()), m_NearClip(m_camera->GetNearZ()), m_FarClip(m_camera->GetFarZ()),
     m_isOrthographic(m_camera->IsOrtographic()), m_zoom(m_camera->GetZoom()) { }
 
-    CameraComponent::CameraComponent(CameraComponent& camera):
+    CameraComponent::CameraComponent(const CameraComponent& camera):
     Component("Camera", camera.id), m_camera(CreateRef<Camera>()) {
         this->m_ViewportWidth = camera.m_ViewportWidth;
         this->m_ViewportHeight = camera.m_ViewportHeight;

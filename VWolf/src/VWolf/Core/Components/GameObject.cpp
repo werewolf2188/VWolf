@@ -39,18 +39,8 @@ namespace YAML {
         
         template <typename type>
         void operator()(type) const {
-            std::string typeName = boost::typeindex::type_id_with_cvr<type>().pretty_name();
+            std::string typeName = VWolf::ClassNameCleaner::Current().GetClassName<type>();
 
-#ifdef VWOLF_PLATFORM_WINDOWS
-            std::string toRemove = "class VWolf::";
-#elif defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
-            std::string toRemove = "VWolf::";
-#endif
-
-            size_t pos = typeName.find(toRemove);
-            if (pos != std::string::npos) {
-                typeName.erase(pos, toRemove.length());
-            }
             if (node[typeName]) {
                 type temp  = node[typeName].as<type>();
                 rhs.AddComponent<type>(temp);
@@ -113,13 +103,29 @@ namespace VWolf {
         return out;
     }
 
-    GameObject::GameObject(std::string name): name(name), scene(nullptr) { }
+    GameObject::GameObject(std::string name): Object(UUID::NewUUID()), scene(nullptr) {
+        this->name = name;
+    }
 
-    GameObject::GameObject(std::string name, entt::entity handle, Scene* scene): name(name), handle(handle), scene(scene) { }
+    GameObject::GameObject(std::string name, entt::entity handle, Scene* scene): Object(UUID::NewUUID()), handle(handle), scene(scene) {
+        this->name = name;
+    }
 
-    GameObject::GameObject(GameObject& gameObject) {
-        this->id = gameObject.id;
+    GameObject::GameObject(const GameObject& gameObject): Object(gameObject.id) {
         this->name = gameObject.name;
+    }
+
+    GameObject::GameObject(GameObject&& gameObject): Object(gameObject.id) {
+        name = gameObject.name;
+        currentComponents = gameObject.currentComponents;
+        handle = gameObject.handle;
+        scene = gameObject.scene;
+        
+        gameObject.id = UUID::Empty;
+        gameObject.name = "";
+        gameObject.currentComponents.clear();
+        gameObject.handle = entt::null;
+        gameObject.scene = nullptr;
     }
 
     GameObject::~GameObject() { }

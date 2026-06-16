@@ -18,7 +18,7 @@ namespace VWolf {
     public:
         MeshFilterComponent();
         MeshFilterComponent(std::filesystem::path data);
-        MeshFilterComponent(MeshFilterComponent& component);
+        MeshFilterComponent(const MeshFilterComponent& component);
         MeshFilterComponent(MeshFilterComponent&& component);
         ~MeshFilterComponent();
     public:
@@ -29,7 +29,7 @@ namespace VWolf {
         void SetPath(std::filesystem::path path) { this->path = path; Load(); }
         std::filesystem::path GetPath() { return this->path; }
     public:
-        MeshFilterComponent& operator=(MeshFilterComponent t);
+        MeshFilterComponent& operator=(const MeshFilterComponent& t);
     private:
         void Load();
     private:

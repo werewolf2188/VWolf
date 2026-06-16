@@ -25,7 +25,7 @@ namespace VWolf {
     class MeshColliderComponent: public Component {
     public:
         MeshColliderComponent();
-        MeshColliderComponent(MeshColliderComponent& meshCollider);
+        MeshColliderComponent(const MeshColliderComponent& meshCollider);
         MeshColliderComponent(MeshColliderComponent&& meshCollider);
         ~MeshColliderComponent();
     public:

@@ -22,7 +22,6 @@ namespace VWolf {
         UUID(boost::uuids::uuid uuid);
 #endif
         UUID(const UUID& uuidClass);
-        UUID(UUID& uuidClass);
         UUID(UUID&& uuidClass);
         ~UUID();
     public:
@@ -32,6 +31,7 @@ namespace VWolf {
     public:
         bool operator==(const UUID& rhs);
         bool operator!=(const UUID& rhs);
+        bool operator<(const UUID& other) const;
     public:
         std::string ToString() const;
         bool IsEmpty() const;

@@ -29,7 +29,7 @@ namespace VWolf {
 
     LightComponent::~LightComponent() {}
 
-    LightComponent& LightComponent::operator=(LightComponent& light) {
+    LightComponent& LightComponent::operator=(const LightComponent& light) {
         this->light = light.light;
         return *this;
     }

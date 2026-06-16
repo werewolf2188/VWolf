@@ -14,7 +14,7 @@ namespace VWolf {
     class AudioListenerComponent: public Component {
     public:
         AudioListenerComponent();
-        AudioListenerComponent(AudioListenerComponent& audioListener);
+        AudioListenerComponent(const AudioListenerComponent& audioListener);
         AudioListenerComponent(AudioListenerComponent&& audioListener);
         ~AudioListenerComponent();
     public:
