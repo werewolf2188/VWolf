@@ -18,6 +18,7 @@ namespace VWolf {
     public:
         MeshFilterComponent();
         MeshFilterComponent(std::filesystem::path data);
+        MeshFilterComponent(UUID meshId);
         MeshFilterComponent(const MeshFilterComponent& component);
         MeshFilterComponent(MeshFilterComponent&& component);
         ~MeshFilterComponent();
@@ -34,9 +35,10 @@ namespace VWolf {
         void Load();
     private:
         MeshData data;
+        UUID meshId;
         std::filesystem::path path;
         VWOLF_COMPONENT_INSPECTOR_DEFINE(MeshFilterComponent);
-        BOOST_DESCRIBE_CLASS(MeshFilterComponent, (Component), (), (id), (path))
+        BOOST_DESCRIBE_CLASS(MeshFilterComponent, (Component), (), (id), (path, meshId))
         
         VWOLF_SERIALIZATION_FRIENDS(MeshFilterComponent)
     };

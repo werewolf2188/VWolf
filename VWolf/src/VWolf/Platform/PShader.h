@@ -8,6 +8,7 @@
 #pragma once
 
 #include "VWolf/Core/Render/Shader.h"
+#include "VWolf/Core/Render/Mesh.h"
 
 namespace VWolf {
     class PShader {
@@ -21,10 +22,13 @@ namespace VWolf {
         virtual std::vector<Ref<ShaderInput>> GetMaterialInputs() const = 0;
         virtual size_t GetMaterialSize() const = 0;
         virtual std::vector<ShaderInput> GetTextureInputs() const = 0;
+        virtual std::vector<AttributeDescriptor> GetAttributes() const = 0;
 
         virtual std::string GetName() const = 0;
 
         virtual void SetData(const void* data, const char* name, uint32_t size, uint32_t offset = 0) = 0;
+    protected:
+        Attribute GetAttributeFromName(std::string name) const;
     protected:
         std::string m_name;
     };

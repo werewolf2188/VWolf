@@ -422,29 +422,37 @@ namespace VWolfPup {
         }
     private:
         VWolf::MeshData GetMeshData() {
-            if (strcmp(items[selection], "Box") == 0) {
+            if (std::string(items[selection]) == VWOLF_GET_SHAPE_NAME(VWolf::ShapeHelper::Box)) {
                 return VWolf::OBJLoader::Load("assets/basic_shapes/Box.obj", items[selection]);
             }
-            else if (strcmp(items[selection], "Sphere") == 0) {
+            else if (std::string(items[selection]) == VWOLF_GET_SHAPE_NAME(VWolf::ShapeHelper::Sphere)) {
                 return VWolf::OBJLoader::Load("assets/basic_shapes/Sphere.obj", items[selection]);
             }
-            else if (strcmp(items[selection], "Geosphere") == 0) {
+            else if (std::string(items[selection]) == VWOLF_GET_SHAPE_NAME(VWolf::ShapeHelper::Geosphere)) {
                 return VWolf::OBJLoader::Load("assets/basic_shapes/Geosphere.obj", items[selection]);
             }
-            else if (strcmp(items[selection], "Cylinder") == 0) {
+            else if (std::string(items[selection]) == VWOLF_GET_SHAPE_NAME(VWolf::ShapeHelper::Cylinder)) {
                 return VWolf::OBJLoader::Load("assets/basic_shapes/Cylinder.obj", items[selection]);
             }
-            else if (strcmp(items[selection], "Grid") == 0) {
+            else if (std::string(items[selection]) == VWOLF_GET_SHAPE_NAME(VWolf::ShapeHelper::Grid)) {
                 return VWolf::OBJLoader::Load("assets/basic_shapes/Grid.obj", items[selection]);
             }
-            else if (strcmp(items[selection], "Monkey") == 0) {
+            else if (std::string(items[selection]) ==  VWOLF_GET_SHAPE_NAME(VWolf::ShapeHelper::Monkey)) {
                 return VWolf::OBJLoader::Load("assets/basic_shapes/Monkey.obj", items[selection]);
             }
             return VWolf::ShapeHelper::Create(items[selection]);
         }
     private:
         int selection = 0;
-        std::array<const char*, 7> items = { "Box", "Sphere", "Geosphere", "Cylinder", "Grid", "Monkey", "Triangle" };
+        std::array<const char*, 7> items = {
+            "Box",
+            "Sphere",
+            "Geosphere",
+            "Cylinder",
+            "Grid",
+            "Monkey",
+            "Triangle"
+        };
     };
 
     class CameraComponentInspector: public VWolf::ComponentInspector<VWolf::CameraComponent> {

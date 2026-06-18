@@ -743,6 +743,12 @@ namespace VWolf {
 		}
 		return inputs;
 	}
+
+    std::vector<AttributeDescriptor> HLSLShader::GetAttributes() const {
+        std::vector<AttributeDescriptor> elements;
+        
+        return elements;
+    }
 	
 	std::string HLSLShader::GetName() const
 	{		

@@ -11,7 +11,7 @@
 
 namespace VWolf {
     MeshFilterComponent::MeshFilterComponent():
-    Component("Mesh Filter"), data(ShapeHelper::CreateTriangle()) {
+    Component("Mesh Filter"), data(ShapeHelper::Create(VWOLF_GET_SHAPE_NAME(ShapeHelper::Triangle))) {
 
     }
 
@@ -20,14 +20,19 @@ namespace VWolf {
         Load();
     }
 
+    MeshFilterComponent::MeshFilterComponent(UUID meshId): meshId(meshId),
+    Component("Mesh Filter") {
+//        Load();
+    }
+
     MeshFilterComponent::MeshFilterComponent(const MeshFilterComponent& component):
-    Component("Mesh Filter", component.id), data(component.data), path(component.path) {
+    Component("Mesh Filter", component.id), data(component.data), path(component.path), meshId(component.meshId) {
         Load();
         this->SetGameObject(const_cast<MeshFilterComponent&>(component).GetGameObject());
     }
 
     MeshFilterComponent::MeshFilterComponent(MeshFilterComponent&& component):
-    Component("Mesh Filter", component.id), data(component.data), path(component.path) {
+    Component("Mesh Filter", component.id), data(component.data), path(component.path), meshId(component.meshId) {
         Load();
         this->SetGameObject(component.GetGameObject());
     }
@@ -47,6 +52,7 @@ namespace VWolf {
 
     MeshFilterComponent& MeshFilterComponent::operator=(const MeshFilterComponent& t) {
         this->data = t.data;
+        this->meshId = t.meshId;
         this->SetGameObject(const_cast<MeshFilterComponent&>(t).GetGameObject());
         return *this;
     }

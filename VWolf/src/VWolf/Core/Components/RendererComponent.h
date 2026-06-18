@@ -72,10 +72,11 @@ namespace VWolf {
     private:
         std::string dataName;
         UUID materialId;
+        UUID meshId;
         MeshData data;
         Ref<Material> material;
         VWOLF_COMPONENT_INSPECTOR_DEFINE(ShapeRendererComponent);
-        BOOST_DESCRIBE_CLASS(ShapeRendererComponent, (RendererComponent), (), (id), (dataName, materialId))
+        BOOST_DESCRIBE_CLASS(ShapeRendererComponent, (RendererComponent), (), (id), (dataName, materialId, meshId))
         VWOLF_SERIALIZATION_FRIENDS(ShapeRendererComponent)
     };
 }

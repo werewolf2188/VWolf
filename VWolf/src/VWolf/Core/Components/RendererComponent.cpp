@@ -64,22 +64,24 @@ namespace VWolf {
     ShapeRendererComponent::ShapeRendererComponent():
     RendererComponent("Shape Renderer"),
     material(MaterialLibrary::Default()), materialId(MaterialLibrary::Default()->GetID()),
-    data(ShapeHelper::CreateTriangle()), dataName(ShapeHelper::CreateTriangle().GetName()) {}
+    data(ShapeHelper::Create(VWOLF_GET_SHAPE_NAME(ShapeHelper::Triangle))), dataName(ShapeHelper::CreateTriangle().GetName()) {}
 
     ShapeRendererComponent::ShapeRendererComponent(MeshData data, Material& material):
     RendererComponent("Shape Renderer"), data(data), dataName(data.GetName()),
     material(&material), materialId(material.GetID())  {}
 
     ShapeRendererComponent::ShapeRendererComponent(const ShapeRendererComponent& component):
-    RendererComponent("Shape Renderer", component.id), dataName(component.dataName), materialId(component.materialId) {
+    RendererComponent("Shape Renderer", component.id), dataName(component.dataName),
+    meshId(component.meshId), materialId(component.materialId) {
         this->material = ObjectResourceManager::Get<Material>(component.materialId);
-        this->data = ShapeHelper::Create(dataName.c_str());
+        this->data = ShapeHelper::Create(dataName);
         this->SetGameObject(const_cast<ShapeRendererComponent&>(component).GetGameObject());
     }
     ShapeRendererComponent::ShapeRendererComponent(ShapeRendererComponent&& component):
-    RendererComponent("Shape Renderer", component.id), dataName(component.dataName), materialId(component.materialId) {
+    RendererComponent("Shape Renderer", component.id), dataName(component.dataName),
+    meshId(component.meshId), materialId(component.materialId) {
         this->material = ObjectResourceManager::Get<Material>(component.materialId);
-        this->data = ShapeHelper::Create(dataName.c_str());
+        this->data = ShapeHelper::Create(dataName);
         this->SetGameObject(component.GetGameObject());
     }
     ShapeRendererComponent::~ShapeRendererComponent() {}
@@ -97,6 +99,7 @@ namespace VWolf {
         this->data = t.data;
         this->dataName = t.dataName;
         this->materialId = t.materialId;
+        this->meshId = t.meshId;
         this->material = t.material;
         this->SetGameObject(const_cast<ShapeRendererComponent&>(t).GetGameObject());
         return *this;
@@ -104,7 +107,7 @@ namespace VWolf {
 
     void ShapeRendererComponent::SetShapeName(std::string name) {
         this->dataName = name;
-        this->data = ShapeHelper::Create(dataName.c_str());
+        this->data = ShapeHelper::Create(dataName);
     }
 
     void ShapeRendererComponent::SetMaterial(Ref<Material> material) {

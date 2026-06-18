@@ -35,14 +35,6 @@ namespace VWolf {
         GLThrowIfFailed(glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId));
         GLThrowIfFailed(glBufferSubData(GL_ARRAY_BUFFER, 0, size, data));
 	}
-	const BufferLayout& OpenGLVertexBuffer::GetLayout() const
-	{
-		return layout;
-	}
-	void OpenGLVertexBuffer::SetLayout(const BufferLayout& layout)
-	{
-		this->layout = layout;
-	}
 	OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t* indices, uint32_t count): m_indices(indices), m_count(count)
 	{
 		VWOLF_CORE_ASSERT(count);

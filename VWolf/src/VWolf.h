@@ -28,6 +28,7 @@
 #include "VWolf/Core/Render/Material.h"
 #include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Core/Render/Texture.h"
+#include "VWolf/Core/Render/Mesh.h"
 
 #include "VWolf/Core/Math/VMath.h"
 #include "VWolf/Core/Math/Vector2.h"

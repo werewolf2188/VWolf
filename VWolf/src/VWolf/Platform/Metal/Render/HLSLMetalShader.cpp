@@ -100,6 +100,28 @@ namespace VWolf {
             }
             return MTL::VertexFormatInvalid;
         }
+        AttributeFormat GetAttributeFormat() {
+            std::string elementType = value.at("elementType").as_string().c_str();
+            int64_t columnCount = value.at("columnCount").as_int64();
+            if (elementType == "Float") return AttributeFormat::Float32;
+            else if (elementType == "Int") return AttributeFormat::SInt32;
+            return AttributeFormat::Unknown;
+        }
+        
+        uint32_t GetDimension() {
+            switch (GetVertexFormat()) {
+                case MTL::VertexFormat::VertexFormatFloat: return 1;
+                case MTL::VertexFormat::VertexFormatFloat2: return 2;
+                case MTL::VertexFormat::VertexFormatFloat3: return 3;
+                case MTL::VertexFormat::VertexFormatFloat4: return 4;
+                case MTL::VertexFormat::VertexFormatInt: return 1;
+                case MTL::VertexFormat::VertexFormatInt2: return 2;
+                case MTL::VertexFormat::VertexFormatInt3: return 3;
+                case MTL::VertexFormat::VertexFormatInt4: return 4;
+                case MTL::VertexFormat::VertexFormatUInt: return 1;
+                default: return -1;
+            }
+        }
         std::string GetName() { return value.at("name").as_string().c_str(); }
         uint64_t GetSize() { return GetSizeFrom(GetVertexFormat()); }
     private:
@@ -173,6 +195,7 @@ namespace VWolf {
         std::map<std::string, DXIL::Sampler>& GetSamplers() { return samplers; }
         std::map<std::string, DXIL::Texture>& GetTextures() { return textures; }
         std::map<std::string, DXIL::ConstantBuffer>& GetConstantBuffers() { return constantBuffers; }
+        std::vector<StageInAttribute>& GetStageInAttributes() { return stageInAttributes; }
         void SetDescriptorTable(uint32_t index, ShaderType type, MTL::RenderCommandEncoder* encoder) {
             auto& pDescriptorTable = pDescriptorTables[type];
             if (pDescriptorTable.size() > index) {
@@ -660,6 +683,23 @@ namespace VWolf {
                                          0));
         }
         return inputs;
+    }
+
+    std::vector<AttributeDescriptor> HLSLMetalShader::GetAttributes() const {
+        std::vector<AttributeDescriptor> elements(hlMetalProgram->GetStageInAttributes().size());
+       
+        for(auto& value:  hlMetalProgram->GetStageInAttributes()) {
+            AttributeDescriptor descriptor;
+            descriptor.name = value.GetName();
+            descriptor.index = (int32_t)value.GetIndex();
+            descriptor.attribute = GetAttributeFromName(value.GetName());
+            descriptor.dimension = value.GetDimension();
+            descriptor.format = value.GetAttributeFormat();
+            
+            elements[value.GetIndex()] = descriptor;
+        }
+        
+        return elements;
     }
 
     MTL::RenderPipelineState* HLSLMetalShader::GetState() {

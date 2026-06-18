@@ -259,6 +259,8 @@ namespace VWolf {
             metalShader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, shapes);
             metalShader->SetTextures(shadowMap, item->material);
             
+            auto attributes = metalShader->GetAttributes();
+            
             metalShader->Draw(MTL::PrimitiveType::PrimitiveTypeTriangle, bufferGroups[itemsCount]->GetIndexBuffer());
             free(material1);
             itemsCount++;

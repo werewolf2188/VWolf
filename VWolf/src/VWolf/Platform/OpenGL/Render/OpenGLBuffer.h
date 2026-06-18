@@ -16,11 +16,7 @@ namespace VWolf {
 		void Unbind() const;
 
 		void SetData(const void* data, uint32_t size);
-
-		const BufferLayout& GetLayout() const;
-		void SetLayout(const BufferLayout& layout);
 	private:
-		BufferLayout layout;
 		unsigned int vertexBufferId = 0;
         void* m_vertices;
 		uint32_t m_size;
