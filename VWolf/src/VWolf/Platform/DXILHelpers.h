@@ -9,6 +9,7 @@
 
 #include "VWolf/Platform/Metal/Core/Core.h"
 #include "VWolf/Core/Render/Shader.h"
+#include "VWolf/Core/Render/Mesh.h"
 
 #include "dxcapi.h"
 
@@ -173,6 +174,7 @@ namespace VWolf {
 			BYTE GetElementType() { return elementType; }
         public:
             size_t GetSize();
+            AttributeFormat GetAttributeFormat();
         private:
             std::string name;
             UINT index;

@@ -774,17 +774,7 @@ namespace VWolf {
             descriptor.index = value.GetIndex();
             descriptor.attribute = GetAttributeFromName(value.GetName());
             descriptor.dimension = value.GetNumberOfElements();
-            switch (value.GetElementType()) {
-                case D3D_REGISTER_COMPONENT_FLOAT32:
-                    descriptor.format = AttributeFormat::Float32;
-				    break;
-                case D3D_REGISTER_COMPONENT_SINT32:
-                    descriptor.format = AttributeFormat::SInt32;
-                    break;
-                case D3D_REGISTER_COMPONENT_UINT32:
-                    descriptor.format = AttributeFormat::UInt32;
-                    break;
-            }
+            descriptor.format = value.GetAttributeFormat();
             
             elements[value.GetIndex()] = descriptor;
         }
