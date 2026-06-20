@@ -18,6 +18,12 @@ namespace VWolf {
     public:        
         HLOGLShaderSource(std::string name, Stage source, std::string code) {
             shader = DXIL::Shader(name, source, code, DXIL::Shader::ArgumentType::OpenGL);
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+            dxilShader = DXIL::Shader(name, source, code, DXIL::Shader::ArgumentType::Metal);
+#endif
+#ifdef VWOLF_PLATFORM_WINDOWS
+            dxilShader = DXIL::Shader(name, source, code, DXIL::Shader::ArgumentType::DirectX);
+#endif
             TranslateFromDXILToGLSL();
             type = ShaderTypeEquivalent(shader.GetType());
             shaderId = glCreateShader(type);
@@ -180,7 +186,7 @@ namespace VWolf {
             return -1;
         }
     private:
-        DXIL::Shader shader;
+        DXIL::Shader shader, dxilShader;
         std::string sourceText;
         
         GLuint shaderId;
@@ -574,8 +580,8 @@ namespace VWolf {
             return defaultUniforms;
         }
 
-        std::map<std::string, Ref<HLOGLAttribute>> GetAttributes() {
-            return attributes;
+        std::map<std::string, DXIL::Attribute> GetAttributes() {
+            return dxilAttributes;
         }
 
         operator GLuint() const {
@@ -633,6 +639,9 @@ namespace VWolf {
         }
 
         void RetrieveAttributes() {
+            for(Ref<HLOGLShaderSource> source: sources)
+                for (DXIL::Attribute dxilAttribute : source->dxilShader.GetStageInAttributes())
+                    dxilAttributes[dxilAttribute.GetName()] = dxilAttribute;
             GLint attributesCount;
             GLThrowIfFailed(glGetProgramiv(programId, GL_ACTIVE_ATTRIBUTES, &attributesCount));
             for(int aIndex = 0; aIndex < attributesCount; aIndex++) {
@@ -646,6 +655,7 @@ namespace VWolf {
         std::map<std::string, Ref<HLOGLUniformBuffer>> uniformBuffers;
         std::map<std::string, Ref<HLOGLUniform>> defaultUniforms;
         std::map<std::string, Ref<HLOGLAttribute>> attributes;
+        std::map<std::string, DXIL::Attribute> dxilAttributes;
     };
 
     HLSLOpenGLShader::HLSLOpenGLShader(Shader& coreShader): PShader(coreShader) {
@@ -760,13 +770,23 @@ namespace VWolf {
         
         for(auto& [key, value]: m_program->GetAttributes()) {
             AttributeDescriptor descriptor;
-            descriptor.name = value->GetName();
-            descriptor.index = value->GetIndex();
-            descriptor.attribute = GetAttributeFromName(value->GetName());
-            descriptor.dimension = value->GetDimension();
-            descriptor.format = value->GetAttributeFormat();
+            descriptor.name = value.GetName();
+            descriptor.index = value.GetIndex();
+            descriptor.attribute = GetAttributeFromName(value.GetName());
+            descriptor.dimension = value.GetNumberOfElements();
+            switch (value.GetElementType()) {
+                case D3D_REGISTER_COMPONENT_FLOAT32:
+                    descriptor.format = AttributeFormat::Float32;
+				    break;
+                case D3D_REGISTER_COMPONENT_SINT32:
+                    descriptor.format = AttributeFormat::SInt32;
+                    break;
+                case D3D_REGISTER_COMPONENT_UINT32:
+                    descriptor.format = AttributeFormat::UInt32;
+                    break;
+            }
             
-            elements[value->GetIndex()] = descriptor;
+            elements[value.GetIndex()] = descriptor;
         }
         
         return elements;
