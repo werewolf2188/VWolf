@@ -20,20 +20,6 @@ namespace VWolf {
 	// TODO: Better names. This is for immediate rendering
 	void DirectX12Graphics::DrawMeshImpl(MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera)
 	{
-		auto data = mesh.vertices;
-		if (data.size() == 1) return; // It's a light
-		auto indices = mesh.indices;
-		Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex));
-		Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
-		Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
-		group->SetVertexBuffer(vertices);
-		group->SetIndexBuffer(index);
-
-		groups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), group);
-
-		vertices->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
-		index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
-
 		Camera* cam = camera != nullptr ? camera.get() : Camera::main;
 
 		CameraPass cameraPass = {
@@ -62,6 +48,19 @@ namespace VWolf {
 			Vector3::One); 
 
 		Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
+		auto data = mesh.vertices;
+		if (data.size() == 1) return; // It's a light
+		auto indices = mesh.indices;
+		Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex), shader->GetAttributes());
+		Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
+		Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
+		group->SetVertexBuffer(vertices);
+		group->SetIndexBuffer(index);
+
+		groups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), group);
+
+		vertices->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
+		index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
 		void* material1 = material.GetDataPointer();
 		/*if (this->lights.size() == 0) {
 			this->lights.push_back(Light());
@@ -248,12 +247,14 @@ namespace VWolf {
 
 				auto& mesh = item->data;
 				auto& material = item->material;
-				Matrix4x4 transform = item->transform;
+				Matrix4x4 transform = item->transform;				
+
+				Ref<PShader> shader = Shader::GetShader("Shadow")->GetInternalShader();
 
 				auto data = mesh.vertices;
 				if (data.size() == 1) continue;; // It's a light
 				auto indices = mesh.indices;
-				Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex));
+				Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex), shader->GetAttributes());
 				Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
 				Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
 				group->SetVertexBuffer(vertices);
@@ -263,8 +264,6 @@ namespace VWolf {
 
 				vertices->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
 				index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
-
-				Ref<PShader> shader = Shader::GetShader("Shadow")->GetInternalShader();
 
 				DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				group->Bind(DirectX12Driver::GetCurrent()->GetCommands());
@@ -296,20 +295,6 @@ namespace VWolf {
 			Ref<Camera> camera = item->camera;
 			Matrix4x4 transform = item->transform;
 
-			auto data = mesh.vertices;
-			if (data.size() == 1) continue;; // It's a light
-			auto indices = mesh.indices;
-			Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex));
-			Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
-			Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
-			group->SetVertexBuffer(vertices);
-			group->SetIndexBuffer(index);
-
-			groups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), group);
-
-			vertices->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
-			index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
-
 			Camera* cam = camera != nullptr ? camera.get() : Camera::main;
 
 			CameraPass cameraPass = {
@@ -330,6 +315,21 @@ namespace VWolf {
 			};
 
 			Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
+
+			auto data = mesh.vertices;
+			if (data.size() == 1) continue;; // It's a light
+			auto indices = mesh.indices;
+			Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex), shader->GetAttributes());
+			Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
+			Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
+			group->SetVertexBuffer(vertices);
+			group->SetIndexBuffer(index);
+
+			groups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), group);
+
+			vertices->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
+			index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
+
 			void* material1 = material.GetDataPointer();
 			if (this->lights.size() == 0) {
 				this->lights.push_back(Light());

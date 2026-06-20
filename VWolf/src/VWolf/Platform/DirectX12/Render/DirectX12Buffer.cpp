@@ -8,7 +8,8 @@
 #include "VWolf/Platform/DirectX12/Core/DX12Resources.h"
 
 namespace VWolf {
-	DirectX12VertexBuffer::DirectX12VertexBuffer(Ref<DX12Device> device, void* vertices, uint32_t size): size(size), data(vertices)
+	DirectX12VertexBuffer::DirectX12VertexBuffer(Ref<DX12Device> device, void* vertices, uint32_t size, std::vector<AttributeDescriptor> attributeDescriptors)
+		: size(size), data(vertices), attributeDescriptors(attributeDescriptors)
 	{
 		VWOLF_CORE_ASSERT(vertices);
 		VWOLF_CORE_ASSERT(size);
@@ -49,7 +50,8 @@ namespace VWolf {
 	{
 		D3D12_VERTEX_BUFFER_VIEW vbv;
 		vbv.BufferLocation = defaultBuffer->GetResource()->GetGPUVirtualAddress();
-		vbv.StrideInBytes = MeshData::Layout.GetStride();
+		const AttributeDescriptor& descriptor = attributeDescriptors[attributeDescriptors.size() - 1];
+		vbv.StrideInBytes = descriptor.offset + descriptor.size;
 		vbv.SizeInBytes = size;
 
 		commands->GetCommandList()->IASetVertexBuffers(0, 1, &vbv);

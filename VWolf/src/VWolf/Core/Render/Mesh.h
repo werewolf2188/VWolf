@@ -79,6 +79,7 @@ namespace VWolf {
         Attribute attribute;
         AttributeFormat format;
         uint32_t dimension;
+        uint32_t size;
         
         friend class HLSLOpenGLShader;
         friend class OpenGLVertexArray;
@@ -87,6 +88,7 @@ namespace VWolf {
 #endif
 #ifdef VWOLF_PLATFORM_WINDOWS
         friend class HLSLShader;
+        friend class DirectX12VertexBuffer;
 #endif
     };
 

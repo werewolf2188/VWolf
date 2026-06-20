@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VWolf/Core/Render/RenderStructs.h"
+#include "VWolf/Core/Render/Mesh.h"
 
 #ifdef VWOLF_PLATFORM_WINDOWS
 namespace VWolf {
@@ -14,7 +15,7 @@ namespace VWolf {
 	class DirectX12VertexBuffer
 	{
 	public:
-		DirectX12VertexBuffer(Ref<DX12Device> device, void* vertices, uint32_t size);
+		DirectX12VertexBuffer(Ref<DX12Device> device, void* vertices, uint32_t size, std::vector<AttributeDescriptor> attributeDescriptors);
 		~DirectX12VertexBuffer();
 
 		void Bind(Ref<DX12Command> commands) const;
@@ -22,6 +23,7 @@ namespace VWolf {
 	private:
 		Ref<DX12BufferResource> uploadBuffer;
 		Ref<DX12BufferResource> defaultBuffer;
+		std::vector<AttributeDescriptor> attributeDescriptors;
 		uint32_t size;
 		void* data;
 	};
