@@ -42,12 +42,32 @@ VWolf::MeshData CreateGrid() {
     return meshData;
 }
 
+VWolf::Mesh CreateGridEx() {
+    VWolf::Mesh meshData;
+    meshData.SetName("Grid");
+    meshData.GetVertices().resize(6);
+    meshData.GetColors().resize(6);
+    meshData.GetNormals().resize(6);
+    meshData.GetTangents().resize(6);
+    meshData.GetUVs().resize(6);
+    meshData.GetTriangles().resize(6);
+
+    meshData.GetTriangles()[0] = 0;
+    meshData.GetTriangles()[1] = 1;
+    meshData.GetTriangles()[2] = 2;
+    meshData.GetTriangles()[3] = 3;
+    meshData.GetTriangles()[4] = 4;
+    meshData.GetTriangles()[5] = 5;
+    return meshData;
+}
+
 class RendererSandboxApplication: public VWolf::Application {
 public:
     bool isPlaying = false;
     VWolf::Ref<VWolf::Camera> camera, skyBoxCamera;
     VWolf::Ref<VWolf::Texture2D> testTexture;
     VWolf::MeshData gridData = CreateGrid();
+    VWolf::Ref<VWolf::Mesh> gridDataEx = VWolf::CreateRef<VWolf::Mesh>(CreateGridEx());
 
     VWolf::Ref<VWolfPup::CameraController> controller, skyBoxController;
 
@@ -224,7 +244,7 @@ public:
             testScene->DrawPreviewEditor();
         else {
             testScene->DrawEditor(camera);
-            VWolf::Graphics::RenderMesh(gridData, VWolf::Matrix4x4(), *VWolf::MaterialLibrary::GetMaterial(VWolfPup::Defaults::Get()->GetDefaultGridMaterialName()));
+            VWolf::Graphics::RenderMesh(gridDataEx, gridData, VWolf::Matrix4x4(), *VWolf::MaterialLibrary::GetMaterial(VWolfPup::Defaults::Get()->GetDefaultGridMaterialName()));
         }
     }
 

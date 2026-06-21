@@ -32,6 +32,17 @@ namespace VWolf {
         static MeshData CreateTriangle();
         static MeshData CreateEmpty();
         static MeshData Create(std::string name);
+        
+        static Mesh CreateBoxEx(float width, float height, float depth, std::uint32_t numSubdivisions);
+        static Mesh CreateSphereEx(float radius, std::uint32_t sliceCount, std::uint32_t stackCount);
+        static Mesh CreateGeosphereEx(float radius, std::uint32_t numSubdivisions);
+        static Mesh CreateCylinderEx(float bottomRadius, float topRadius, float height, std::uint32_t sliceCount, std::uint32_t stackCount);
+        static Mesh CreateGridEx(float width, float depth, std::uint32_t m, std::uint32_t n);
+        static Mesh CreateQuadEx(float x, float y, float w, float h, float depth);
+        static Mesh CreateTriangleEx();
+        static Mesh CreateEmptyEx();
+        static Mesh CreateEx(std::string name);
+        
     public:
         static std::tuple<std::string, UUID> Box;
         static std::tuple<std::string, UUID> Sphere;

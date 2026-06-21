@@ -9,6 +9,7 @@
 
 #include "BaseComponent.h"
 #include "VWolf/Core/Render/RenderStructs.h"
+#include "VWolf/Core/Render/Mesh.h"
 
 #include "VWolf/Core/Utils/GenericSerialization.h"
 
@@ -30,7 +31,7 @@ namespace VWolf {
         virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
-        void CreateBoxCollider(MeshData& data, TransformComponent& component);
+        void CreateBoxCollider(Ref<Mesh> data, TransformComponent& component);
         void Update(TransformComponent& component);
         void Destroy();
     private:

@@ -18,7 +18,7 @@ namespace VWolf {
 	}
 	// TODO: Working as intended, but not happy with the implementation
 	// TODO: Better names. This is for immediate rendering
-	void DirectX12Graphics::DrawMeshImpl(MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera)
+	void DirectX12Graphics::DrawMeshImpl(Ref<Mesh> mesh1, MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera)
 	{
 		Camera* cam = camera != nullptr ? camera.get() : Camera::main;
 
@@ -110,9 +110,9 @@ namespace VWolf {
 
 	// TODO: Working as intended, but not happy with the implementation
 	// TODO: Better names. This is for lazy rendering
-	void DirectX12Graphics::RenderMeshImpl(MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera)
+	void DirectX12Graphics::RenderMeshImpl(Ref<Mesh> mesh1, MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera)
 	{
-		items.push_back(CreateRef<RenderItem>(mesh, material, transform, camera));		
+		items.push_back(CreateRef<RenderItem>(mesh1, mesh, material, transform, camera));		
 	}
 
 	void DirectX12Graphics::ClearColorImpl(Color color)

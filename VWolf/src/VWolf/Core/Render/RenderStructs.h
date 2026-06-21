@@ -124,17 +124,6 @@ namespace VWolf {
     // Mesh data
     struct MeshData {
     public:
-        inline std::vector<float> GetVertices() {
-            if (_vertices.size() > 0) {
-                return _vertices;
-            }
-
-            for (Vertex vertex: this->vertices) {
-                std::vector<float> data = vertex.Transform();
-                _vertices.insert(_vertices.end(), data.begin(), data.end());
-            }
-            return _vertices;
-        }
         std::vector<Vertex> vertices;
         std::vector<std::uint32_t> indices;
     

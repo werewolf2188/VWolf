@@ -44,6 +44,9 @@ namespace VWolf {
     void MeshFilterComponent::Load() {
         if (path == "") return;
         data = OBJLoader::Load(path.string(), path.filename().string());
+        
+        if (ObjectResourceManager::HasKey(meshId))
+            mesh = ObjectResourceManager::Get<Mesh>(meshId);
     }
 
     void MeshFilterComponent::OnInspector() {

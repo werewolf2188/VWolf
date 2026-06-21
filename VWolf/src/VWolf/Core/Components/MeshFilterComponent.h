@@ -9,6 +9,7 @@
 
 #include "BaseComponent.h"
 #include "VWolf/Core/Render/RenderStructs.h"
+#include "VWolf/Core/Render/Mesh.h"
 
 #include "VWolf/Core/Utils/OBJLoader.h"
 #include "VWolf/Core/Utils/GenericSerialization.h"
@@ -29,12 +30,15 @@ namespace VWolf {
         MeshData& GetData() { return data; }
         void SetPath(std::filesystem::path path) { this->path = path; Load(); }
         std::filesystem::path GetPath() { return this->path; }
+        Ref<Mesh> GetMesh() { return mesh; }
+        void SetMesh(Ref<Mesh> _mesh) { mesh = _mesh; }
     public:
         MeshFilterComponent& operator=(const MeshFilterComponent& t);
     private:
         void Load();
     private:
         MeshData data;
+        Ref<Mesh> mesh;
         UUID meshId;
         std::filesystem::path path;
         VWOLF_COMPONENT_INSPECTOR_DEFINE(MeshFilterComponent);

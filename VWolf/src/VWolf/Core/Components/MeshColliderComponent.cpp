@@ -33,26 +33,26 @@ namespace VWolf {
         return &component;
     }
 
-    void MeshColliderComponent::CreateMeshCollider(MeshData& data, TransformComponent& component) {
+    void MeshColliderComponent::CreateMeshCollider(Ref<Mesh> data, TransformComponent& component) {
 
         std::vector<reactphysics3d::Message> messages;
 
         std::vector<float> positions;
         std::vector<float> normals;
-        uint32_t nbVertices = (uint32_t)data.vertices.size();
-        uint32_t nbTriangles = ((uint32_t)data.indices.size()) / 3;
-        for(Vertex vertex: data.vertices) {
-            positions.push_back(vertex.position.GetX());
-            positions.push_back(vertex.position.GetY());
-            positions.push_back(vertex.position.GetZ());
+        uint32_t nbVertices = (uint32_t)data->GetVertices().size();
+        uint32_t nbTriangles = ((uint32_t)data->GetTriangles().size()) / 3;
+        for(uint32_t index = 0; index < data->GetVertices().size(); index++) {
+            positions.push_back(data->GetVertices()[index].GetX());
+            positions.push_back(data->GetVertices()[index].GetY());
+            positions.push_back(data->GetVertices()[index].GetZ());
 
-            normals.push_back(vertex.normal.GetX());
-            normals.push_back(vertex.normal.GetY());
-            normals.push_back(vertex.normal.GetZ());
+            normals.push_back(data->GetNormals()[index].GetX());
+            normals.push_back(data->GetNormals()[index].GetY());
+            normals.push_back(data->GetNormals()[index].GetZ());
         }
         reactphysics3d::TriangleVertexArray array(nbVertices, positions.data(), 3 * sizeof(float),
                                                   normals.data(), 3 * sizeof(float),
-                                                  nbTriangles, data.indices.data(), 3 * sizeof(uint32_t),
+                                                  nbTriangles, data->GetTriangles().data(), 3 * sizeof(uint32_t),
                                                   reactphysics3d::TriangleVertexArray::VertexDataType::VERTEX_FLOAT_TYPE,
                                                   reactphysics3d::TriangleVertexArray::NormalDataType::NORMAL_FLOAT_TYPE,
                                                   reactphysics3d::TriangleVertexArray::IndexDataType::INDEX_INTEGER_TYPE);

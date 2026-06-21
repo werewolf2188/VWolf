@@ -108,6 +108,8 @@ namespace VWolf {
         const std::vector<Vector2>& GetUVs() const { return uvs; }
         
         const std::vector<uint32_t>& GetTriangles() const { return triangles; }
+        
+        const std::vector<float>& GetNativeVector() { return vertexArray; };
     public:
         std::vector<Vector3>& GetVertices() { return vertices; }
         std::vector<Color>& GetColors() { return colors; }
@@ -129,6 +131,9 @@ namespace VWolf {
         
         void SetTriangles(std::vector<uint32_t> _triangles) { triangles = _triangles; }
     public:
+        void BuildVertexBuffer(std::vector<AttributeDescriptor> descriptor);
+        void Reset();
+    public:
         static Ref<Mesh> Load(std::filesystem::path path, UUID id);
     private:
         std::vector<Vector3> vertices;
@@ -139,5 +144,7 @@ namespace VWolf {
         std::vector<Vector2> uvs;
         
         std::vector<uint32_t> triangles;
+        
+        std::vector<float> vertexArray;
     };
 }

@@ -45,7 +45,13 @@ namespace VWolf {
     Mesh::Mesh(objl::Loader& loader, UUID id): Object(id) {
         name = loader.LoadedMeshes[0].MeshName;
         
-        triangles = loader.LoadedIndices;
+        triangles.resize(loader.LoadedIndices.size());
+        for (int j = 0; j < loader.LoadedIndices.size(); j += 3)
+        {
+            triangles[j] = loader.LoadedIndices[j + 2];
+            triangles[j + 1] = loader.LoadedIndices[j + 1];
+            triangles[j + 2] = loader.LoadedIndices[j];
+        }
         vertices.resize(loader.LoadedVertices.size());
         colors.resize(loader.LoadedVertices.size());
         normals.resize(loader.LoadedVertices.size());
@@ -81,6 +87,48 @@ namespace VWolf {
             tangents[index] = temp;
             bitangents[index] = Vector3::Cross(normals[index], temp);
         }
+    }
+
+    void Mesh::BuildVertexBuffer(std::vector<AttributeDescriptor> descriptor) {
+
+        if (vertexArray.size() > 0) return;
+        
+        for(size_t index = 0; index < vertices.size(); index++) {
+            for(AttributeDescriptor& desc: descriptor) {
+                switch(desc.GetAttribute()) {
+                    case Attribute::Position:
+                        vertexArray.push_back(vertices[index].GetX());
+                        vertexArray.push_back(vertices[index].GetY());
+                        vertexArray.push_back(vertices[index].GetZ());
+                        break;
+                    case Attribute::Color:
+                        vertexArray.push_back(colors[index].GetR());
+                        vertexArray.push_back(colors[index].GetG());
+                        vertexArray.push_back(colors[index].GetB());
+                        vertexArray.push_back(colors[index].GetA());
+                        break;
+                    case Attribute::Normal:
+                        vertexArray.push_back(normals[index].GetX());
+                        vertexArray.push_back(normals[index].GetY());
+                        vertexArray.push_back(normals[index].GetZ());
+                        break;
+                    case Attribute::Tangent:
+                        vertexArray.push_back(tangents[index].GetX());
+                        vertexArray.push_back(tangents[index].GetY());
+                        vertexArray.push_back(tangents[index].GetZ());
+                        break;
+                    case Attribute::TextCoord0:
+                        vertexArray.push_back(uvs[index].GetX());
+                        vertexArray.push_back(uvs[index].GetY());
+                        break;
+                    default: break;
+                }
+            }
+        }
+    }
+
+    void Mesh::Reset() {
+        vertexArray.clear();
     }
 
     Ref<Mesh> Mesh::Load(std::filesystem::path path, UUID id) {

@@ -11,18 +11,22 @@
 #include "VWolf/Core/Math/VMath.h"
 
 #include "RenderStructs.h"
+#include "Mesh.h"
 
 namespace VWolf {
     struct RenderItem {
+        Ref<Mesh> mesh;
         MeshData& data;
         Material& material;
         Matrix4x4 transform;
         Ref<Camera> camera;
 
-        RenderItem(MeshData& data,
+        RenderItem(Ref<Mesh> mesh,
+                   MeshData& data,
                    Material& material,
                    Matrix4x4 transform,
                    Ref<Camera> camera):
+        mesh(mesh),
         data(data),
         material(material),
         transform(transform),

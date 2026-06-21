@@ -93,7 +93,7 @@ namespace VWolf {
     }
 
     // TODO: Better names. This is for immediate rendering
-    void OpenGLGraphics::DrawMeshImpl(MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
+    void OpenGLGraphics::DrawMeshImpl(Ref<Mesh> mesh1, MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
         
         Camera* cam = camera != nullptr ? camera.get(): Camera::main;
 
@@ -149,9 +149,11 @@ namespace VWolf {
             shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, 0);
         }
         
-        auto data = mesh.vertices;
-        auto indices = mesh.indices;
-        Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(Vertex));
+        mesh1->BuildVertexBuffer(shader->GetAttributes());
+        
+        auto data = mesh1->GetNativeVector();
+        auto indices = mesh1->GetTriangles();
+        Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(float));
         Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
         Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices, shader->GetAttributes());
         
@@ -180,8 +182,8 @@ namespace VWolf {
     }
 
     // TODO: Better names. This is for lazy rendering
-    void OpenGLGraphics::RenderMeshImpl(MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
-        items.push_back(CreateRef<RenderItem>(mesh, material, transform, camera));
+    void OpenGLGraphics::RenderMeshImpl(Ref<Mesh> mesh1, MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
+        items.push_back(CreateRef<RenderItem>(mesh1, mesh, material, transform, camera));
     }
 
     void OpenGLGraphics::BeginFrameImpl()
@@ -215,12 +217,15 @@ namespace VWolf {
         for (Light& light: lights) {
             HLSLOpenGLShader* shader = (HLSLOpenGLShader*) Shader::GetShader("Shadow")->GetInternalShader().get();
             for(Ref<RenderItem> item: items) {
-                auto& mesh = item->data;
+                Ref<Mesh> mesh1 = item->mesh;
 
-                auto data = mesh.vertices;
+                mesh1->BuildVertexBuffer(shader->GetAttributes());
+                
+                auto data = mesh1->GetNativeVector();
                 if (data.size() == 1) continue;; // It's a light
-                auto indices = mesh.indices;
-                Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(Vertex));
+                auto indices = mesh1->GetTriangles();
+                
+                Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(float));
                 Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
                 Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices, shader->GetAttributes());
 
@@ -249,6 +254,7 @@ namespace VWolf {
 
     void OpenGLGraphics::DrawQueue() {
         for(Ref<RenderItem> item: items) {
+            Ref<Mesh> mesh1 = item->mesh;
             auto& mesh = item->data;
             auto& material = item->material;
             Ref<Camera> camera = item->camera;
@@ -303,10 +309,11 @@ namespace VWolf {
                 Matrix4x4* spacesPointer = spaces.data();
                 shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, 0);
             }
+            mesh1->BuildVertexBuffer(shader->GetAttributes());
             
-            auto data = mesh.vertices;
-            auto indices = mesh.indices;
-            Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(Vertex));
+            auto data = mesh1->GetNativeVector();
+            auto indices = mesh1->GetTriangles();
+            Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(float));
             Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
             Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices, shader->GetAttributes());
             

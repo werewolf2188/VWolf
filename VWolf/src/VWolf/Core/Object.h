@@ -43,6 +43,7 @@ namespace VWolf {
     public:
         static void AddObject(const UUID& id, Ref<Object>);
         static Ref<Object> Get(const UUID& id);
+        static bool HasKey(const UUID& id);
     public:
         template<typename T>
         static Ref<T> Get(const UUID& id) {
