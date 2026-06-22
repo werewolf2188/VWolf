@@ -33,61 +33,6 @@ namespace YAML {
 
 namespace VWolf {
 
-    MeshData CreateSkyBox() {
-        MeshData meshData;
-        meshData.SetName("SkyBox");
-        meshData.vertices.resize(8);
-        
-        /*
-         
-         float skyboxVertices[] =
-         {
-             //   Coordinates
-             -1.0f, -1.0f,  1.0f,//        7--------6
-              1.0f, -1.0f,  1.0f,//       /|       /|
-              1.0f, -1.0f, -1.0f,//      4--------5 |
-             -1.0f, -1.0f, -1.0f,//      | |      | |
-             -1.0f,  1.0f,  1.0f,//      | 3------|-2
-              1.0f,  1.0f,  1.0f,//      |/       |/
-              1.0f,  1.0f, -1.0f,//      0--------1
-             -1.0f,  1.0f, -1.0f
-         };
-         */
-
-        meshData.vertices[0].position = VWolf::Vector3(-1.0f, -1.0f,  1.0f);
-        meshData.vertices[1].position = VWolf::Vector3(1.0f, -1.0f,  1.0f);
-        meshData.vertices[2].position = VWolf::Vector3(1.0f, -1.0f, -1.0f);
-        meshData.vertices[3].position = VWolf::Vector3(-1.0f, -1.0f, -1.0f);
-        meshData.vertices[4].position = VWolf::Vector3(-1.0f,  1.0f,  1.0f);
-        meshData.vertices[5].position = VWolf::Vector3(1.0f,  1.0f,  1.0f);
-        meshData.vertices[6].position = VWolf::Vector3(1.0f,  1.0f, -1.0f);
-        meshData.vertices[7].position = VWolf::Vector3(-1.0f,  1.0f, -1.0f);
-
-        unsigned int skyboxIndices[] =
-        {
-            // Right
-            1, 2, 6,
-            6, 5, 1,
-            // Left
-            0, 4, 7,
-            7, 3, 0,
-            // Top
-            4, 5, 6,
-            6, 7, 4,
-            // Bottom
-            0, 3, 2,
-            2, 1, 0,
-            // Back
-            0, 1, 5,
-            5, 4, 0,
-            // Front
-            3, 7, 6,
-            6, 2, 3
-        };
-        meshData.indices.assign(&skyboxIndices[0], &skyboxIndices[36]);
-        return meshData;
-    }
-
     Mesh CreateSkyBoxEx() {
         Mesh meshData;
         meshData.SetName("SkyBox");
@@ -148,9 +93,9 @@ namespace VWolf {
     }
 
     // ---------------- SCENE BACKGROUND ----------------
-    SceneBackground::SceneBackground(): backgroundColor(Color(0.0f, 0.0f, 0.0f, 1.0f )), skybox(CreateSkyBox()), skyboxEx(CreateRef<Mesh>(CreateSkyBoxEx())) {}
+    SceneBackground::SceneBackground(): backgroundColor(Color(0.0f, 0.0f, 0.0f, 1.0f )), skyboxEx(CreateRef<Mesh>(CreateSkyBoxEx())) {}
 
-    SceneBackground::SceneBackground(const SceneBackground& scene): backgroundColor(scene.backgroundColor), skybox(CreateSkyBox()), skyboxEx(CreateRef<Mesh>(CreateSkyBoxEx())) {}
+    SceneBackground::SceneBackground(const SceneBackground& scene): backgroundColor(scene.backgroundColor), skyboxEx(CreateRef<Mesh>(CreateSkyBoxEx())) {}
     
 
     SceneBackground::~SceneBackground() {}
@@ -190,8 +135,7 @@ namespace VWolf {
 
     Scene::Scene(std::string name): Object(UUID::NewUUID()){
         this->name = name;
-        emptyMeshData = ShapeHelper::CreateEmpty();
-        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmptyEx());
+        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
         testMesh = CreateRef<Mesh>();
         world = Physics::GetCommon().createPhysicsWorld();
         world->setIsDebugRenderingEnabled(true);
@@ -223,16 +167,14 @@ namespace VWolf {
         for (auto gameObject: this->gameObjects) {
             gameObject->AttachToScene(this);
         }
-        emptyMeshData = ShapeHelper::CreateEmpty();
-        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmptyEx());
+        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
         testMesh = CreateRef<Mesh>();
         world = Physics::GetCommon().createPhysicsWorld();
         world->setIsDebugRenderingEnabled(true);
     }
 
     Scene::Scene(Scene&& scene): Object(scene.id) {
-        emptyMeshData = ShapeHelper::CreateEmpty();
-        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmptyEx());
+        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
         testMesh = CreateRef<Mesh>();
         this->name = scene.name;
         this->sceneBackGround = scene.sceneBackGround;
@@ -263,8 +205,7 @@ namespace VWolf {
         for (auto gameObject: this->gameObjects) {
             gameObject->AttachToScene(this);
         }
-        emptyMeshData = ShapeHelper::CreateEmpty();
-        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmptyEx());
+        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
         testMesh = CreateRef<Mesh>();
         world = Physics::GetCommon().createPhysicsWorld();
         world->setIsDebugRenderingEnabled(true);
@@ -322,20 +263,10 @@ namespace VWolf {
             testMesh->GetTriangles().clear();
             testMesh->Reset();
             
-            testData.vertices.clear();
-            testData.indices.clear();
-            
             reactphysics3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
             auto& triangles = debugRenderer.getTriangles();
             for (uint32_t index = 0; index < debugRenderer.getNbTriangles(); index++) {
                 auto triangle = triangles[index];
-                testData.vertices.push_back(Vertex(triangle.point1.x, triangle.point1.y, triangle.point1.z, 1, 1, 1, 1));
-                testData.vertices.push_back(Vertex(triangle.point2.x, triangle.point2.y, triangle.point2.z, 1, 1, 1, 1));
-                testData.vertices.push_back(Vertex(triangle.point3.x, triangle.point3.y, triangle.point3.z, 1, 1, 1, 1));
-
-                testData.indices.push_back(index * 3);
-                testData.indices.push_back((index * 3) + 1);
-                testData.indices.push_back((index * 3) + 2);
                 
                 testMesh->GetVertices().push_back(Vector3(triangle.point1.x, triangle.point1.y, triangle.point1.z));
                 testMesh->GetVertices().push_back(Vector3(triangle.point2.x, triangle.point2.y, triangle.point2.z));
@@ -531,7 +462,6 @@ namespace VWolf {
         if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
             // Immediate drawing so it does not belong to the queue
             Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
-                               sceneBackGround.GetSkyboxMeshData(),
                                VWolf::Vector4(),
                                VWolf::Vector4(),
                                sceneBackGround.GetSkyboxMaterial(),
@@ -557,9 +487,9 @@ namespace VWolf {
             auto [shapeRenderer, transform] = shapeRendererAndTransformComponents
                 .get<ShapeRendererComponent, TransformComponent>(shapeRendererAndTransformEntity);
             transform.Apply();
-//            Graphics::RenderMesh(shapeRenderer.GetData(),
-//                                 transform.GetWorldMatrix(),
-//                                 shapeRenderer.GetMaterial());
+            Graphics::RenderMesh(shapeRenderer.GetMesh(),
+                                 transform.GetWorldMatrix(),
+                                 shapeRenderer.GetMaterial());
         }
 
         auto meshFilterMeshRendererAndTransformComponents = m_registry
@@ -571,7 +501,6 @@ namespace VWolf {
                 .get<MeshRendererComponent, MeshFilterComponent, TransformComponent>(meshFilterMeshRendererAndTransformEntity);
             transform.Apply();
             Graphics::RenderMesh(meshFilter.GetMesh(),
-                                 meshFilter.GetData(),
                                  transform.GetWorldMatrix(),
                                  meshRenderer.GetMaterial());
         }
@@ -586,7 +515,6 @@ namespace VWolf {
                 .get<TransformComponent>(transformEntity);
             transform.Apply();
             Graphics::RenderMesh(emptyMesh,
-                                 emptyMeshData,
                                  transform.GetWorldMatrix(),
                                  *MaterialLibrary::Default());
         }
@@ -613,7 +541,6 @@ namespace VWolf {
                                                              (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetZ())
                                                          ));
             Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
-                               sceneBackGround.GetSkyboxMeshData(),
                                VWolf::Vector4(),
                                VWolf::Vector4(),
                                sceneBackGround.GetSkyboxMaterial(),
@@ -639,10 +566,10 @@ namespace VWolf {
             auto [shapeRenderer, transform] = shapeRendererAndTransformComponents
                 .get<ShapeRendererComponent, TransformComponent>(shapeRendererAndTransformEntity);
             transform.Apply();
-//            Graphics::RenderMesh(shapeRenderer.GetData(),
-//                                 transform.GetWorldMatrix(),
-//                                 shapeRenderer.GetMaterial(),
-//                                 camera);
+            Graphics::RenderMesh(shapeRenderer.GetMesh(),
+                                 transform.GetWorldMatrix(),
+                                 shapeRenderer.GetMaterial(),
+                                 camera);
         }
 
         auto meshFilterMeshRendererAndTransformComponents = m_previewRegistry
@@ -654,7 +581,6 @@ namespace VWolf {
                 .get<MeshRendererComponent, MeshFilterComponent, TransformComponent>(meshFilterMeshRendererAndTransformEntity);
             transform.Apply();
             Graphics::RenderMesh(meshFilter.GetMesh(),
-                                 meshFilter.GetData(),
                                  transform.GetWorldMatrix(),
                                  meshRenderer.GetMaterial(),
                                  camera);
@@ -669,16 +595,14 @@ namespace VWolf {
                 .get<TransformComponent>(transformEntity);
             transform.Apply();
             Graphics::RenderMesh(emptyMesh,
-                                 emptyMeshData,
                                  transform.GetWorldMatrix(),
                                  *MaterialLibrary::Default(),
                                  camera);
         }
 
         // TODO: Debug renderer
-        if (testData.vertices.size() == 0) return;
+        if (testMesh->GetVertices().size() == 0) return;
         Graphics::DrawMesh(testMesh,
-                           testData,
                            VWolf::Vector4(),
                            VWolf::Vector4(),
                            *MaterialLibrary::GetMaterial("RainbowColor"),

@@ -18,8 +18,10 @@ namespace VWolf {
 	}
 	// TODO: Working as intended, but not happy with the implementation
 	// TODO: Better names. This is for immediate rendering
-	void DirectX12Graphics::DrawMeshImpl(Ref<Mesh> mesh1, MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera)
+	void DirectX12Graphics::DrawMeshImpl(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera)
 	{
+        if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) return;; // It's a light
+        
 		Camera* cam = camera != nullptr ? camera.get() : Camera::main;
 
 		CameraPass cameraPass = {
@@ -112,9 +114,9 @@ namespace VWolf {
 
 	// TODO: Working as intended, but not happy with the implementation
 	// TODO: Better names. This is for lazy rendering
-	void DirectX12Graphics::RenderMeshImpl(Ref<Mesh> mesh1, MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera)
+	void DirectX12Graphics::RenderMeshImpl(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera)
 	{
-		items.push_back(CreateRef<RenderItem>(mesh1, mesh, material, transform, camera));		
+		items.push_back(CreateRef<RenderItem>(mesh1, material, transform, camera));		
 	}
 
 	void DirectX12Graphics::ClearColorImpl(Color color)
@@ -248,6 +250,7 @@ namespace VWolf {
 			for (Ref<RenderItem> item : items) {
 
 				Ref<Mesh> mesh1 = item->mesh;
+                if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) return;; // It's a light
 				auto& material = item->material;
 				Matrix4x4 transform = item->transform;				
 
@@ -299,6 +302,8 @@ namespace VWolf {
 			Ref<Camera> camera = item->camera;
 			Matrix4x4 transform = item->transform;
 
+            if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) continue; // It's a light
+            
 			Camera* cam = camera != nullptr ? camera.get() : Camera::main;
 
 			CameraPass cameraPass = {

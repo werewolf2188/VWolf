@@ -40,6 +40,40 @@ namespace VWolf {
 
     Mesh::Mesh(): Object(UUID::NewUUID()) {
         name = "unnamed";
+        
+        subMesh.push_back(SubMeshDescriptor());
+    }
+
+    Mesh::Mesh(UUID id): Object(id) {
+        name = "unnamed";
+        
+        subMesh.push_back(SubMeshDescriptor());
+    }
+
+    Mesh::Mesh(const Mesh& mesh): Object(mesh.id) {
+        name = mesh.name;
+        
+        vertices = mesh.vertices;
+        colors = mesh.colors;
+        normals = mesh.normals;
+        tangents = mesh.tangents;
+        uvs = mesh.uvs;
+        triangles = mesh.triangles;
+        subMesh = mesh.subMesh;
+    }
+
+    Mesh& Mesh::operator=(const Mesh& mesh) {
+        name = mesh.name;
+        
+        vertices = mesh.vertices;
+        colors = mesh.colors;
+        normals = mesh.normals;
+        tangents = mesh.tangents;
+        uvs = mesh.uvs;
+        triangles = mesh.triangles;
+        subMesh = mesh.subMesh;
+        
+        return *this;
     }
 
     Mesh::Mesh(objl::Loader& loader, UUID id): Object(id) {
@@ -65,6 +99,8 @@ namespace VWolf {
         std::transform(loader.LoadedVertices.begin(), loader.LoadedVertices.end(), uvs.begin(), GetUV);
         
         RecalculateTangents();
+        
+        subMesh.push_back(SubMeshDescriptor(0, 0, triangles.size(), 0, Topology::Triangles, vertices.size()));
     }
 
     void Mesh::RecalculateNormals() {

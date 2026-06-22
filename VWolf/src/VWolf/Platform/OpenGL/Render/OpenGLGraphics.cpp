@@ -15,6 +15,21 @@
 #include "VWolf/Platform/OpenGL/Core/GLCore.h"
 
 namespace VWolf {
+    static GLenum GetTopology(Topology topology) {
+        switch (topology) {
+            case Topology::Triangles:
+                return GL_TRIANGLES;
+            case Topology::Quads:
+                return GL_QUADS;
+            case Topology::Lines:
+                return GL_LINES;
+            case Topology::LinesStrip:
+                return GL_LINE_STRIP;
+            case Topology::Points:
+                return GL_POINTS;
+            default: return -1;
+        }
+    }
     void OpenGLGraphics::Initialize() {
         shadowMap = CreateRef<OpenGLRenderTexture>(1024, 1024, true, TextureOptions());
         emptyShadowMap = CreateRef<OpenGLTexture2D>(TextureDefault::White, 1024, 1024, TextureOptions());
@@ -93,7 +108,9 @@ namespace VWolf {
     }
 
     // TODO: Better names. This is for immediate rendering
-    void OpenGLGraphics::DrawMeshImpl(Ref<Mesh> mesh1, MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
+    void OpenGLGraphics::DrawMeshImpl(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
+        
+        if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) return;; // It's a light
         
         Camera* cam = camera != nullptr ? camera.get(): Camera::main;
 
@@ -162,7 +179,7 @@ namespace VWolf {
         index->Bind();
         uint32_t count = index->GetCount();
         BindToRenderTexture();
-        GLThrowIfFailed(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr));
+        GLThrowIfFailed(glDrawElements(GetTopology(mesh1->GetSubMesh(0).GetTopology()), count, GL_UNSIGNED_INT, nullptr));
         UnbindToRenderTexture();
         vertices->Unbind();
         index->Unbind();
@@ -182,8 +199,8 @@ namespace VWolf {
     }
 
     // TODO: Better names. This is for lazy rendering
-    void OpenGLGraphics::RenderMeshImpl(Ref<Mesh> mesh1, MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
-        items.push_back(CreateRef<RenderItem>(mesh1, mesh, material, transform, camera));
+    void OpenGLGraphics::RenderMeshImpl(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
+        items.push_back(CreateRef<RenderItem>(mesh1, material, transform, camera));
     }
 
     void OpenGLGraphics::BeginFrameImpl()
@@ -218,6 +235,8 @@ namespace VWolf {
             HLSLOpenGLShader* shader = (HLSLOpenGLShader*) Shader::GetShader("Shadow")->GetInternalShader().get();
             for(Ref<RenderItem> item: items) {
                 Ref<Mesh> mesh1 = item->mesh;
+                
+                if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) return;; // It's a light
 
                 mesh1->BuildVertexBuffer(shader->GetAttributes());
                 
@@ -241,7 +260,7 @@ namespace VWolf {
                 index->Bind();
                 
                 uint32_t count = index->GetCount();
-                GLThrowIfFailed(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr));
+                GLThrowIfFailed(glDrawElements(GetTopology(mesh1->GetSubMesh(0).GetTopology()), count, GL_UNSIGNED_INT, nullptr));
 
                 vertices->Unbind();
                 index->Unbind();
@@ -255,10 +274,11 @@ namespace VWolf {
     void OpenGLGraphics::DrawQueue() {
         for(Ref<RenderItem> item: items) {
             Ref<Mesh> mesh1 = item->mesh;
-            auto& mesh = item->data;
             auto& material = item->material;
             Ref<Camera> camera = item->camera;
             Matrix4x4 transform = item->transform;
+            
+            if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) continue; // It's a light
             
             Camera* cam = camera != nullptr ? camera.get(): Camera::main;
 
@@ -323,7 +343,7 @@ namespace VWolf {
             
             uint32_t count = index->GetCount();
             BindToRenderTexture();
-            GLThrowIfFailed(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr));
+            GLThrowIfFailed(glDrawElements(GetTopology(mesh1->GetSubMesh(0).GetTopology()), count, GL_UNSIGNED_INT, nullptr));
             UnbindToRenderTexture();
             vertices->Unbind();
             index->Unbind();

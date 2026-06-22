@@ -27,21 +27,6 @@
 
 #include "AssetManagement/AssetDatabase.h"
 
-VWolf::MeshData CreateGrid() {
-    VWolf::MeshData meshData;
-    meshData.SetName("Grid");
-    meshData.vertices.resize(6);
-    meshData.indices.resize(6);
-
-    meshData.indices[0] = 0;
-    meshData.indices[1] = 1;
-    meshData.indices[2] = 2;
-    meshData.indices[3] = 3;
-    meshData.indices[4] = 4;
-    meshData.indices[5] = 5;
-    return meshData;
-}
-
 VWolf::Mesh CreateGridEx() {
     VWolf::Mesh meshData;
     meshData.SetName("Grid");
@@ -66,7 +51,6 @@ public:
     bool isPlaying = false;
     VWolf::Ref<VWolf::Camera> camera, skyBoxCamera;
     VWolf::Ref<VWolf::Texture2D> testTexture;
-    VWolf::MeshData gridData = CreateGrid();
     VWolf::Ref<VWolf::Mesh> gridDataEx = VWolf::CreateRef<VWolf::Mesh>(CreateGridEx());
 
     VWolf::Ref<VWolfPup::CameraController> controller, skyBoxController;
@@ -244,7 +228,7 @@ public:
             testScene->DrawPreviewEditor();
         else {
             testScene->DrawEditor(camera);
-            VWolf::Graphics::RenderMesh(gridDataEx, gridData, VWolf::Matrix4x4(), *VWolf::MaterialLibrary::GetMaterial(VWolfPup::Defaults::Get()->GetDefaultGridMaterialName()));
+            VWolf::Graphics::RenderMesh(gridDataEx, VWolf::Matrix4x4(), *VWolf::MaterialLibrary::GetMaterial(VWolfPup::Defaults::Get()->GetDefaultGridMaterialName()));
         }
     }
 

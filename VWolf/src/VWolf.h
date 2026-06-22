@@ -40,7 +40,6 @@
 #include "VWolf/Core/Math/Matrix4x4.h"
 
 #include "VWolf/Core/Utils/File.h"
-#include "VWolf/Core/Utils/OBJLoader.h"
 #include "VWolf/Core/Utils/UUID.h"
 #include "VWolf/Core/Utils/GenericSerialization.h"
 

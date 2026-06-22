@@ -37,7 +37,6 @@ namespace VWolf {
         void SetBackgroundColor(Color backgroundColor) { this->backgroundColor = backgroundColor; }
         void SetSkyboxMaterial(Material& material) { this->materialSkybox = &material; }
         Ref<Mesh> GetSkyboxMesh() { return skyboxEx; }
-        MeshData& GetSkyboxMeshData() { return skybox; }
         Material& GetSkyboxMaterial() { return *this->materialSkybox; }
         void SetCamera(Ref<Camera> camera) { this->camera = camera; }
         Ref<Camera> GetCamera() { return this->camera; }
@@ -50,7 +49,6 @@ namespace VWolf {
         Color backgroundColor;
         Type type = Type::Color;
         Ref<Mesh> skyboxEx;
-        MeshData skybox;
         Material* materialSkybox;
         Ref<Camera> camera;
         
@@ -97,7 +95,6 @@ namespace VWolf {
         std::vector<Ref<GameObject>> gameObjects, previewGameObjects;
 
         SceneBackground sceneBackGround;
-        MeshData emptyMeshData, testData;
         Ref<Mesh> emptyMesh, testMesh;
         reactphysics3d::PhysicsWorld *world;
 

@@ -17,6 +17,7 @@ namespace objl {
 namespace VWolf {
 
     enum class Topology {
+        Unknown,
         Triangles,
         Quads,
         Lines,
@@ -92,10 +93,55 @@ namespace VWolf {
 #endif
     };
 
+    struct SubMeshDescriptor {
+    public:
+        SubMeshDescriptor():
+        baseVertex(-1),
+        firstVertex(-1),
+        indexCount(-1),
+        indexStart(-1),
+        topology(Topology::Triangles),
+        vertexCount(-1) { }
+        
+        SubMeshDescriptor(
+                          uint32_t baseVertex,
+                          uint32_t firstVertex,
+                          size_t indexCount,
+                          uint32_t indexStart,
+                          Topology topology,
+                          size_t vertexCount
+                          ):
+        baseVertex(baseVertex),
+        firstVertex(firstVertex),
+        indexCount(indexCount),
+        indexStart(indexStart),
+        topology(topology),
+        vertexCount(vertexCount) { }
+    public:
+        const uint32_t& GetBaseVertex() const { return baseVertex; }
+        const uint32_t& GetFirstVertex() const { return firstVertex; }
+        const size_t& GetIndexCount() const { return indexCount; }
+        const uint32_t& GetIndexStart() const { return indexStart; }
+        const Topology& GetTopology() const { return topology; }
+        const size_t& GetVertextCount() const { return vertexCount; }
+    private:
+        uint32_t baseVertex;
+        uint32_t firstVertex;
+        size_t indexCount;
+        uint32_t indexStart;
+        Topology topology;
+        size_t vertexCount;
+    };
+
     class Mesh: public Object {
     public:
         Mesh();
+        Mesh(UUID id);
         Mesh(objl::Loader& loader, UUID id);
+        
+        Mesh(const Mesh& mesh);
+    public:
+        Mesh& operator=(const Mesh& mesh);
     public:
         void RecalculateNormals();
         void RecalculateTangents();
@@ -110,6 +156,8 @@ namespace VWolf {
         const std::vector<uint32_t>& GetTriangles() const { return triangles; }
         
         const std::vector<float>& GetNativeVector() { return vertexArray; };
+        
+        const SubMeshDescriptor& GetSubMesh(uint32_t index) { return subMesh[index]; }
     public:
         std::vector<Vector3>& GetVertices() { return vertices; }
         std::vector<Color>& GetColors() { return colors; }
@@ -144,6 +192,8 @@ namespace VWolf {
         std::vector<Vector2> uvs;
         
         std::vector<uint32_t> triangles;
+        
+        std::vector<SubMeshDescriptor> subMesh;
         
         std::vector<float> vertexArray;
     };

@@ -19,8 +19,8 @@ namespace VWolf {
         virtual ~Graphics() = default;
     public:
         static void SetRenderTexture(Ref<RenderTexture> renderTexture);
-        static void DrawMesh(Ref<Mesh> mesh1, MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera = nullptr);
-        static void RenderMesh(Ref<Mesh> mesh1, MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera = nullptr);
+        static void DrawMesh(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera = nullptr);
+        static void RenderMesh(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera = nullptr);
         static void ClearColor(Color color);
         static void Clear();
         // TODO: Not sure about this one
@@ -34,8 +34,8 @@ namespace VWolf {
         static void EndScene();
 #endif
     protected:
-        virtual void DrawMeshImpl(Ref<Mesh> mesh1, MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera = nullptr) = 0;
-        virtual void RenderMeshImpl(Ref<Mesh> mesh1, MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera = nullptr) = 0;
+        virtual void DrawMeshImpl(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera = nullptr) = 0;
+        virtual void RenderMeshImpl(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera = nullptr) = 0;
         virtual void ClearColorImpl(Color color) = 0;
         virtual void ClearImpl() = 0;
         // TODO: Not sure about this one

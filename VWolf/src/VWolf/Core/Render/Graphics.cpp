@@ -21,9 +21,9 @@ namespace VWolf {
         }
     }
 
-    void Graphics::DrawMesh(Ref<Mesh> mesh1, MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
+    void Graphics::DrawMesh(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
         if (graphicsImpl) {
-            graphicsImpl->DrawMeshImpl(mesh1, mesh, position, rotation, material, camera);
+            graphicsImpl->DrawMeshImpl(mesh1, position, rotation, material, camera);
         }
     }
 
@@ -33,9 +33,9 @@ namespace VWolf {
         }
     }
 
-    void Graphics::RenderMesh(Ref<Mesh> mesh1, MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
+    void Graphics::RenderMesh(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
         if (graphicsImpl) {
-            graphicsImpl->RenderMeshImpl(mesh1, mesh, transform, material, camera);
+            graphicsImpl->RenderMeshImpl(mesh1, transform, material, camera);
         }
     }
 
