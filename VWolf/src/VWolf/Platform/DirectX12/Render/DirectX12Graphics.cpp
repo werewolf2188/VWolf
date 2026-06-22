@@ -247,7 +247,6 @@ namespace VWolf {
 
 			for (Ref<RenderItem> item : items) {
 
-				auto& mesh = item->data;
 				Ref<Mesh> mesh1 = item->mesh;
 				auto& material = item->material;
 				Matrix4x4 transform = item->transform;				
@@ -295,7 +294,6 @@ namespace VWolf {
 	void DirectX12Graphics::DrawQueue()
 	{
 		for (Ref<RenderItem> item : items) {
-			auto& mesh = item->data;
 			Ref<Mesh> mesh1 = item->mesh;
 			auto& material = item->material;
 			Ref<Camera> camera = item->camera;
