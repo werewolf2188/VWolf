@@ -48,10 +48,12 @@ namespace VWolf {
 			Vector3::One); 
 
 		Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
-		auto data = mesh.vertices;
+		mesh1->BuildVertexBuffer(shader->GetAttributes());
+
+		auto data = mesh1->GetNativeVector();
 		if (data.size() == 1) return; // It's a light
-		auto indices = mesh.indices;
-		Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex), shader->GetAttributes());
+		auto indices = mesh1->GetTriangles();
+		Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(float), shader->GetAttributes());
 		Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
 		Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
 		group->SetVertexBuffer(vertices);
@@ -246,15 +248,18 @@ namespace VWolf {
 			for (Ref<RenderItem> item : items) {
 
 				auto& mesh = item->data;
+				Ref<Mesh> mesh1 = item->mesh;
 				auto& material = item->material;
 				Matrix4x4 transform = item->transform;				
 
 				Ref<PShader> shader = Shader::GetShader("Shadow")->GetInternalShader();
 
-				auto data = mesh.vertices;
+				mesh1->BuildVertexBuffer(shader->GetAttributes());
+
+				auto data = mesh1->GetNativeVector();
 				if (data.size() == 1) continue;; // It's a light
-				auto indices = mesh.indices;
-				Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex), shader->GetAttributes());
+				auto indices = mesh1->GetTriangles();
+				Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(float), shader->GetAttributes());
 				Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
 				Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
 				group->SetVertexBuffer(vertices);
@@ -291,6 +296,7 @@ namespace VWolf {
 	{
 		for (Ref<RenderItem> item : items) {
 			auto& mesh = item->data;
+			Ref<Mesh> mesh1 = item->mesh;
 			auto& material = item->material;
 			Ref<Camera> camera = item->camera;
 			Matrix4x4 transform = item->transform;
@@ -316,10 +322,11 @@ namespace VWolf {
 
 			Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
 
-			auto data = mesh.vertices;
+			mesh1->BuildVertexBuffer(shader->GetAttributes());
+			auto data = mesh1->GetNativeVector();
 			if (data.size() == 1) continue;; // It's a light
-			auto indices = mesh.indices;
-			Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(Vertex), shader->GetAttributes());
+			auto indices = mesh1->GetTriangles();
+			Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(float), shader->GetAttributes());
 			Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
 			Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
 			group->SetVertexBuffer(vertices);
