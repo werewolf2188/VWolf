@@ -1,7 +1,5 @@
 #pragma once
 
-#include "VWolf/Core/Render/RenderStructs.h"
-
 struct GLFWwindow;
 
 namespace VWolf {

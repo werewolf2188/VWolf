@@ -6,7 +6,7 @@
 //
 
 #include "vwpch.h"
-#include "RenderStructs.h"
+#include "Light.h"
 
 namespace VWolf {
     const char* Light::LightName = "Light";

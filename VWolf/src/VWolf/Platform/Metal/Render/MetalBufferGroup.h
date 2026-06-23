@@ -8,7 +8,6 @@
 #pragma once
 
 #include "VWolf/Core/Base.h"
-#include "VWolf/Core/Render/RenderStructs.h"
 #include "VWolf/Core/Render/Mesh.h"
 #include "VWolf/Platform/Metal/Core/Core.h"
 #include "VWolf/Platform/Metal/Render/MetalBuffer.h"

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "VWolf/Core/Render/RenderStructs.h"
 #include "DirectX12Buffer.h"
 
 namespace VWolf {

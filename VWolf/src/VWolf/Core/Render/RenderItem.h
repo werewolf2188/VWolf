@@ -10,7 +10,6 @@
 #include "VWolf/Core/Base.h"
 #include "VWolf/Core/Math/VMath.h"
 
-#include "RenderStructs.h"
 #include "Mesh.h"
 
 namespace VWolf {

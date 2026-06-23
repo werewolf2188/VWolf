@@ -5,7 +5,7 @@
 #include "Camera.h"
 #include "Shader.h"
 #include "Material.h"
-#include "RenderStructs.h"
+#include "Light.h"
 #include "Mesh.h"
 
 #include "VWolf/Core/Math/VMath.h"

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "VWolf/Core/Render/RenderStructs.h"
 #include "VWolf/Core/Render/Mesh.h"
 #include "OpenGLBuffer.h"
 

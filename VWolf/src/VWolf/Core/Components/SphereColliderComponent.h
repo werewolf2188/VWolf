@@ -8,7 +8,6 @@
 #pragma once
 
 #include "BaseComponent.h"
-#include "VWolf/Core/Render/RenderStructs.h"
 #include "VWolf/Core/Render/Mesh.h"
 #include "VWolf/Core/Utils/GenericSerialization.h"
 
