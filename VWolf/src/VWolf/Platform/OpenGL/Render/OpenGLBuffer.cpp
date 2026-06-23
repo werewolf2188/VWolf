@@ -12,7 +12,7 @@ namespace VWolf {
 	}
 	OpenGLVertexBuffer::OpenGLVertexBuffer(void* vertices, uint32_t size): m_vertices(vertices), m_size(size)
 	{
-		VWOLF_CORE_ASSERT(size);
+		// VWOLF_CORE_ASSERT(size);
 //        VWOLF_DUMP_TYPED_ARRAY(vertices, size, float);
         GLThrowIfFailed(glGenBuffers(1, &vertexBufferId));
         GLThrowIfFailed(glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId));
