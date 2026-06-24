@@ -10,6 +10,8 @@
 #include "VWolf/Core/Time.h"
 #include "VWolf/Core/Object.h"
 
+#include "VWolf/Core/Audio/AudioClip.h"
+
 #include "VWolf/Core/Debug/ShapeHelper.h"
 
 #include "VWolf/Core/Events/Event.h"
@@ -44,3 +46,4 @@
 #include "VWolf/Core/Utils/GenericSerialization.h"
 
 #include "VWolf/Core/Physics/Physics.h"
+#include "VWolf/Core/Physics/Bounds.h"

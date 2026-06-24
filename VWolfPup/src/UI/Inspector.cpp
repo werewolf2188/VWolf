@@ -720,15 +720,15 @@ namespace VWolfPup {
 
                 ImGui::PushItemWidth(ImGui::CalcItemWidth());
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-                ImGui::Text("%s", component.GetAudioFile().filename().c_str());
+                ImGui::Text("%s", component.GetAudioClip()->GetName().c_str());
                 ImGui::PopStyleVar();
                 ImGui::NextColumn();
                 float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
                 if (ImGui::Button("...", ImVec2{ lineHeight, lineHeight }))
                 {
                     ContainerView::GetMainView()
-                    ->AddView(new FileExplorer(".mp3", [this, &component](auto path){
-                        component.SetAudioFile(path);
+                    ->AddView(new ObjectExplorer<VWolf::AudioClip>([this, &component](VWolf::Ref<VWolf::AudioClip> clip){
+                        component.SetAudioClip(clip);
                     }));
                 }
 

@@ -11,6 +11,7 @@
 #include "ShaderImporter.h"
 #include "MaterialImporter.h"
 #include "ModelImporter.h"
+#include "AudioImporter.h"
 #include "DefaultImporter.h"
 
 #include <boost/mpl/list.hpp>
@@ -19,5 +20,6 @@ using AllImporters = boost::mpl::list<
                         VWolfPup::ShaderImporter,
                         VWolfPup::MaterialImporter,
                         VWolfPup::ModelImporter,
+                        VWolfPup::AudioImporter,
                         VWolfPup::DefaultImporter
                     >;

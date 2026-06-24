@@ -13,32 +13,40 @@
 #include "GameObject.h"
 
 namespace VWolf {
-    AudioSourceComponent::AudioSourceComponent(): Component("AudioSource") {
+    AudioSourceComponent::AudioSourceComponent(): Component("AudioSource"), audioClipId(UUID::Empty), mLoop(false) {
         Initialize();
     }
 
     AudioSourceComponent::AudioSourceComponent(const AudioSourceComponent& audioSource):
     Component("AudioSource", audioSource.id) {
-        this->audioFilePath = audioSource.audioFilePath;
+        this->audioClipId = audioSource.audioClipId;
         this->mLoop = audioSource.mLoop;
         Initialize();
     }
 
     AudioSourceComponent::AudioSourceComponent(AudioSourceComponent&& audioSource):
     Component("AudioSource", audioSource.id) {
-        this->audioFilePath = audioSource.audioFilePath;
+        this->audioClipId = audioSource.audioClipId;
         this->mLoop = audioSource.mLoop;
 
-        audioSource.audioFilePath = "";
+        audioSource.audioClipId = UUID::Empty;
         audioSource.mLoop = false;
         Initialize();
     }
 
+    void AudioSourceComponent::SetAudioClip(Ref<AudioClip> clip) {
+        this->audioClip = clip;
+        this->audioClipId = clip->GetID();
+    }
+
+    Ref<AudioClip> AudioSourceComponent::GetAudioClip() {
+        return audioClip;
+    }
+
     AudioSourceComponent::~AudioSourceComponent() {
-        if (sound) {
-            if (ma_sound_is_playing(sound))
-                CHECKMAERROR(ma_sound_stop(sound));
-            ma_sound_uninit(sound);
+        if (audioClip && audioClip->sound) {
+            if (ma_sound_is_playing(audioClip->sound))
+                CHECKMAERROR(ma_sound_stop(audioClip->sound));
         }
         ma_engine_uninit(engine);
     }
@@ -52,6 +60,10 @@ namespace VWolf {
 
         engine = (ma_engine*)malloc(sizeof(ma_engine));
         CHECKMAERROR(ma_engine_init(&engineConfig, engine));
+        
+        if (audioClipId != UUID::Empty) {
+            audioClip = ObjectResourceManager::Get<AudioClip>(audioClipId);
+        }
     }
 
     void AudioSourceComponent::Prepare(TransformComponent& listener, TransformComponent& sourceTransform) {
@@ -62,22 +74,15 @@ namespace VWolf {
         ma_engine_listener_set_direction(engine, 1, listener.GetEulerAngles().GetX(), listener.GetEulerAngles().GetY(), listener.GetEulerAngles().GetZ());
         ma_engine_listener_set_world_up(engine, 1, 0, 1, 0);
 
-        if (sound == nullptr && audioFilePath != "") {
-            fileTemp = audioFilePath.string();
-            sound = (ma_sound*)malloc(sizeof(ma_sound));
-            CHECKMAERROR(ma_sound_init_from_file(engine, fileTemp.c_str(), 0, NULL, NULL, sound));
-        }
-        else if (sound != nullptr) {
-            CHECKMAERROR(ma_sound_seek_to_pcm_frame(sound, 0));
-        }
-
-
-        if (sound) {
-            // TODO: Fails after playing twice
-            ma_sound_set_position(sound, sourceTransform.GetPosition().GetX(), sourceTransform.GetPosition().GetY(), sourceTransform.GetPosition().GetZ());
-            ma_sound_set_direction(sound, sourceTransform.GetEulerAngles().GetX(), sourceTransform.GetEulerAngles().GetY(), sourceTransform.GetEulerAngles().GetZ());
-            ma_sound_set_looping(sound, mLoop);
-            CHECKMAERROR(ma_sound_start(sound));
+        if (audioClip) {
+            audioClip->Initialize(engine);
+            
+            if (audioClip->sound == nullptr) return;
+            
+            ma_sound_set_position(audioClip->sound, sourceTransform.GetPosition().GetX(), sourceTransform.GetPosition().GetY(), sourceTransform.GetPosition().GetZ());
+            ma_sound_set_direction(audioClip->sound, sourceTransform.GetEulerAngles().GetX(), sourceTransform.GetEulerAngles().GetY(), sourceTransform.GetEulerAngles().GetZ());
+            ma_sound_set_looping(audioClip->sound, mLoop);
+            CHECKMAERROR(ma_sound_start(audioClip->sound));
         }
     }
 
@@ -92,15 +97,15 @@ namespace VWolf {
             listenerDirection = listener.GetEulerAngles();
         }
 
-        if (sound) {
-            ma_sound_set_position(sound, sourceTransform.GetPosition().GetX(), sourceTransform.GetPosition().GetY(), sourceTransform.GetPosition().GetZ());
-            ma_sound_set_direction(sound, sourceTransform.GetEulerAngles().GetX(), sourceTransform.GetEulerAngles().GetY(), sourceTransform.GetEulerAngles().GetZ());
+        if (audioClip && audioClip->sound) {
+            ma_sound_set_position(audioClip->sound, sourceTransform.GetPosition().GetX(), sourceTransform.GetPosition().GetY(), sourceTransform.GetPosition().GetZ());
+            ma_sound_set_direction(audioClip->sound, sourceTransform.GetEulerAngles().GetX(), sourceTransform.GetEulerAngles().GetY(), sourceTransform.GetEulerAngles().GetZ());
         }
     }
 
     void AudioSourceComponent::End() {
-        if (sound)
-            CHECKMAERROR(ma_sound_stop(sound));
+        if (audioClip && audioClip->sound)
+            CHECKMAERROR(ma_sound_stop(audioClip->sound));
     }
 
     void AudioSourceComponent::OnInspector() {

@@ -9,10 +9,7 @@
 
 #include "VWolf/Core/Object.h"
 #include "VWolf/Core/Math/VMath.h"
-
-/*
- To get the bounds from a mesh, you typically calculate an Axis-Aligned Bounding Box (AABB) by finding the minimum and maximum coordinates of all vertices along the X, Y, and Z axes.General Algorithm (Pseudocode)Initialize minX, minY, minZ to positive infinity.Initialize maxX, maxY, maxZ to negative infinity.For each vertex in the mesh:Update the min values if the current vertex's coordinates are smaller.Update the max values if the current vertex's coordinates are larger.The final min and max points define the corners of your bounding box.
- */
+#include "VWolf/Core/Physics/Bounds.h"
 
 namespace objl {
     class Loader;
@@ -149,6 +146,7 @@ namespace VWolf {
     public:
         void RecalculateNormals();
         void RecalculateTangents();
+        void RecalculateBounds();
     public:
         const std::vector<Vector3>& GetVertices() const { return vertices; }
         const std::vector<Color>& GetColors() const { return colors; }
@@ -156,6 +154,7 @@ namespace VWolf {
         const std::vector<Vector3>& GetTangents() const { return tangents; }
         const std::vector<Vector3>& GetBitangents() const { return bitangents; }
         const std::vector<Vector2>& GetUVs() const { return uvs; }
+        const Bounds& GetBounds() const { return bounds; }
         
         const std::vector<uint32_t>& GetTriangles() const { return triangles; }
         
@@ -200,5 +199,7 @@ namespace VWolf {
         std::vector<SubMeshDescriptor> subMesh;
         
         std::vector<float> vertexArray;
+        
+        Bounds bounds;
     };
 }

@@ -10,6 +10,7 @@
 #include "BaseComponent.h"
 #include "VWolf/Core/Math/VMath.h"
 #include "VWolf/Core/Utils/GenericSerialization.h"
+#include "VWolf/Core/Audio/AudioClip.h"
 
 struct ma_engine;
 struct ma_sound;
@@ -27,11 +28,11 @@ namespace VWolf {
         virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
-        void SetAudioFile(std::filesystem::path path) { this->audioFilePath = path; }
-        std::filesystem::path GetAudioFile() { return this->audioFilePath; }
-        bool GetLoop() const { return mLoop; }
         bool& GetLoop() { return mLoop; }
         void SetLoop(bool loop) { mLoop = loop; }
+    public:
+        void SetAudioClip(Ref<AudioClip> clip);
+        Ref<AudioClip> GetAudioClip();
 #ifdef VWOLF_CORE
     public:
         void Prepare(TransformComponent& listener, TransformComponent& sourceTransform);
@@ -41,13 +42,13 @@ namespace VWolf {
     private:
         void Initialize();
     private:
-        std::filesystem::path audioFilePath;
-        std::string fileTemp;
+        UUID audioClipId;
         bool mLoop;
-        BOOST_DESCRIBE_CLASS(AudioSourceComponent, (Component), (), (id), (audioFilePath, mLoop))
+        BOOST_DESCRIBE_CLASS(AudioSourceComponent, (Component), (), (id), (audioClipId, mLoop))
 
         ma_engine* engine = nullptr;
-        ma_sound* sound = nullptr;
+        
+        Ref<AudioClip> audioClip;
 
         Vector3 listenerPosition, listenerDirection;
         VWOLF_COMPONENT_INSPECTOR_DEFINE(AudioSourceComponent);

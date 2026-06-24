@@ -10,6 +10,8 @@
 
 #include "OBJ_Loader.h"
 
+#include <reactphysics3d/reactphysics3d.h>
+
 namespace VWolf {
 
     namespace {
@@ -99,6 +101,7 @@ namespace VWolf {
         std::transform(loader.LoadedVertices.begin(), loader.LoadedVertices.end(), uvs.begin(), GetUV);
         
         RecalculateTangents();
+        RecalculateBounds();
         
         subMesh.push_back(SubMeshDescriptor(0, 0, triangles.size(), 0, Topology::Triangles, vertices.size()));
     }
@@ -109,6 +112,10 @@ namespace VWolf {
         std::transform(vertices.begin(), vertices.end(), normals.begin(), [](Vector3 vertex) {
             return vertex.Normalized();
         });
+    }
+
+    void Mesh::RecalculateBounds() {
+        bounds = Bounds(vertices);
     }
 
     void Mesh::RecalculateTangents() {

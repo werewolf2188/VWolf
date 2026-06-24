@@ -95,3 +95,62 @@ namespace VWolf {
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(MeshColliderComponent, "MeshColliderComponent")
 }
+
+/*
+ Convex hull
+ #include <iostream>
+ #include <vector>
+ #include <algorithm>
+
+ // Define a structure to represent a 2D Point
+ struct Point {
+     double x, y;
+
+     // Operator for sorting points lexicographically
+     bool operator<(const Point& other) const {
+         if (x != other.x) return x < other.x;
+         return y < other.y;
+     }
+ };
+
+ // Returns the cross product of vectors AB and AC.
+ // Positive value indicates a counter-clockwise turn.
+ // Negative value indicates a clockwise turn.
+ // Zero indicates that the points are collinear.
+ double cross_product(const Point& A, const Point& B, const Point& C) {
+     return (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
+ }
+
+ // Computes the convex hull of a list of points
+ std::vector<Point> convex_hull(std::vector<Point>& points) {
+     size_t n = points.size();
+     if (n <= 3) return points; // A hull is trivial for 3 or fewer points
+
+     // Step 1: Sort points lexicographically by x, then by y
+     std::sort(points.begin(), points.end());
+
+     std::vector<Point> hull;
+
+     // Step 2: Build the Lower Hull
+     for (size_t i = 0; i < n; ++i) {
+         while (hull.size() >= 2 && cross_product(hull[hull.size() - 2], hull.back(), points[i]) <= 0) {
+             hull.pop_back(); // Pop if the turn is clockwise or collinear
+         }
+         hull.push_back(points[i]);
+     }
+
+     // Step 3: Build the Upper Hull
+     size_t lower_hull_size = hull.size();
+     for (int i = static_cast<int>(n) - 2; i >= 0; --i) {
+         while (hull.size() > lower_hull_size && cross_product(hull[hull.size() - 2], hull.back(), points[i]) <= 0) {
+             hull.pop_back();
+         }
+         hull.push_back(points[i]);
+     }
+
+     // Remove the last point because it is the same as the first point
+     hull.pop_back();
+
+     return hull;
+ }
+ */
