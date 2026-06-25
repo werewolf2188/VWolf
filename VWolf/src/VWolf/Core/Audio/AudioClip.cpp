@@ -17,7 +17,7 @@ namespace VWolf {
     }
 
     AudioClip::AudioClip(std::filesystem::path path, UUID _id): Object(_id), path(path) {
-        name = path.stem();
+        name = path.stem().string();
     }
 
     AudioClip::AudioClip(const AudioClip& clip): Object(clip.GetID()),  path(clip.path) {
