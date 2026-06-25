@@ -10,6 +10,8 @@
 #include "VWolf/Core/Time.h"
 #include "VWolf/Core/Object.h"
 
+#include "VWolf/Core/Audio/AudioClip.h"
+
 #include "VWolf/Core/Debug/ShapeHelper.h"
 
 #include "VWolf/Core/Events/Event.h"
@@ -28,6 +30,7 @@
 #include "VWolf/Core/Render/Material.h"
 #include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Core/Render/Texture.h"
+#include "VWolf/Core/Render/Mesh.h"
 
 #include "VWolf/Core/Math/VMath.h"
 #include "VWolf/Core/Math/Vector2.h"
@@ -39,8 +42,8 @@
 #include "VWolf/Core/Math/Matrix4x4.h"
 
 #include "VWolf/Core/Utils/File.h"
-#include "VWolf/Core/Utils/OBJLoader.h"
 #include "VWolf/Core/Utils/UUID.h"
 #include "VWolf/Core/Utils/GenericSerialization.h"
 
 #include "VWolf/Core/Physics/Physics.h"
+#include "VWolf/Core/Physics/Bounds.h"

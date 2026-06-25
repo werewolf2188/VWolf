@@ -20,6 +20,7 @@ namespace VWolf {
 		virtual std::vector<Ref<ShaderInput>> GetMaterialInputs() const override;
 		virtual size_t GetMaterialSize() const override;
 		virtual std::vector<ShaderInput> GetTextureInputs() const override;
+        virtual std::vector<AttributeDescriptor> GetAttributes() const override;
 
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipeline();
 	private:

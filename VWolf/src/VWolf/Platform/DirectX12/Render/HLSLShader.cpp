@@ -52,6 +52,15 @@ namespace VWolf {
 				return sizeof(FLOAT) * numberOfElements;
 		}
 
+		AttributeFormat GetAttributeFormat() {
+			if (elementType == D3D_REGISTER_COMPONENT_SINT32)
+				return AttributeFormat::SInt32;
+			else if (elementType == D3D_REGISTER_COMPONENT_FLOAT32)
+				return AttributeFormat::Float32;
+
+			return AttributeFormat::Unknown;
+		}
+
 		UINT GetOffset() {
 			return offset;
 		}
@@ -62,6 +71,10 @@ namespace VWolf {
 
 		D3D12_INPUT_ELEMENT_DESC GetInputElementDesc() {
 			return { name.c_str(), 0, format, 0, offset, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+		}
+
+		UINT GetNumberOfElements() {
+			return numberOfElements;
 		}
 	private:
 		std::string name;
@@ -342,6 +355,10 @@ namespace VWolf {
 
 		std::map<std::string, HLSampler>& GetSamplers() {
 			return samplers;
+		}
+
+		std::map<std::string, HLAttribute> GetAttributes() {
+			return attributes;
 		}
 
 		Microsoft::WRL::ComPtr<ID3D12RootSignature>& GetRootSignature() {
@@ -743,6 +760,26 @@ namespace VWolf {
 		}
 		return inputs;
 	}
+
+    std::vector<AttributeDescriptor> HLSLShader::GetAttributes() const {
+        std::vector<AttributeDescriptor> elements(m_program->GetAttributes().size());
+
+		 for (auto& [key, value] : m_program->GetAttributes()) {
+
+			 AttributeDescriptor descriptor;
+			 descriptor.name = key;
+			 descriptor.index = (int32_t)value.GetIndex();
+			 descriptor.attribute = GetAttributeFromName(key);
+			 descriptor.offset = value.GetOffset();
+			 descriptor.dimension = value.GetNumberOfElements();
+			 descriptor.format = value.GetAttributeFormat();
+			 descriptor.size = value.GetSize();
+
+			 elements[(int32_t)value.GetIndex()] = descriptor;
+		 }
+        
+        return elements;
+    }
 	
 	std::string HLSLShader::GetName() const
 	{		

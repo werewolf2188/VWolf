@@ -8,16 +8,15 @@
 #pragma once
 
 #include "BaseComponent.h"
-#include "VWolf/Core/Render/RenderStructs.h"
+#include "VWolf/Core/Render/Mesh.h"
 
-#include "VWolf/Core/Utils/OBJLoader.h"
 #include "VWolf/Core/Utils/GenericSerialization.h"
 
 namespace VWolf {
     class MeshFilterComponent: public Component {
     public:
         MeshFilterComponent();
-        MeshFilterComponent(std::filesystem::path data);
+        MeshFilterComponent(UUID meshId);
         MeshFilterComponent(const MeshFilterComponent& component);
         MeshFilterComponent(MeshFilterComponent&& component);
         ~MeshFilterComponent();
@@ -25,18 +24,19 @@ namespace VWolf {
         virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
-        MeshData& GetData() { return data; }
-        void SetPath(std::filesystem::path path) { this->path = path; Load(); }
-        std::filesystem::path GetPath() { return this->path; }
+        Ref<Mesh> GetMesh() { return mesh; }
+    public:
+        void SetMesh(Ref<Mesh> mesh);
+        void SetMeshId(UUID _id);
     public:
         MeshFilterComponent& operator=(const MeshFilterComponent& t);
     private:
         void Load();
     private:
-        MeshData data;
-        std::filesystem::path path;
+        Ref<Mesh> mesh;
+        UUID meshId;
         VWOLF_COMPONENT_INSPECTOR_DEFINE(MeshFilterComponent);
-        BOOST_DESCRIBE_CLASS(MeshFilterComponent, (Component), (), (id), (path))
+        BOOST_DESCRIBE_CLASS(MeshFilterComponent, (Component), (), (id), (meshId))
         
         VWOLF_SERIALIZATION_FRIENDS(MeshFilterComponent)
     };

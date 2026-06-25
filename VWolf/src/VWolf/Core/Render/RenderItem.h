@@ -10,20 +10,20 @@
 #include "VWolf/Core/Base.h"
 #include "VWolf/Core/Math/VMath.h"
 
-#include "RenderStructs.h"
+#include "Mesh.h"
 
 namespace VWolf {
     struct RenderItem {
-        MeshData& data;
+        Ref<Mesh> mesh;
         Material& material;
         Matrix4x4 transform;
         Ref<Camera> camera;
 
-        RenderItem(MeshData& data,
+        RenderItem(Ref<Mesh> mesh,
                    Material& material,
                    Matrix4x4 transform,
                    Ref<Camera> camera):
-        data(data),
+        mesh(mesh),
         material(material),
         transform(transform),
         camera(camera) {

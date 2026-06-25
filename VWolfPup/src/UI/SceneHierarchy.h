@@ -31,5 +31,6 @@ namespace VWolfPup {
         VWolf::Scene *scene;
         std::function<void(VWolf::Ref<VWolf::GameObject>)> onTapped;
         std::string selectedName;
+        std::vector<VWolf::Ref<VWolf::Mesh>> meshes;
     };
 }

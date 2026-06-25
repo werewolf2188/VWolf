@@ -304,7 +304,7 @@ namespace VWolfPup {
 
                 ImGui::PushItemWidth(ImGui::CalcItemWidth());
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-                ImGui::Text("%s", component.GetPath().filename().string().c_str());
+                ImGui::Text("%s", component.GetMesh() != nullptr ? component.GetMesh()->GetName().c_str() : "");
                 ImGui::PopStyleVar();
                 
                 ImGui::PopItemWidth();
@@ -314,9 +314,9 @@ namespace VWolfPup {
                 if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
                 {
                     ContainerView::GetMainView()
-                    ->AddView(new FileExplorer(".obj", [comp](auto path){
+                    ->AddView(new ObjectExplorer<VWolf::Mesh>([comp](auto mesh) {
 //                        VWOLF_CLIENT_INFO("Test");
-                        comp->SetPath(path);
+                        comp->SetMesh(mesh);
                     }));
                 }
                 ImGui::Columns(1);
@@ -384,19 +384,24 @@ namespace VWolfPup {
 
     class ShapeRendererComponentInspector: public VWolf::ComponentInspector<VWolf::ShapeRendererComponent> {
     public:
-        ShapeRendererComponentInspector() {}
+        ShapeRendererComponentInspector() {
+            items_names.reserve(std::size(items));
+            std::transform(items.begin(), items.end(), std::back_inserter(items_names), [](const std::tuple<std::string, VWolf::UUID>& element) {
+                return VWOLF_GET_SHAPE_NAME(element).c_str();
+            });
+        }
         ~ShapeRendererComponentInspector() {}
     public:
         virtual void OnInspector(VWolf::ShapeRendererComponent* component) override {
             auto remove = DrawComponent<VWolf::ShapeRendererComponent>(component->GetName(), *component, [this](VWolf::ShapeRendererComponent& component) {
-                std::string currentName = component.GetData().GetName();
+                std::string currentName = component.GetMesh()->GetName();
 
                 auto lambda = [currentName](const char* name) {
                     return strcmp(currentName.c_str(), name) == 0;
                 };
                 
-                auto value = std::find_if(items.begin(), items.end(), lambda);
-                selection = (int)std::distance(items.begin(), value);
+                auto value = std::find_if(items_names.begin(), items_names.end(), lambda);
+                selection = (int)std::distance(items_names.begin(), value);
 
                 ImGui::PushID("Shape");
 
@@ -407,9 +412,9 @@ namespace VWolfPup {
 
                 ImGui::PushItemWidth(ImGui::CalcItemWidth());
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-                if (ImGui::Combo("##ShapeSelector", &selection, items.data(), (int)items.size())) {
+                if (ImGui::Combo("##ShapeSelector", &selection, items_names.data(), (int)items_names.size())) {
                     
-                    component.SetData(GetMeshData());
+                    component.SetMesh(GetMesh());
                 }
                 ImGui::PopStyleVar();
                 ImGui::PopItemWidth();
@@ -421,30 +426,23 @@ namespace VWolfPup {
                 component->GetGameObject()->RemoveComponent<VWolf::ShapeRendererComponent>();
         }
     private:
-        VWolf::MeshData GetMeshData() {
-            if (strcmp(items[selection], "Box") == 0) {
-                return VWolf::OBJLoader::Load("assets/basic_shapes/Box.obj", items[selection]);
-            }
-            else if (strcmp(items[selection], "Sphere") == 0) {
-                return VWolf::OBJLoader::Load("assets/basic_shapes/Sphere.obj", items[selection]);
-            }
-            else if (strcmp(items[selection], "Geosphere") == 0) {
-                return VWolf::OBJLoader::Load("assets/basic_shapes/Geosphere.obj", items[selection]);
-            }
-            else if (strcmp(items[selection], "Cylinder") == 0) {
-                return VWolf::OBJLoader::Load("assets/basic_shapes/Cylinder.obj", items[selection]);
-            }
-            else if (strcmp(items[selection], "Grid") == 0) {
-                return VWolf::OBJLoader::Load("assets/basic_shapes/Grid.obj", items[selection]);
-            }
-            else if (strcmp(items[selection], "Monkey") == 0) {
-                return VWolf::OBJLoader::Load("assets/basic_shapes/Monkey.obj", items[selection]);
-            }
-            return VWolf::ShapeHelper::Create(items[selection]);
+        VWolf::Ref<VWolf::Mesh> GetMesh() {
+            return VWolf::CreateRef<VWolf::Mesh>(VWolf::ShapeHelper::Create(VWOLF_GET_SHAPE_ID(items[selection])));
         }
     private:
         int selection = 0;
-        std::array<const char*, 7> items = { "Box", "Sphere", "Geosphere", "Cylinder", "Grid", "Monkey", "Triangle" };
+        
+        std::array<std::tuple<std::string, VWolf::UUID>, 7> items = {
+            VWolf::ShapeHelper::Box,
+            VWolf::ShapeHelper::Sphere,
+            VWolf::ShapeHelper::Geosphere,
+            VWolf::ShapeHelper::Cylinder,
+            VWolf::ShapeHelper::Grid,
+            VWolf::ShapeHelper::Quad,
+            VWolf::ShapeHelper::Triangle
+        };
+        
+        std::vector<const char*> items_names;
     };
 
     class CameraComponentInspector: public VWolf::ComponentInspector<VWolf::CameraComponent> {
@@ -722,15 +720,15 @@ namespace VWolfPup {
 
                 ImGui::PushItemWidth(ImGui::CalcItemWidth());
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-                ImGui::Text("%s", component.GetAudioFile().filename().c_str());
+                ImGui::Text("%s", component.GetAudioClip()->GetName().c_str());
                 ImGui::PopStyleVar();
                 ImGui::NextColumn();
                 float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
                 if (ImGui::Button("...", ImVec2{ lineHeight, lineHeight }))
                 {
                     ContainerView::GetMainView()
-                    ->AddView(new FileExplorer(".mp3", [this, &component](auto path){
-                        component.SetAudioFile(path);
+                    ->AddView(new ObjectExplorer<VWolf::AudioClip>([this, &component](VWolf::Ref<VWolf::AudioClip> clip){
+                        component.SetAudioClip(clip);
                     }));
                 }
 

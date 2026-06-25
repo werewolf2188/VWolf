@@ -7,6 +7,7 @@
 
 #include "vwpch.h"
 #include "OpenGLGraphics.h"
+#include "HLSLOpenGLShader.h"
 
 #include "VWolf/Core/Render/RenderItem.h"
 
@@ -14,6 +15,21 @@
 #include "VWolf/Platform/OpenGL/Core/GLCore.h"
 
 namespace VWolf {
+    static GLenum GetTopology(Topology topology) {
+        switch (topology) {
+            case Topology::Triangles:
+                return GL_TRIANGLES;
+            case Topology::Quads:
+                return GL_QUADS;
+            case Topology::Lines:
+                return GL_LINES;
+            case Topology::LinesStrip:
+                return GL_LINE_STRIP;
+            case Topology::Points:
+                return GL_POINTS;
+            default: return -1;
+        }
+    }
     void OpenGLGraphics::Initialize() {
         shadowMap = CreateRef<OpenGLRenderTexture>(1024, 1024, true, TextureOptions());
         emptyShadowMap = CreateRef<OpenGLTexture2D>(TextureDefault::White, 1024, 1024, TextureOptions());
@@ -92,13 +108,9 @@ namespace VWolf {
     }
 
     // TODO: Better names. This is for immediate rendering
-    void OpenGLGraphics::DrawMeshImpl(MeshData& mesh, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
-        auto data = mesh.vertices;
-        auto indices = mesh.indices;
-        Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(Vertex));
-        vertices->SetLayout(MeshData::Layout);
-        Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
-        Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices);
+    void OpenGLGraphics::DrawMeshImpl(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
+        
+        if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) return;; // It's a light
         
         Camera* cam = camera != nullptr ? camera.get(): Camera::main;
 
@@ -123,7 +135,7 @@ namespace VWolf {
                                              Quaternion::Euler(rotation.GetX(), rotation.GetY(), rotation.GetZ()),
                                              Vector3::One);
 
-        Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
+        HLSLOpenGLShader* shader = (HLSLOpenGLShader*) Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader().get();
         void* material1 = material.GetDataPointer();
         Light* lights = this->lights.data();
         std::vector<ShaderInput> textures = shader->GetTextureInputs();
@@ -153,12 +165,21 @@ namespace VWolf {
             Matrix4x4* spacesPointer = spaces.data();
             shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, 0);
         }
+        
+        mesh1->BuildVertexBuffer(shader->GetAttributes());
+        
+        auto data = mesh1->GetNativeVector();
+        auto indices = mesh1->GetTriangles();
+        Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(float));
+        Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
+        Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices, shader->GetAttributes());
+        
         group->Bind();
         vertices->Bind();
         index->Bind();
         uint32_t count = index->GetCount();
         BindToRenderTexture();
-        GLThrowIfFailed(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr));
+        GLThrowIfFailed(glDrawElements(GetTopology(mesh1->GetSubMesh(0).GetTopology()), count, GL_UNSIGNED_INT, nullptr));
         UnbindToRenderTexture();
         vertices->Unbind();
         index->Unbind();
@@ -178,8 +199,8 @@ namespace VWolf {
     }
 
     // TODO: Better names. This is for lazy rendering
-    void OpenGLGraphics::RenderMeshImpl(MeshData& mesh, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
-        items.push_back(CreateRef<RenderItem>(mesh, material, transform, camera));
+    void OpenGLGraphics::RenderMeshImpl(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
+        items.push_back(CreateRef<RenderItem>(mesh1, material, transform, camera));
     }
 
     void OpenGLGraphics::BeginFrameImpl()
@@ -211,17 +232,21 @@ namespace VWolf {
         shadowMap->Bind();
         GLThrowIfFailed(glClear(GL_DEPTH_BUFFER_BIT));
         for (Light& light: lights) {
-            Ref<PShader> shader = Shader::GetShader("Shadow")->GetInternalShader();
+            HLSLOpenGLShader* shader = (HLSLOpenGLShader*) Shader::GetShader("Shadow")->GetInternalShader().get();
             for(Ref<RenderItem> item: items) {
-                auto& mesh = item->data;
+                Ref<Mesh> mesh1 = item->mesh;
+                
+                if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) return;; // It's a light
 
-                auto data = mesh.vertices;
+                mesh1->BuildVertexBuffer(shader->GetAttributes());
+                
+                auto data = mesh1->GetNativeVector();
                 if (data.size() == 1) continue;; // It's a light
-                auto indices = mesh.indices;
-                Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(Vertex));
-                vertices->SetLayout(MeshData::Layout);
+                auto indices = mesh1->GetTriangles();
+                
+                Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(float));
                 Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
-                Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices);
+                Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices, shader->GetAttributes());
 
                 Matrix4x4 viewProjection = light.GetLightSpaceMatrix();
                 Matrix4x4 transform = item->transform;
@@ -235,7 +260,7 @@ namespace VWolf {
                 index->Bind();
                 
                 uint32_t count = index->GetCount();
-                GLThrowIfFailed(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr));
+                GLThrowIfFailed(glDrawElements(GetTopology(mesh1->GetSubMesh(0).GetTopology()), count, GL_UNSIGNED_INT, nullptr));
 
                 vertices->Unbind();
                 index->Unbind();
@@ -248,17 +273,12 @@ namespace VWolf {
 
     void OpenGLGraphics::DrawQueue() {
         for(Ref<RenderItem> item: items) {
-            auto& mesh = item->data;
+            Ref<Mesh> mesh1 = item->mesh;
             auto& material = item->material;
             Ref<Camera> camera = item->camera;
             Matrix4x4 transform = item->transform;
-
-            auto data = mesh.vertices;
-            auto indices = mesh.indices;
-            Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(Vertex));
-            vertices->SetLayout(MeshData::Layout);
-            Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
-            Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices);
+            
+            if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) continue; // It's a light
             
             Camera* cam = camera != nullptr ? camera.get(): Camera::main;
 
@@ -279,7 +299,7 @@ namespace VWolf {
                 Time::GetDeltaTime()
             };
 
-            Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
+            HLSLOpenGLShader* shader = (HLSLOpenGLShader*)Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader().get();
             void* material1 = material.GetDataPointer();
             Light* lights = this->lights.data();
             std::vector<ShaderInput> textures = shader->GetTextureInputs();
@@ -309,6 +329,13 @@ namespace VWolf {
                 Matrix4x4* spacesPointer = spaces.data();
                 shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, 0);
             }
+            mesh1->BuildVertexBuffer(shader->GetAttributes());
+            
+            auto data = mesh1->GetNativeVector();
+            auto indices = mesh1->GetTriangles();
+            Ref<OpenGLVertexBuffer> vertices = CreateRef<OpenGLVertexBuffer>(data.data(), data.size() * sizeof(float));
+            Ref<OpenGLIndexBuffer> index = CreateRef<OpenGLIndexBuffer>(indices.data(), indices.size());
+            Ref<OpenGLVertexArray> group = CreateRef<OpenGLVertexArray>(vertices, shader->GetAttributes());
             
             group->Bind();
             vertices->Bind();
@@ -316,7 +343,7 @@ namespace VWolf {
             
             uint32_t count = index->GetCount();
             BindToRenderTexture();
-            GLThrowIfFailed(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr));
+            GLThrowIfFailed(glDrawElements(GetTopology(mesh1->GetSubMesh(0).GetTopology()), count, GL_UNSIGNED_INT, nullptr));
             UnbindToRenderTexture();
             vertices->Unbind();
             index->Unbind();

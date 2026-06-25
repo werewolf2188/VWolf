@@ -144,6 +144,16 @@ namespace VWolf {
                 return sizeof(float) * numberOfElements;
             return -1;
         }
+    
+        AttributeFormat Attribute::GetAttributeFormat() {
+            if (elementType == D3D_REGISTER_COMPONENT_UINT32)
+                return AttributeFormat::UInt32;
+            else if (elementType == D3D_REGISTER_COMPONENT_SINT32)
+                return AttributeFormat::SInt32;
+            else if (elementType == D3D_REGISTER_COMPONENT_FLOAT32)
+                return AttributeFormat::Float32;
+            return AttributeFormat::Unknown;
+        }
 
     // MARK: Constant Buffer variable
     

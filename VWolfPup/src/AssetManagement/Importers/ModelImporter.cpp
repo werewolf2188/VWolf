@@ -13,6 +13,7 @@ namespace VWolfPup {
     }
 
     bool ModelImporter::Import(std::filesystem::path path, VWolf::UUID _id) {
+        VWolf::Mesh::Load(path, _id);
         return true;
     }
 

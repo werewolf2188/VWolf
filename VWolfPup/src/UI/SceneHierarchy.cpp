@@ -10,41 +10,7 @@
 #include <imgui/imgui.h>
 #include <filesystem>
 
-#define SELECT_PRIMITIVE(T) \
-if (ImGui::MenuItem(T)) {\
-    auto path = GetPrimitivePath(T); \
-    showDialog = false; \
-    auto gameObject = scene->CreateGameObject("Untitled"); \
-    gameObject->AddComponent<VWolf::MeshFilterComponent>(); \
-    gameObject->GetComponent<VWolf::MeshFilterComponent>().SetPath(path); \
-    gameObject->AddComponent<VWolf::MeshRendererComponent>(); \
-    selectedName = gameObject->GetName(); \
-    onTapped(gameObject); \
-} \
-
 namespace VWolfPup {
-
-    std::filesystem::path GetPrimitivePath(const char* name) {
-        if (strcmp(name, "Box") == 0) {
-            return std::filesystem::current_path() / "assets/basic_shapes/Box.obj";
-        }
-        else if (strcmp(name, "Sphere") == 0) {
-            return std::filesystem::current_path() / "assets/basic_shapes/Sphere.obj";
-        }
-        else if (strcmp(name, "Geosphere") == 0) {
-            return std::filesystem::current_path() / "assets/basic_shapes/Geosphere.obj";
-        }
-        else if (strcmp(name, "Cylinder") == 0) {
-            return std::filesystem::current_path() / "assets/basic_shapes/Cylinder.obj";
-        }
-        else if (strcmp(name, "Grid") == 0) {
-            return std::filesystem::current_path() / "assets/basic_shapes/Grid.obj";
-        }
-        else if (strcmp(name, "Monkey") == 0) {
-            return std::filesystem::current_path() / "assets/basic_shapes/Monkey.obj";
-        }
-        return std::filesystem::path();
-    }
 
     void DrawGameObject(VWolf::Ref<VWolf::GameObject> object, std::function<void(VWolf::Ref<VWolf::GameObject>)> onTapped,
                         std::string& selectedName, bool& didSelection) {
@@ -64,7 +30,9 @@ namespace VWolfPup {
     }
 
     SceneHierarchy::SceneHierarchy(VWolf::Scene *scene, std::function<void(VWolf::Ref<VWolf::GameObject>)> onTapped):
-    View("Scene Hierarchy"), scene(scene), onTapped(onTapped) { }
+    View("Scene Hierarchy"), scene(scene), onTapped(onTapped) {
+        meshes = VWolf::ObjectResourceManager::Filter<VWolf::Mesh>();
+    }
 
     SceneHierarchy::~SceneHierarchy() {
 
@@ -105,12 +73,17 @@ namespace VWolfPup {
 //                }
                 if (ImGui::BeginMenu("Add Object")) {
 
-                    SELECT_PRIMITIVE("Box")
-                    SELECT_PRIMITIVE("Sphere")
-                    SELECT_PRIMITIVE("Geosphere")
-                    SELECT_PRIMITIVE("Cylinder")
-                    SELECT_PRIMITIVE("Grid")
-                    SELECT_PRIMITIVE("Monkey")
+                    for (VWolf::Ref<VWolf::Mesh> mesh: meshes) {
+                        if (ImGui::MenuItem(mesh->GetName().c_str())) {
+                            showDialog = false;
+                            auto gameObject = scene->CreateGameObject("Untitled");
+                            gameObject->AddComponent<VWolf::MeshFilterComponent>();
+                            gameObject->GetComponent<VWolf::MeshFilterComponent>().SetMesh(mesh);
+                            gameObject->AddComponent<VWolf::MeshRendererComponent>();
+                            selectedName = gameObject->GetName();
+                            onTapped(gameObject);
+                        }
+                    }
                     ImGui::EndMenu();
                 }
                 

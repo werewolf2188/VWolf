@@ -148,6 +148,16 @@ namespace VWolf {
         return Vector4(r, g, b, a);
     }
 
+    Color operator*(const Color& lhs, float rhs) {
+        Vector4 vec = ((Vector4)const_cast<Color&>(lhs)) * rhs;
+        return Color(vec.GetX(), vec.GetY(), vec.GetZ(), vec.GetW());
+    }
+
+    Color operator*(float lhs, const Color& rhs) {
+        Vector4 vec = lhs * ((Vector4)const_cast<Color&>(rhs));
+        return Color(vec.GetX(), vec.GetY(), vec.GetZ(), vec.GetW());
+    }
+
     // MARK: Get Functions
     const float Color::GetR() const { return r; }
 

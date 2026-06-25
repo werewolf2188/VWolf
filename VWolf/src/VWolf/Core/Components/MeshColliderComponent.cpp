@@ -33,26 +33,26 @@ namespace VWolf {
         return &component;
     }
 
-    void MeshColliderComponent::CreateMeshCollider(MeshData& data, TransformComponent& component) {
+    void MeshColliderComponent::CreateMeshCollider(Ref<Mesh> data, TransformComponent& component) {
 
         std::vector<reactphysics3d::Message> messages;
 
         std::vector<float> positions;
         std::vector<float> normals;
-        uint32_t nbVertices = (uint32_t)data.vertices.size();
-        uint32_t nbTriangles = ((uint32_t)data.indices.size()) / 3;
-        for(Vertex vertex: data.vertices) {
-            positions.push_back(vertex.position.GetX());
-            positions.push_back(vertex.position.GetY());
-            positions.push_back(vertex.position.GetZ());
+        uint32_t nbVertices = (uint32_t)data->GetVertices().size();
+        uint32_t nbTriangles = ((uint32_t)data->GetTriangles().size()) / 3;
+        for(uint32_t index = 0; index < data->GetVertices().size(); index++) {
+            positions.push_back(data->GetVertices()[index].GetX());
+            positions.push_back(data->GetVertices()[index].GetY());
+            positions.push_back(data->GetVertices()[index].GetZ());
 
-            normals.push_back(vertex.normal.GetX());
-            normals.push_back(vertex.normal.GetY());
-            normals.push_back(vertex.normal.GetZ());
+            normals.push_back(data->GetNormals()[index].GetX());
+            normals.push_back(data->GetNormals()[index].GetY());
+            normals.push_back(data->GetNormals()[index].GetZ());
         }
         reactphysics3d::TriangleVertexArray array(nbVertices, positions.data(), 3 * sizeof(float),
                                                   normals.data(), 3 * sizeof(float),
-                                                  nbTriangles, data.indices.data(), 3 * sizeof(uint32_t),
+                                                  nbTriangles, data->GetTriangles().data(), 3 * sizeof(uint32_t),
                                                   reactphysics3d::TriangleVertexArray::VertexDataType::VERTEX_FLOAT_TYPE,
                                                   reactphysics3d::TriangleVertexArray::NormalDataType::NORMAL_FLOAT_TYPE,
                                                   reactphysics3d::TriangleVertexArray::IndexDataType::INDEX_INTEGER_TYPE);
@@ -95,3 +95,62 @@ namespace VWolf {
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(MeshColliderComponent, "MeshColliderComponent")
 }
+
+/*
+ Convex hull
+ #include <iostream>
+ #include <vector>
+ #include <algorithm>
+
+ // Define a structure to represent a 2D Point
+ struct Point {
+     double x, y;
+
+     // Operator for sorting points lexicographically
+     bool operator<(const Point& other) const {
+         if (x != other.x) return x < other.x;
+         return y < other.y;
+     }
+ };
+
+ // Returns the cross product of vectors AB and AC.
+ // Positive value indicates a counter-clockwise turn.
+ // Negative value indicates a clockwise turn.
+ // Zero indicates that the points are collinear.
+ double cross_product(const Point& A, const Point& B, const Point& C) {
+     return (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
+ }
+
+ // Computes the convex hull of a list of points
+ std::vector<Point> convex_hull(std::vector<Point>& points) {
+     size_t n = points.size();
+     if (n <= 3) return points; // A hull is trivial for 3 or fewer points
+
+     // Step 1: Sort points lexicographically by x, then by y
+     std::sort(points.begin(), points.end());
+
+     std::vector<Point> hull;
+
+     // Step 2: Build the Lower Hull
+     for (size_t i = 0; i < n; ++i) {
+         while (hull.size() >= 2 && cross_product(hull[hull.size() - 2], hull.back(), points[i]) <= 0) {
+             hull.pop_back(); // Pop if the turn is clockwise or collinear
+         }
+         hull.push_back(points[i]);
+     }
+
+     // Step 3: Build the Upper Hull
+     size_t lower_hull_size = hull.size();
+     for (int i = static_cast<int>(n) - 2; i >= 0; --i) {
+         while (hull.size() > lower_hull_size && cross_product(hull[hull.size() - 2], hull.back(), points[i]) <= 0) {
+             hull.pop_back();
+         }
+         hull.push_back(points[i]);
+     }
+
+     // Remove the last point because it is the same as the first point
+     hull.pop_back();
+
+     return hull;
+ }
+ */

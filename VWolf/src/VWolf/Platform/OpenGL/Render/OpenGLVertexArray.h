@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VWolf/Core/Render/RenderStructs.h"
+#include "VWolf/Core/Render/Mesh.h"
 #include "OpenGLBuffer.h"
 
 struct GLFWwindow;
@@ -9,9 +9,8 @@ namespace VWolf {
 	class OpenGLVertexArray
 	{
 	public:
-        OpenGLVertexArray();
-		OpenGLVertexArray(const Ref<OpenGLVertexBuffer>& vertexBuffer);
-        OpenGLVertexArray(const Ref<OpenGLVertexBuffer>& vertexBuffer, const BufferLayout& layout);
+        OpenGLVertexArray(std::vector<AttributeDescriptor> layout);
+        OpenGLVertexArray(const Ref<OpenGLVertexBuffer>& vertexBuffer, std::vector<AttributeDescriptor> layout);
 		~OpenGLVertexArray();
 
 		void Bind() const;
@@ -19,7 +18,7 @@ namespace VWolf {
     private:
         void Build(const Ref<OpenGLVertexBuffer>& vertexBuffer);
 	private:
-        const BufferLayout& m_layout;
+        std::vector<AttributeDescriptor> m_layout;
 		unsigned int vertexArrayId = 0;
 		unsigned int m_VertexBufferIndex = 0;
 	};

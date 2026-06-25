@@ -11,23 +11,23 @@
 
 namespace VWolf {
     MeshFilterComponent::MeshFilterComponent():
-    Component("Mesh Filter"), data(ShapeHelper::CreateTriangle()) {
+    Component("Mesh Filter"), mesh(CreateRef<Mesh>(ShapeHelper::Create(VWOLF_GET_SHAPE_NAME(ShapeHelper::Triangle)))), meshId(VWOLF_GET_SHAPE_ID(ShapeHelper::Triangle)) {
 
     }
 
-    MeshFilterComponent::MeshFilterComponent(std::filesystem::path data): path(path),
+    MeshFilterComponent::MeshFilterComponent(UUID meshId): meshId(meshId),
     Component("Mesh Filter") {
         Load();
     }
 
     MeshFilterComponent::MeshFilterComponent(const MeshFilterComponent& component):
-    Component("Mesh Filter", component.id), data(component.data), path(component.path) {
+    Component("Mesh Filter", component.id), meshId(component.meshId) {
         Load();
         this->SetGameObject(const_cast<MeshFilterComponent&>(component).GetGameObject());
     }
 
     MeshFilterComponent::MeshFilterComponent(MeshFilterComponent&& component):
-    Component("Mesh Filter", component.id), data(component.data), path(component.path) {
+    Component("Mesh Filter", component.id), meshId(component.meshId) {
         Load();
         this->SetGameObject(component.GetGameObject());
     }
@@ -36,9 +36,14 @@ namespace VWolf {
 
     }
 
-    void MeshFilterComponent::Load() {
-        if (path == "") return;
-        data = OBJLoader::Load(path.string(), path.filename().string());
+    void MeshFilterComponent::Load() {        
+        if (ObjectResourceManager::HasKey(meshId))
+            mesh = ObjectResourceManager::Get<Mesh>(meshId);
+    }
+
+    void MeshFilterComponent::SetMesh(Ref<Mesh> _mesh) {
+        mesh = _mesh;
+        meshId = _mesh->GetID();
     }
 
     void MeshFilterComponent::OnInspector() {
@@ -46,9 +51,15 @@ namespace VWolf {
     }
 
     MeshFilterComponent& MeshFilterComponent::operator=(const MeshFilterComponent& t) {
-        this->data = t.data;
+        this->meshId = t.meshId;
+        this->mesh = t.mesh;
         this->SetGameObject(const_cast<MeshFilterComponent&>(t).GetGameObject());
         return *this;
+    }
+
+    void MeshFilterComponent::SetMeshId(UUID _id) {
+        this->meshId = _id;
+        Load();
     }
 
     Component* MeshFilterComponent::Copy(entt::entity& handle, entt::registry& registry) {

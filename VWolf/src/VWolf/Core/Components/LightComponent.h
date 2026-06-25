@@ -10,7 +10,7 @@
 #include "BaseComponent.h"
 
 #include "VWolf/Core/Math/VMath.h"
-#include "VWolf/Core/Render/RenderStructs.h"
+#include "VWolf/Core/Render/Light.h"
 
 namespace VWolf {
     class TransformComponent;

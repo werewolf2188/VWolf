@@ -4,6 +4,28 @@
 
 // TODO: Move this as part of the component system later on.
 namespace VWolf {
+
+    // Camera Pass
+    struct CameraPass {
+        /* TODO: I don't know what this value does
+             float cbPerObjectPad1;
+         */
+        Matrix4x4 view;
+        Matrix4x4 invView;
+        Matrix4x4 proj;
+        Matrix4x4 invProj;
+        Matrix4x4 viewProjection;
+        Matrix4x4 invViewProjection;
+        Vector3 eyePosition;
+        float padding;
+        Vector2 renderTargetSize;
+        Vector2 invRenderTargetSize;
+        float nearZ;
+        float farZ;
+        float totalTime;
+        float deltaTime;
+    };
+
 	class Camera
 	{
 	public:

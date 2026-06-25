@@ -26,6 +26,7 @@ namespace VWolf {
         virtual std::vector<Ref<ShaderInput>> GetMaterialInputs() const override;
         virtual size_t GetMaterialSize() const override;
         virtual std::vector<ShaderInput> GetTextureInputs() const override;
+        virtual std::vector<AttributeDescriptor> GetAttributes() const override;
     public:
         virtual MTL::RenderPipelineState* GetState() override;
         virtual void SetObjectIndex(uint32_t index)override;

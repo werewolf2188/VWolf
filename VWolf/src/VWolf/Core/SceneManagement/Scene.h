@@ -11,6 +11,7 @@
 
 #include "VWolf/Core/Render/Camera.h"
 #include "VWolf/Core/Render/Material.h"
+#include "VWolf/Core/Render/Mesh.h"
 #include "VWolf/Core/Math/VMath.h"
 
 #include "VWolf/Core/Utils/GenericSerialization.h"
@@ -35,7 +36,7 @@ namespace VWolf {
         Color& GetBackgroundColor() { return backgroundColor; }
         void SetBackgroundColor(Color backgroundColor) { this->backgroundColor = backgroundColor; }
         void SetSkyboxMaterial(Material& material) { this->materialSkybox = &material; }
-        MeshData& GetSkyboxMeshData() { return skybox; }
+        Ref<Mesh> GetSkyboxMesh() { return skyboxEx; }
         Material& GetSkyboxMaterial() { return *this->materialSkybox; }
         void SetCamera(Ref<Camera> camera) { this->camera = camera; }
         Ref<Camera> GetCamera() { return this->camera; }
@@ -47,7 +48,7 @@ namespace VWolf {
     private:
         Color backgroundColor;
         Type type = Type::Color;
-        MeshData skybox;
+        Ref<Mesh> skyboxEx;
         Material* materialSkybox;
         Ref<Camera> camera;
         
@@ -94,7 +95,7 @@ namespace VWolf {
         std::vector<Ref<GameObject>> gameObjects, previewGameObjects;
 
         SceneBackground sceneBackGround;
-        MeshData emptyMeshData, testData;
+        Ref<Mesh> emptyMesh, testMesh;
         reactphysics3d::PhysicsWorld *world;
 
         float previewAccumulator = 0.2f;

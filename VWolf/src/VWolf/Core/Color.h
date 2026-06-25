@@ -81,6 +81,8 @@ namespace VWolf {
         friend Color operator-(const Color& lhs, const Color& rhs);
         friend Color operator*(const Color& lhs, const Color& rhs);
         friend Color operator/(const Color& lhs, const Color& rhs);
+        friend Color operator*(const Color& lhs, float rhs);
+        friend Color operator*(float lhs, const Color& rhs);
         
         friend YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Color& v);
         friend YAML::Emitter& operator<<(YAML::Emitter& out, const VWolf::Color& v);

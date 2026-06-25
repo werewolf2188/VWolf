@@ -18,6 +18,12 @@ namespace VWolf {
     public:        
         HLOGLShaderSource(std::string name, Stage source, std::string code) {
             shader = DXIL::Shader(name, source, code, DXIL::Shader::ArgumentType::OpenGL);
+#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+            dxilShader = DXIL::Shader(name, source, code, DXIL::Shader::ArgumentType::Metal);
+#endif
+#ifdef VWOLF_PLATFORM_WINDOWS
+            dxilShader = DXIL::Shader(name, source, code, DXIL::Shader::ArgumentType::DirectX);
+#endif
             TranslateFromDXILToGLSL();
             type = ShaderTypeEquivalent(shader.GetType());
             shaderId = glCreateShader(type);
@@ -180,7 +186,7 @@ namespace VWolf {
             return -1;
         }
     private:
-        DXIL::Shader shader;
+        DXIL::Shader shader, dxilShader;
         std::string sourceText;
         
         GLuint shaderId;
@@ -194,6 +200,7 @@ namespace VWolf {
             GLint length = 255;
             GLchar* nameHolder = new GLchar[length];
             GLThrowIfFailed(glGetActiveAttrib(programId, index, length, 0, &size, &type, nameHolder));
+            this->index = GLThrowIfFailed(glGetAttribLocation(programId, nameHolder));
             name = std::string(nameHolder);
             delete[] nameHolder;
         }
@@ -205,6 +212,56 @@ namespace VWolf {
         GLenum GetType() { return type; }
         GLint GetIndex() { return index; }
         GLint GetSize() { return size; }
+        ShaderDataType GetShaderDataType() {
+            switch (type) {
+                case GL_FLOAT: return ShaderDataType::Float;
+                case GL_FLOAT_VEC2: return ShaderDataType::Float2;
+                case GL_FLOAT_VEC3: return ShaderDataType::Float3;
+                case GL_FLOAT_VEC4: return ShaderDataType::Float4;
+                case GL_FLOAT_MAT3: return ShaderDataType::Mat3;
+                case GL_FLOAT_MAT4: return ShaderDataType::Mat4;
+                case GL_INT: return ShaderDataType::Int;
+                case GL_INT_VEC2: return ShaderDataType::Int2;
+                case GL_INT_VEC3: return ShaderDataType::Int3;
+                case GL_INT_VEC4: return ShaderDataType::Int4;
+                case GL_BOOL: return ShaderDataType::Bool;
+            }
+            return ShaderDataType::None;
+        }
+        
+        AttributeFormat GetAttributeFormat() {
+            switch (type) {
+                case GL_FLOAT: return AttributeFormat::Float32;
+                case GL_FLOAT_VEC2: return AttributeFormat::Float32;
+                case GL_FLOAT_VEC3: return AttributeFormat::Float32;
+                case GL_FLOAT_VEC4: return AttributeFormat::Float32;
+                case GL_FLOAT_MAT3: return AttributeFormat::Float32;
+                case GL_FLOAT_MAT4: return AttributeFormat::Float32;
+                case GL_INT: return AttributeFormat::SInt32;
+                case GL_INT_VEC2: return AttributeFormat::SInt32;
+                case GL_INT_VEC3: return AttributeFormat::SInt32;
+                case GL_INT_VEC4: return AttributeFormat::SInt32;
+                case GL_BOOL: return AttributeFormat::UInt8;
+            }
+            return AttributeFormat::Unknown;
+        }
+        
+        uint32_t GetDimension() {
+            switch (type) {
+                case GL_FLOAT: return 1;
+                case GL_FLOAT_VEC2: return 2;
+                case GL_FLOAT_VEC3: return 3;
+                case GL_FLOAT_VEC4: return 4;
+                case GL_FLOAT_MAT3: return 3 * 3;
+                case GL_FLOAT_MAT4: return 4 * 4;
+                case GL_INT: return 1;
+                case GL_INT_VEC2: return 2;
+                case GL_INT_VEC3: return 3;
+                case GL_INT_VEC4: return 4;
+                case GL_BOOL: return 1;
+                default: return -1;
+            }
+        }
     private:
         GLint index;
         std::string name;
@@ -523,8 +580,8 @@ namespace VWolf {
             return defaultUniforms;
         }
 
-        std::map<std::string, Ref<HLOGLAttribute>> GetAttributes() {
-            return attributes;
+        std::map<std::string, DXIL::Attribute> GetAttributes() {
+            return dxilAttributes;
         }
 
         operator GLuint() const {
@@ -582,11 +639,14 @@ namespace VWolf {
         }
 
         void RetrieveAttributes() {
+            for(Ref<HLOGLShaderSource> source: sources)
+                for (DXIL::Attribute dxilAttribute : source->dxilShader.GetStageInAttributes())
+                    dxilAttributes[dxilAttribute.GetName()] = dxilAttribute;
             GLint attributesCount;
             GLThrowIfFailed(glGetProgramiv(programId, GL_ACTIVE_ATTRIBUTES, &attributesCount));
             for(int aIndex = 0; aIndex < attributesCount; aIndex++) {
                 Ref<HLOGLAttribute> attribute = CreateRef<HLOGLAttribute>(programId, aIndex);
-                attributes.insert(std::pair<std::string, Ref<HLOGLAttribute>>(attribute->GetName(), attribute));
+                attributes[attribute->GetName()] = attribute;
             }
         }
     private:
@@ -595,6 +655,7 @@ namespace VWolf {
         std::map<std::string, Ref<HLOGLUniformBuffer>> uniformBuffers;
         std::map<std::string, Ref<HLOGLUniform>> defaultUniforms;
         std::map<std::string, Ref<HLOGLAttribute>> attributes;
+        std::map<std::string, DXIL::Attribute> dxilAttributes;
     };
 
     HLSLOpenGLShader::HLSLOpenGLShader(Shader& coreShader): PShader(coreShader) {
@@ -702,6 +763,23 @@ namespace VWolf {
     void HLSLOpenGLShader::SetData(const void* data, const char* name, uint32_t size, uint32_t offset) {
         std::string cbMaterialName = std::string("type_cbPer") + std::string(name);
         m_program->SetData(data, cbMaterialName.c_str(), size, offset);
+    }
+
+    std::vector<AttributeDescriptor> HLSLOpenGLShader::GetAttributes() const {
+        std::vector<AttributeDescriptor> elements(m_program->GetAttributes().size());
+        
+        for(auto& [key, value]: m_program->GetAttributes()) {
+            AttributeDescriptor descriptor;
+            descriptor.name = value.GetName();
+            descriptor.index = value.GetIndex();
+            descriptor.attribute = GetAttributeFromName(value.GetName());
+            descriptor.dimension = value.GetNumberOfElements();
+            descriptor.format = value.GetAttributeFormat();
+            
+            elements[value.GetIndex()] = descriptor;
+        }
+        
+        return elements;
     }
 
     void HLSLOpenGLShader::SetConfiguration() const {

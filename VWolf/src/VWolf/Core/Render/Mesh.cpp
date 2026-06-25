@@ -1,0 +1,188 @@
+//
+//  Mesh.cpp
+//  VWolf
+//
+//  Created by Enrique Moises on 6/17/26.
+//
+
+#include "vwpch.h"
+#include "Mesh.h"
+
+#include "OBJ_Loader.h"
+
+#include <reactphysics3d/reactphysics3d.h>
+
+namespace VWolf {
+
+    namespace {
+        Vector2 Transform(objl::Vector2 vector) {
+            return Vector2(vector.X, vector.Y);
+        }
+    
+        Vector3 Transform(objl::Vector3 vector) {
+            return Vector3(vector.X, vector.Y, vector.Z);
+        }
+    
+        Vector3 GetVertex(objl::Vertex vertex) {
+            return Transform(vertex.Position);
+        }
+    
+        Vector3 GetNormal(objl::Vertex vertex) {
+            return Transform(vertex.Normal);
+        }
+    
+        Vector2 GetUV(objl::Vertex vertex) {
+            return Transform(vertex.TextureCoordinate);
+        }
+    
+        Color GetColor(objl::Vertex vertex) {
+            return Color(1, 1, 1, 1);
+        }
+    }
+
+    Mesh::Mesh(): Object(UUID::NewUUID()) {
+        name = "unnamed";
+        
+        subMesh.push_back(SubMeshDescriptor());
+    }
+
+    Mesh::Mesh(UUID id): Object(id) {
+        name = "unnamed";
+        
+        subMesh.push_back(SubMeshDescriptor());
+    }
+
+    Mesh::Mesh(const Mesh& mesh): Object(mesh.id) {
+        name = mesh.name;
+        
+        vertices = mesh.vertices;
+        colors = mesh.colors;
+        normals = mesh.normals;
+        tangents = mesh.tangents;
+        uvs = mesh.uvs;
+        triangles = mesh.triangles;
+        subMesh = mesh.subMesh;
+    }
+
+    Mesh& Mesh::operator=(const Mesh& mesh) {
+        name = mesh.name;
+        
+        vertices = mesh.vertices;
+        colors = mesh.colors;
+        normals = mesh.normals;
+        tangents = mesh.tangents;
+        uvs = mesh.uvs;
+        triangles = mesh.triangles;
+        subMesh = mesh.subMesh;
+        
+        return *this;
+    }
+
+    Mesh::Mesh(objl::Loader& loader, UUID id): Object(id) {
+        name = loader.LoadedMeshes[0].MeshName;
+        
+        triangles.resize(loader.LoadedIndices.size());
+        for (int j = 0; j < loader.LoadedIndices.size(); j += 3)
+        {
+            triangles[j] = loader.LoadedIndices[j + 2];
+            triangles[j + 1] = loader.LoadedIndices[j + 1];
+            triangles[j + 2] = loader.LoadedIndices[j];
+        }
+        vertices.resize(loader.LoadedVertices.size());
+        colors.resize(loader.LoadedVertices.size());
+        normals.resize(loader.LoadedVertices.size());
+        tangents.resize(loader.LoadedVertices.size());
+        bitangents.resize(loader.LoadedVertices.size());
+        uvs.resize(loader.LoadedVertices.size());
+        
+        std::transform(loader.LoadedVertices.begin(), loader.LoadedVertices.end(), vertices.begin(), GetVertex);
+        std::transform(loader.LoadedVertices.begin(), loader.LoadedVertices.end(), colors.begin(), GetColor);
+        std::transform(loader.LoadedVertices.begin(), loader.LoadedVertices.end(), normals.begin(), GetNormal);
+        std::transform(loader.LoadedVertices.begin(), loader.LoadedVertices.end(), uvs.begin(), GetUV);
+        
+        RecalculateTangents();
+        RecalculateBounds();
+        
+        subMesh.push_back(SubMeshDescriptor(0, 0, triangles.size(), 0, Topology::Triangles, vertices.size()));
+    }
+
+    void Mesh::RecalculateNormals() {
+        normals.clear();
+        normals.resize(vertices.size());
+        std::transform(vertices.begin(), vertices.end(), normals.begin(), [](Vector3 vertex) {
+            return vertex.Normalized();
+        });
+    }
+
+    void Mesh::RecalculateBounds() {
+        bounds = Bounds(vertices);
+    }
+
+    void Mesh::RecalculateTangents() {
+        for(uint32_t index = 0; index < normals.size(); index++) {
+            Vector3 refVec(0.0f, 0.0f, 1.0f);
+            if (std::abs(Vector3::Dot(normals[index], refVec)) > 0.99f) {
+                refVec = Vector3(1.0f, 0.0f, 0.0f);
+            }
+
+            Vector3 temp = refVec - Vector3::Dot(refVec, normals[index]) * normals[index];
+            temp.Normalize();
+            tangents[index] = temp;
+            bitangents[index] = Vector3::Cross(normals[index], temp);
+        }
+    }
+
+    void Mesh::BuildVertexBuffer(std::vector<AttributeDescriptor> descriptor) {
+
+        if (vertexArray.size() > 0) return;
+        
+        for(size_t index = 0; index < vertices.size(); index++) {
+            for(AttributeDescriptor& desc: descriptor) {
+                switch(desc.GetAttribute()) {
+                    case Attribute::Position:
+                        vertexArray.push_back(vertices[index].GetX());
+                        vertexArray.push_back(vertices[index].GetY());
+                        vertexArray.push_back(vertices[index].GetZ());
+                        break;
+                    case Attribute::Color:
+                        vertexArray.push_back(colors[index].GetR());
+                        vertexArray.push_back(colors[index].GetG());
+                        vertexArray.push_back(colors[index].GetB());
+                        vertexArray.push_back(colors[index].GetA());
+                        break;
+                    case Attribute::Normal:
+                        vertexArray.push_back(normals[index].GetX());
+                        vertexArray.push_back(normals[index].GetY());
+                        vertexArray.push_back(normals[index].GetZ());
+                        break;
+                    case Attribute::Tangent:
+                        vertexArray.push_back(tangents[index].GetX());
+                        vertexArray.push_back(tangents[index].GetY());
+                        vertexArray.push_back(tangents[index].GetZ());
+                        break;
+                    case Attribute::TextCoord0:
+                        vertexArray.push_back(uvs[index].GetX());
+                        vertexArray.push_back(uvs[index].GetY());
+                        break;
+                    default: break;
+                }
+            }
+        }
+    }
+
+    void Mesh::Reset() {
+        vertexArray.clear();
+    }
+
+    Ref<Mesh> Mesh::Load(std::filesystem::path path, UUID id) {
+        objl::Loader loader;
+        
+        if (loader.LoadFile(path.string()) && loader.LoadedMeshes.size() > 0) {
+            Ref<Mesh> refM = CreateRef<Mesh>(loader, id);
+            ObjectResourceManager::AddObject(id, refM);
+            return refM;
+        }
+        
+        throw std::exception();
+    }
+}

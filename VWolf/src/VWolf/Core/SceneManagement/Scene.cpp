@@ -33,10 +33,14 @@ namespace YAML {
 
 namespace VWolf {
 
-    MeshData CreateSkyBox() {
-        MeshData meshData;
+    Mesh CreateSkyBoxEx() {
+        Mesh meshData;
         meshData.SetName("SkyBox");
-        meshData.vertices.resize(8);
+        meshData.GetVertices().resize(8);
+        meshData.GetColors().resize(8);
+        meshData.GetNormals().resize(8);
+        meshData.GetTangents().resize(8);
+        meshData.GetUVs().resize(8);
         
         /*
          
@@ -54,16 +58,16 @@ namespace VWolf {
          };
          */
 
-        meshData.vertices[0].position = VWolf::Vector3(-1.0f, -1.0f,  1.0f);
-        meshData.vertices[1].position = VWolf::Vector3(1.0f, -1.0f,  1.0f);
-        meshData.vertices[2].position = VWolf::Vector3(1.0f, -1.0f, -1.0f);
-        meshData.vertices[3].position = VWolf::Vector3(-1.0f, -1.0f, -1.0f);
-        meshData.vertices[4].position = VWolf::Vector3(-1.0f,  1.0f,  1.0f);
-        meshData.vertices[5].position = VWolf::Vector3(1.0f,  1.0f,  1.0f);
-        meshData.vertices[6].position = VWolf::Vector3(1.0f,  1.0f, -1.0f);
-        meshData.vertices[7].position = VWolf::Vector3(-1.0f,  1.0f, -1.0f);
+        meshData.GetVertices()[0] = VWolf::Vector3(-1.0f, -1.0f,  1.0f);
+        meshData.GetVertices()[1] = VWolf::Vector3(1.0f, -1.0f,  1.0f);
+        meshData.GetVertices()[2] = VWolf::Vector3(1.0f, -1.0f, -1.0f);
+        meshData.GetVertices()[3] = VWolf::Vector3(-1.0f, -1.0f, -1.0f);
+        meshData.GetVertices()[4] = VWolf::Vector3(-1.0f,  1.0f,  1.0f);
+        meshData.GetVertices()[5] = VWolf::Vector3(1.0f,  1.0f,  1.0f);
+        meshData.GetVertices()[6] = VWolf::Vector3(1.0f,  1.0f, -1.0f);
+        meshData.GetVertices()[7] = VWolf::Vector3(-1.0f,  1.0f, -1.0f);
 
-        unsigned int skyboxIndices[] =
+        std::vector<uint32_t> skyboxIndices
         {
             // Right
             1, 2, 6,
@@ -84,14 +88,14 @@ namespace VWolf {
             3, 7, 6,
             6, 2, 3
         };
-        meshData.indices.assign(&skyboxIndices[0], &skyboxIndices[36]);
+        meshData.SetTriangles(skyboxIndices);
         return meshData;
     }
 
     // ---------------- SCENE BACKGROUND ----------------
-    SceneBackground::SceneBackground(): backgroundColor(Color(0.0f, 0.0f, 0.0f, 1.0f )), skybox(CreateSkyBox()) {}
+    SceneBackground::SceneBackground(): backgroundColor(Color(0.0f, 0.0f, 0.0f, 1.0f )), skyboxEx(CreateRef<Mesh>(CreateSkyBoxEx())) {}
 
-    SceneBackground::SceneBackground(const SceneBackground& scene): backgroundColor(scene.backgroundColor), skybox(CreateSkyBox()) {}
+    SceneBackground::SceneBackground(const SceneBackground& scene): backgroundColor(scene.backgroundColor), skyboxEx(CreateRef<Mesh>(CreateSkyBoxEx())) {}
     
 
     SceneBackground::~SceneBackground() {}
@@ -131,7 +135,8 @@ namespace VWolf {
 
     Scene::Scene(std::string name): Object(UUID::NewUUID()){
         this->name = name;
-        emptyMeshData = ShapeHelper::CreateEmpty();
+        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
+        testMesh = CreateRef<Mesh>();
         world = Physics::GetCommon().createPhysicsWorld();
         world->setIsDebugRenderingEnabled(true);
     }
@@ -162,13 +167,15 @@ namespace VWolf {
         for (auto gameObject: this->gameObjects) {
             gameObject->AttachToScene(this);
         }
-        emptyMeshData = ShapeHelper::CreateEmpty();
+        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
+        testMesh = CreateRef<Mesh>();
         world = Physics::GetCommon().createPhysicsWorld();
         world->setIsDebugRenderingEnabled(true);
     }
 
     Scene::Scene(Scene&& scene): Object(scene.id) {
-        emptyMeshData = ShapeHelper::CreateEmpty();
+        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
+        testMesh = CreateRef<Mesh>();
         this->name = scene.name;
         this->sceneBackGround = scene.sceneBackGround;
         this->m_registry = std::move(scene.m_registry);
@@ -198,7 +205,8 @@ namespace VWolf {
         for (auto gameObject: this->gameObjects) {
             gameObject->AttachToScene(this);
         }
-        emptyMeshData = ShapeHelper::CreateEmpty();
+        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
+        testMesh = CreateRef<Mesh>();
         world = Physics::GetCommon().createPhysicsWorld();
         world->setIsDebugRenderingEnabled(true);
         
@@ -247,19 +255,42 @@ namespace VWolf {
 //                previewAccumulator -= Physics::GetTimeStep();
 //            }
 //            float factor = previewAccumulator / Physics::GetTimeStep();
-            testData.vertices.clear();
-            testData.indices.clear();
+            testMesh->GetVertices().clear();
+            testMesh->GetColors().clear();
+            testMesh->GetNormals().clear();
+            testMesh->GetTangents().clear();
+            testMesh->GetUVs().clear();
+            testMesh->GetTriangles().clear();
+            testMesh->Reset();
+            
             reactphysics3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
             auto& triangles = debugRenderer.getTriangles();
             for (uint32_t index = 0; index < debugRenderer.getNbTriangles(); index++) {
                 auto triangle = triangles[index];
-                testData.vertices.push_back(Vertex(triangle.point1.x, triangle.point1.y, triangle.point1.z, 1, 1, 1, 1));
-                testData.vertices.push_back(Vertex(triangle.point2.x, triangle.point2.y, triangle.point2.z, 1, 1, 1, 1));
-                testData.vertices.push_back(Vertex(triangle.point3.x, triangle.point3.y, triangle.point3.z, 1, 1, 1, 1));
-
-                testData.indices.push_back(index * 3);
-                testData.indices.push_back((index * 3) + 1);
-                testData.indices.push_back((index * 3) + 2);
+                
+                testMesh->GetVertices().push_back(Vector3(triangle.point1.x, triangle.point1.y, triangle.point1.z));
+                testMesh->GetVertices().push_back(Vector3(triangle.point2.x, triangle.point2.y, triangle.point2.z));
+                testMesh->GetVertices().push_back(Vector3(triangle.point3.x, triangle.point3.y, triangle.point3.z));
+                
+                testMesh->GetColors().push_back(Color(1, 1, 1, 1));
+                testMesh->GetColors().push_back(Color(1, 1, 1, 1));
+                testMesh->GetColors().push_back(Color(1, 1, 1, 1));
+                
+                testMesh->GetNormals().push_back(Vector3(1, 1, 1));
+                testMesh->GetNormals().push_back(Vector3(1, 1, 1));
+                testMesh->GetNormals().push_back(Vector3(1, 1, 1));
+                
+                testMesh->GetTangents().push_back(Vector3(1, 1, 1));
+                testMesh->GetTangents().push_back(Vector3(1, 1, 1));
+                testMesh->GetTangents().push_back(Vector3(1, 1, 1));
+                
+                testMesh->GetUVs().push_back(Vector2(1, 1));
+                testMesh->GetUVs().push_back(Vector2(1, 1));
+                testMesh->GetUVs().push_back(Vector2(1, 1));
+                
+                testMesh->GetTriangles().push_back(index * 3);
+                testMesh->GetTriangles().push_back((index * 3) + 1);
+                testMesh->GetTriangles().push_back((index * 3) + 2);
             }
             auto meshColMeshFilterTrans = m_previewRegistry.view<MeshColliderComponent, MeshFilterComponent, TransformComponent>();
             
@@ -339,7 +370,7 @@ namespace VWolf {
         {
             auto [meshCollider, meshFilter, transform] = meshColMeshFilterTrans
                 .get<MeshColliderComponent, MeshFilterComponent, TransformComponent>(meshColMeshFilterTransEnty);
-            meshCollider.CreateMeshCollider(meshFilter.GetData(), transform);
+            meshCollider.CreateMeshCollider(meshFilter.GetMesh(), transform);
         }
 
         auto sphereColMeshFilterTrans = m_previewRegistry.view<SphereColliderComponent, MeshFilterComponent, TransformComponent>();
@@ -348,7 +379,7 @@ namespace VWolf {
         {
             auto [sphereCollider, meshFilter, transform] = sphereColMeshFilterTrans
                 .get<SphereColliderComponent, MeshFilterComponent, TransformComponent>(sphereColMeshFilterTransEnty);
-            sphereCollider.CreateSphereCollider(meshFilter.GetData(), transform);
+            sphereCollider.CreateSphereCollider(meshFilter.GetMesh(), transform);
         }
 
         auto boxColMeshFilterTrans = m_previewRegistry.view<BoxColliderComponent, MeshFilterComponent, TransformComponent>();
@@ -357,7 +388,7 @@ namespace VWolf {
         {
             auto [boxCollider, meshFilter, transform] = boxColMeshFilterTrans
                 .get<BoxColliderComponent, MeshFilterComponent, TransformComponent>(boxColMeshFilterTransEnty);
-            boxCollider.CreateBoxCollider(meshFilter.GetData(), transform);
+            boxCollider.CreateBoxCollider(meshFilter.GetMesh(), transform);
         }
 
         auto audioListenerTrans = m_previewRegistry.view<AudioListenerComponent, TransformComponent>();
@@ -430,7 +461,7 @@ namespace VWolf {
 
         if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
             // Immediate drawing so it does not belong to the queue
-            Graphics::DrawMesh(sceneBackGround.GetSkyboxMeshData(),
+            Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
                                VWolf::Vector4(),
                                VWolf::Vector4(),
                                sceneBackGround.GetSkyboxMaterial(),
@@ -456,7 +487,7 @@ namespace VWolf {
             auto [shapeRenderer, transform] = shapeRendererAndTransformComponents
                 .get<ShapeRendererComponent, TransformComponent>(shapeRendererAndTransformEntity);
             transform.Apply();
-            Graphics::RenderMesh(shapeRenderer.GetData(),
+            Graphics::RenderMesh(shapeRenderer.GetMesh(),
                                  transform.GetWorldMatrix(),
                                  shapeRenderer.GetMaterial());
         }
@@ -469,7 +500,7 @@ namespace VWolf {
             auto [meshRenderer, meshFilter, transform] = meshFilterMeshRendererAndTransformComponents
                 .get<MeshRendererComponent, MeshFilterComponent, TransformComponent>(meshFilterMeshRendererAndTransformEntity);
             transform.Apply();
-            Graphics::RenderMesh(meshFilter.GetData(),
+            Graphics::RenderMesh(meshFilter.GetMesh(),
                                  transform.GetWorldMatrix(),
                                  meshRenderer.GetMaterial());
         }
@@ -483,7 +514,7 @@ namespace VWolf {
             auto transform = transformComponents
                 .get<TransformComponent>(transformEntity);
             transform.Apply();
-            Graphics::RenderMesh(emptyMeshData,
+            Graphics::RenderMesh(emptyMesh,
                                  transform.GetWorldMatrix(),
                                  *MaterialLibrary::Default());
         }
@@ -509,7 +540,7 @@ namespace VWolf {
                                                              (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetY()),
                                                              (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetZ())
                                                          ));
-            Graphics::DrawMesh(sceneBackGround.GetSkyboxMeshData(),
+            Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
                                VWolf::Vector4(),
                                VWolf::Vector4(),
                                sceneBackGround.GetSkyboxMaterial(),
@@ -535,7 +566,7 @@ namespace VWolf {
             auto [shapeRenderer, transform] = shapeRendererAndTransformComponents
                 .get<ShapeRendererComponent, TransformComponent>(shapeRendererAndTransformEntity);
             transform.Apply();
-            Graphics::RenderMesh(shapeRenderer.GetData(),
+            Graphics::RenderMesh(shapeRenderer.GetMesh(),
                                  transform.GetWorldMatrix(),
                                  shapeRenderer.GetMaterial(),
                                  camera);
@@ -549,7 +580,7 @@ namespace VWolf {
             auto [meshRenderer, meshFilter, transform] = meshFilterMeshRendererAndTransformComponents
                 .get<MeshRendererComponent, MeshFilterComponent, TransformComponent>(meshFilterMeshRendererAndTransformEntity);
             transform.Apply();
-            Graphics::RenderMesh(meshFilter.GetData(),
+            Graphics::RenderMesh(meshFilter.GetMesh(),
                                  transform.GetWorldMatrix(),
                                  meshRenderer.GetMaterial(),
                                  camera);
@@ -563,15 +594,15 @@ namespace VWolf {
             auto transform = transformComponents
                 .get<TransformComponent>(transformEntity);
             transform.Apply();
-            Graphics::RenderMesh(emptyMeshData,
+            Graphics::RenderMesh(emptyMesh,
                                  transform.GetWorldMatrix(),
                                  *MaterialLibrary::Default(),
                                  camera);
         }
 
         // TODO: Debug renderer
-        if (testData.vertices.size() == 0) return;
-        Graphics::DrawMesh(testData,
+        if (testMesh->GetVertices().size() == 0) return;
+        Graphics::DrawMesh(testMesh,
                            VWolf::Vector4(),
                            VWolf::Vector4(),
                            *MaterialLibrary::GetMaterial("RainbowColor"),

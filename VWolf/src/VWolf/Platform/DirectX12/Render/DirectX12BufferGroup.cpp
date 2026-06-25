@@ -17,7 +17,8 @@ namespace VWolf {
 
 	void DirectX12BufferGroup::Bind(Ref<DX12Command> commands) const
 	{
-		m_vBuffer->Bind(commands);
+		if (m_vBuffer != nullptr)
+			m_vBuffer->Bind(commands);
 		m_indexBuffer->Bind(commands);
 	}
 

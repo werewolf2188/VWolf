@@ -36,7 +36,7 @@ namespace VWolf {
         return &component;
     }
 
-    void BoxColliderComponent::CreateBoxCollider(MeshData& data, TransformComponent& component) {
+    void BoxColliderComponent::CreateBoxCollider(Ref<Mesh> data, TransformComponent& component) {
         boxShape = Physics::GetCommon().createBoxShape({ component.GetLocalScale().GetX(), component.GetLocalScale().GetY(), component.GetLocalScale().GetZ() });
         scale = component.GetLocalScale();
         reactphysics3d::Transform transform = reactphysics3d::Transform::identity();

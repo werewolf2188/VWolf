@@ -54,5 +54,9 @@ namespace VWolf {
         return m_objects[id];
     }
 
+    bool ObjectResourceManager::HasKey(const UUID& id) {
+        return m_objects.find(id) != m_objects.end();
+    }
+
     std::map<UUID, Ref<Object>> ObjectResourceManager::m_objects;
 }

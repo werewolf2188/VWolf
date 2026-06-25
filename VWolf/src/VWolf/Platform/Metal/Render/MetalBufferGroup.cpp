@@ -11,20 +11,20 @@
 #include "MetalBufferGroup.h"
 
 namespace VWolf {
-    MetalBufferGroup::MetalBufferGroup(MeshData& mesh) {
-        uint32_t* indices = mesh.indices.data();
-        Vertex* vertices = mesh.vertices.data();
+    MetalBufferGroup::MetalBufferGroup(Ref<Mesh> mesh) {
+        std::vector<uint32_t> indices = mesh->GetTriangles();
+        std::vector<float> vertices = mesh->GetNativeVector();
 
-        vertexBuffer = CreateRef<MetalVertexBuffer>(vertices, sizeof(Vertex) * mesh.vertices.size());
-        indexBuffer = CreateRef<MetalIndexBuffer>(indices, mesh.indices.size(), MTL::IndexTypeUInt32);
+        vertexBuffer = CreateRef<MetalVertexBuffer>(vertices.data(), sizeof(float) * vertices.size());
+        indexBuffer = CreateRef<MetalIndexBuffer>(indices.data(), indices.size(), MTL::IndexTypeUInt32);
     }
 
-    void MetalBufferGroup::SetData(MeshData& data) {
-        uint32_t* indices = data.indices.data();
-        Vertex* vertices = data.vertices.data();
+    void MetalBufferGroup::SetData(Ref<Mesh> mesh) {
+        std::vector<uint32_t> indices = mesh->GetTriangles();
+        std::vector<float> vertices = mesh->GetNativeVector();
 
-        vertexBuffer->SetData(vertices, sizeof(Vertex) * (uint32_t)data.vertices.size());
-        indexBuffer->SetData(indices, (uint32_t)data.indices.size(), MTL::IndexTypeUInt32);
+        vertexBuffer = CreateRef<MetalVertexBuffer>(vertices.data(), sizeof(float) * vertices.size());
+        indexBuffer = CreateRef<MetalIndexBuffer>(indices.data(), indices.size(), MTL::IndexTypeUInt32);
     }
 
     MetalBufferGroup::~MetalBufferGroup() {
