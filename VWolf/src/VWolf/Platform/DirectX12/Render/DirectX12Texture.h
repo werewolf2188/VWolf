@@ -52,6 +52,7 @@ namespace VWolf {
 	public:
 		DirectX12Cubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
 		DirectX12Cubemap(std::array<std::string, 6> paths, TextureOptions options = {});
+        DirectX12Cubemap(std::filesystem::path path, TextureOptions options = {});
 		virtual ~DirectX12Cubemap();
 		virtual void* GetHandler() override;
 	protected:

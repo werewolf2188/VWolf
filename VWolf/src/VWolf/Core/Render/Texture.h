@@ -50,7 +50,7 @@ namespace VWolf {
         static Ref<Texture2D> LoadTexture2D(const std::string filePath, TextureOptions options = {});
         static Ref<RenderTexture> LoadRenderTexture(uint32_t width, uint32_t height, TextureOptions options = {});
         static Ref<Cubemap> LoadCubemap(TextureDefault textureDefault = TextureDefault::White, uint32_t size = 512, TextureOptions options = {});
-        static Ref<Cubemap> LoadCubemap(std::array<std::string, 6> paths, TextureOptions options = {});
+        static Ref<Cubemap> LoadCubemap(std::filesystem::path path, TextureOptions options = {});
     public:
         TextureOptions GetOptions() { return m_options; }
     protected:
@@ -87,10 +87,20 @@ namespace VWolf {
         uint32_t m_height;
     };
 
+    // Define the 6 cubemap faces
+    enum class CubemapFace {
+        FACE_RIGHT = 0,  // +X
+        FACE_LEFT = 1,   // -X
+        FACE_TOP = 2,    // +Y
+        FACE_BOTTOM = 3, // -Y
+        FACE_FRONT = 4,  // +Z
+        FACE_BACK = 5    // -Z
+    };
+
     class Cubemap: public Texture {
     public:
         Cubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {}): m_textureDefault(textureDefault), m_size(size), Texture(options) {}
-        Cubemap(std::array<std::string, 6> paths, TextureOptions options = {}): Texture(options) {}
+        Cubemap(std::filesystem::path path, TextureOptions options = {}): Texture(options) {}
         virtual ~Cubemap() = default;
     public:
         uint32_t GetSize() { return m_size; }

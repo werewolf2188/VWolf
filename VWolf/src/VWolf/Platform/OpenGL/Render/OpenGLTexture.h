@@ -66,7 +66,7 @@ namespace VWolf {
     class OpenGLCubemap: public Cubemap, public OpenGLBindableTexture {
     public:
         OpenGLCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
-        OpenGLCubemap(std::array<std::string, 6> paths, TextureOptions options = {});
+        OpenGLCubemap(std::filesystem::path path, TextureOptions options = {});
         virtual ~OpenGLCubemap();
         virtual void* GetHandler() override;
     public:

@@ -108,22 +108,22 @@ namespace VWolf {
         return texture;
     }
 
-    Ref<Cubemap> Texture::LoadCubemap(std::array<std::string, 6> paths, TextureOptions options) {
+    Ref<Cubemap> Texture::LoadCubemap(std::filesystem::path path, TextureOptions options) {
         Ref<Cubemap> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
-                texture = CreateRef<OpenGLCubemap>(paths, options);
+                texture = CreateRef<OpenGLCubemap>(path, options);
                 break;
-#ifdef VWOLF_PLATFORM_WINDOWS
+    #ifdef VWOLF_PLATFORM_WINDOWS
             case DriverType::DirectX12:
-                texture = CreateRef<DirectX12Cubemap>(paths, options);
+                texture = CreateRef<DirectX12Cubemap>(path, options);
                 break;
-#endif
-#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
+    #endif
+    #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
             case DriverType::Metal:
-                texture = CreateRef<MetalCubemap>(paths, options);
+                texture = CreateRef<MetalCubemap>(path, options);
                 break;
-#endif
+    #endif
             default:
                 VWOLF_CORE_ASSERT(false, "Texture: Not yet implemented");
         }

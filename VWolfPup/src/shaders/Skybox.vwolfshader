@@ -29,7 +29,8 @@ shader:
         struct VertexOut
         {
             float4 PosH  : SV_POSITION;
-            float3 TexC    : TEXCOORD;
+            float2 TexC    : TEXCOORD;
+            float3 TexC2    : TEXCOORD2;
         };
 
         TextureCube  skybox : register(t1);
@@ -44,13 +45,29 @@ shader:
             // Having z equal w will always result in a depth of 1.0f
             vOut.PosH = float4(pos.x, pos.y, pos.w, pos.w);
             // We want to flip the z axis due to the different coordinate systems (left hand vs right hand)
-            vOut.TexC = float3(vin.PosL.x, vin.PosL.y, -vin.PosL.z);
+            vOut.TexC2 = float3(vin.PosL.x, vin.PosL.y, -vin.PosL.z);
+            vOut.TexC = vin.TexCoord;
             
             return vOut;
         }
 
         float4 PS(VertexOut pin): SV_Target{
-           
-            float4 sampleTexture = skybox.Sample(gsamPointWrap, pin.TexC);
+            const float PI = 3.14159265359;
+            
+            float longitude = (pin.TexC.x * 2.0 - 1.0) * PI;
+            float latitude = (pin.TexC.y * 2.0 - 1.0) * (PI / 2.0);
+
+            float3 direction;
+            direction.x = cos(latitude) * sin(longitude);
+            direction.y = sin(latitude);
+            direction.z = cos(latitude) * cos(longitude);
+            direction = normalize(direction);
+        #ifndef OPENGL
+            float4 sampleTexture = skybox.Sample(gsamPointWrap, -pin.TexC2);
+            // float4 sampleTexture = skybox.Sample(gsamPointWrap, direction);
+        #else
+            float4 sampleTexture = skybox.Sample(gsamPointWrap, pin.TexC2);
+            // float4 sampleTexture = skybox.Sample(gsamPointWrap, -direction);
+        #endif
             return sampleTexture;
         }

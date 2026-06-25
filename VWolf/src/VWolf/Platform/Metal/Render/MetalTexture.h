@@ -61,7 +61,7 @@ namespace VWolf {
     class MetalCubemap : public Cubemap {
     public:
         MetalCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
-        MetalCubemap(std::array<std::string, 6> paths, TextureOptions options = {});
+        MetalCubemap(std::filesystem::path path, TextureOptions options = {});
         virtual ~MetalCubemap();
         virtual void* GetHandler() override;
     protected:

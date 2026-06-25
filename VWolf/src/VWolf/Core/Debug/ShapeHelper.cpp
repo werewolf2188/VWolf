@@ -260,6 +260,106 @@ namespace VWolf {
         return Mesh();
     }
 
+    Mesh ShapeHelper::CreateSkybox() {
+        Mesh skybox;
+        skybox.SetName("Skybox");
+
+        skybox.GetVertices().resize(8);
+        skybox.GetColors().resize(8);
+        skybox.GetNormals().resize(8);
+        skybox.GetTangents().resize(8);
+        skybox.GetUVs().resize(8);
+        
+        /*
+         
+         float skyboxVertices[] =
+         {
+             //   Coordinates
+             -1.0f, -1.0f,  1.0f,//        7--------6
+              1.0f, -1.0f,  1.0f,//       /|       /|
+              1.0f, -1.0f, -1.0f,//      4--------5 |
+             -1.0f, -1.0f, -1.0f,//      | |      | |
+             -1.0f,  1.0f,  1.0f,//      | 3------|-2
+              1.0f,  1.0f,  1.0f,//      |/       |/
+              1.0f,  1.0f, -1.0f,//      0--------1
+             -1.0f,  1.0f, -1.0f
+         };
+         */
+        
+        skybox.GetVertices()[0] = VWolf::Vector3(-1.0f, -1.0f,  1.0f);
+        skybox.GetColors()[0] = Color(1.0f, 0.0f, 0.0f, 1.0f);
+        skybox.GetNormals()[0] = Vector3(0.0f, 0.0f, 1.0f);
+        skybox.GetTangents()[0] = Vector3(-1.0f, 0.0f, 0.0f);
+        skybox.GetUVs()[0] = Vector2(1.0f, 1.0f);
+        
+        skybox.GetVertices()[1] = VWolf::Vector3(1.0f, -1.0f,  1.0f);
+        skybox.GetColors()[1] = Color(0.0f, 1.0f, 0.0f, 1.0f);
+        skybox.GetNormals()[1] = Vector3(0.0f, 0.0f, 1.0f);
+        skybox.GetTangents()[1] = Vector3(-1.0f, 0.0f, 0.0f);
+        skybox.GetUVs()[1] = Vector2(0.0f, 1.0f);
+        
+        skybox.GetVertices()[2] = VWolf::Vector3(1.0f, -1.0f, -1.0f);
+        skybox.GetColors()[2] = Color(1.0f, 0.0f, 0.0f, 1.0f);
+        skybox.GetNormals()[2] = Vector3(0.0f, 0.0f, -1.0f);
+        skybox.GetTangents()[2] = Vector3(1.0f, 0.0f, 0.0f);
+        skybox.GetUVs()[2] = Vector2(1.0f, 1.0f);
+        
+        skybox.GetVertices()[3] = VWolf::Vector3(-1.0f, -1.0f, -1.0f);
+        skybox.GetColors()[3] = Color(1.0f, 0.0f, 0.0f, 1.0f);
+        skybox.GetNormals()[3] = Vector3(0.0f, 1.0f, 0.0f);
+        skybox.GetTangents()[3] =  Vector3(1.0f, 0.0f, 0.0f);
+        skybox.GetUVs()[3] = Vector2(0.0f, 1.0f);
+        
+        skybox.GetVertices()[4] = VWolf::Vector3(-1.0f,  1.0f,  1.0f);
+        skybox.GetColors()[4] = Color(1.0f, 0.0f, 0.0f, 1.0f);
+        skybox.GetNormals()[4] = Vector3(0.0f, 0.0f, 1.0f);
+        skybox.GetTangents()[4] = Vector3(-1.0f, 0.0f, 0.0f);
+        skybox.GetUVs()[4] = Vector2(1.0f, 0.0f);
+        
+        skybox.GetVertices()[5] = VWolf::Vector3(1.0f,  1.0f,  1.0f);
+        skybox.GetColors()[5] = Color(0.0f, 0.0f, 1.0f, 1.0f);
+        skybox.GetNormals()[5] = Vector3(0.0f, 0.0f, 1.0f);
+        skybox.GetTangents()[5] = Vector3(-1.0f, 0.0f, 0.0f);
+        skybox.GetUVs()[5] = Vector2(0.0f, 0.0f);
+        
+        skybox.GetVertices()[6] = VWolf::Vector3(1.0f,  1.0f, -1.0f);
+        skybox.GetColors()[6] = Color(0.0f, 0.0f, 1.0f, 1.0f);
+        skybox.GetNormals()[6] = Vector3(0.0f, 0.0f, -1.0f);
+        skybox.GetTangents()[6] = Vector3(1.0f, 0.0f, 0.0f);
+        skybox.GetUVs()[6] = Vector2(1.0f, 0.0f);
+        
+        skybox.GetVertices()[7] = VWolf::Vector3(-1.0f,  1.0f, -1.0f);
+        skybox.GetColors()[7] = Color(0.0f, 1.0f, 0.0f, 1.0f);
+        skybox.GetNormals()[7] = Vector3(0.0f, 0.0f, -1.0f);
+        skybox.GetTangents()[7] = Vector3(1.0f, 0.0f, 0.0f);
+        skybox.GetUVs()[7] = Vector2(0.0f, 0.0f);
+
+        std::vector<uint32_t> skyboxIndices
+        {
+            // Right
+            1, 2, 6,
+            6, 5, 1,
+            // Left
+            0, 4, 7,
+            7, 3, 0,
+            // Top
+            4, 5, 6,
+            6, 7, 4,
+            // Bottom
+            0, 3, 2,
+            2, 1, 0,
+            // Back
+            0, 1, 5,
+            5, 4, 0,
+            // Front
+            3, 7, 6,
+            6, 2, 3
+        };
+        skybox.SetTriangles(skyboxIndices);
+        
+        return skybox;
+    }
+
     Mesh ShapeHelper::CreateBox(float width, float height, float depth, std::uint32_t numSubdivisions) {
         Mesh meshData(VWOLF_GET_SHAPE_ID(ShapeHelper::Box));
         meshData.SetName(VWOLF_GET_SHAPE_NAME(ShapeHelper::Box));

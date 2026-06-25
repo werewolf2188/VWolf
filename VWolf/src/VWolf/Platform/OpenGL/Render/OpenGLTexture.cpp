@@ -385,10 +385,64 @@ namespace VWolf {
         GLThrowIfFailed(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
     }
 
-    OpenGLCubemap::OpenGLCubemap(std::array<std::string, 6> paths, TextureOptions options): Cubemap(paths, options) {
-        m_internalDataFormat = GL_RGBA32F;
-        m_dataFormat = GL_RGBA;
+    static Vector3 GetCubemapVector(CubemapFace face, Vector2 texturePoint, uint32_t faceSize) {
+        Vector2 uv = (texturePoint + 0.5f) / faceSize * 2.0f - 1.0f;
+        
+        Vector3 xyz;
+        switch (face) {
+            case CubemapFace::FACE_RIGHT:
+                xyz.SetX(1.0f);
+                xyz.SetY(-uv.GetY());
+                xyz.SetZ(-uv.GetX());
+                break;
+            case CubemapFace::FACE_LEFT:
+                xyz.SetX(-1.0f);
+                xyz.SetY(-uv.GetY());
+                xyz.SetZ(uv.GetX());
+                break;
+            case CubemapFace::FACE_TOP:
+                xyz.SetX(uv.GetX());
+                xyz.SetY(1.0f);
+                xyz.SetZ(uv.GetY());
+                break;
+            case CubemapFace::FACE_BOTTOM:
+                xyz.SetX(uv.GetX());
+                xyz.SetY(-1.0f);
+                xyz.SetZ(-uv.GetY());
+                break;
+            case CubemapFace::FACE_FRONT:
+                xyz.SetX(uv.GetX());
+                xyz.SetY(-uv.GetY());
+                xyz.SetZ(1.0f);
+                break;
+            case CubemapFace::FACE_BACK:
+                xyz.SetX(-uv.GetX());
+                xyz.SetY(-uv.GetY());
+                xyz.SetZ(-1.0f);
+                break;
+        }
+        
+        xyz.Normalize();
+        
+        return xyz;
+    }
 
+    static Vector4 samplePanorama(const float* panoData, int panoWidth, int panoHeight, Vector3 cartesianCoord) {
+        float theta = std::atan2(cartesianCoord.GetZ(), cartesianCoord.GetX());
+        float phi = std::asin(cartesianCoord.GetY());
+        
+        float u = (theta + M_PI) / (2.0f * M_PI);
+        float v = (phi + M_PI / 2.0f) / M_PI;
+        
+        int x = std::min(static_cast<int>(u * panoWidth), panoWidth - 1);
+        int y = std::min(static_cast<int>(v * panoHeight), panoHeight - 1);
+        
+        int index = (y * panoWidth + x) * 3;
+        
+        return Vector4(panoData[index], panoData[index + 1], panoData[index + 2], 1);
+    }
+
+    OpenGLCubemap::OpenGLCubemap(std::filesystem::path path, TextureOptions options): Cubemap(path, options) {
         GLThrowIfFailed(glGenTextures(1, &m_textureID));
         GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, m_textureID));
         GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));
@@ -400,46 +454,46 @@ namespace VWolf {
                                                                                                   m_options.GetWrapModeU())));
         GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, TransformWrapMode(m_options.GetWrapMode(),
                                                                                                   m_options.GetWrapModeV())));
-
-        for (unsigned int i = 0; i < 6; i++)
-        {
-            int width, height, nrChannels;
-            unsigned char* data = stbi_load(paths[i].c_str(), &width, &height, &nrChannels, 0);
-            if (nrChannels == 4)
-            {
-                m_internalDataFormat = GL_RGBA8;
-                m_dataFormat = GL_RGBA;
+        
+        int channels, width, height;
+        stbi_set_flip_vertically_on_load(true);
+        float* img = stbi_loadf(path.c_str(), &width, &height, &channels, 3);
+        m_internalDataFormat = GL_RGBA32F;
+        m_dataFormat = GL_RGBA;
+        
+        m_size = height / 2;
+        
+        for (int f = 0; f < 6; ++f) {
+            
+            size_t size = sizeof(Vector4) * m_size * m_size;
+            Vector4* data = (Vector4*)malloc(size);
+            memset(data, 0, size);
+            uint32_t index = 0;
+            
+            for (int y = 0; y < m_size; ++y) {
+                for (int x = 0; x < m_size; ++x) {
+                    CubemapFace face = (CubemapFace)f;
+                    Vector3 coord = GetCubemapVector(face, Vector2(x, y), m_size);
+                    Vector4 pixel = samplePanorama(img, width, height, coord);
+                    
+                    index = (y * m_size) + x;
+                    data[index] = pixel;
+                }
             }
-            else if (nrChannels == 3)
-            {
-                m_internalDataFormat = GL_RGB8;
-                m_dataFormat = GL_RGB;
-            }
-            if (data)
-            {
-                stbi_set_flip_vertically_on_load(false);
-                GLThrowIfFailed(glTexImage2D
-                (
-                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+            
+            GLThrowIfFailed(glTexImage2D (
+                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + f,
                  0,
                  m_internalDataFormat,
-                 width,
-                 height,
+                 m_size,
+                 m_size,
                  0,
                  m_dataFormat,
-                 GL_UNSIGNED_BYTE,
+                 GL_FLOAT,
                  data
-                 ));
-                stbi_image_free(data);
-            }
-            else
-            {
-                VWOLF_CORE_ERROR("Failed to load texture: %s", paths[i].c_str());
-                stbi_image_free(data);
-            }
+            ));
         }
-        GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
-        GLThrowIfFailed(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
+        stbi_image_free(img);
     }
 
     OpenGLCubemap::~OpenGLCubemap() {

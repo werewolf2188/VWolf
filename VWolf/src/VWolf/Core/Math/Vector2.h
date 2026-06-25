@@ -41,7 +41,9 @@ namespace VWolf {
         bool operator==(const Vector2& rhs);
         bool operator!=(const Vector2& rhs);
         Vector2 operator+(const Vector2& rhs);
+        Vector2 operator+(float rhs);
         Vector2 operator-(const Vector2& rhs);
+        Vector2 operator-(float rhs);
         Vector2 operator*(float rhs);
         Vector2 operator/(float rhs);
         float operator[](int index);

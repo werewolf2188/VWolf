@@ -541,6 +541,10 @@ namespace VWolf {
 		GetSurfaceInfo(m_size, m_size, format, &numBytes, &rowBytes, &numRows);
 	}
 
+    DirectX12Cubemap::DirectX12Cubemap(std::filesystem::path path, TextureOptions options): Cubemap(path, options) {
+        
+    }
+
 	DirectX12Cubemap::~DirectX12Cubemap()
 	{
 	}

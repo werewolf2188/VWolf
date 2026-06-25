@@ -189,15 +189,69 @@ namespace VWolf {
         CopyData(4 * 4);
     }
 
-    MetalCubemap::MetalCubemap(std::array<std::string, 6> paths, TextureOptions options): Cubemap(paths, options) {
-        int channels, width, height;
-        for (int index = 0; index < numberOfSides; index++) {
-            auto img = stbi_load(paths[index].c_str(), &width, &height, &channels, 0);
-            m_data[index] = img;
+    static Vector3 GetCubemapVector(CubemapFace face, Vector2 texturePoint, uint32_t faceSize) {
+        Vector2 uv = (texturePoint + 0.5f) / faceSize * 2.0f - 1.0f;
+        
+        Vector3 xyz;
+        switch (face) {
+            case CubemapFace::FACE_RIGHT:
+                xyz.SetX(1.0f);
+                xyz.SetY(-uv.GetY());
+                xyz.SetZ(-uv.GetX());
+                break;
+            case CubemapFace::FACE_LEFT:
+                xyz.SetX(-1.0f);
+                xyz.SetY(-uv.GetY());
+                xyz.SetZ(uv.GetX());
+                break;
+            case CubemapFace::FACE_TOP:
+                xyz.SetX(uv.GetX());
+                xyz.SetY(1.0f);
+                xyz.SetZ(uv.GetY());
+                break;
+            case CubemapFace::FACE_BOTTOM:
+                xyz.SetX(uv.GetX());
+                xyz.SetY(-1.0f);
+                xyz.SetZ(-uv.GetY());
+                break;
+            case CubemapFace::FACE_FRONT:
+                xyz.SetX(uv.GetX());
+                xyz.SetY(-uv.GetY());
+                xyz.SetZ(1.0f);
+                break;
+            case CubemapFace::FACE_BACK:
+                xyz.SetX(-uv.GetX());
+                xyz.SetY(-uv.GetY());
+                xyz.SetZ(-1.0f);
+                break;
         }
         
-        m_size = width;
-        m_size = height;
+        xyz.Normalize();
+        
+        return xyz;
+    }
+
+    static Vector4 samplePanorama(const float* panoData, int panoWidth, int panoHeight, Vector3 cartesianCoord) {
+        float theta = std::atan2(cartesianCoord.GetZ(), cartesianCoord.GetX());
+        float phi = std::asin(cartesianCoord.GetY());
+        
+        float u = (theta + M_PI) / (2.0f * M_PI);
+        float v = (phi + M_PI / 2.0f) / M_PI;
+        
+        int x = std::min(static_cast<int>(u * panoWidth), panoWidth - 1);
+        int y = std::min(static_cast<int>(v * panoHeight), panoHeight - 1);
+        
+        int index = (y * panoWidth + x) * 3;
+        
+        return Vector4(panoData[index], panoData[index + 1], panoData[index + 2], 1);
+    }
+
+    MetalCubemap::MetalCubemap(std::filesystem::path path, TextureOptions options): Cubemap(path, options) {
+        int channels, width, height;
+        stbi_set_flip_vertically_on_load(false);
+        float* img = stbi_loadf(path.c_str(), &width, &height, &channels, 3);
+        
+        m_size = height / 2;
         MTL::PixelFormat format = MTL::PixelFormat::PixelFormatRGBA32Float;
         float bytes = 4 * 4;
         if (channels == 4)
@@ -205,8 +259,31 @@ namespace VWolf {
             format = MTL::PixelFormat::PixelFormatRGBA8Unorm; // GL_RGBA8;
             bytes = 4;
         }
+        
+        for (int f = 0; f < 6; ++f) {
+            
+            size_t size = sizeof(Vector4) * m_size * m_size;
+            Vector4* data = (Vector4*)malloc(size);
+            memset(data, 0, size);
+            uint32_t index = 0;
+            
+            for (int y = 0; y < m_size; ++y) {
+                for (int x = 0; x < m_size; ++x) {
+                    CubemapFace face = (CubemapFace)f;
+                    Vector3 coord = GetCubemapVector(face, Vector2(x, y), m_size);
+                    Vector4 pixel = samplePanorama(img, width, height, coord);
+                    
+                    index = (y * m_size) + x;
+                    data[index] = pixel;
+                }
+            }
+            
+            m_data[f] = data;
+        }
+        
         Initialize(m_size, format, options);
         CopyData(bytes);
+        stbi_image_free(img);
     }
 
     void MetalCubemap::CopyData(size_t numBytes) {
