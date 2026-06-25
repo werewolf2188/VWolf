@@ -494,6 +494,8 @@ namespace VWolf {
             ));
         }
         stbi_image_free(img);
+        GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+        GLThrowIfFailed(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
     }
 
     OpenGLCubemap::~OpenGLCubemap() {
