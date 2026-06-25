@@ -457,7 +457,7 @@ namespace VWolf {
         
         int channels, width, height;
         stbi_set_flip_vertically_on_load(true);
-        float* img = stbi_loadf(path.c_str(), &width, &height, &channels, 3);
+        float* img = stbi_loadf(path.string().c_str(), &width, &height, &channels, 3);
         m_internalDataFormat = GL_RGBA32F;
         m_dataFormat = GL_RGBA;
         
