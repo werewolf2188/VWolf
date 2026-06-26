@@ -7,6 +7,9 @@
 
 #pragma once
 #include "VWolf/Core/Base.h"
+#include "VWolf/Core/Object.h"
+
+#include "VWolf/Core/Utils/GenericSerialization.h"
 namespace VWolf {
     class Texture2D;
     class RenderTexture;
@@ -20,9 +23,13 @@ namespace VWolf {
         None, Repeat, Clamp, Mirror, MirrorOnce
     };
 
+    BOOST_DESCRIBE_ENUM(TextureWrapMode, None, Repeat, Clamp, Mirror, MirrorOnce)
+
     enum class TextureFilterMode {
         Point, Bilinear, Trilinear
     };
+
+    BOOST_DESCRIBE_ENUM(TextureFilterMode, Point, Bilinear, Trilinear)
 
     class TextureOptions {
     public:
@@ -37,6 +44,9 @@ namespace VWolf {
         TextureWrapMode wrapModeV = TextureWrapMode::None;
         TextureWrapMode wrapModeW = TextureWrapMode::None;
         TextureWrapMode wrapMode = TextureWrapMode::Repeat;
+        
+        BOOST_DESCRIBE_CLASS(TextureOptions, (), (), (), (filterMode, wrapModeU, wrapModeV, wrapModeW, wrapMode))
+        VWOLF_SERIALIZATION_FRIENDS(TextureOptions)
     };
 
     class Texture {
@@ -112,3 +122,7 @@ namespace VWolf {
     };
 }
 
+namespace YAML {
+    VWOLF_CREATE_CONVERT_GENERIC_ENUM_DECODER(VWolf::TextureWrapMode, None, Repeat, Clamp, Mirror, MirrorOnce)
+    VWOLF_CREATE_CONVERT_GENERIC_ENUM_DECODER(VWolf::TextureFilterMode, Point, Bilinear, Trilinear)
+}

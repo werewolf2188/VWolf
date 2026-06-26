@@ -202,12 +202,17 @@ namespace VWolfPup {
         boost::mpl::for_each<AllImporters>(ImporterExtensionValidator(path, canCreate));
         
         if (canCreate) {
-            YAML::Emitter out;
-            out << *this;
-            std::ofstream fout(metafile.string());
-            fout << out.c_str();
+            return Save();
         }
         
+        return false;
+    }
+
+    bool AssetMetaFile::Save() const {
+        YAML::Emitter out;
+        out << *this;
+        std::ofstream fout(metafile.string());
+        fout << out.c_str();
         return true;
     }
 

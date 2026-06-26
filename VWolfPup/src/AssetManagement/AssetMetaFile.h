@@ -33,6 +33,7 @@ namespace VWolfPup {
         uint32_t LoadPriority() const { return importer->LoadPriority(path); }
     public:
         bool Create();
+        bool Save() const;
         bool Import();
     public:
         AssetMetaFile& operator=(const AssetMetaFile& other);
