@@ -5,6 +5,7 @@
 //  Created by Enrique Moises on 6/26/26.
 //
 
+#include "vwpch.h"
 #include "Texture.h"
 
 namespace VWolf {
