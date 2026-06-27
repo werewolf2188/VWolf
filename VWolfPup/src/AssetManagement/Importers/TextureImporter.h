@@ -17,7 +17,9 @@ namespace VWolfPup {
     protected:
         const std::vector<Extension> Extensions() const override;
     private:
-        BOOST_DESCRIBE_CLASS(TextureImporter, (AssetImporter), (), (), ())
+        VWolf::TextureOptions options;
+        
+        BOOST_DESCRIBE_CLASS(TextureImporter, (AssetImporter), (), (), (options))
         VWOLF_SERIALIZATION_FRIENDS(TextureImporter)
     };
 }

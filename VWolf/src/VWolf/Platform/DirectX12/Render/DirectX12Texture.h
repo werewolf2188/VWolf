@@ -1,14 +1,14 @@
 #pragma once
 
-#include "VWolf/Core/Render/Texture.h"
-#include "VWolf/Core/Math/VMath.h" 
+#include "VWolf/Platform/PTexture.h"
+#include "VWolf/Core/Math/VMath.h"
 #ifdef VWOLF_PLATFORM_WINDOWS
 namespace VWolf {
 	class DX12RenderTargetResource;
 	class DX12TextureResource;
 	class DX12BufferResource;
 
-	class DirectX12Texture2D : public Texture2D {
+	class DirectX12Texture2D : public PTexture2D {
 	public:
 		DirectX12Texture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options = {});
 		DirectX12Texture2D(const std::string filePath, TextureOptions options = {});
@@ -29,7 +29,7 @@ namespace VWolf {
 		size_t numBytes = 0, rowBytes = 0, numRows = 0;
 	};
 
-	class DirectX12RenderTexture : public RenderTexture {
+	class DirectX12RenderTexture : public PRenderTexture {
 	public:
 		DirectX12RenderTexture(uint32_t width, uint32_t height, bool isDepthOnly = false, TextureOptions options = {});
 		virtual ~DirectX12RenderTexture();
@@ -48,7 +48,7 @@ namespace VWolf {
 		bool isDepthOnly = false;
 	};
 
-	class DirectX12Cubemap : public Cubemap {
+	class DirectX12Cubemap : public PCubemap {
 	public:
 		DirectX12Cubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
         DirectX12Cubemap(std::filesystem::path path, TextureOptions options = {});

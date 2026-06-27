@@ -300,14 +300,14 @@ namespace VWolf {
 		}
 	}
 
-	DirectX12Texture2D::DirectX12Texture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options): Texture2D(textureDefault, width, height, options)
+	DirectX12Texture2D::DirectX12Texture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options): PTexture2D(textureDefault, width, height, options)
 	{
 		Initialize(width, height, DXGI_FORMAT_R32G32B32A32_FLOAT, options);
 		PopulateColor();
 		GetSurfaceInfo(width, height, DXGI_FORMAT_R32G32B32A32_FLOAT, &numBytes, &rowBytes, &numRows);
 	}
 
-	DirectX12Texture2D::DirectX12Texture2D(const std::string filePath, TextureOptions options): Texture2D(filePath, options)
+	DirectX12Texture2D::DirectX12Texture2D(const std::string filePath, TextureOptions options): PTexture2D(filePath, options)
 	{
 		int channels, width, height;
 		auto img = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
@@ -441,7 +441,7 @@ namespace VWolf {
 		return (void*)m_texture->GetHandle().GetGPUAddress().ptr;
 	}
 
-	DirectX12RenderTexture::DirectX12RenderTexture(uint32_t width, uint32_t height, bool isDepthOnly, TextureOptions options): RenderTexture(width, height, options), isDepthOnly(isDepthOnly)
+	DirectX12RenderTexture::DirectX12RenderTexture(uint32_t width, uint32_t height, bool isDepthOnly, TextureOptions options): PRenderTexture(width, height, options), isDepthOnly(isDepthOnly)
 	{
 		Initialize();
 	}
@@ -509,7 +509,7 @@ namespace VWolf {
 		}
 	}
 
-	DirectX12Cubemap::DirectX12Cubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options): Cubemap(textureDefault, size, options)
+	DirectX12Cubemap::DirectX12Cubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options): PCubemap(textureDefault, size, options)
 	{
 		Initialize(size, DXGI_FORMAT_R32G32B32A32_FLOAT, options);
 		PopulateColor();
@@ -573,7 +573,7 @@ namespace VWolf {
 		return Vector4(panoData[index], panoData[index + 1], panoData[index + 2], 1);
 	}
 
-    DirectX12Cubemap::DirectX12Cubemap(std::filesystem::path path, TextureOptions options): Cubemap(path, options) {
+    DirectX12Cubemap::DirectX12Cubemap(std::filesystem::path path, TextureOptions options): PCubemap(path, options) {
 		int channels, width, height;
 		stbi_set_flip_vertically_on_load(false);
 		float* img = stbi_loadf(path.string().c_str(), &width, &height, &channels, 3);

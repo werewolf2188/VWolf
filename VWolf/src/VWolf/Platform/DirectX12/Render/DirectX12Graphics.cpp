@@ -208,7 +208,7 @@ namespace VWolf {
 
 	void DirectX12Graphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture)
 	{
-		this->renderTexture = renderTexture;
+		this->renderTexture = renderTexture->GetInnerTexture();
 	}
 
 	void DirectX12Graphics::BeginSceneImpl()

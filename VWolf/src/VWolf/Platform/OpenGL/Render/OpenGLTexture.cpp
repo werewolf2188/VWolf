@@ -52,7 +52,7 @@ namespace VWolf {
     }
 
     OpenGLTexture2D::OpenGLTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options):
-    Texture2D(textureDefault, width, height, options) {
+    PTexture2D(textureDefault, width, height, options) {
         m_internalDataFormat = GL_RGBA32F;
         m_dataFormat = GL_RGBA;
 
@@ -83,7 +83,7 @@ namespace VWolf {
     }
 
     OpenGLTexture2D::OpenGLTexture2D(const std::string filePath, TextureOptions options):
-    Texture2D(filePath, options) {
+    PTexture2D(filePath, options) {
         int channels, width, height;
         auto img = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
         m_width = width;
@@ -203,7 +203,7 @@ namespace VWolf {
     }
 
     OpenGLRenderTexture::OpenGLRenderTexture(uint32_t width, uint32_t height, bool isDepthOnly, TextureOptions options):
-    RenderTexture(width, height, options), isDepthOnly(isDepthOnly) {
+    PRenderTexture(width, height, options), isDepthOnly(isDepthOnly) {
         if (width <= 0 || height <= 0) {
             VWOLF_CORE_ASSERT(false,  "Render texture cannot have a size less or equal than 0");
         }
@@ -364,7 +364,7 @@ namespace VWolf {
         Invalidate();
     }
 
-    OpenGLCubemap::OpenGLCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options): Cubemap(textureDefault, size, options) {
+    OpenGLCubemap::OpenGLCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options): PCubemap(textureDefault, size, options) {
         m_internalDataFormat = GL_RGBA32F;
         m_dataFormat = GL_RGBA;
 
@@ -442,7 +442,7 @@ namespace VWolf {
         return Vector4(panoData[index], panoData[index + 1], panoData[index + 2], 1);
     }
 
-    OpenGLCubemap::OpenGLCubemap(std::filesystem::path path, TextureOptions options): Cubemap(path, options) {
+    OpenGLCubemap::OpenGLCubemap(std::filesystem::path path, TextureOptions options): PCubemap(path, options) {
         GLThrowIfFailed(glGenTextures(1, &m_textureID));
         GLThrowIfFailed(glBindTexture(GL_TEXTURE_CUBE_MAP, m_textureID));
         GLThrowIfFailed(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, TransformFilterMode(m_options.GetFilterMode())));

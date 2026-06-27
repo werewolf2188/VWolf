@@ -6,7 +6,7 @@
 //
 
 #pragma once
-#include "VWolf/Core/Render/Texture.h"
+#include "VWolf/Platform/PTexture.h"
 #include "VWolf/Core/Math/VMath.h"
 
 namespace VWolf {
@@ -16,7 +16,7 @@ namespace VWolf {
         virtual void Unbind(uint32_t base) = 0;
     };
 
-    class OpenGLTexture2D: public Texture2D, public OpenGLBindableTexture {
+    class OpenGLTexture2D: public PTexture2D, public OpenGLBindableTexture {
     public:
         OpenGLTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options = {});
         OpenGLTexture2D(const std::string filePath, TextureOptions options = {});
@@ -37,7 +37,7 @@ namespace VWolf {
         GLenum m_internalDataFormat, m_dataFormat;
     };
 
-    class OpenGLRenderTexture: public RenderTexture {
+    class OpenGLRenderTexture: public PRenderTexture {
     public:
         OpenGLRenderTexture(uint32_t width, uint32_t height, bool isDepthOnly = false, TextureOptions options = {});
         virtual ~OpenGLRenderTexture();
@@ -63,7 +63,7 @@ namespace VWolf {
 //        GLenum m_internalDataFormat, m_dataFormat;
     };
 
-    class OpenGLCubemap: public Cubemap, public OpenGLBindableTexture {
+    class OpenGLCubemap: public PCubemap, public OpenGLBindableTexture {
     public:
         OpenGLCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
         OpenGLCubemap(std::filesystem::path path, TextureOptions options = {});

@@ -124,10 +124,10 @@ namespace VWolf {
                     floats[property.GetName()] = floatValue;
                     break;
                 case PropertyType::Texture2D:
-                    textures[property.GetName()] = Texture::LoadTexture2D();
+                    textures[property.GetName()] = Texture2D::Load();
                     break;
                 case PropertyType::Cubemap:
-                    textures[property.GetName()] = Texture::LoadCubemap();
+                    textures[property.GetName()] = Cubemap::Load();
                     break;
                 default: break;
             }

@@ -51,7 +51,7 @@ namespace VWolf {
         virtual void DrawPostProcess() = 0;
     protected:
         // TODO: Think about how to deal with render textures
-        Ref<RenderTexture> renderTexture;
+        Ref<PRenderTexture> renderTexture;
     private:
         static Ref<Graphics> graphicsImpl;
     };

@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include "VWolf/Core/Render/Texture.h"
+#include "VWolf/Platform/PTexture.h"
 #include "VWolf/Core/Math/VMath.h"
 #include "VWolf/Platform/Metal/Core/Core.h"
 
 namespace VWolf {
-    class MetalTexture2D : public Texture2D {
+    class MetalTexture2D : public PTexture2D {
     public:
         MetalTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options = {});
         MetalTexture2D(const std::string filePath, TextureOptions options = {});
@@ -32,7 +32,7 @@ namespace VWolf {
         size_t numBytes = 0, rowBytes = 0, numRows = 0;
     };
 
-    class MetalRenderTexture : public RenderTexture {
+    class MetalRenderTexture : public PRenderTexture {
     public:
         MetalRenderTexture(uint32_t width, uint32_t height, bool isDepthOnly = false, TextureOptions options = {});
         virtual ~MetalRenderTexture();
@@ -58,7 +58,7 @@ namespace VWolf {
         bool startedEncoding = false;
     };
 
-    class MetalCubemap : public Cubemap {
+    class MetalCubemap : public PCubemap {
     public:
         MetalCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
         MetalCubemap(std::filesystem::path path, TextureOptions options = {});

@@ -11,7 +11,7 @@
 
 namespace VWolfPup {
     SceneViewer::SceneViewer(VWolf::Ref<VWolf::Camera> camera, VWolf::DriverType driverType, uint32_t width, uint32_t height):
-    camera(camera), renderTexture(VWolf::Texture::LoadRenderTexture(width, height)), driverType(driverType), View("Scene") { }
+    camera(camera), renderTexture(VWolf::CreateRef<VWolf::RenderTexture>(width, height)), driverType(driverType), View("Scene") { }
     SceneViewer::~SceneViewer() {
         
     }

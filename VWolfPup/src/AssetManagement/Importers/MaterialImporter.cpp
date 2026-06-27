@@ -26,7 +26,7 @@ namespace VWolfPup {
         } else if (_defaults->GetDefaultSkyBoxMaterialName() == mat->GetName()) {
 
             mat->SetTexture("skybox",
-                            VWolf::Texture::LoadCubemap("assets/CoriolisNight4k.hdr"));
+                            VWolf::Cubemap::Load(_id, "assets/CoriolisNight4k.hdr"));
         }
         return true;
     }

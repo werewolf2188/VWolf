@@ -165,7 +165,7 @@ namespace VWolf {
     }
 
     void MetalGraphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture) {
-        this->renderTexture = renderTexture;
+        this->renderTexture = renderTexture->GetInnerTexture();
         
     }
 

@@ -6,7 +6,7 @@
 //
 
 #include "vwpch.h"
-#include "VWolf/Core/Render/Texture.h"
+#include "VWolf/Platform/PTexture.h"
 #include "VWolf/Core/Application.h"
 
 #include "VWolf/Platform/OpenGL/Render/OpenGLTexture.h"
@@ -20,8 +20,8 @@
 
 namespace VWolf {
 
-    Ref<Texture2D> Texture::LoadTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options) {
-        Ref<Texture2D> texture;
+    Ref<PTexture2D> LoadTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options) {
+        Ref<PTexture2D> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
                 texture = CreateRef<OpenGLTexture2D>(textureDefault, width, height, options);
@@ -42,8 +42,8 @@ namespace VWolf {
         return texture;
     }
 
-    Ref<Texture2D> Texture::LoadTexture2D(const std::string filePath, TextureOptions options) {
-        Ref<Texture2D> texture;
+    Ref<PTexture2D> LoadTexture2D(const std::string filePath, TextureOptions options) {
+        Ref<PTexture2D> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
                 texture = CreateRef<OpenGLTexture2D>(filePath, options);
@@ -64,8 +64,12 @@ namespace VWolf {
         return texture;
     }
 
-    Ref<RenderTexture> Texture::LoadRenderTexture(uint32_t width, uint32_t height, TextureOptions options) {
-        Ref<RenderTexture> texture;
+    void* GetHandlerForTexture2D(Ref<PTexture2D> texture2d) {
+        return texture2d->GetHandler();
+    }
+
+    Ref<PRenderTexture> LoadRenderTexture(uint32_t width, uint32_t height, TextureOptions options) {
+        Ref<PRenderTexture> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
                 texture = CreateRef<OpenGLRenderTexture>(width, height, false, options);
@@ -86,8 +90,16 @@ namespace VWolf {
         return texture;
     }
 
-    Ref<Cubemap> Texture::LoadCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options) {
-        Ref<Cubemap> texture;
+    void* GetHandlerForRenderTexture(Ref<PRenderTexture> renderTexture) {
+        return renderTexture->GetHandler();
+    }
+
+    void ResizeRenderTexture(Ref<PRenderTexture> renderTexture, uint32_t width, uint32_t height) {
+        renderTexture->Resize(width, height);
+    }
+
+    Ref<PCubemap> LoadCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options) {
+        Ref<PCubemap> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
                 texture = CreateRef<OpenGLCubemap>(textureDefault, size, options);
@@ -108,8 +120,8 @@ namespace VWolf {
         return texture;
     }
 
-    Ref<Cubemap> Texture::LoadCubemap(std::filesystem::path path, TextureOptions options) {
-        Ref<Cubemap> texture;
+    Ref<PCubemap> LoadCubemap(std::filesystem::path path, TextureOptions options) {
+        Ref<PCubemap> texture;
         switch(Application::GetApplication()->GetDriverType()) {
             case DriverType::OpenGL:
                 texture = CreateRef<OpenGLCubemap>(path, options);
@@ -128,5 +140,9 @@ namespace VWolf {
                 VWOLF_CORE_ASSERT(false, "Texture: Not yet implemented");
         }
         return texture;
+    }
+
+    void* GetHandlerForRenderTexture(Ref<PCubemap> cubemap) {
+        return cubemap->GetHandler();
     }
 }
