@@ -10,3 +10,5 @@ material:
     u_specular: [1, 1, 1, 1]
   floats:
     u_shinines: 0
+  textures:
+    {}

@@ -38,6 +38,12 @@ namespace VWolf {
             VWOLF_CORE_ERROR("Failed to load .material file '%s'\n     %s", path.string().c_str(), e.what());
         }
         *this = data[MATERIAL_KEY].as<Material>();
+//        std::cout << "Material with path" << std::endl;
+        
+        for (const auto& [name, id]: textures) {
+            if (id == UUID::Empty) continue;
+            _textures[name] = ObjectResourceManager::Get<Texture>(id);
+        }
     }
 
     Material::Material(Ref<Shader> shader): Object(UUID::NewUUID()) {
@@ -45,9 +51,11 @@ namespace VWolf {
         shaderName = shader->GetName();
         MaterialLibrary::SetMaterial(name, CreateRef<Material>(*this));
         InternalLoad(shader);
+//        std::cout << "Material with shader" << std::endl;
     }
 
     Material::Material(const Material& material): Object(material.id) {
+//        std::cout << "const Material& material" << std::endl;
         this->name = material.name;
         this->isDefault = material.isDefault;
         this->shaderName = material.shaderName;
@@ -56,6 +64,7 @@ namespace VWolf {
         this->vectors = material.vectors;
         this->floats = material.floats;
         this->textures = material.textures;
+        this->_textures = material._textures;
         this->properties = material.properties;
         this->inputs_information = material.inputs_information;
     }
@@ -69,6 +78,7 @@ namespace VWolf {
         this->vectors = material.vectors;
         this->floats = material.floats;
         this->textures = material.textures;
+        this->_textures = material._textures;
         this->properties = material.properties;
         this->inputs_information = material.inputs_information;
 
@@ -80,6 +90,7 @@ namespace VWolf {
         material.vectors.clear();
         material.floats.clear();
         material.textures.clear();
+        material._textures.clear();
         material.properties.clear();
         material.inputs_information.clear();
     }
@@ -89,6 +100,7 @@ namespace VWolf {
     }
 
     Material& Material::operator=(const Material& material) {
+//        std::cout << "operator=" << std::endl;
         this->name = material.name;
         this->isDefault = material.isDefault;
         this->shaderName = material.shaderName;
@@ -97,12 +109,14 @@ namespace VWolf {
         this->vectors = material.vectors;
         this->floats = material.floats;
         this->textures = material.textures;
+        this->_textures = material._textures;
         this->properties = material.properties;
         this->inputs_information = material.inputs_information;
         return *this;
     }
 
     void Material::InternalLoad(Ref<Shader> shader) {
+//        std::cout << "InternalLoad" << std::endl;
         float floatValue = 0;
         
         size = shader->GetMaterialSize();
@@ -124,10 +138,12 @@ namespace VWolf {
                     floats[property.GetName()] = floatValue;
                     break;
                 case PropertyType::Texture2D:
-                    textures[property.GetName()] = Texture2D::Load();
+                    _textures[property.GetName()] = Texture2D::Load();
+                    textures[property.GetName()] = UUID::Empty;
                     break;
                 case PropertyType::Cubemap:
-                    textures[property.GetName()] = Cubemap::Load();
+                    _textures[property.GetName()] = Cubemap::Load();
+                    textures[property.GetName()] = UUID::Empty;
                     break;
                 default: break;
             }
@@ -170,12 +186,27 @@ namespace VWolf {
         return properties;
     }
 
+    const Property& Material::GetPropertyBy(std::string name) {
+        auto result = std::find_if(properties.begin(), properties.end(), [name](const Property& property) {
+            return property.GetName() == name;
+        });
+        return *result;
+    }
+
+    bool Material::HasProperty(std::string name) {
+        auto result = std::find_if(properties.begin(), properties.end(), [name](const Property& property) {
+            return property.GetName() == name;
+        });
+        return result != properties.end();
+    }
+
     void Material::SetTexture(std::string name, Ref<Texture> texture) {
-        textures[name] = texture;
+        _textures[name] = texture;
+        textures[name] = texture->GetID();
     }
 
     Ref<Texture> Material::GetTexture(std::string name) {
-        return textures[name];
+        return _textures[name];
     }
 
     void * Material::GetDataPointer() const {

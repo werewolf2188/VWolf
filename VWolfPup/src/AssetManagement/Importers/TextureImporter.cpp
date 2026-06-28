@@ -14,9 +14,9 @@ namespace VWolfPup {
 
     bool TextureImporter::Import(std::filesystem::path path, VWolf::UUID _id) {
         if (path == Extension("HDR Files", ".hdr")) {
-            
+            VWolf::Cubemap::Load(_id, path);
         } else {
-            
+            VWolf::Texture2D::Load(_id, path);
         }
         return true;
     }
