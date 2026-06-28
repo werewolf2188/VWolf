@@ -290,96 +290,18 @@ namespace VWolf {
 		}
 	}
 
-	Color Transform(TextureDefault textureDefault) {
-		switch (textureDefault) {
-		case TextureDefault::White: return Color(1, 1, 1, 1);
-		case TextureDefault::Bump: return Color(0.5f, 0.5f, 1, 0.5f);
-		case TextureDefault::Black: return Color(0, 0, 0, 1);
-		case TextureDefault::Gray: return Color(0.5f, 0.5f, 0.5f, 1);
-		case TextureDefault::Red: return Color(1, 0, 0, 1);
-		}
-	}
-
-	DirectX12Texture2D::DirectX12Texture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options): PTexture2D(textureDefault, width, height, options)
-	{
-		Initialize(width, height, DXGI_FORMAT_R32G32B32A32_FLOAT, options);
-		PopulateColor();
-		GetSurfaceInfo(width, height, DXGI_FORMAT_R32G32B32A32_FLOAT, &numBytes, &rowBytes, &numRows);
-	}
-
-	DirectX12Texture2D::DirectX12Texture2D(const std::string filePath, TextureOptions options): PTexture2D(filePath, options)
-	{
-		int channels, width, height;
-		auto img = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
+	DirectX12Texture2D::DirectX12Texture2D(void* bytes, uint32_t width, uint32_t height, TextureOptions options): PTexture2D(bytes, width, height, options) {
 		m_width = width;
 		m_height = height;
 		DXGI_FORMAT format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-
-		if (channels == 4)
-		{
-			format = DXGI_FORMAT_R8G8B8A8_UNORM; // GL_RGBA8;
-		}
-		// TODO: What to do when there are only 3 channels?
-		//else if (channels == 3)
-		//{
-		//	format = DXGI_FORMAT_R32G32B32_UINT; // GL_RGB8;
-		//}
 		Initialize(width, height, format, options);
-		m_data = img;
 		GetSurfaceInfo(width, height, format, &numBytes, &rowBytes, &numRows);
 	}
 
 	DirectX12Texture2D::~DirectX12Texture2D()
 	{
-		free(m_data);
+		free(m_bytes);
 	}
-
-	void DirectX12Texture2D::PopulateColor() {
-		size_t size = sizeof(Color) * m_width * m_height;
-		Color* data = (Color*)malloc(size);
-		memset(data, 0, size);
-		uint32_t index = 0;
-		Color value = Transform(m_textureDefault);
-		for (uint32_t column = 0; column < m_height; column++) {			
-			for (uint32_t row = 0; row < m_width; row++) {
-				index = (column * m_height) + row;
-				data[index] = value;
-			}
-		}
-		m_data = data;
-	}
-
-#if defined(DEBUG) || defined(_DEBUG)
-	void* DirectX12Texture2D::PopulateTest() {
-		size_t size = sizeof(Color) * m_width * m_height;
-		Color* data = (Color*)malloc(size);
-		memset(data, 0, size);
-		uint32_t index = 0;
-		Color black(0, 0, 0, 1);
-		Color white(1, 1, 1, 1);
-		Color value = white;
-		for (uint32_t column = 0; column < m_height; column++) {
-			if (column % 32 == 0) {
-				if (value.GetR() == 1)
-					value = black;
-				else if (value.GetR() == 0)
-					value = white;
-			}
-			for (uint32_t row = 0; row < m_width; row++) {
-				if (row % 32 == 0) {
-					if (value.GetR() == 1)
-						value = black;
-					else if (value.GetR() == 0)
-						value = white;
-				}
-				index = (column * m_height) + row;
-				data[index] = value;
-			}
-		}
-		return data;
-	}
-	
-#endif
 
 	void DirectX12Texture2D::Initialize(uint32_t width, uint32_t height, DXGI_FORMAT format, TextureOptions options)
 	{
@@ -429,7 +351,7 @@ namespace VWolf {
 			m_texture->TransitionResource(DirectX12Driver::GetCurrent()->GetCommands(),
 				m_texture->GetCurrentState(), D3D12_RESOURCE_STATE_COPY_DEST);			
 			D3D12_SUBRESOURCE_DATA data;
-			data.pData = m_data;
+			data.pData = m_bytes;
 			data.RowPitch = static_cast<UINT>(rowBytes);
 			data.SlicePitch = static_cast<UINT>(numBytes);
 			// TODO: I can't load anything beyond 512x512 Pixels
@@ -509,104 +431,11 @@ namespace VWolf {
 		}
 	}
 
-	DirectX12Cubemap::DirectX12Cubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options): PCubemap(textureDefault, size, options)
-	{
-		Initialize(size, DXGI_FORMAT_R32G32B32A32_FLOAT, options);
-		PopulateColor();
-		GetSurfaceInfo(size, size, DXGI_FORMAT_R32G32B32A32_FLOAT, &numBytes, &rowBytes, &numRows);
-	}
-
-	static Vector3 GetCubemapVector(CubemapFace face, Vector2 texturePoint, uint32_t faceSize) {
-		Vector2 uv = (texturePoint + 0.5f) / faceSize * 2.0f - 1.0f;
-
-		Vector3 xyz;
-		switch (face) {
-		case CubemapFace::FACE_RIGHT:
-			xyz.SetX(1.0f);
-			xyz.SetY(-uv.GetY());
-			xyz.SetZ(-uv.GetX());
-			break;
-		case CubemapFace::FACE_LEFT:
-			xyz.SetX(-1.0f);
-			xyz.SetY(-uv.GetY());
-			xyz.SetZ(uv.GetX());
-			break;
-		case CubemapFace::FACE_TOP:
-			xyz.SetX(uv.GetX());
-			xyz.SetY(1.0f);
-			xyz.SetZ(uv.GetY());
-			break;
-		case CubemapFace::FACE_BOTTOM:
-			xyz.SetX(uv.GetX());
-			xyz.SetY(-1.0f);
-			xyz.SetZ(-uv.GetY());
-			break;
-		case CubemapFace::FACE_FRONT:
-			xyz.SetX(uv.GetX());
-			xyz.SetY(-uv.GetY());
-			xyz.SetZ(1.0f);
-			break;
-		case CubemapFace::FACE_BACK:
-			xyz.SetX(-uv.GetX());
-			xyz.SetY(-uv.GetY());
-			xyz.SetZ(-1.0f);
-			break;
-		}
-
-		xyz.Normalize();
-
-		return xyz;
-	}
-
-	static Vector4 samplePanorama(const float* panoData, int panoWidth, int panoHeight, Vector3 cartesianCoord) {
-		float theta = std::atan2(cartesianCoord.GetZ(), cartesianCoord.GetX());
-		float phi = std::asin(cartesianCoord.GetY());
-
-		float u = (theta + M_PI) / (2.0f * M_PI);
-		float v = (phi + M_PI / 2.0f) / M_PI;
-
-		int x = std::min(static_cast<int>(u * panoWidth), panoWidth - 1);
-		int y = std::min(static_cast<int>(v * panoHeight), panoHeight - 1);
-
-		int index = (y * panoWidth + x) * 3;
-
-		return Vector4(panoData[index], panoData[index + 1], panoData[index + 2], 1);
-	}
-
-    DirectX12Cubemap::DirectX12Cubemap(std::filesystem::path path, TextureOptions options): PCubemap(path, options) {
-		int channels, width, height;
-		stbi_set_flip_vertically_on_load(false);
-		float* img = stbi_loadf(path.string().c_str(), &width, &height, &channels, 3);
-
-		m_size = height / 2;
+	DirectX12Cubemap::DirectX12Cubemap(std::array<void*, 6> bytes, uint32_t size, TextureOptions options): PCubemap(bytes, size, options) {
 		DXGI_FORMAT format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		for (int f = 0; f < 6; ++f) {
-
-			size_t size = sizeof(Vector4) * m_size * m_size;
-			Vector4* data = (Vector4*)malloc(size);
-
-			if (data == nullptr) continue;
-
-			memset(data, 0, size);
-			uint32_t index = 0;
-
-			for (int y = 0; y < m_size; ++y) {
-				for (int x = 0; x < m_size; ++x) {
-					CubemapFace face = (CubemapFace)f;
-					Vector3 coord = GetCubemapVector(face, Vector2(x, y), m_size);
-					Vector4 pixel = samplePanorama(img, width, height, coord);
-
-					index = (y * m_size) + x;
-					data[index] = pixel;
-				}
-			}
-
-			m_data[f] = data;
-		}
-		Initialize(m_size, format, options);
-		GetSurfaceInfo(m_size, m_size, format, &numBytes, &rowBytes, &numRows);
-		stbi_image_free(img);
-    }
+		Initialize(size, format, options);
+		GetSurfaceInfo(size, size, format, &numBytes, &rowBytes, &numRows);
+	}
 
 	DirectX12Cubemap::~DirectX12Cubemap()
 	{
@@ -619,7 +448,7 @@ namespace VWolf {
 				m_texture->GetCurrentState(), D3D12_RESOURCE_STATE_COPY_DEST);
 			D3D12_SUBRESOURCE_DATA data[6];
 			for (int i = 0; i < numberOfSides; i++) {
-				data[i].pData = m_data[i];
+				data[i].pData = m_bytes[i];
 				data[i].RowPitch = static_cast<UINT>(rowBytes);
 				data[i].SlicePitch = static_cast<UINT>(numBytes);
 			}
@@ -631,79 +460,6 @@ namespace VWolf {
 			hasBeenUpload = true;
 		}
 		return (void*)m_texture->GetHandle().GetGPUAddress().ptr;
-	}
-
-	void DirectX12Cubemap::PopulateColor()
-	{
-		std::array<Color, 6> colors = {
-		   Color(1, 0, 0, 1),
-		   Color(0, 1, 0, 1),
-		   Color(0, 0, 1, 1),
-		   Color(1, 1, 0, 1),
-		   Color(1, 0, 1, 1),
-		   Color(0, 1, 1, 1)
-		};
-
-		std::array<int, 6> indicesToCheck = {
-			1,
-			2,
-			0,
-			2,
-			1,
-			0
-		};
-		for (unsigned int i = 0; i < numberOfSides; i++)
-		{
-			m_data[i] = PopulateTest(indicesToCheck[i], colors[i]);
-		}
-	}
-
-	void DirectX12Cubemap::PopulateTest()
-	{		
-		Color value  = Transform(m_textureDefault);
-		for (unsigned int i = 0; i < numberOfSides; i++)
-		{
-			size_t size = sizeof(Color) * m_size * m_size;
-			Color* data = (Color*)malloc(size);
-			memset(data, 0, size);
-			uint32_t index = 0;			
-			for (uint32_t column = 0; column < m_size; column++) {				
-				for (uint32_t row = 0; row < m_size; row++) {					
-					index = (column * m_size) + row;
-					data[index] = value;
-				}
-			}
-			m_data[i] = data;
-		}
-	}
-
-	void* DirectX12Cubemap::PopulateTest(int checkIndex, Color otherColor)
-	{
-		size_t size = sizeof(Color) * m_size * m_size;
-		Color* data = (Color*)malloc(size);
-		memset(data, 0, size);
-		uint32_t index = 0;
-		Color white(1, 1, 1, 1);
-		Color value = white;
-		for (uint32_t column = 0; column < m_size; column++) {
-			if (column % 32 == 0) {
-				if (value[checkIndex] == 1)
-					value = otherColor;
-				else if (value[checkIndex] == 0)
-					value = white;
-			}
-			for (uint32_t row = 0; row < m_size; row++) {
-				if (row % 32 == 0) {
-					if (value[checkIndex] == 1)
-						value = otherColor;
-					else if (value[checkIndex] == 0)
-						value = white;
-				}
-				index = (column * m_size) + row;
-				data[index] = value;
-			}
-		}
-		return data;
 	}
 
 	void DirectX12Cubemap::Initialize(uint32_t size, DXGI_FORMAT format, TextureOptions options)

@@ -30,7 +30,7 @@ namespace VWolf {
 
 	void DirectX12Graphics::Initialize() {
 		shadowMap = CreateRef<DirectX12RenderTexture>(1024, 1024, true, TextureOptions()); // TODO: This fails for 1024x1024
-		emptyShadowMap = CreateRef<DirectX12Texture2D>(TextureDefault::White, 1024, 1024, TextureOptions());
+		emptyShadowMap = std::dynamic_pointer_cast<DirectX12Texture2D>(CreateRef<Texture2D>(UUID::NewUUID(), TextureDefault::White, 1024, 1024, TextureOptions())->GetInnerTexture());
 	}
 	// TODO: Working as intended, but not happy with the implementation
 	// TODO: Better names. This is for immediate rendering
