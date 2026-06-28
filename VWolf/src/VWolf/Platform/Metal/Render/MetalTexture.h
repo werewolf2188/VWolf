@@ -14,21 +14,13 @@
 namespace VWolf {
     class MetalTexture2D : public PTexture2D {
     public:
-        MetalTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options = {});
-        MetalTexture2D(const std::string filePath, TextureOptions options = {});
+        MetalTexture2D(void * bytes, uint32_t width, uint32_t height, TextureOptions options = {});
         virtual ~MetalTexture2D();
         virtual void* GetHandler() override;
-    protected:
-        virtual void PopulateColor() override;
-    #if defined(DEBUG) || defined(_DEBUG)
-    private:
-        void* PopulateTest();
-    #endif
         void Initialize(uint32_t width, uint32_t height, MTL::PixelFormat format, float bytes, TextureOptions options = {});
     private:
         MTL::Texture* texture = nullptr;
         bool hasBeenUpload = false;
-        void* m_data = nullptr;
         size_t numBytes = 0, rowBytes = 0, numRows = 0;
     };
 
@@ -59,26 +51,15 @@ namespace VWolf {
     };
 
     class MetalCubemap : public PCubemap {
-    public:
-        MetalCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
-        MetalCubemap(std::filesystem::path path, TextureOptions options = {});
+    public:        
+        MetalCubemap(std::array<void *, 6> bytes, uint32_t size, TextureOptions options = {});
         virtual ~MetalCubemap();
         virtual void* GetHandler() override;
-    protected:
-        virtual void PopulateColor() override;
-    #if defined(DEBUG) || defined(_DEBUG)
-    private:
-        //void PopulateTest(GLuint id, int checkIndex, Vector4Float otherColor);
-        void PopulateTest();
-        void* PopulateTest(int checkIndex, Color otherColor);
-    #endif
         void Initialize(uint32_t size, MTL::PixelFormat format, TextureOptions options = {});
         void CopyData(size_t numBytes);
     private:
         MTL::Texture* texture = nullptr;
         bool hasBeenUpload = false;
-        std::array<void*, 6> m_data;
         uint32_t numberOfSides = 6;
     };
-    
 }

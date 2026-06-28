@@ -63,12 +63,8 @@ shader:
             direction.y = sin(latitude);
             direction.z = cos(latitude) * cos(longitude);
             direction = normalize(direction);
-        #ifndef OPENGL
-            float4 sampleTexture = skybox.Sample(gsamPointWrap, -normalize(pin.TexC2));
-            // float4 sampleTexture = skybox.Sample(gsamPointWrap, direction);
-        #else
+            
             float4 sampleTexture = skybox.Sample(gsamPointWrap, normalize(pin.TexC2));
             // float4 sampleTexture = skybox.Sample(gsamPointWrap, -direction);
-        #endif
             return sampleTexture;
         }

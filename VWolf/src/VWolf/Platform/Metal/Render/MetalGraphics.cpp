@@ -37,7 +37,7 @@ namespace VWolf {
     }
 
     void MetalGraphics::Initialize() {
-        emptyShadowMap = CreateRef<MetalTexture2D>(TextureDefault::White, 1024, 1024, TextureOptions());
+        emptyShadowMap = std::dynamic_pointer_cast<MetalTexture2D>(CreateRef<Texture2D>(UUID::NewUUID(), TextureDefault::White, 1024, 1024, TextureOptions())->GetInnerTexture());
         shadowMap = CreateRef<MetalRenderTexture>(2048, 2048, true);
     }
 

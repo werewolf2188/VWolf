@@ -18,19 +18,12 @@ namespace VWolf {
 
     class OpenGLTexture2D: public PTexture2D, public OpenGLBindableTexture {
     public:
-        OpenGLTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options = {});
-        OpenGLTexture2D(const std::string filePath, TextureOptions options = {});
+        OpenGLTexture2D(void * bytes, uint32_t width, uint32_t height, TextureOptions options = {});
         virtual ~OpenGLTexture2D();
         virtual void* GetHandler() override;
     public:
         virtual void Bind(uint32_t base) override;
         virtual void Unbind(uint32_t base) override;
-    protected:
-        virtual void PopulateColor() override;
-    private:
-#if defined(DEBUG) || defined(_DEBUG)
-        void PopulateTest();
-#endif
     private:
         GLuint m_textureID;
         GLuint m_sampleID;
@@ -64,22 +57,13 @@ namespace VWolf {
     };
 
     class OpenGLCubemap: public PCubemap, public OpenGLBindableTexture {
-    public:
-        OpenGLCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
-        OpenGLCubemap(std::filesystem::path path, TextureOptions options = {});
+    public:        
+        OpenGLCubemap(std::array<void *, 6> bytes, uint32_t size, TextureOptions options);
         virtual ~OpenGLCubemap();
         virtual void* GetHandler() override;
     public:
         virtual void Bind(uint32_t base) override;
         virtual void Unbind(uint32_t base) override;
-    protected:
-        void PopulateColor(GLuint id);
-        virtual void PopulateColor() override;
-    private:
-#if defined(DEBUG) || defined(_DEBUG)
-        void PopulateTest(GLuint id, int checkIndex, Color otherColor);
-        void PopulateTest();
-#endif
     private:
         GLuint m_textureID;
         GLenum m_internalDataFormat, m_dataFormat;

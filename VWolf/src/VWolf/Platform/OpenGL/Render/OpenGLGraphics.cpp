@@ -32,7 +32,7 @@ namespace VWolf {
     }
     void OpenGLGraphics::Initialize() {
         shadowMap = CreateRef<OpenGLRenderTexture>(1024, 1024, true, TextureOptions());
-        emptyShadowMap = CreateRef<OpenGLTexture2D>(TextureDefault::White, 1024, 1024, TextureOptions());
+        emptyShadowMap = std::dynamic_pointer_cast<OpenGLTexture2D>(CreateRef<Texture2D>(UUID::NewUUID(), TextureDefault::White, 1024, 1024, TextureOptions())->GetInnerTexture());
     }
 // TODO: For the future on how to create render queue
 //    void OpenGLRenderer::ProcessItems() {
