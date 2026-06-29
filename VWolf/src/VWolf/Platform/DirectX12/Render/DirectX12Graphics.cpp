@@ -114,7 +114,9 @@ namespace VWolf {
 			else
 			{
 				D3D12_GPU_DESCRIPTOR_HANDLE handle;
-				handle.ptr = (UINT64)material.GetTexture(textureInput.GetName())->GetHandler();
+				Ref<Texture> texture = material.GetTexture(textureInput.GetName());
+				textureGroups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), texture);
+				handle.ptr = (UINT64)texture->GetHandler();
 				DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootDescriptorTable(textureInput.GetIndex(), handle);
 			}
 		}
@@ -189,6 +191,16 @@ namespace VWolf {
 			// GPU must have been idled when ForceRelease == true 
 			if (FirstObj.first < NumCompletedCmdLists || forceRelease)
 				groups.pop_front();
+			else
+				break;
+		}
+
+		while (!textureGroups.empty())
+		{
+			auto& FirstObj = textureGroups.front();
+			// GPU must have been idled when ForceRelease == true 
+			if (FirstObj.first < NumCompletedCmdLists || forceRelease)
+				textureGroups.pop_front();
 			else
 				break;
 		}
@@ -389,7 +401,9 @@ namespace VWolf {
 				else 
 				{
 					D3D12_GPU_DESCRIPTOR_HANDLE handle;
-					handle.ptr = (UINT64)material.GetTexture(textureInput.GetName())->GetHandler();
+					Ref<Texture> texture = material.GetTexture(textureInput.GetName());
+					textureGroups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), texture);
+					handle.ptr = (UINT64)texture->GetHandler();
 					DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootDescriptorTable(textureInput.GetIndex(), handle);
 				}				
 			}
