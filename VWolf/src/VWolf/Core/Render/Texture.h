@@ -65,7 +65,7 @@ namespace VWolf {
     class Texture2D: public Texture {
     public:
         Texture2D(UUID _id, TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options = {});
-        Texture2D(UUID _id, const std::string filePath, TextureOptions options = {});
+        Texture2D(UUID _id, const std::filesystem::path filePath, TextureOptions options = {});
         ~Texture2D() = default;
     public:
         uint32_t GetWidth() { return m_width; }
@@ -74,8 +74,8 @@ namespace VWolf {
     public:
         virtual void* GetHandler() override;
     public:
-        static Ref<Texture2D> Load(UUID _id = UUID::NewUUID(), TextureDefault textureDefault = TextureDefault::White, uint32_t width = 512, uint32_t height = 512, TextureOptions options = {});
-        static Ref<Texture2D> Load(UUID _id, const std::string filePath, TextureOptions options = {});
+        static Ref<Texture2D> Load(TextureDefault textureDefault = TextureDefault::White, uint32_t width = 512, uint32_t height = 512, TextureOptions options = {});
+        static Ref<Texture2D> Load(UUID _id, const std::filesystem::path filePath, TextureOptions options = {});
     private:
         Ref<PTexture2D> _innerTexture;
         
@@ -118,7 +118,7 @@ namespace VWolf {
     public:
         virtual void* GetHandler() override;
     public:
-        static Ref<Cubemap> Load(UUID _id = UUID::NewUUID(), TextureDefault textureDefault = TextureDefault::White, uint32_t size = 512, TextureOptions options = {});
+        static Ref<Cubemap> Load(TextureDefault textureDefault = TextureDefault::White, uint32_t size = 512, TextureOptions options = {});
         static Ref<Cubemap> Load(UUID _id, std::filesystem::path path, TextureOptions options = {});
     private:
         uint32_t m_size;

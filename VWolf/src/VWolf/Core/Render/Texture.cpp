@@ -211,9 +211,10 @@ namespace VWolf {
         _innerTexture = LoadTexture2D(colors, width, height, options);
     }
 
-    Texture2D::Texture2D(UUID _id, const std::string filePath, TextureOptions options): Texture(_id, options) {
+    Texture2D::Texture2D(UUID _id, const std::filesystem::path filePath, TextureOptions options): Texture(_id, options) {
         int channels, width, height;
-        auto img = stbi_loadf(filePath.c_str(), &width, &height, &channels, 0);
+        auto img = stbi_loadf(filePath.string().c_str(), &width, &height, &channels, 0);
+        name = filePath.stem().string();
         m_width = width;
         m_height = height;
         _innerTexture = LoadTexture2D(img, width, height, options);
@@ -223,13 +224,12 @@ namespace VWolf {
         return GetHandlerForTexture2D(_innerTexture);
     }
 
-    Ref<Texture2D> Texture2D::Load(UUID _id, TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options) {
-        Ref<Texture2D> tex = CreateRef<Texture2D>(_id, textureDefault, width, height, options);
-        ObjectResourceManager::AddObject(_id, tex);
+    Ref<Texture2D> Texture2D::Load(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options) {
+        Ref<Texture2D> tex = CreateRef<Texture2D>(UUID::Empty, textureDefault, width, height, options);
         return tex;
     }
 
-    Ref<Texture2D> Texture2D::Load(UUID _id, const std::string filePath, TextureOptions options) {
+    Ref<Texture2D> Texture2D::Load(UUID _id, const std::filesystem::path filePath, TextureOptions options) {
         Ref<Texture2D> tex = CreateRef<Texture2D>(_id, filePath, options);
         ObjectResourceManager::AddObject(_id, tex);
         return tex;
@@ -257,6 +257,7 @@ namespace VWolf {
     Cubemap::Cubemap(UUID _id, std::filesystem::path path, TextureOptions options): Texture(_id, options) {
         std::array<void*, 6> colors;
         int channels, width, height;
+        name = path.stem().string();
         stbi_set_flip_vertically_on_load(true);
         float* img = stbi_loadf(path.string().c_str(), &width, &height, &channels, 3);
         
@@ -289,9 +290,8 @@ namespace VWolf {
         return GetHandlerForRenderTexture(_innerTexture);
     }
 
-    Ref<Cubemap> Cubemap::Load(UUID _id, TextureDefault textureDefault, uint32_t size, TextureOptions options) {
-        Ref<Cubemap> tex = CreateRef<Cubemap>(_id, textureDefault, size, options);
-        ObjectResourceManager::AddObject(_id, tex);
+    Ref<Cubemap> Cubemap::Load(TextureDefault textureDefault, uint32_t size, TextureOptions options) {
+        Ref<Cubemap> tex = CreateRef<Cubemap>(UUID::Empty, textureDefault, size, options);
         return tex;
     }
 

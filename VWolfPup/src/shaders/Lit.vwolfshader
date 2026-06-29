@@ -15,10 +15,7 @@ shader:
         - name: u_shinines
           type: Float
           value: 0
-          range: [0, 180]
-        - name: Shadow
-          type: Texture2D
-          value: "White"        
+          range: [0, 180]   
         - name: gDiffuseMap
           type: Texture2D
           value: "White"
@@ -252,10 +249,6 @@ shader:
         
         float4 PS(VertexOut pin) : SV_Target
         {
-        #ifndef OPENGL
             float4 sampleTexture = gDiffuseMap.Sample(gsamPointWrap, float2(pin.TexC.x, 1.0f - pin.TexC.y));
-        #else
-            float4 sampleTexture = gDiffuseMap.Sample(gsamPointWrap, pin.TexC);
-        #endif
             return sampleTexture * float4(ComputeBlinnPhongLightColor(pin.PosL, pin.FragPosLightSpace, normalize(pin.Normal)), u_ambientColor.a);
         }
