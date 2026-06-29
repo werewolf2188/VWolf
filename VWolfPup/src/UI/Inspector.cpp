@@ -899,58 +899,116 @@ namespace VWolfPup {
             ImGui::BeginDisabled();
         for (auto property : material.GetProperties()) {
             switch (property.GetType()) {
-            case VWolf::PropertyType::Color :
-                ImGui::PushID(property.GetName().c_str());
-
-                ImGui::Columns(2);
-                ImGui::SetColumnWidth(0, 120.0f);
-                ImGui::Text("%s", property.GetName().c_str());
-                ImGui::NextColumn();
-
-                ImGui::PushItemWidth(ImGui::CalcItemWidth());
-                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-                ImGui::ColorEdit4((std::string("##") + property.GetName() + std::string("Selector")).c_str(),
-                                  &material.GetColor(property.GetName()).GetR(), ImGuiColorEditFlags_NoInputs);
-                ImGui::PopStyleVar();
-                ImGui::PopItemWidth();
-                ImGui::Columns(1);
-
-                ImGui::PopID();
+            case VWolf::PropertyType::Color:
+                {
+                    ImGui::PushID(property.GetName().c_str());
+                    
+                    ImGui::Columns(2);
+                    ImGui::SetColumnWidth(0, 120.0f);
+                    ImGui::Text("%s", property.GetName().c_str());
+                    ImGui::NextColumn();
+                    
+                    ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                    ImGui::ColorEdit4((std::string("##") + property.GetName() + std::string("Selector")).c_str(),
+                                      &material.GetColor(property.GetName()).GetR(), ImGuiColorEditFlags_NoInputs);
+                    ImGui::PopStyleVar();
+                    ImGui::PopItemWidth();
+                    ImGui::Columns(1);
+                    
+                    ImGui::PopID();
+                }
                 break;
             case VWolf::PropertyType::Vector:
-                ImGui::PushID(property.GetName().c_str());
-
-                ImGui::Columns(2);
-                ImGui::SetColumnWidth(0, 120.0f);
-                ImGui::Text("%s", property.GetName().c_str());
-                ImGui::NextColumn();
-
-                ImGui::PushItemWidth(ImGui::CalcItemWidth());
-                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-                ImGui::InputFloat4((std::string("##") + property.GetName() + std::string("Selector")).c_str(),
-                                  &material.GetVector4(property.GetName()).GetX());
-                ImGui::PopStyleVar();
-                ImGui::PopItemWidth();
-                ImGui::Columns(1);
-
-                ImGui::PopID();
+                {
+                    ImGui::PushID(property.GetName().c_str());
+                    
+                    ImGui::Columns(2);
+                    ImGui::SetColumnWidth(0, 120.0f);
+                    ImGui::Text("%s", property.GetName().c_str());
+                    ImGui::NextColumn();
+                    
+                    ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                    ImGui::InputFloat4((std::string("##") + property.GetName() + std::string("Selector")).c_str(),
+                                       &material.GetVector4(property.GetName()).GetX());
+                    ImGui::PopStyleVar();
+                    ImGui::PopItemWidth();
+                    ImGui::Columns(1);
+                    
+                    ImGui::PopID();
+                }
                 break;
             case VWolf::PropertyType::Float:
-                ImGui::PushID(property.GetName().c_str());
-
-                ImGui::Columns(2);
-                ImGui::SetColumnWidth(0, 120.0f);
-                ImGui::Text("%s", property.GetName().c_str());
-                ImGui::NextColumn();
-
-                ImGui::PushItemWidth(ImGui::CalcItemWidth());
-                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-                ImGui::SliderFloat((std::string("##") + property.GetName() + std::string("Selector")).c_str(), &material.GetFloat(property.GetName()), 0, 180);
-                ImGui::PopStyleVar();
-                ImGui::PopItemWidth();
-                ImGui::Columns(1);
-
-                ImGui::PopID();
+                {
+                    ImGui::PushID(property.GetName().c_str());
+                    
+                    ImGui::Columns(2);
+                    ImGui::SetColumnWidth(0, 120.0f);
+                    ImGui::Text("%s", property.GetName().c_str());
+                    ImGui::NextColumn();
+                    
+                    ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                    ImGui::SliderFloat((std::string("##") + property.GetName() + std::string("Selector")).c_str(), &material.GetFloat(property.GetName()), 0, 180);
+                    ImGui::PopStyleVar();
+                    ImGui::PopItemWidth();
+                    ImGui::Columns(1);
+                    
+                    ImGui::PopID();
+                }
+                break;
+            case VWolf::PropertyType::Texture2D:
+                {
+                    ImGui::PushID(property.GetName().c_str());
+                    
+                    ImGui::Columns(3);
+                    ImGui::SetColumnWidth(0, 120.0f);
+                    ImGui::Text("%s", property.GetName().c_str());
+                    ImGui::NextColumn();
+                    
+                    ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                    ImGui::Text("%s", material.GetTexture(property.GetName()) == nullptr ? "": material.GetTexture(property.GetName())->GetName().c_str());
+                    ImGui::PopStyleVar();
+                    ImGui::NextColumn();
+                    float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+                    if (ImGui::Button("...", ImVec2{ lineHeight, lineHeight }))
+                    {
+                        ContainerView::GetMainView()
+                        ->AddView(new ObjectExplorer<VWolf::Texture2D>([property, &material](VWolf::Ref<VWolf::Texture2D> texture){
+                            material.SetTexture(property.GetName(), texture);
+                        }));
+                    }
+                    ImGui::Columns(1);
+                    ImGui::PopID();
+                }
+                break;
+            case VWolf::PropertyType::Cubemap:
+                {
+                    ImGui::PushID(property.GetName().c_str());
+                    
+                    ImGui::Columns(3);
+                    ImGui::SetColumnWidth(0, 120.0f);
+                    ImGui::Text("%s", property.GetName().c_str());
+                    ImGui::NextColumn();
+                    
+                    ImGui::PushItemWidth(ImGui::CalcItemWidth());
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+                    ImGui::Text("%s", material.GetTexture(property.GetName()) == nullptr ? "": material.GetTexture(property.GetName())->GetName().c_str());
+                    ImGui::PopStyleVar();
+                    ImGui::NextColumn();
+                    float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+                    if (ImGui::Button("...", ImVec2{ lineHeight, lineHeight }))
+                    {
+                        ContainerView::GetMainView()
+                        ->AddView(new ObjectExplorer<VWolf::Cubemap>([property, &material](VWolf::Ref<VWolf::Cubemap> texture){
+                            material.SetTexture(property.GetName(), texture);
+                        }));
+                    }
+                    ImGui::Columns(1);
+                    ImGui::PopID();
+                }
                 break;
             default: break;
             }

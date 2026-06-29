@@ -166,21 +166,6 @@ public:
             }                
         });
         containerView->AddView(toolbar);
-        //
-
-        //material_2.SetVector3("u_specular", { 0.8f, 0.8f, 0.8f });
-        //material_2.SetFloat("u_shinines", 20);
-//        if (VWolfPup::Project::CurrentProject()->GetType() == VWolf::DriverType::OpenGL) {
-//            testTexture = VWolf::Texture::LoadTexture2D("assets/textExample.png");
-//            material_2.SetTexture("u_texture", testTexture);
-//        }
-//#ifdef VWOLF_PLATFORM_WINDOWS
-//        if (VWolfPup::Project::CurrentProject()->GetType() == VWolf::DriverType::DirectX12) {
-//            //testTexture = VWolf::Texture::LoadTexture2D(512, 512);
-//            testTexture = VWolf::Texture::LoadTexture2D("assets/textExample2.png");
-//            material_2.SetTexture("gDiffuseMap", testTexture);
-//        }
-//#endif
         std::string skyMaterialName = VWolfPup::Defaults::Get()->GetDefaultSkyBoxMaterialName();
         VWolf::Ref<VWolf::Material> skyMaterial = VWolf::MaterialLibrary::GetMaterial(skyMaterialName);
         testScene->GetSceneBackground().SetSkyboxMaterial(*skyMaterial);

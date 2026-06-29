@@ -33,71 +33,11 @@ namespace YAML {
 
 namespace VWolf {
 
-    Mesh CreateSkyBoxEx() {
-        Mesh meshData;
-        meshData.SetName("SkyBox");
-        meshData.GetVertices().resize(8);
-        meshData.GetColors().resize(8);
-        meshData.GetNormals().resize(8);
-        meshData.GetTangents().resize(8);
-        meshData.GetUVs().resize(8);
-        
-        /*
-         
-         float skyboxVertices[] =
-         {
-             //   Coordinates
-             -1.0f, -1.0f,  1.0f,//        7--------6
-              1.0f, -1.0f,  1.0f,//       /|       /|
-              1.0f, -1.0f, -1.0f,//      4--------5 |
-             -1.0f, -1.0f, -1.0f,//      | |      | |
-             -1.0f,  1.0f,  1.0f,//      | 3------|-2
-              1.0f,  1.0f,  1.0f,//      |/       |/
-              1.0f,  1.0f, -1.0f,//      0--------1
-             -1.0f,  1.0f, -1.0f
-         };
-         */
-
-        meshData.GetVertices()[0] = VWolf::Vector3(-1.0f, -1.0f,  1.0f);
-        meshData.GetVertices()[1] = VWolf::Vector3(1.0f, -1.0f,  1.0f);
-        meshData.GetVertices()[2] = VWolf::Vector3(1.0f, -1.0f, -1.0f);
-        meshData.GetVertices()[3] = VWolf::Vector3(-1.0f, -1.0f, -1.0f);
-        meshData.GetVertices()[4] = VWolf::Vector3(-1.0f,  1.0f,  1.0f);
-        meshData.GetVertices()[5] = VWolf::Vector3(1.0f,  1.0f,  1.0f);
-        meshData.GetVertices()[6] = VWolf::Vector3(1.0f,  1.0f, -1.0f);
-        meshData.GetVertices()[7] = VWolf::Vector3(-1.0f,  1.0f, -1.0f);
-
-        std::vector<uint32_t> skyboxIndices
-        {
-            // Right
-            1, 2, 6,
-            6, 5, 1,
-            // Left
-            0, 4, 7,
-            7, 3, 0,
-            // Top
-            4, 5, 6,
-            6, 7, 4,
-            // Bottom
-            0, 3, 2,
-            2, 1, 0,
-            // Back
-            0, 1, 5,
-            5, 4, 0,
-            // Front
-            3, 7, 6,
-            6, 2, 3
-        };
-        meshData.SetTriangles(skyboxIndices);
-        return meshData;
-    }
-
     // ---------------- SCENE BACKGROUND ----------------
-    SceneBackground::SceneBackground(): backgroundColor(Color(0.0f, 0.0f, 0.0f, 1.0f )), skyboxEx(CreateRef<Mesh>(CreateSkyBoxEx())) {}
+    SceneBackground::SceneBackground(): backgroundColor(Color(0.0f, 0.0f, 0.0f, 1.0f )), skyboxEx(CreateRef<Mesh>(ShapeHelper::CreateSkybox())) {}
 
-    SceneBackground::SceneBackground(const SceneBackground& scene): backgroundColor(scene.backgroundColor), skyboxEx(CreateRef<Mesh>(CreateSkyBoxEx())) {}
+    SceneBackground::SceneBackground(const SceneBackground& scene): backgroundColor(scene.backgroundColor), skyboxEx(CreateRef<Mesh>(ShapeHelper::CreateSkybox())) {}
     
-
     SceneBackground::~SceneBackground() {}
 
     SceneBackground& SceneBackground::operator=(const SceneBackground& t) {

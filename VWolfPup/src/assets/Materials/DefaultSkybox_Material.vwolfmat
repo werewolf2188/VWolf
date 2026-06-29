@@ -9,3 +9,5 @@ material:
     {}
   floats:
     {}
+  textures:
+    skybox: 66f73513-a186-444b-b130-6d322da0fb2a

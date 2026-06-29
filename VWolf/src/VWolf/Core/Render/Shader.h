@@ -160,16 +160,16 @@ namespace VWolf {
     public:
         Property() = default;
     public:
-        std::string GetName() { return name; }
-        std::string GetDescription() { return description; }
-        std::string GetRelatedTo() { return relatedTo; }
-        PropertyType GetType() { return type; }
-        bool IsGamma() { return gamma; }
-        bool IsHDR() { return hdr; }
-        bool IsMainColor() { return mainColor; }
-        bool IsMainTexture() { return mainTexture; }
-        bool IsHidden() { return hidden; }
-        bool IsNormal() { return normal; }
+        const std::string& GetName() const { return name; }
+        const std::string& GetDescription() const { return description; }
+        const std::string& GetRelatedTo() const { return relatedTo; }
+        const PropertyType& GetType() const { return type; }
+        const bool& IsGamma() const { return gamma; }
+        const bool& IsHDR() const { return hdr; }
+        const bool& IsMainColor() const { return mainColor; }
+        const bool& IsMainTexture() const { return mainTexture; }
+        const bool& IsHidden() const { return hidden; }
+        const bool& IsNormal() const { return normal; }
         bool IsTexture() {
             switch (type) {
                 case PropertyType::Texture2D:

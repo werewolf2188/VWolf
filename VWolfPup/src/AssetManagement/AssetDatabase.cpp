@@ -43,6 +43,10 @@ namespace VWolfPup {
         for (const auto& entry : std::filesystem::recursive_directory_iterator(Project::CurrentProject()->GetAssetsPath())) {
             CreateMetaFile(entry);
         }
+        
+        for (const AssetMetaFile& currentAssetMetafile: metafiles) {
+            currentAssetMetafile.Save();
+        }
     }
 
     void AssetDatabase::LoadMetaFilesForEditor() {

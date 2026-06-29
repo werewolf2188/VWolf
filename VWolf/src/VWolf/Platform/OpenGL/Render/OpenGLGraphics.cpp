@@ -32,7 +32,7 @@ namespace VWolf {
     }
     void OpenGLGraphics::Initialize() {
         shadowMap = CreateRef<OpenGLRenderTexture>(1024, 1024, true, TextureOptions());
-        emptyShadowMap = CreateRef<OpenGLTexture2D>(TextureDefault::White, 1024, 1024, TextureOptions());
+        emptyShadowMap = std::dynamic_pointer_cast<OpenGLTexture2D>(CreateRef<Texture2D>(UUID::NewUUID(), TextureDefault::White, 1024, 1024, TextureOptions())->GetInnerTexture());
     }
 // TODO: For the future on how to create render queue
 //    void OpenGLRenderer::ProcessItems() {
@@ -144,7 +144,15 @@ namespace VWolf {
             if (textures[index].GetName() == "Shadow") {
                 emptyShadowMap->Bind(index);
             } else {
-                OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
+                Texture* tex = material.GetTexture(textures[index].GetName()).get();
+                OpenGLBindableTexture* texture;
+                if (dynamic_cast<Texture2D *>(tex) != nullptr) {
+                    texture = dynamic_cast<OpenGLBindableTexture*>(dynamic_cast<Texture2D *>(tex)->GetInnerTexture().get());
+                }
+                else if (dynamic_cast<Cubemap *>(tex) != nullptr) {
+                    texture = dynamic_cast<OpenGLBindableTexture*>(dynamic_cast<Cubemap *>(tex)->GetInnerTexture().get());
+                }
+                else { continue; }
                 if (texture != nullptr) {
                     texture->Bind(index);
                     // TODO: Move this inside bind
@@ -188,7 +196,15 @@ namespace VWolf {
             if (textures[index].GetName() == "Shadow") {
                 emptyShadowMap->Unbind(index);
             } else {
-                OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
+                Texture* tex = material.GetTexture(textures[index].GetName()).get();
+                OpenGLBindableTexture* texture;
+                if (dynamic_cast<Texture2D *>(tex) != nullptr) {
+                    texture = dynamic_cast<OpenGLBindableTexture*>(dynamic_cast<Texture2D *>(tex)->GetInnerTexture().get());
+                }
+                else if (dynamic_cast<Cubemap *>(tex) != nullptr) {
+                    texture = dynamic_cast<OpenGLBindableTexture*>(dynamic_cast<Cubemap *>(tex)->GetInnerTexture().get());
+                }
+                else { continue; }
                 if (texture != nullptr) {
                     texture->Unbind(index);
                 }
@@ -225,7 +241,7 @@ namespace VWolf {
 
     void OpenGLGraphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture)
     {
-        this->renderTexture = renderTexture;
+        this->renderTexture = renderTexture->GetInnerTexture();
     }
 
     void OpenGLGraphics::DrawShadowMap() {
@@ -309,7 +325,15 @@ namespace VWolf {
                     shadowMap->DepthTextureBind(index);
                     GLThrowIfFailed(glUniform1i(textures[index].GetIndex(), index));
                 } else {
-                    OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
+                    Texture* tex = material.GetTexture(textures[index].GetName()).get();
+                    OpenGLBindableTexture* texture;
+                    if (dynamic_cast<Texture2D *>(tex) != nullptr) {
+                        texture = dynamic_cast<OpenGLBindableTexture*>(dynamic_cast<Texture2D *>(tex)->GetInnerTexture().get());
+                    }
+                    else if (dynamic_cast<Cubemap *>(tex) != nullptr) {
+                        texture = dynamic_cast<OpenGLBindableTexture*>(dynamic_cast<Cubemap *>(tex)->GetInnerTexture().get());
+                    }
+                    else { continue; }
                     if (texture != nullptr) {
                         texture->Bind(index);
                         // TODO: Move this inside bind
@@ -352,7 +376,15 @@ namespace VWolf {
                 if (textures[index].GetName() == "Shadow") {
                     shadowMap->DepthTextureUnbind(index);
                 } else {
-                    OpenGLBindableTexture* texture = dynamic_cast<OpenGLBindableTexture*>(material.GetTexture(textures[index].GetName()).get());
+                    Texture* tex = material.GetTexture(textures[index].GetName()).get();
+                    OpenGLBindableTexture* texture;
+                    if (dynamic_cast<Texture2D *>(tex) != nullptr) {
+                        texture = dynamic_cast<OpenGLBindableTexture*>(dynamic_cast<Texture2D *>(tex)->GetInnerTexture().get());
+                    }
+                    else if (dynamic_cast<Cubemap *>(tex) != nullptr) {
+                        texture = dynamic_cast<OpenGLBindableTexture*>(dynamic_cast<Cubemap *>(tex)->GetInnerTexture().get());
+                    }
+                    else { continue; }
                     if (texture != nullptr) {
                         texture->Unbind(index);
                     }

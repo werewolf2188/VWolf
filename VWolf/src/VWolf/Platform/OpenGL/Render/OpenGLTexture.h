@@ -6,7 +6,7 @@
 //
 
 #pragma once
-#include "VWolf/Core/Render/Texture.h"
+#include "VWolf/Platform/PTexture.h"
 #include "VWolf/Core/Math/VMath.h"
 
 namespace VWolf {
@@ -16,28 +16,21 @@ namespace VWolf {
         virtual void Unbind(uint32_t base) = 0;
     };
 
-    class OpenGLTexture2D: public Texture2D, public OpenGLBindableTexture {
+    class OpenGLTexture2D: public PTexture2D, public OpenGLBindableTexture {
     public:
-        OpenGLTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options = {});
-        OpenGLTexture2D(const std::string filePath, TextureOptions options = {});
+        OpenGLTexture2D(void * bytes, uint32_t width, uint32_t height, TextureOptions options = {});
         virtual ~OpenGLTexture2D();
         virtual void* GetHandler() override;
     public:
         virtual void Bind(uint32_t base) override;
         virtual void Unbind(uint32_t base) override;
-    protected:
-        virtual void PopulateColor() override;
-    private:
-#if defined(DEBUG) || defined(_DEBUG)
-        void PopulateTest();
-#endif
     private:
         GLuint m_textureID;
         GLuint m_sampleID;
         GLenum m_internalDataFormat, m_dataFormat;
     };
 
-    class OpenGLRenderTexture: public RenderTexture {
+    class OpenGLRenderTexture: public PRenderTexture {
     public:
         OpenGLRenderTexture(uint32_t width, uint32_t height, bool isDepthOnly = false, TextureOptions options = {});
         virtual ~OpenGLRenderTexture();
@@ -63,23 +56,14 @@ namespace VWolf {
 //        GLenum m_internalDataFormat, m_dataFormat;
     };
 
-    class OpenGLCubemap: public Cubemap, public OpenGLBindableTexture {
-    public:
-        OpenGLCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options = {});
-        OpenGLCubemap(std::array<std::string, 6> paths, TextureOptions options = {});
+    class OpenGLCubemap: public PCubemap, public OpenGLBindableTexture {
+    public:        
+        OpenGLCubemap(std::array<void *, 6> bytes, uint32_t size, TextureOptions options);
         virtual ~OpenGLCubemap();
         virtual void* GetHandler() override;
     public:
         virtual void Bind(uint32_t base) override;
         virtual void Unbind(uint32_t base) override;
-    protected:
-        void PopulateColor(GLuint id);
-        virtual void PopulateColor() override;
-    private:
-#if defined(DEBUG) || defined(_DEBUG)
-        void PopulateTest(GLuint id, int checkIndex, Color otherColor);
-        void PopulateTest();
-#endif
     private:
         GLuint m_textureID;
         GLenum m_internalDataFormat, m_dataFormat;

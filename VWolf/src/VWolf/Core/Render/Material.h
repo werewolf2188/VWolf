@@ -40,6 +40,8 @@ namespace VWolf {
         
         void SetAsDefault();
         std::vector<Property> GetProperties();
+        bool HasProperty(std::string name);
+        const Property& GetPropertyBy(std::string name);
     public:
         void Save(std::filesystem::path path);
     public:
@@ -60,12 +62,13 @@ namespace VWolf {
         std::map<std::string, Color> colors;
         std::map<std::string, Vector4> vectors;
         std::map<std::string, float> floats;
-        std::map<std::string, Ref<Texture>> textures;
+        std::map<std::string, Ref<Texture>> _textures;
+        std::map<std::string, UUID> textures;
         
         std::map<std::string, std::tuple<uint32_t, uint32_t, uint32_t>> inputs_information;
         std::vector<Property> properties;
         
-        BOOST_DESCRIBE_CLASS(Material, (Object), (), (name), (isDefault, shaderName, colors, vectors, floats))
+        BOOST_DESCRIBE_CLASS(Material, (Object), (), (name), (isDefault, shaderName, colors, vectors, floats, textures))
         
         VWOLF_SERIALIZATION_FRIENDS(Material)
     };

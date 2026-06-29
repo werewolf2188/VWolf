@@ -15,51 +15,27 @@
 #include "stb_image/stb_image.h"
 
 namespace VWolf {
-    Color Transform(TextureDefault textureDefault) {
-        switch (textureDefault) {
-        case TextureDefault::White: return Color(1, 1, 1, 1);
-        case TextureDefault::Bump: return Color(0.5f, 0.5f, 1, 0.5f);
-        case TextureDefault::Black: return Color(0, 0, 0, 1);
-        case TextureDefault::Gray: return Color(0.5f, 0.5f, 0.5f, 1);
-        case TextureDefault::Red: return Color(1, 0, 0, 1);
-        }
-    }
-
-    MetalTexture2D::MetalTexture2D(TextureDefault textureDefault, uint32_t width, uint32_t height, TextureOptions options): Texture2D(textureDefault, width, height, options) {
-        PopulateColor();
-
-        Initialize(width, height, MTL::PixelFormat::PixelFormatRGBA32Float, 4 * 4, options);
-        
-    }
-    MetalTexture2D::MetalTexture2D(const std::string filePath, TextureOptions options): Texture2D(filePath, options) {
-        int channels, width, height;
-        auto img = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
+    MetalTexture2D::MetalTexture2D(void * bytes, uint32_t width, uint32_t height, TextureOptions options): PTexture2D(bytes, width, height, options) {
         m_width = width;
         m_height = height;
         MTL::PixelFormat format = MTL::PixelFormat::PixelFormatRGBA32Float;
-        float bytes = 4 * 4;
-        if (channels == 4)
-        {
-            format = MTL::PixelFormat::PixelFormatRGBA8Unorm; // GL_RGBA8;
-            bytes = 4;
-        }
-        m_data = img;
+        float bytesNum = 4 * 4;
 
-        Initialize(width, height, format, bytes, options);
+        Initialize(width, height, format, bytesNum, options);
     }
 
     void MetalTexture2D::Initialize(uint32_t width, uint32_t height, MTL::PixelFormat format, float bytes, TextureOptions options) {
         MTL::TextureDescriptor* descriptor = MTL::TextureDescriptor::texture2DDescriptor(format, width, height, false);
         texture = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newTexture(descriptor);
         MTL::Region region = MTL::Region(0, 0, width, height);
-        texture->replaceRegion(region, 0, 0, m_data, bytes * width, bytes * width * height);
+        texture->replaceRegion(region, 0, 0, m_bytes, bytes * width, bytes * width * height);
     }
 
     MetalTexture2D::~MetalTexture2D() {
         if (texture != nullptr)
             texture->release();
-        if (m_data != nullptr) {
-            free(m_data);
+        if (m_bytes != nullptr) {
+            free(m_bytes);
         }
     }
 
@@ -67,52 +43,7 @@ namespace VWolf {
         return texture;
     }
 
-    void MetalTexture2D::PopulateColor() {
-        size_t size = sizeof(Color) * m_width * m_height;
-        Color* data = (Color*)malloc(size);
-        memset(data, 0, size);
-        uint32_t index = 0;
-        Color value = Transform(m_textureDefault);
-        for (uint32_t column = 0; column < m_height; column++) {
-            for (uint32_t row = 0; row < m_width; row++) {
-                index = (column * m_height) + row;
-                data[index] = value;
-            }
-        }
-        m_data = data;
-    }
-#if defined(DEBUG) || defined(_DEBUG)
-    void* MetalTexture2D::PopulateTest() {
-        size_t size = sizeof(Color) * m_width * m_height;
-        Color* data = (Color*)malloc(size);
-        memset(data, 0, size);
-        uint32_t index = 0;
-        Color black(0, 0, 0, 1);
-        Color white(1, 1, 1, 1);
-        Color value = white;
-        for (uint32_t column = 0; column < m_height; column++) {
-            if (column % 32 == 0) {
-                if (value.GetR() == 1)
-                    value = black;
-                else if (value.GetR() == 0)
-                    value = white;
-            }
-            for (uint32_t row = 0; row < m_width; row++) {
-                if (row % 32 == 0) {
-                    if (value.GetR() == 1)
-                        value = black;
-                    else if (value.GetR() == 0)
-                        value = white;
-                }
-                index = (column * m_height) + row;
-                data[index] = value;
-            }
-        }
-        return data;
-    }
-#endif
-
-    MetalRenderTexture::MetalRenderTexture(uint32_t width, uint32_t height, bool isDepthOnly, TextureOptions options): RenderTexture(width, height, options), isDepthOnly(isDepthOnly) {
+    MetalRenderTexture::MetalRenderTexture(uint32_t width, uint32_t height, bool isDepthOnly, TextureOptions options): PRenderTexture(width, height, options), isDepthOnly(isDepthOnly) {
         Initialize();
     }
     
@@ -183,95 +114,28 @@ namespace VWolf {
         startedEncoding = false;
     }
 
-    MetalCubemap::MetalCubemap(TextureDefault textureDefault, uint32_t size, TextureOptions options): Cubemap(textureDefault, size, options) {
-        Initialize(size, MTL::PixelFormat::PixelFormatRGBA32Float, options);
-        PopulateColor();
-        CopyData(4 * 4);
-    }
-
-    MetalCubemap::MetalCubemap(std::array<std::string, 6> paths, TextureOptions options): Cubemap(paths, options) {
-        int channels, width, height;
-        for (int index = 0; index < numberOfSides; index++) {
-            auto img = stbi_load(paths[index].c_str(), &width, &height, &channels, 0);
-            m_data[index] = img;
-        }
-        
-        m_size = width;
-        m_size = height;
+    MetalCubemap::MetalCubemap(std::array<void *, 6> bytes, uint32_t size, TextureOptions options): PCubemap(bytes, size, options) {
         MTL::PixelFormat format = MTL::PixelFormat::PixelFormatRGBA32Float;
-        float bytes = 4 * 4;
-        if (channels == 4)
-        {
-            format = MTL::PixelFormat::PixelFormatRGBA8Unorm; // GL_RGBA8;
-            bytes = 4;
-        }
+        float bytesNum = 4 * 4;
         Initialize(m_size, format, options);
-        CopyData(bytes);
+        CopyData(bytesNum);
     }
 
     void MetalCubemap::CopyData(size_t numBytes) {
         MTL::Region region = MTL::Region(0, 0, m_size, m_size);
-        for (int i = 0; i < m_data.size(); i++) {
-            texture->replaceRegion(region, 0, i, m_data[i], numBytes * m_size, numBytes * m_size * m_size);
+        for (int i = 0; i < m_bytes.size(); i++) {
+            texture->replaceRegion(region, 0, i, m_bytes[i], numBytes * m_size, numBytes * m_size * m_size);
         }
     }
 
     MetalCubemap::~MetalCubemap() {
         if (texture != nullptr)
             texture->release();
-        for (void* data: m_data) {
+        for (void* data: m_bytes) {
             if (data)
                 free(data);
         }
     }
-
-#if defined(DEBUG) || defined(_DEBUG)
-    void MetalCubemap::PopulateTest() {
-        Vector4 value  = static_cast<Vector4>(Transform(m_textureDefault));
-        for (unsigned int i = 0; i < numberOfSides; i++)
-        {
-            size_t size = sizeof(Vector4) * m_size * m_size;
-            Vector4* data = (Vector4*)malloc(size);
-            memset(data, 0, size);
-            uint32_t index = 0;
-            for (uint32_t column = 0; column < m_size; column++) {
-                for (uint32_t row = 0; row < m_size; row++) {
-                    index = (column * m_size) + row;
-                    data[index] = value;
-                }
-            }
-            m_data[i] = data;
-        }
-    }
-
-    void* MetalCubemap::PopulateTest(int checkIndex, Color otherColor) {
-        size_t size = sizeof(Vector4) * m_size * m_size;
-        Color* data = (Color*)malloc(size);
-        memset(data, 0, size);
-        uint32_t index = 0;
-        Color white(1, 1, 1, 1);
-        Color value = white;
-        for (uint32_t column = 0; column < m_size; column++) {
-            if (column % 32 == 0) {
-                if (value[checkIndex] == 1)
-                    value = otherColor;
-                else if (value[checkIndex] == 0)
-                    value = white;
-            }
-            for (uint32_t row = 0; row < m_size; row++) {
-                if (row % 32 == 0) {
-                    if (value[checkIndex] == 1)
-                        value = otherColor;
-                    else if (value[checkIndex] == 0)
-                        value = white;
-                }
-                index = (column * m_size) + row;
-                data[index] = value;
-            }
-        }
-        return data;
-    }
-#endif
 
     void MetalCubemap::Initialize(uint32_t size, MTL::PixelFormat format, TextureOptions options) {
         MTL::TextureDescriptor* descriptor = MTL::TextureDescriptor::textureCubeDescriptor(format, size, false);
@@ -280,30 +144,6 @@ namespace VWolf {
 
     void* MetalCubemap::GetHandler() {
         return texture;
-    }
-
-    void MetalCubemap::PopulateColor() {
-        std::array<Color, 6> colors = {
-            Color(1, 0, 0, 1),
-            Color(0, 1, 0, 1),
-            Color(0, 0, 1, 1),
-            Color(1, 1, 0, 1),
-            Color(1, 0, 1, 1),
-            Color(0, 1, 1, 1)
-        };
-
-        std::array<int, 6> indicesToCheck = {
-            1,
-            2,
-            0,
-            2,
-            1,
-            0
-        };
-        for (unsigned int i = 0; i < numberOfSides; i++)
-        {
-            m_data[i] = PopulateTest(indicesToCheck[i], colors[i]);
-        }
     }
 }
 

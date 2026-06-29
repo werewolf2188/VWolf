@@ -95,6 +95,11 @@ namespace VWolf {
         return Vector2(vec.x, vec.y);
     }
 
+    Vector2 Vector2::operator+(float rhs) {
+        glm::vec2 vec = this->_vector2 + rhs;
+        return Vector2(vec.x, vec.y);
+    }
+
     Vector2 operator+(const Vector2& lhs, const Vector2& rhs) {
         glm::vec2 vec = lhs._vector2 + rhs._vector2;
         return Vector2(vec.x, vec.y);
@@ -102,6 +107,11 @@ namespace VWolf {
 
     Vector2 Vector2::operator-(const Vector2& rhs) {
         glm::vec2 vec = this->_vector2 - rhs._vector2;
+        return Vector2(vec.x, vec.y);
+    }
+
+    Vector2 Vector2::operator-(float rhs) {
+        glm::vec2 vec = this->_vector2 - rhs;
         return Vector2(vec.x, vec.y);
     }
 

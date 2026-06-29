@@ -33,6 +33,7 @@ namespace VWolf {
         virtual void DrawPostProcess() override;
     private:
         std::deque<std::pair<UINT64, Ref<DirectX12BufferGroup>>> groups;
+		std::deque<std::pair<UINT64, Ref<Texture>>> textureGroups;
         std::vector<Ref<RenderItem>> items;
         Ref<DirectX12RenderTexture> shadowMap;
         Ref<DirectX12Texture2D> emptyShadowMap;

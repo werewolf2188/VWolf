@@ -30,7 +30,7 @@ namespace VWolf {
 
 	void DirectX12Graphics::Initialize() {
 		shadowMap = CreateRef<DirectX12RenderTexture>(1024, 1024, true, TextureOptions()); // TODO: This fails for 1024x1024
-		emptyShadowMap = CreateRef<DirectX12Texture2D>(TextureDefault::White, 1024, 1024, TextureOptions());
+		emptyShadowMap = std::dynamic_pointer_cast<DirectX12Texture2D>(CreateRef<Texture2D>(UUID::NewUUID(), TextureDefault::White, 1024, 1024, TextureOptions())->GetInnerTexture());
 	}
 	// TODO: Working as intended, but not happy with the implementation
 	// TODO: Better names. This is for immediate rendering
@@ -114,7 +114,9 @@ namespace VWolf {
 			else
 			{
 				D3D12_GPU_DESCRIPTOR_HANDLE handle;
-				handle.ptr = (UINT64)material.GetTexture(textureInput.GetName())->GetHandler();
+				Ref<Texture> texture = material.GetTexture(textureInput.GetName());
+				textureGroups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), texture);
+				handle.ptr = (UINT64)texture->GetHandler();
 				DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootDescriptorTable(textureInput.GetIndex(), handle);
 			}
 		}
@@ -192,6 +194,16 @@ namespace VWolf {
 			else
 				break;
 		}
+
+		while (!textureGroups.empty())
+		{
+			auto& FirstObj = textureGroups.front();
+			// GPU must have been idled when ForceRelease == true 
+			if (FirstObj.first < NumCompletedCmdLists || forceRelease)
+				textureGroups.pop_front();
+			else
+				break;
+		}
 	}
 
 	void DirectX12Graphics::EndFrameImpl()
@@ -208,7 +220,7 @@ namespace VWolf {
 
 	void DirectX12Graphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture)
 	{
-		this->renderTexture = renderTexture;
+		this->renderTexture = renderTexture->GetInnerTexture();
 	}
 
 	void DirectX12Graphics::BeginSceneImpl()
@@ -389,7 +401,9 @@ namespace VWolf {
 				else 
 				{
 					D3D12_GPU_DESCRIPTOR_HANDLE handle;
-					handle.ptr = (UINT64)material.GetTexture(textureInput.GetName())->GetHandler();
+					Ref<Texture> texture = material.GetTexture(textureInput.GetName());
+					textureGroups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), texture);
+					handle.ptr = (UINT64)texture->GetHandler();
 					DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootDescriptorTable(textureInput.GetIndex(), handle);
 				}				
 			}

@@ -1,0 +1,12 @@
+AssetMetaFile:
+  id: 66f73513-a186-444b-b130-6d322da0fb2a
+  version: 1
+  lastModifiedTime: 1782353925
+  TextureImporter:
+    options:
+      textureoptions:
+        filterMode: Bilinear
+        wrapModeU: None
+        wrapModeV: None
+        wrapModeW: None
+        wrapMode: Repeat

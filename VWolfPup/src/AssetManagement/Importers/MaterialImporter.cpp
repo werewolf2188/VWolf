@@ -11,7 +11,7 @@
 
 namespace VWolfPup {
     uint32_t MaterialImporter::LoadPriority(std::filesystem::path path) const {
-        return 2;
+        return 3;
     }
 
     bool MaterialImporter::Import(std::filesystem::path path, VWolf::UUID _id) {
@@ -23,14 +23,6 @@ namespace VWolfPup {
         
         if (_defaults->GetDefaultMaterialName() == mat->GetName()) {
             mat->SetAsDefault();
-        } else if (_defaults->GetDefaultSkyBoxMaterialName() == mat->GetName()) {
-            mat->SetTexture("skybox",
-                            VWolf::Texture::LoadCubemap({ "assets/skybox/right.png",
-                                                          "assets/skybox/left.png",
-                                                          "assets/skybox/top.png",
-                                                          "assets/skybox/bottom.png",
-                                                          "assets/skybox/front.png",
-                                                          "assets/skybox/back.png" }));
         }
         return true;
     }

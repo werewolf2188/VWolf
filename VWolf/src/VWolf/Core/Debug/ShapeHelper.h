@@ -32,6 +32,8 @@ namespace VWolf {
         static Mesh CreateEmpty();
         static Mesh Create(std::string name);
         static Mesh Create(UUID id);
+        
+        static Mesh CreateSkybox();
     public:
         static std::tuple<std::string, UUID> Box;
         static std::tuple<std::string, UUID> Sphere;
