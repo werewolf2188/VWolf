@@ -49,35 +49,6 @@ namespace VWolf {
             }
         }
 
-        Color* CreateCheckerboardPattern(uint32_t width, uint32_t height) {
-            size_t size = sizeof(Color) * width * height;
-            Color* data = (Color*)malloc(size);
-            memset(data, 0, size);
-            uint32_t index = 0;
-            Color black(0, 0, 0, 1);
-            Color white(1, 1, 1, 1);
-            Color value = white;
-            for (uint32_t column = 0; column < height; column++) {
-                if (column % 32 == 0) {
-                    if (value.GetR() == 1)
-                        value = black;
-                    else if (value.GetR() == 0)
-                        value = white;
-                }
-                for (uint32_t row = 0; row < width; row++) {
-                    if (row % 32 == 0) {
-                        if (value.GetR() == 1)
-                            value = black;
-                        else if (value.GetR() == 0)
-                            value = white;
-                    }
-                    index = (column * height) + row;
-                    data[index] = value;
-                }
-            }
-            return data;
-        }
-
         Color* CreateColorPattern(TextureDefault textureDefault, uint32_t width, uint32_t height) {
             size_t size = sizeof(Color) * width * height;
             Color* data = (Color*)malloc(size);
