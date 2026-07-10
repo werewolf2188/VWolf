@@ -10,9 +10,11 @@
 #include <imgui/imgui.h>
 #include <filesystem>
 
+#include "Selection.h"
+
 namespace VWolfPup {
 
-    void DrawGameObject(VWolf::Ref<VWolf::GameObject> object, std::function<void(VWolf::Ref<VWolf::GameObject>)> onTapped,
+    void DrawGameObject(VWolf::Ref<VWolf::GameObject> object,
                         std::string& selectedName, bool& didSelection) {
         bool isItemClicked = false;
         if (ImGui::TreeNodeEx(object->GetName().c_str(),
@@ -24,13 +26,13 @@ namespace VWolfPup {
         }
         if (isItemClicked) {
             selectedName = object->GetName();
-            onTapped(object);
+            Selection::SetContext(object);
             didSelection = true;
         }
     }
 
-    SceneHierarchy::SceneHierarchy(VWolf::Scene *scene, std::function<void(VWolf::Ref<VWolf::GameObject>)> onTapped):
-    View("Scene Hierarchy"), scene(scene), onTapped(onTapped) {
+    SceneHierarchy::SceneHierarchy(VWolf::Scene *scene):
+    View("Scene Hierarchy"), scene(scene){
         meshes = VWolf::ObjectResourceManager::Filter<VWolf::Mesh>();
     }
 
@@ -48,7 +50,7 @@ namespace VWolfPup {
         if (ImGui::TreeNodeEx(scene->GetName().c_str(),
                               ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_OpenOnArrow)) {
             for(VWolf::Ref<VWolf::GameObject> gameObject: scene->GetGameObjects()){
-                DrawGameObject(gameObject, onTapped, selectedName, didSelection);
+                DrawGameObject(gameObject, selectedName, didSelection);
             }
             ImGui::TreePop();
         }
@@ -61,7 +63,7 @@ namespace VWolfPup {
                     showDialog = false;
                     auto gameObject = scene->CreateGameObject("Untitled");
                     selectedName = gameObject->GetName();
-                    onTapped(gameObject);
+                    Selection::SetContext(gameObject);
                 }
 //                else if (ImGui::MenuItem("Add New Shape"))
 //                {
@@ -81,7 +83,7 @@ namespace VWolfPup {
                             gameObject->GetComponent<VWolf::MeshFilterComponent>().SetMesh(mesh);
                             gameObject->AddComponent<VWolf::MeshRendererComponent>();
                             selectedName = gameObject->GetName();
-                            onTapped(gameObject);
+                            Selection::SetContext(gameObject);
                         }
                     }
                     ImGui::EndMenu();
@@ -93,7 +95,7 @@ namespace VWolfPup {
                     auto gameObject = scene->CreateGameObject("Untitled");
                     gameObject->AddComponent<VWolf::LightComponent>();
                     selectedName = gameObject->GetName();
-                    onTapped(gameObject);
+                    Selection::SetContext(gameObject);
                 }
 
                 if (ImGui::MenuItem("Add Camera"))
@@ -102,11 +104,11 @@ namespace VWolfPup {
                     auto gameObject = scene->CreateGameObject("Untitled");
                     gameObject->AddComponent<VWolf::CameraComponent>();
                     selectedName = gameObject->GetName();
-                    onTapped(gameObject);
+                    Selection::SetContext(gameObject);
                 }
                 else if (!selectedName.empty() && ImGui::MenuItem("Delete Selected")) {
                     // Here I can delete the selected one
-                    onTapped(nullptr);
+                    Selection::SetContext(nullptr);
                     scene->RemoveGameObject(selectedName);
                 }
 

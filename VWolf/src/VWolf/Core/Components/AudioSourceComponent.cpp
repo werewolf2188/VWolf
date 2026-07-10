@@ -13,19 +13,20 @@
 #include "GameObject.h"
 
 namespace VWolf {
-    AudioSourceComponent::AudioSourceComponent(): Component("AudioSource"), audioClipId(UUID::Empty), mLoop(false) {
+    AudioSourceComponent::AudioSourceComponent():
+    Component(ClassNameCleaner::Current().GetClassName<AudioSourceComponent>()), audioClipId(UUID::Empty), mLoop(false) {
         Initialize();
     }
 
     AudioSourceComponent::AudioSourceComponent(const AudioSourceComponent& audioSource):
-    Component("AudioSource", audioSource.id) {
+    Component(ClassNameCleaner::Current().GetClassName<AudioSourceComponent>(), audioSource.id) {
         this->audioClipId = audioSource.audioClipId;
         this->mLoop = audioSource.mLoop;
         Initialize();
     }
 
     AudioSourceComponent::AudioSourceComponent(AudioSourceComponent&& audioSource):
-    Component("AudioSource", audioSource.id) {
+    Component(ClassNameCleaner::Current().GetClassName<AudioSourceComponent>(), audioSource.id) {
         this->audioClipId = audioSource.audioClipId;
         this->mLoop = audioSource.mLoop;
 
@@ -108,16 +109,10 @@ namespace VWolf {
             CHECKMAERROR(ma_sound_stop(audioClip->sound));
     }
 
-    void AudioSourceComponent::OnInspector() {
-        AudioSourceComponent::componentInspector->OnInspector(this);
-    }
-
     Component* AudioSourceComponent::Copy(entt::entity& handle, entt::registry& registry) {
         AudioSourceComponent& component = registry.emplace<AudioSourceComponent>(handle, *this);
         return &component;
     }
-
-    VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(AudioSourceComponent);
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(AudioSourceComponent, "AudioSourceComponent")
 }

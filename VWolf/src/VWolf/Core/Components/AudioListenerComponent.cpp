@@ -9,26 +9,21 @@
 #include "AudioListenerComponent.h"
 
 namespace VWolf {
-    AudioListenerComponent::AudioListenerComponent(): Component("AudioListener") {}
+    AudioListenerComponent::AudioListenerComponent():
+    Component(ClassNameCleaner::Current().GetClassName<AudioListenerComponent>()) {}
 
     AudioListenerComponent::AudioListenerComponent(const AudioListenerComponent& audioListener):
-    Component("AudioListener", audioListener.id) {}
+    Component(ClassNameCleaner::Current().GetClassName<AudioListenerComponent>(), audioListener.id) {}
 
     AudioListenerComponent::AudioListenerComponent(AudioListenerComponent&& audioListener):
-    Component("AudioListener", audioListener.id) {}
+    Component(ClassNameCleaner::Current().GetClassName<AudioListenerComponent>(), audioListener.id) {}
 
     AudioListenerComponent::~AudioListenerComponent() {}
-
-    void AudioListenerComponent::OnInspector() {
-        AudioListenerComponent::componentInspector->OnInspector(this);
-    }
 
     Component* AudioListenerComponent::Copy(entt::entity& handle, entt::registry& registry) {
         AudioListenerComponent& component = registry.emplace<AudioListenerComponent>(handle, *this);
         return &component;
     }
-
-    VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(AudioListenerComponent);
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(AudioListenerComponent, "AudioListenerComponent")
 }

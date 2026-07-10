@@ -34,7 +34,6 @@ namespace VWolf {
 
         void Apply();
     public:
-        virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         TransformComponent& operator=(TransformComponent t);
@@ -43,7 +42,6 @@ namespace VWolf {
         Vector3 eulerAngles;
         Vector3 localScale;
         Matrix4x4 matrix;
-        VWOLF_COMPONENT_INSPECTOR_DEFINE(TransformComponent);
         
         BOOST_DESCRIBE_CLASS(TransformComponent, (Component), (), (id), (position, eulerAngles, localScale))
         

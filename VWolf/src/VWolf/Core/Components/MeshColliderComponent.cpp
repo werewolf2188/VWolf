@@ -14,19 +14,16 @@
 #include "GameObject.h"
 
 namespace VWolf {
-    MeshColliderComponent::MeshColliderComponent(): Component("MeshCollider") {}
+    MeshColliderComponent::MeshColliderComponent():
+    Component(ClassNameCleaner::Current().GetClassName<MeshColliderComponent>()) {}
 
     MeshColliderComponent::MeshColliderComponent(const MeshColliderComponent& meshCollider):
-    Component("MeshCollider", meshCollider.id) {}
+    Component(ClassNameCleaner::Current().GetClassName<MeshColliderComponent>(), meshCollider.id) {}
 
     MeshColliderComponent::MeshColliderComponent(MeshColliderComponent&& meshCollider):
-    Component("MeshCollider", meshCollider.id) {}
+    Component(ClassNameCleaner::Current().GetClassName<MeshColliderComponent>(), meshCollider.id) {}
 
     MeshColliderComponent::~MeshColliderComponent() {}
-
-    void MeshColliderComponent::OnInspector() {
-        MeshColliderComponent::componentInspector->OnInspector(this);
-    }
 
     Component* MeshColliderComponent::Copy(entt::entity& handle, entt::registry& registry) {
         MeshColliderComponent& component = registry.emplace<MeshColliderComponent>(handle, *this);
@@ -90,8 +87,6 @@ namespace VWolf {
         if (triangleMesh != nullptr)
             Physics::GetCommon().destroyTriangleMesh(triangleMesh);
     }
-
-    VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(MeshColliderComponent);
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(MeshColliderComponent, "MeshColliderComponent")
 }

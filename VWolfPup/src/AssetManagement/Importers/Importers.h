@@ -13,6 +13,7 @@
 #include "ModelImporter.h"
 #include "AudioImporter.h"
 #include "TextureImporter.h"
+#include "FileTemplateImporter.h"
 #include "DefaultImporter.h"
 
 #include <boost/mpl/list.hpp>
@@ -23,5 +24,6 @@ using AllImporters = boost::mpl::list<
                         VWolfPup::ModelImporter,
                         VWolfPup::AudioImporter,
                         VWolfPup::TextureImporter,
-                        VWolfPup::DefaultImporter
+                        VWolfPup::DefaultImporter,
+                        VWolfPup::FileTemplateImporter
                     >;

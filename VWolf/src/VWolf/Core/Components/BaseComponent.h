@@ -11,13 +11,11 @@
 
 #include "VWolf/Core/Object.h"
 #include <boost/describe.hpp>
+#include "VWolf/Core/Utils/GenericSerialization.h"
 
 namespace VWolf {
 
     class GameObject;
-
-    template<typename T>
-    class ComponentInspector;
 
     class Component: public Object {
     public:
@@ -27,8 +25,6 @@ namespace VWolf {
     public:
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) = 0;
     public:
-        virtual void OnInspector() {}
-
         void SetGameObject(GameObject* gameObject);
         GameObject* GetGameObject() { return gameObject; }
     private:
@@ -36,27 +32,4 @@ namespace VWolf {
         
         BOOST_DESCRIBE_CLASS(Component, (Object), (), (id), ())
     };
-
-    template<typename T>
-    class ComponentInspector {
-    public:
-        ComponentInspector() {}
-        ~ComponentInspector() {}
-    public:
-        virtual void OnInspector(T* component) {
-            
-        }
-    };
 }
-
-#define VWOLF_COMPONENT_INSPECTOR_DEFINE(class) \
-public:\
-    static void SetComponentInspector(ComponentInspector<class> *componentInspector); \
-private:\
-    static ComponentInspector<class> *componentInspector;
-
-#define VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(class) \
-    void class::SetComponentInspector(ComponentInspector<class> *componentInspector) {\
-        class::componentInspector = componentInspector;\
-    }\
-    ComponentInspector<class> * class::componentInspector = nullptr;

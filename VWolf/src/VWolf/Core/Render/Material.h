@@ -19,8 +19,8 @@ namespace VWolf {
     public:
         Material(): Object(UUID::NewUUID()) {};
         Material(std::filesystem::path path, UUID _id);
-        Material(std::string shaderName);
-        Material(Ref<Shader> shader);
+        Material(std::string name, std::string shaderName);
+        Material(std::string name, Ref<Shader> shader);
         Material(const Material& material);
         Material(Material&& material);
 

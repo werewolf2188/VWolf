@@ -3,10 +3,10 @@
 #include "VWolf/Core/Driver.h"
 
 namespace VWolf { 
-	class OpenGLDriver : public Driver, public WindowEventCallback {
+	class OpenGLDriver : public Driver, public EventCallback {
 	public:
         virtual ~OpenGLDriver() override {};
-		virtual void Initialize(InitConfiguration config, WindowEventCallback& callback) override;
+		virtual void Initialize(InitConfiguration config, EventCallback& callback) override;
 		virtual void Shutdown() override;
 		virtual void OnUpdate() override;
 		virtual void OnEvent(Event& evt) override;
@@ -14,7 +14,7 @@ namespace VWolf {
 	public:
 		static OpenGLDriver* GetCurrentDriver() { return currentDriver; }
 	private:
-		WindowEventCallback* callback;
+		EventCallback* callback;
 
 		static OpenGLDriver* currentDriver;
 	};

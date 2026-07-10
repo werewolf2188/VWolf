@@ -186,6 +186,7 @@ namespace VWolf {
         void Reset();
     public:
         static Ref<Mesh> Load(std::filesystem::path path, UUID id);
+        static Ref<Mesh> Empty();
     private:
         std::vector<Vector3> vertices;
         std::vector<Color> colors;

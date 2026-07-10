@@ -8,8 +8,6 @@
 #include "vwpch.h"
 #include "Shader.h"
 
-#include "VWolf/Core/Utils/GenericSerialization.h"
-
 namespace YAML {
     VWOLF_CREATE_CONVERT_GENERIC_ENUM_DECODER(VWolf::ShaderType, Vertex, Pre_Tesselator, Post_Tesselator, Geometry, Fragment)
     VWOLF_CREATE_CONVERT_GENERIC_ENUM_DECODER(VWolf::FillMode, Wireframe, Solid);
@@ -56,6 +54,42 @@ namespace YAML {
 }
 
 namespace VWolf {
+
+    VWOLF_CREATE_CONVERT_GENERIC_ENUM_ENCODER(ShaderType, Vertex, Pre_Tesselator, Post_Tesselator, Geometry, Fragment)
+    VWOLF_CREATE_CONVERT_GENERIC_ENUM_ENCODER(FillMode, Wireframe, Solid);
+    VWOLF_CREATE_CONVERT_GENERIC_ENUM_ENCODER(CullMode, Back, Front, FrontAndBack)
+    VWOLF_CREATE_CONVERT_GENERIC_ENUM_ENCODER(DepthFunction, Never, Less, Equal, LEqual, Greater, NotEqual, GEqual, Always)
+    VWOLF_CREATE_CONVERT_GENERIC_ENUM_ENCODER(BlendEquation, Add, Substract, ReverseSubstract, Min, Max)
+    VWOLF_CREATE_CONVERT_GENERIC_ENUM_ENCODER(BlendFunction, Zero, One, SrcColor, InvSrcColor, DstColor, InvDstColor, SrcAlpha, InvSrcAlpha, DstAlpha, InvDstAlpha, Src1Color, InvSrc1Color, Src1Alpha, InvSrc1Alpha, SrcAlphaSat, CnstColor, InvCnstColor, CnstAlpha, InvCnstAlpha)
+    VWOLF_CREATE_CONVERT_GENERIC_ENUM_ENCODER(PropertyType, Unknown, Integer, Float, Texture2D, Cubemap, Color, Vector)
+
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_NO_NAME(Rasterization)
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_NO_NAME(DepthStencil)
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_NO_NAME(Blend)
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_NO_NAME(Stage)
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_NO_NAME(Property)
+   
+    YAML::Emitter& operator<<(YAML::Emitter& out, SubShader& v) {
+        out << YAML::BeginMap;
+        out << YAML::Key <<  "properties" << YAML::Value << v.properties;
+        out << YAML::Key <<  "stages" << YAML::Value << v.stages;
+        out << YAML::Key <<  "code" << YAML::Literal << v.code;
+        out << YAML::EndMap;
+        return out;
+        
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const SubShader& v) {
+        out << YAML::BeginMap;
+        out << YAML::Key <<  "properties" << YAML::Value << v.properties;
+        out << YAML::Key <<  "stages" << YAML::Value << v.stages;
+        out << YAML::Key <<  "code" << YAML::Literal << v.code;
+        out << YAML::EndMap;
+        return out;
+    }
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_NO_NAME(Settings)
+    VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER(Shader)
+
     extern Ref<PShader> LoadPlatformShader(Shader& coreShader);
     extern std::vector<Ref<ShaderInput>> GetMaterialInputs(Ref<PShader> pshader);
     extern size_t GetMaterialSize(Ref<PShader> pshader);
@@ -73,6 +107,11 @@ namespace VWolf {
 
     Shader::Shader(std::filesystem::path path, UUID _id): Object(_id) {
         Deserialize(path);
+    }
+
+    Shader::Shader(std::filesystem::path path, std::string newName): Object(UUID::NewUUID()) {
+        Deserialize(path);
+        name = newName;
     }
 
     Shader::Shader(const Shader& other): Object(other.id) {
@@ -118,6 +157,13 @@ namespace VWolf {
 
     std::vector<ShaderInput> Shader::GetTextureInputs() const {
         return VWolf::GetTextureInputs(internalShader);
+    }
+
+    void Shader::Save(std::filesystem::path path) const {
+        YAML::Emitter out;
+        out << *this;
+        std::ofstream fout(path.string());
+        fout << out.c_str();
     }
 
     void Shader::LoadShader(std::filesystem::path path, UUID _id) {

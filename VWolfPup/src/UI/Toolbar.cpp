@@ -10,8 +10,10 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
+#include "Selection.h"
+
 namespace VWolfPup {
-    Toolbar::Toolbar(std::function<void(bool)> onPlayPressed): View("Toolbar"), onPlayPressed(onPlayPressed) {
+    Toolbar::Toolbar(): View("Toolbar") {
         window_class = new ImGuiWindowClass;
         window_class->DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
     }
@@ -41,7 +43,10 @@ namespace VWolfPup {
         wasPressed = ImGui::Button(">");
         if (wasPressed) {
             isPlaying = !isPlaying;
-            onPlayPressed(isPlaying);
+            VWolf::Application::SetPlaying(isPlaying);
+            VWolfPup::Selection::SetContext(nullptr);
+            ToolbarPlayPauseEvent evt;
+            VWolf::Application::GetApplication()->OnEvent(evt);
             wasPressed = false;
         }
         if (shouldChangeColor) {

@@ -26,7 +26,6 @@ namespace VWolf {
         SphereColliderComponent(SphereColliderComponent&& sphereCollider);
         ~SphereColliderComponent();
     public:
-        virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         void CreateSphereCollider(Ref<Mesh> data, TransformComponent& component);
@@ -42,7 +41,6 @@ namespace VWolf {
 
         float mRadius = 1;
 
-        VWOLF_COMPONENT_INSPECTOR_DEFINE(SphereColliderComponent);
         BOOST_DESCRIBE_CLASS(SphereColliderComponent, (Component), (), (id), (mRadius))
         VWOLF_SERIALIZATION_FRIENDS(SphereColliderComponent)
     };

@@ -25,7 +25,7 @@ namespace YAML {
 
 namespace VWolf {
 
-    Material::Material(std::string shaderName): Material(Shader::GetShader(shaderName)) { }
+    Material::Material(std::string name, std::string shaderName): Material(name, Shader::GetShader(shaderName)) { }
 
     Material::Material(std::filesystem::path path, UUID _id): Object(_id) {
         YAML::Node data;
@@ -46,12 +46,10 @@ namespace VWolf {
         }
     }
 
-    Material::Material(Ref<Shader> shader): Object(UUID::NewUUID()) {
-        name = shader->GetName();
+    Material::Material(std::string name, Ref<Shader> shader): Object(UUID::NewUUID()) {
+        this->name = name;
         shaderName = shader->GetName();
-        MaterialLibrary::SetMaterial(name, CreateRef<Material>(*this));
         InternalLoad(shader);
-//        std::cout << "Material with shader" << std::endl;
     }
 
     Material::Material(const Material& material): Object(material.id) {

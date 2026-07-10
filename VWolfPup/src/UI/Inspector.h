@@ -19,8 +19,6 @@ namespace VWolfPup {
         ~Inspector();
     public:
         void OnGui() override;
-    public:
-        void SetGameObject(VWolf::Ref<VWolf::GameObject> gameObject);
     protected:
         virtual void SetInContainer() override;
         virtual void AfterSetInContainer() override;
@@ -29,7 +27,6 @@ namespace VWolfPup {
         void DrawMaterial(VWolf::Material& material);
         void DrawComponentList();
     private:
-        VWolf::Ref<VWolf::GameObject> gameObject;
         char inputBuf[255];
         bool inputIsActive = false;
     };

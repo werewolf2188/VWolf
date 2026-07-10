@@ -11,23 +11,24 @@
 
 namespace VWolf {
     MeshFilterComponent::MeshFilterComponent():
-    Component("Mesh Filter"), mesh(CreateRef<Mesh>(ShapeHelper::Create(VWOLF_GET_SHAPE_NAME(ShapeHelper::Triangle)))), meshId(VWOLF_GET_SHAPE_ID(ShapeHelper::Triangle)) {
+    Component(ClassNameCleaner::Current().GetClassName<MeshFilterComponent>()),
+    mesh(CreateRef<Mesh>(ShapeHelper::Create(VWOLF_GET_SHAPE_NAME(ShapeHelper::Triangle)))), meshId(VWOLF_GET_SHAPE_ID(ShapeHelper::Triangle)) {
 
     }
 
     MeshFilterComponent::MeshFilterComponent(UUID meshId): meshId(meshId),
-    Component("Mesh Filter") {
+    Component(ClassNameCleaner::Current().GetClassName<MeshFilterComponent>()) {
         Load();
     }
 
     MeshFilterComponent::MeshFilterComponent(const MeshFilterComponent& component):
-    Component("Mesh Filter", component.id), meshId(component.meshId) {
+    Component(ClassNameCleaner::Current().GetClassName<MeshFilterComponent>(), component.id), meshId(component.meshId) {
         Load();
         this->SetGameObject(const_cast<MeshFilterComponent&>(component).GetGameObject());
     }
 
     MeshFilterComponent::MeshFilterComponent(MeshFilterComponent&& component):
-    Component("Mesh Filter", component.id), meshId(component.meshId) {
+    Component(ClassNameCleaner::Current().GetClassName<MeshFilterComponent>(), component.id), meshId(component.meshId) {
         Load();
         this->SetGameObject(component.GetGameObject());
     }
@@ -44,10 +45,6 @@ namespace VWolf {
     void MeshFilterComponent::SetMesh(Ref<Mesh> _mesh) {
         mesh = _mesh;
         meshId = _mesh->GetID();
-    }
-
-    void MeshFilterComponent::OnInspector() {
-        MeshFilterComponent::componentInspector->OnInspector(this);
     }
 
     MeshFilterComponent& MeshFilterComponent::operator=(const MeshFilterComponent& t) {
@@ -67,6 +64,5 @@ namespace VWolf {
         return &component;
     }
 
-    VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(MeshFilterComponent);
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(MeshFilterComponent, "MeshFilterComponent")
 }

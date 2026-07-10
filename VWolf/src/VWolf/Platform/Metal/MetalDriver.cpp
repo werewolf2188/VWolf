@@ -23,7 +23,7 @@ namespace VWolf {
 
     extern void SetView(Ref<Window> window, NS::View* view);
 
-    void MetalDriver::Initialize(InitConfiguration config, WindowEventCallback& callback) {
+    void MetalDriver::Initialize(InitConfiguration config, EventCallback& callback) {
         this->callback = &callback;
         window = CreateGenericWindow(DriverType::Metal, config, callback);
         window->Initialize();

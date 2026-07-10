@@ -10,7 +10,7 @@
 #include "VWolf/Core/Base.h"
 #include "VWolf/Core/Object.h"
 #include "VWolf/Core/Math/VMath.h"
-
+#include "VWolf/Core/Utils/GenericSerialization.h"
 
 #include <any>
 
@@ -233,6 +233,7 @@ namespace VWolf {
         std::string description;
         std::string relatedTo;
         BOOST_DESCRIBE_CLASS(Property, (), (), (), (name, type, gamma, hdr, mainTexture, mainColor, noScaleOffset, normal, hidden, range, description, relatedTo))
+        VWOLF_SERIALIZATION_FRIENDS(Property)
         
         friend YAML::convert<Property>;
     };
@@ -252,6 +253,7 @@ namespace VWolf {
         bool counterClockwise = false;
         
         BOOST_DESCRIBE_CLASS(Rasterization, (), (), (), (cullEnabled, fillMode, cullMode, counterClockwise))
+        VWOLF_SERIALIZATION_FRIENDS(Rasterization)
     };
 
     class DepthStencil {
@@ -265,6 +267,7 @@ namespace VWolf {
         DepthFunction depthFunction = DepthFunction::Less;
         
         BOOST_DESCRIBE_CLASS(DepthStencil, (), (), (), (depthTest, depthFunction))
+        VWOLF_SERIALIZATION_FRIENDS(DepthStencil)
     };
 
     class Blend {
@@ -282,6 +285,7 @@ namespace VWolf {
         BlendFunction destinationFunction = BlendFunction::InvSrcAlpha;
         
         BOOST_DESCRIBE_CLASS(Blend, (), (), (), (equation, sourceFunction, destinationFunction))
+        VWOLF_SERIALIZATION_FRIENDS(Blend)
     };
 
     class Settings {
@@ -296,6 +300,7 @@ namespace VWolf {
         DepthStencil depthStencil = DepthStencil();
         Blend blend = Blend();
         BOOST_DESCRIBE_CLASS(Settings, (), (), (), (rasterization, depthStencil, blend))
+        VWOLF_SERIALIZATION_FRIENDS(Settings)
     };
 
     class Stage {
@@ -308,6 +313,7 @@ namespace VWolf {
         ShaderType stageType;
         std::string functionName;
         BOOST_DESCRIBE_CLASS(Stage, (), (), (), (stageType, functionName))
+        VWOLF_SERIALIZATION_FRIENDS(Stage)
     };
 
     class SubShader {
@@ -321,7 +327,8 @@ namespace VWolf {
         std::vector<Property> properties;
         std::vector<Stage> stages;
         std::string code;
-        BOOST_DESCRIBE_CLASS(SubShader, (), (), (), (properties, code, stages))
+        BOOST_DESCRIBE_CLASS(SubShader, (), (), (), (properties, stages, code))
+        VWOLF_SERIALIZATION_FRIENDS(SubShader)
     };
 
     struct ShaderDependency: public Object {
@@ -348,6 +355,7 @@ namespace VWolf {
     public:
         Shader(): Object(UUID::NewUUID()) {};
         Shader(std::filesystem::path path, UUID _id);
+        Shader(std::filesystem::path path, std::string newName);
         Shader(const Shader& other);
     public:
         SubShader GetSubShader() { return subShader; }
@@ -357,6 +365,7 @@ namespace VWolf {
         std::vector<Ref<ShaderInput>> GetMaterialInputs() const;
         size_t GetMaterialSize() const;
         std::vector<ShaderInput> GetTextureInputs() const;
+        void Save(std::filesystem::path path) const;
     public:
         Shader& operator=(const Shader& other);
     public:
@@ -373,6 +382,7 @@ namespace VWolf {
         SubShader subShader;
         
         BOOST_DESCRIBE_CLASS(Shader, (), (), (name), (settings, subShader))
+        VWOLF_SERIALIZATION_FRIENDS(Shader)
         
         static std::vector<Ref<Shader>> m_shaders;
         static std::vector<ShaderDependency> m_shader_dependencies;
