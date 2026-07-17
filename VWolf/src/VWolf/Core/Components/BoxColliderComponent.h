@@ -27,7 +27,6 @@ namespace VWolf {
         BoxColliderComponent(BoxColliderComponent&& sphereCollider);
         ~BoxColliderComponent();
     public:
-        virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         void CreateBoxCollider(Ref<Mesh> data, TransformComponent& component);
@@ -38,7 +37,6 @@ namespace VWolf {
         reactphysics3d::Collider* collider;
         Vector3 scale;
 
-        VWOLF_COMPONENT_INSPECTOR_DEFINE(BoxColliderComponent);
         BOOST_DESCRIBE_CLASS(BoxColliderComponent, (Component), (), (id), ())
         VWOLF_SERIALIZATION_FRIENDS(BoxColliderComponent)
     };

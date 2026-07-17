@@ -27,7 +27,6 @@ namespace VWolf {
         RigidBodyComponent(RigidBodyComponent&& rigidBody);
         ~RigidBodyComponent();
     public:
-        virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         void CreateRigidBody(reactphysics3d::PhysicsWorld* world, TransformComponent& component);
@@ -60,7 +59,6 @@ namespace VWolf {
         bool mUseGravity = true;
         uint32_t mBodyType = 2; // enum class BodyType {STATIC, KINEMATIC, DYNAMIC};
         
-        VWOLF_COMPONENT_INSPECTOR_DEFINE(RigidBodyComponent);
         BOOST_DESCRIBE_CLASS(RigidBodyComponent, (Component), (), (id), (mMass, mDrag, mAngularDrag, mUseGravity, mBodyType))
         VWOLF_SERIALIZATION_FRIENDS(RigidBodyComponent)
     };

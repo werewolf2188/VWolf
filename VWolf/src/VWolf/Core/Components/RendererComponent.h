@@ -19,7 +19,6 @@ namespace VWolf {
         RendererComponent(std::string name);
         RendererComponent(std::string name, UUID id);
         ~RendererComponent();
-        VWOLF_COMPONENT_INSPECTOR_DEFINE(RendererComponent);
         BOOST_DESCRIBE_CLASS(RendererComponent, (Component), (), (id), ())
     };
 
@@ -31,7 +30,6 @@ namespace VWolf {
         MeshRendererComponent(MeshRendererComponent&& component);
         ~MeshRendererComponent();
     public:
-        virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         Material& GetMaterial() { return *material; }
@@ -43,7 +41,6 @@ namespace VWolf {
     private:
         UUID materialId;
         Ref<Material> material;
-        VWOLF_COMPONENT_INSPECTOR_DEFINE(MeshRendererComponent);
         BOOST_DESCRIBE_CLASS(MeshRendererComponent, (RendererComponent), (), (id), (materialId))
         VWOLF_SERIALIZATION_FRIENDS(MeshRendererComponent)
     };
@@ -57,7 +54,6 @@ namespace VWolf {
         ShapeRendererComponent(ShapeRendererComponent&& component);
         ~ShapeRendererComponent();
     public:
-        virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         Material& GetMaterial() { return *material; }
@@ -72,7 +68,6 @@ namespace VWolf {
         UUID meshId;
         Ref<Material> material;
         Ref<Mesh> mesh;
-        VWOLF_COMPONENT_INSPECTOR_DEFINE(ShapeRendererComponent);
         BOOST_DESCRIBE_CLASS(ShapeRendererComponent, (RendererComponent), (), (id), (materialId, meshId))
         VWOLF_SERIALIZATION_FRIENDS(ShapeRendererComponent)
     };

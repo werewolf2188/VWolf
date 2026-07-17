@@ -23,7 +23,6 @@ namespace VWolf {
         CameraComponent(CameraComponent&& camera);
         ~CameraComponent();
     public:
-        virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         float& GetViewportWidth() { return m_ViewportWidth; }
@@ -61,7 +60,6 @@ namespace VWolf {
 
         bool m_isOrthographic = false;
 
-        VWOLF_COMPONENT_INSPECTOR_DEFINE(CameraComponent);
         BOOST_DESCRIBE_CLASS(CameraComponent, (Component), (), (id), (m_ViewportWidth, m_ViewportHeight, m_FOV, m_AspectRatio, m_NearClip, m_FarClip, m_zoom, m_isOrthographic))
         VWOLF_SERIALIZATION_FRIENDS(CameraComponent)
     };

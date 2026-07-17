@@ -7,7 +7,10 @@
 
 #include "ProjectStructure.h"
 #include "../ProjectManagement/Project.h"
+#include "../ProjectManagement/FileTemplate.h"
 #include "../AssetManagement/AssetMetaFile.h"
+#include "../AssetManagement/AssetDatabase.h"
+#include "../AssetManagement/Importers/ShaderImporter.h"
 #include "../LoadSettings.h"
 
 #include <imgui/imgui.h>
@@ -103,6 +106,9 @@ namespace VWolfPup {
                         }
                         VWOLF_CLIENT_INFO("Test %s", filename.string().c_str());
                         selectedPath = filename;
+                    } else if (ImGui::IsItemHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+//                        VWOLF_CLIENT_INFO("Test %s", filename.string().c_str());
+                        selectedPath = filename;
                     }
                     ImGui::PopID();
                     index++;
@@ -113,7 +119,9 @@ namespace VWolfPup {
         }
     public:
         inline std::filesystem::path GetSelectedPath() { return selectedPath; }
+        void SetSelectedPath(std::filesystem::path path) { selectedPath = path; }
         inline std::filesystem::path GetDirectorySelectedPath() { return entry.path(); }
+        inline std::filesystem::path GetFullPath() { return GetDirectorySelectedPath() / GetSelectedPath(); }
     private:
         bool isLeaf = true;
         bool isDirectory = false;
@@ -169,6 +177,15 @@ namespace VWolfPup {
         projectTree->Build(VWolfPup::Project::CurrentProject()->GetAssetsPath());
     }
 
+    std::filesystem::path GetPathForUntitled(std::filesystem::path directory, std::string extension, uint32_t number = 0) {
+        std::string extension1 = extension != "" ? (extension.find('.') == std::string::npos ? "." + extension : extension ) : "";
+        std::string filename = directory / ((std::string("Untitled") + (number == 0 ? std::string() : std::to_string(number))) + extension1);
+        if (std::filesystem::exists(filename)) {
+            return GetPathForUntitled(directory, extension, ++number);
+        }
+        return filename;
+    }
+
     void ProjectStructure::OnGui() {
         std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
 
@@ -198,26 +215,59 @@ namespace VWolfPup {
         ImGui::BeginChild("child2", ImVec2(0, ImGui::GetWindowSize().y - minusSize), true);
         if (selectedEntry) {
             selectedEntry->OnFileExplorerGui();
+            
+            bool isHoveringDropZone = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+
+            // 4. Accept the file payload if hovering the child window and a file was dropped
+            if (isHoveringDropZone && filesDropped.size() > 0) {
+                for (std::string& pathString : filesDropped) {
+                    std::filesystem::path path(pathString);
+                    std::filesystem::path newFile = GetPathForUntitled(selectedEntry->GetDirectorySelectedPath(), path.extension());
+                    std::filesystem::copy(path, newFile);
+                }
+                filesDropped.clear();
+            }
+
         }
         if (showDialog) {
             if (ImGui::BeginPopupContextWindow("CreateMenu"))
             {
                 didSelection = true;
+                if (selectedEntry->GetSelectedPath() != "") {
+                    if (ImGui::MenuItem("Delete")) {
+                        std::filesystem::remove(selectedEntry->GetFullPath());
+                    }
+                }
                 if (ImGui::BeginMenu("Create")) {
 
+                    if (ImGui::MenuItem("Folder")) {
+                        std::filesystem::path newPath = GetPathForUntitled(selectedEntry->GetDirectorySelectedPath(), "");
+                        std::filesystem::create_directory(newPath);
+                    }
                     if (ImGui::MenuItem("Scene"))
                     {
                         showDialog = false;
-                        // TODO: Generate random name
-//                        VWolf::Ref<VWolf::Scene> scene = VWolf::CreateRef<VWolf::Scene>("Untitled");
-//                        VWolf::SceneSerializer::Serialize(scene, selectedEntry->GetDirectorySelectedPath() / (scene->GetName() + ".scene"));
+
+                        std::filesystem::path newFile = GetPathForUntitled(selectedEntry->GetDirectorySelectedPath(), "scene");
+                        VWolf::Scene scene(newFile.stem().string());
+                        scene.Save(newFile);
                     }
                     if (ImGui::MenuItem("Material"))
                     {
                         showDialog = false;
-//                        Defaults::Get()->GetDefaultGridMaterial();
-//                        VWolf::Ref<VWolf::Material> newMaterial = VWolf::CreateRef<VWolf::Material>(Defaults::Get()->GetDefaultMaterial()->GetShaderName().c_str());
-//                        VWolf::MaterialSerializer::Serialize(*newMaterial, selectedEntry->GetDirectorySelectedPath() / ("Untitled.vwolfmat"));
+                        
+                        std::filesystem::path newFile = GetPathForUntitled(selectedEntry->GetDirectorySelectedPath(), "vwolfmat");
+                        std::string shader = VWolf::MaterialLibrary::Default()->GetShaderName();
+                        VWolf::Material material(newFile.stem().string(), shader);
+                        material.Save(newFile);
+                    }
+                    if (ImGui::MenuItem("Shader"))
+                    {
+                        showDialog = false;
+                        std::filesystem::path newFile = GetPathForUntitled(selectedEntry->GetDirectorySelectedPath(), "vwolfshader");
+                        VWolf::Ref<FileTemplate> fileTemplate = FileTemplate::Find(ShaderImporter::GetShaderExtension());
+                        VWolf::Shader shader(fileTemplate->GetPath(), newFile.stem());
+                        shader.Save(newFile);
                     }
                     ImGui::EndMenu();
                 }
@@ -237,6 +287,7 @@ namespace VWolfPup {
 
     void ProjectStructure::OnEvent(VWolf::Event& evt) {
         VWolf::Dispatch<VWolf::MouseButtonReleasedEvent>(evt, VWOLF_BIND_EVENT_FN(ProjectStructure::OnMouseButtonReleasedEvent));
+        VWolf::Dispatch<VWolf::WindowDragDropEvent>(evt, VWOLF_BIND_EVENT_FN(ProjectStructure::OnWindowDragDropEvent));
     }
 
     bool ProjectStructure::OnMouseButtonReleasedEvent(VWolf::MouseButtonReleasedEvent& e) {
@@ -244,9 +295,17 @@ namespace VWolfPup {
             showDialog = true;
         }
         else if (e.GetMouseButton() == VWolf::MouseCode::Left && !didSelection) {
-            selectedName = "";
+            selectedEntry->SetSelectedPath("");
         }
         didSelection = false;
+        return true;
+    }
+
+    bool ProjectStructure::OnWindowDragDropEvent(VWolf::WindowDragDropEvent& e) {
+        
+        filesDropped.clear();
+        for (int index = 0; index < e.GetPathCount(); index++)
+            filesDropped.push_back(e.GetPaths()[index]);
         return true;
     }
 }

@@ -32,6 +32,8 @@ namespace VWolf {
 
 	Application* Application::m_application = nullptr;
 
+    bool Application::_isPlaying = false;
+
 	Application::Application(DriverType type, InitConfiguration config) : m_type(type), driver(Driver::GetDriver(type))
 	{
         std::filesystem::path currentPath = CommandLineArguments::GetArguments()[0];

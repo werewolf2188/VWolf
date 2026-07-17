@@ -11,6 +11,7 @@
 #include "VWolf.h"
 
 #include <mutex>
+#include <vector>
 
 namespace VWolfPup {
     class ProjectTree;
@@ -27,12 +28,13 @@ namespace VWolfPup {
     private:
         void Rebuild();
         bool OnMouseButtonReleasedEvent(VWolf::MouseButtonReleasedEvent& e);
+        bool OnWindowDragDropEvent(VWolf::WindowDragDropEvent& e);
     private:
         bool showDialog = false, didSelection = false;
-        std::string selectedName;
         float startingWidth = 200.0f;
         VWolf::Ref<ProjectTree> projectTree;
 
         std::mutex m_MainThreadQueueMutex;
+        std::vector<std::string> filesDropped;
     };
 }

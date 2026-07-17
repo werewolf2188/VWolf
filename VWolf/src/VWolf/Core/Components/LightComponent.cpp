@@ -10,7 +10,7 @@
 #include "LightComponent.h"
 
 namespace VWolf {
-    LightComponent::LightComponent(): Component("Light") {
+    LightComponent::LightComponent(): Component(ClassNameCleaner::Current().GetClassName<LightComponent>()) {
         // TODO: Testing
         light.color = { 1.0f, 1.0f, 1.0f, 1.0f };
         light.strength = { 0.5f, 0.5f, 0.5f, 0.5f };
@@ -22,10 +22,10 @@ namespace VWolf {
     }
 
     LightComponent::LightComponent(LightComponent& light):
-    Component("Light", light.id), light(light.light) {}
+    Component(ClassNameCleaner::Current().GetClassName<LightComponent>(), light.id), light(light.light) {}
 
     LightComponent::LightComponent(LightComponent&& light):
-    Component("Light", light.id), light(std::move(light.light)) {}
+    Component(ClassNameCleaner::Current().GetClassName<LightComponent>(), light.id), light(std::move(light.light)) {}
 
     LightComponent::~LightComponent() {}
 
@@ -38,16 +38,10 @@ namespace VWolf {
         return light;
     }
 
-    void LightComponent::OnInspector() {
-        LightComponent::componentInspector->OnInspector(this);
-    }
-
     Component* LightComponent::Copy(entt::entity& handle, entt::registry& registry) {
         LightComponent& component = registry.emplace<LightComponent>(handle, *this);
         return &component;
     }
-
-    VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(LightComponent);
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(LightComponent, "LightComponent")
 }

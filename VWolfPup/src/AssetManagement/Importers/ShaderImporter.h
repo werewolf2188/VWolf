@@ -14,6 +14,8 @@ namespace VWolfPup {
     public:
         uint32_t LoadPriority(std::filesystem::path path) const override;
         bool Import(std::filesystem::path path, VWolf::UUID _id) override;
+    public:
+        static Extension GetShaderExtension() { return shaderExtension; }
     protected:
         const std::vector<Extension> Extensions() const override;
     private:

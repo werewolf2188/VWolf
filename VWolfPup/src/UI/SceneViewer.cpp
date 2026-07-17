@@ -9,6 +9,8 @@
 #include <imgui/imgui.h>
 #include <ImGuizmo/ImGuizmo.h>
 
+#include "Selection.h"
+
 namespace VWolfPup {
     SceneViewer::SceneViewer(VWolf::Ref<VWolf::Camera> camera, VWolf::DriverType driverType, uint32_t width, uint32_t height):
     camera(camera), renderTexture(VWolf::CreateRef<VWolf::RenderTexture>(width, height)), driverType(driverType), View("Scene") { }
@@ -35,7 +37,7 @@ namespace VWolfPup {
             ImGui::Image(renderTexture->GetHandler(), windowSize);
         ImGui::SetCursorPos(ImVec2(10, 30));
         
-        if (!isPlaying) {
+        if (!VWolf::Application::IsPlaying()) {
             if (ImGui::Button("Translate")) {
                 operation = (uint32_t)ImGuizmo::OPERATION::TRANSLATE;
             }
@@ -45,6 +47,7 @@ namespace VWolfPup {
             if (ImGui::Button("Scale")) {
                 operation = (uint32_t)ImGuizmo::OPERATION::SCALE;
             }
+            VWolf::Ref<VWolf::GameObject> selectedObject = Selection::GetActiveGameObject();
             if (selectedObject && operation) {
                 ImGuizmo::SetOrthographic(false);
                 ImGuizmo::SetDrawlist();

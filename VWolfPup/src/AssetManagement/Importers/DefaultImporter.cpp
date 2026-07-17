@@ -34,11 +34,8 @@ namespace VWolfPup {
 
     const bool DefaultImporter::CanImport(std::filesystem::path path) const {
         if (std::filesystem::is_directory(path)) return true;
-        
-        Extension extension = path;
-        const std::vector<Extension>& extensions = Extensions();
-        
-        return std::find(extensions.begin(), extensions.end(), extension) != extensions.end();
+        // All files should create a default importer if they don't belong to other importers
+        return true;
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_NO_NAME(DefaultImporter);

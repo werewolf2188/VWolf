@@ -7,6 +7,8 @@
 
 #include "Project.h"
 #include "Folder.h"
+#include "../AssetManagement/AssetDatabase.h"
+#include "../AssetManagement/AssetMetaFile.h"
 
 #include <yaml-cpp/yaml.h>
 #include <fstream>
@@ -34,27 +36,31 @@ namespace VWolfPup {
                 if (!filename.empty())
                     kv.second(path.string(), action);
             }
-//
-//            switch ( action ) {
-//                case efsw::Actions::Add:
-//                    std::cout << "DIR (" << dir << ") FILE (" << filename << ") has event Added"
-//                              << std::endl;
-//                    break;
-//                case efsw::Actions::Delete:
-//                    std::cout << "DIR (" << dir << ") FILE (" << filename << ") has event Delete"
-//                              << std::endl;
-//                    break;
-//                case efsw::Actions::Modified:
-//                    std::cout << "DIR (" << dir << ") FILE (" << filename << ") has event Modified"
-//                              << std::endl;
-//                    break;
-//                case efsw::Actions::Moved:
-//                    std::cout << "DIR (" << dir << ") FILE (" << filename << ") has event Moved from ("
-//                              << oldFilename << ")" << std::endl;
-//                    break;
-//                default:
-//                    std::cout << "Should never happen!" << std::endl;
-//            }
+
+            switch ( action ) {
+                case efsw::Actions::Add:
+                    {
+                        if (!AssetMetaFile::IsMetafile(path))
+                            AssetDatabase::CreateMetaFile(path);
+                    }
+                    break;
+                case efsw::Actions::Delete:
+                    {
+                        if (!AssetMetaFile::IsMetafile(path))
+                            AssetDatabase::RemoveMetaFile(path);
+                    }
+                    break;
+                case efsw::Actions::Modified:
+                    std::cout << "DIR (" << dir << ") FILE (" << filename << ") has event Modified"
+                              << std::endl;
+                    break;
+                case efsw::Actions::Moved:
+                    std::cout << "DIR (" << dir << ") FILE (" << filename << ") has event Moved from ("
+                              << oldFilename << ")" << std::endl;
+                    break;
+                default:
+                    std::cout << "Should never happen!" << std::endl;
+            }
         }
     private:
         Project* owner;

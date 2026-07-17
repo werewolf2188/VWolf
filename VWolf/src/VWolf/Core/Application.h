@@ -19,7 +19,7 @@ namespace VWolf {
 		static bool m_initialized;
 	};
 
-	class Application: public WindowEventCallback {
+	class Application: public EventCallback {
 	public:
 		static Application* GetApplication() { return m_application; };
 	public:
@@ -34,6 +34,9 @@ namespace VWolf {
 		Ref<Window> GetWindow();
 		std::vector<std::string> GetArguments();
         DriverType GetDriverType() { return m_type; }
+    public:
+        static bool IsPlaying() { return _isPlaying; }
+        static void SetPlaying(bool isPlaying) { _isPlaying = isPlaying; }
 #ifdef VWOLF_CORE
 		// TODO: Should I keep this?
 		Driver* GetDriver() { return driver.get(); }
@@ -44,6 +47,8 @@ namespace VWolf {
 		bool OnWindowResize(WindowResizeEvent& e);
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
+    private:
+        static bool _isPlaying;
 	private:
 		static Application* m_application;
 		DriverType m_type;

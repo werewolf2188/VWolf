@@ -14,12 +14,12 @@
 #include "GameObject.h"
 
 namespace VWolf {
-    RigidBodyComponent::RigidBodyComponent(): Component("RigidBody") {
+    RigidBodyComponent::RigidBodyComponent(): Component(ClassNameCleaner::Current().GetClassName<RigidBodyComponent>()) {
 
     }
 
     RigidBodyComponent::RigidBodyComponent(const RigidBodyComponent& rigidBody):
-    Component("RigidBody", rigidBody.id) {
+    Component(ClassNameCleaner::Current().GetClassName<RigidBodyComponent>(), rigidBody.id) {
         this->mMass = rigidBody.mMass;
         this->mDrag = rigidBody.mDrag;
         this->mAngularDrag = rigidBody.mAngularDrag;
@@ -28,7 +28,7 @@ namespace VWolf {
     }
 
     RigidBodyComponent::RigidBodyComponent(RigidBodyComponent&& rigidBody):
-    Component("RigidBody", rigidBody.id) {
+    Component(ClassNameCleaner::Current().GetClassName<RigidBodyComponent>(), rigidBody.id) {
         this->mMass = rigidBody.mMass;
         this->mDrag = rigidBody.mDrag;
         this->mAngularDrag = rigidBody.mAngularDrag;
@@ -44,10 +44,6 @@ namespace VWolf {
 
     RigidBodyComponent::~RigidBodyComponent() {
 
-    }
-
-    void RigidBodyComponent::OnInspector() {
-        RigidBodyComponent::componentInspector->OnInspector(this);
     }
 
     Component* RigidBodyComponent::Copy(entt::entity& handle, entt::registry& registry) {
@@ -88,8 +84,6 @@ namespace VWolf {
         world->destroyRigidBody(rigidBody);
         rigidBody = nullptr;
     }
-
-    VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(RigidBodyComponent);
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(RigidBodyComponent, "RigidBodyComponent")
 }

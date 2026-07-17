@@ -336,7 +336,7 @@ namespace VWolf {
 
     class GenericWindow: public Window, public MouseHandler, public KeyHandler {
     public:
-        GenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer = [](){});
+        GenericWindow(DriverType driverType, InitConfiguration config, EventCallback& callback, std::function<void()> initializer = [](){});
         virtual ~GenericWindow() override;
         virtual void Initialize() override;
         virtual void OnUpdate() override;
@@ -347,7 +347,7 @@ namespace VWolf {
     public:
         void InitializeEventHandler(GLFWwindow* m_window);
     public:
-        virtual WindowEventCallback& GetCallback() override { return callback; }
+        virtual EventCallback& GetCallback() override { return callback; }
         
     #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
         inline NS::View* GetView() { return m_view; }
@@ -363,7 +363,7 @@ namespace VWolf {
     private:
         std::function<void()> initializer;
         GLFWwindow *m_window;
-        WindowEventCallback& callback;
+        EventCallback& callback;
     #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
         NS::Window* m_nativeWindow;
         NS::View* m_view;
@@ -372,7 +372,7 @@ namespace VWolf {
     #endif
     };
 
-    Ref<Window> CreateGenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer) {
+    Ref<Window> CreateGenericWindow(DriverType driverType, InitConfiguration config, EventCallback& callback, std::function<void()> initializer) {
         return CreateRef<GenericWindow>(driverType, config, callback, initializer);
     }
 
@@ -391,7 +391,7 @@ namespace VWolf {
 
 #endif
 
-    GenericWindow::GenericWindow(DriverType driverType, InitConfiguration config, WindowEventCallback& callback, std::function<void()> initializer): Window(), callback(callback), initializer(initializer) {
+    GenericWindow::GenericWindow(DriverType driverType, InitConfiguration config, EventCallback& callback, std::function<void()> initializer): Window(), callback(callback), initializer(initializer) {
         this->width = config.width;
         this->height = config.height;
 
@@ -579,6 +579,18 @@ namespace VWolf {
             KeyTypedEvent evt(boost::lexical_cast<std::string>(static_cast<unsigned char>(keycode)));
             data.GetCallback().OnEvent(evt);
     #endif
+        });
+        
+        glfwSetDropCallback(m_window,  [](GLFWwindow* window, int path_count, const char* paths[]) {
+            GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+#if VWOLF_USE_EVENT_QUEUE
+            WindowDragDropEvent* evt = new WindowDragDropEvent(path_count, paths);
+            EventQueue::defaultQueue->Queue(evt);
+            data.GetCallback().OnEvent(*evt);
+#else
+            WindowDragDropEvent evt(path_count, paths);
+            data.GetCallback().OnEvent(evt);
+#endif
         });
     }
 

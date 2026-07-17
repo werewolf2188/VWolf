@@ -13,10 +13,11 @@ namespace VWolf {
 	enum class EventType
 	{
 		None = 0,
-		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
+		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDrapDrop,
 		AppTick, AppUpdate, AppRender, // ?????
 		KeyPressed, KeyReleased, KeyTyped,
-		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
+		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
+        CustomEvent
 	};
 
 
@@ -24,6 +25,11 @@ namespace VWolf {
 static EventType GetStaticType() { return EventType::type; }\
 virtual EventType GetEventType() const override { return GetStaticType(); }\
 virtual const char* GetName() const override { return #type; }
+
+#define EVENT_CUSTOM_CLASS(name) \
+static VWolf::EventType GetStaticType() { return VWolf::EventType::CustomEvent; }\
+virtual VWolf::EventType GetEventType() const override { return GetStaticType(); }\
+virtual const char* GetName() const override { return name; }
 
 	class Event {
 	public:
@@ -41,6 +47,11 @@ virtual const char* GetName() const override { return #type; }
 		//	return GetCategoryFlags() & category;
 		//}
 	};
+
+    class EventCallback {
+    public:
+        virtual void OnEvent(Event& evt) = 0;
+    };
 
 	template<typename T, typename F>
 	bool Dispatch(Event& evt, const F& func)

@@ -110,12 +110,12 @@ namespace VWolf {
                 currentComponents.erase(currentComponents.begin() + i);
         }
     public:
-        void OnInspector();
         void AttachToScene(Scene* scene);
         void CopyComponents(GameObject* otherGameObject);
     public:
         reactphysics3d::RigidBody* GetRigidBody() { return mRigidBody; }
         void SetRigidBody(reactphysics3d::RigidBody* rigidBody) { mRigidBody = rigidBody; }
+        std::vector<Component*>& GetCurrentComponents() { return currentComponents; }
     private:
         entt::entity handle { entt::null };
         Scene* scene;

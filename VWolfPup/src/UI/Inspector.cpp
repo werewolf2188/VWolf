@@ -9,6 +9,8 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <boost/type_index.hpp>
+#include <boost/mpl/for_each.hpp>
 
 #include <type_traits>
 
@@ -18,6 +20,8 @@
 
 #include "../ProjectManagement/Project.h"
 #include "../ProjectManagement/Extensions.h"
+
+#include "Selection.h"
 
 template<typename T, typename UIFunction>
 static bool DrawComponent(const std::string& name, T& component, UIFunction uiFunction)
@@ -142,11 +146,45 @@ static bool ButtonCenteredOnLine(const char* label, float alignment = 0.5f)
 
 namespace VWolfPup {
 
-    class TransformComponentInspector: public VWolf::ComponentInspector<VWolf::TransformComponent> {
+    template<typename T>
+    class ComponentInspector {
+    public:
+        ComponentInspector() {}
+        ~ComponentInspector() {}
+    public:
+        void Inspect(VWolf::Component* component) {
+            OnInspector((T*)component);
+        }
+    protected:
+        virtual void OnInspector(T* component) {}
+    public:
+        static std::string GetComponentName() {
+            return VWolf::ClassNameCleaner::Current().GetClassName<T>();
+        }
+    };
+
+    class ComponentInspectorValidator {
+    public:
+        ComponentInspectorValidator(VWolf::Component* component): _component(component) {}
+    public:
+        template <typename type>
+        void operator()(type) const {
+            std::string componentName = _component->GetName();
+            std::string typeName = type::GetComponentName();
+            if (componentName == typeName) {
+                type inspector;
+                inspector.Inspect(_component);
+            }
+        }
+    private:
+        VWolf::Component* _component;
+    };
+
+    class TransformComponentInspector: public ComponentInspector<VWolf::TransformComponent> {
     public:
         TransformComponentInspector() {}
         ~TransformComponentInspector() {}
-    public:
+    protected:
         virtual void OnInspector(VWolf::TransformComponent* component) override {
             DrawComponent<VWolf::TransformComponent>(component->GetName(), *component, [](VWolf::TransformComponent& component) {
                 DrawVec3Control("Position", component.GetPosition());
@@ -156,11 +194,11 @@ namespace VWolfPup {
         }
     };
 
-    class LightComponentInspector: public VWolf::ComponentInspector<VWolf::LightComponent> {
+    class LightComponentInspector: public ComponentInspector<VWolf::LightComponent> {
     public:
         LightComponentInspector() {}
         ~LightComponentInspector() {}
-    public:
+    protected:
         virtual void OnInspector(VWolf::LightComponent* component) override {
             auto remove = DrawComponent<VWolf::LightComponent>(component->GetName(), *component, [this](VWolf::LightComponent& component) {
                 
@@ -288,11 +326,11 @@ namespace VWolfPup {
         std::array<const char*, 3> items = { "Directional", "Point", "Spot" };
     };
 
-    class MeshFilterComponentInspector: public VWolf::ComponentInspector<VWolf::MeshFilterComponent> {
+    class MeshFilterComponentInspector: public ComponentInspector<VWolf::MeshFilterComponent> {
     public:
         MeshFilterComponentInspector() {}
         ~MeshFilterComponentInspector() {}
-    public:
+    protected:
         virtual void OnInspector(VWolf::MeshFilterComponent* component) override {
             auto remove = DrawComponent<VWolf::MeshFilterComponent>(component->GetName(), *component, [this](VWolf::MeshFilterComponent& component) {
                 ImGui::PushID("Mesh Filter");
@@ -317,6 +355,8 @@ namespace VWolfPup {
                     ->AddView(new ObjectExplorer<VWolf::Mesh>([comp](auto mesh) {
 //                        VWOLF_CLIENT_INFO("Test");
                         comp->SetMesh(mesh);
+                    }, []() {
+                        return VWolf::Mesh::Empty();
                     }));
                 }
                 ImGui::Columns(1);
@@ -332,11 +372,11 @@ namespace VWolfPup {
     private:
     };
 
-    class MeshRendererComponentInspector: public VWolf::ComponentInspector<VWolf::MeshRendererComponent> {
+    class MeshRendererComponentInspector: public ComponentInspector<VWolf::MeshRendererComponent> {
     public:
         MeshRendererComponentInspector() {}
         ~MeshRendererComponentInspector() {}
-    public:
+    protected:
         virtual void OnInspector(VWolf::MeshRendererComponent* component) override {
             auto remove = DrawComponent<VWolf::MeshRendererComponent>(component->GetName(), *component, [this](VWolf::MeshRendererComponent& component) {
                 ImGui::PushID("Mesh Filter");
@@ -366,6 +406,8 @@ namespace VWolfPup {
                         } else {
                             component.SetMaterial(VWolf::MaterialLibrary::Default());
                         }
+                    }, []() {
+                        return VWolf::MaterialLibrary::Default();
                     }));
                 }
                 
@@ -382,7 +424,7 @@ namespace VWolfPup {
     private:
     };
 
-    class ShapeRendererComponentInspector: public VWolf::ComponentInspector<VWolf::ShapeRendererComponent> {
+    class ShapeRendererComponentInspector: public ComponentInspector<VWolf::ShapeRendererComponent> {
     public:
         ShapeRendererComponentInspector() {
             items_names.reserve(std::size(items));
@@ -391,7 +433,7 @@ namespace VWolfPup {
             });
         }
         ~ShapeRendererComponentInspector() {}
-    public:
+    protected:
         virtual void OnInspector(VWolf::ShapeRendererComponent* component) override {
             auto remove = DrawComponent<VWolf::ShapeRendererComponent>(component->GetName(), *component, [this](VWolf::ShapeRendererComponent& component) {
                 std::string currentName = component.GetMesh()->GetName();
@@ -445,11 +487,11 @@ namespace VWolfPup {
         std::vector<const char*> items_names;
     };
 
-    class CameraComponentInspector: public VWolf::ComponentInspector<VWolf::CameraComponent> {
+    class CameraComponentInspector: public ComponentInspector<VWolf::CameraComponent> {
     public:
         CameraComponentInspector() {}
         ~CameraComponentInspector() {}
-    public:
+    protected:
         virtual void OnInspector(VWolf::CameraComponent* component) override {
             auto remove = DrawComponent<VWolf::CameraComponent>(component->GetName(), *component, [this](VWolf::CameraComponent& component) {
                 ImGui::PushID("Camera");
@@ -539,11 +581,11 @@ namespace VWolfPup {
         int selection = 0;
     };
 
-    class RigidBodyComponentInspector: public VWolf::ComponentInspector<VWolf::RigidBodyComponent> {
+    class RigidBodyComponentInspector: public ComponentInspector<VWolf::RigidBodyComponent> {
     public:
         RigidBodyComponentInspector() {}
         ~RigidBodyComponentInspector() {}
-    public:
+    protected:
         virtual void OnInspector(VWolf::RigidBodyComponent* component) override {
             auto remove = DrawComponent<VWolf::RigidBodyComponent>(component->GetName(), *component, [this](VWolf::RigidBodyComponent& component) {
                 ImGui::PushID("Camera");
@@ -631,11 +673,11 @@ namespace VWolfPup {
         int selection = 0;
     };
 
-    class MeshColliderComponentInspector: public VWolf::ComponentInspector<VWolf::MeshColliderComponent> {
+    class MeshColliderComponentInspector: public ComponentInspector<VWolf::MeshColliderComponent> {
     public:
         MeshColliderComponentInspector() {}
         ~MeshColliderComponentInspector() {}
-    public:
+    protected:
         virtual void OnInspector(VWolf::MeshColliderComponent* component) override {
             auto remove = DrawComponent<VWolf::MeshColliderComponent>(component->GetName(), *component, [this](VWolf::MeshColliderComponent& component) {
                 
@@ -645,7 +687,7 @@ namespace VWolfPup {
         }
     };
 
-    class SphereColliderComponentInspector: public VWolf::ComponentInspector<VWolf::SphereColliderComponent> {
+    class SphereColliderComponentInspector: public ComponentInspector<VWolf::SphereColliderComponent> {
     public:
         SphereColliderComponentInspector() {}
         ~SphereColliderComponentInspector() {}
@@ -675,7 +717,7 @@ namespace VWolfPup {
         }
     };
 
-    class BoxColliderComponentInspector: public VWolf::ComponentInspector<VWolf::BoxColliderComponent> {
+    class BoxColliderComponentInspector: public ComponentInspector<VWolf::BoxColliderComponent> {
     public:
         BoxColliderComponentInspector() {}
         ~BoxColliderComponentInspector() {}
@@ -689,11 +731,11 @@ namespace VWolfPup {
         }
     };
 
-    class AudioListenerComponentInspector: public VWolf::ComponentInspector<VWolf::AudioListenerComponent> {
+    class AudioListenerComponentInspector: public ComponentInspector<VWolf::AudioListenerComponent> {
     public:
         AudioListenerComponentInspector() {}
         ~AudioListenerComponentInspector() {}
-    public:
+    protected:
         virtual void OnInspector(VWolf::AudioListenerComponent* component) override {
             auto remove = DrawComponent<VWolf::AudioListenerComponent>(component->GetName(), *component, [this](VWolf::AudioListenerComponent& component) {
                 
@@ -703,11 +745,11 @@ namespace VWolfPup {
         }
     };
 
-    class AudioSourceComponentInspector: public VWolf::ComponentInspector<VWolf::AudioSourceComponent> {
+    class AudioSourceComponentInspector: public ComponentInspector<VWolf::AudioSourceComponent> {
     public:
         AudioSourceComponentInspector() {}
         ~AudioSourceComponentInspector() {}
-    public:
+    protected:
         virtual void OnInspector(VWolf::AudioSourceComponent* component) override {
             auto remove = DrawComponent<VWolf::AudioSourceComponent>(component->GetName(), *component, [this](VWolf::AudioSourceComponent& component) {
                 ImGui::PushID("Audio Source");
@@ -729,6 +771,8 @@ namespace VWolfPup {
                     ContainerView::GetMainView()
                     ->AddView(new ObjectExplorer<VWolf::AudioClip>([this, &component](VWolf::Ref<VWolf::AudioClip> clip){
                         component.SetAudioClip(clip);
+                    }, []() {
+                        return nullptr;
                     }));
                 }
 
@@ -758,18 +802,6 @@ namespace VWolfPup {
     };
 
     Inspector::Inspector(): View("Inspector") {
-        VWolf::TransformComponent::SetComponentInspector(new TransformComponentInspector());
-        VWolf::LightComponent::SetComponentInspector(new LightComponentInspector());
-        VWolf::MeshFilterComponent::SetComponentInspector(new MeshFilterComponentInspector());
-        VWolf::MeshRendererComponent::SetComponentInspector(new MeshRendererComponentInspector());
-        VWolf::ShapeRendererComponent::SetComponentInspector(new ShapeRendererComponentInspector());
-        VWolf::CameraComponent::SetComponentInspector(new CameraComponentInspector());
-        VWolf::RigidBodyComponent::SetComponentInspector(new RigidBodyComponentInspector());
-        VWolf::MeshColliderComponent::SetComponentInspector(new MeshColliderComponentInspector());
-        VWolf::SphereColliderComponent::SetComponentInspector(new SphereColliderComponentInspector());
-        VWolf::BoxColliderComponent::SetComponentInspector(new BoxColliderComponentInspector());
-        VWolf::AudioListenerComponent::SetComponentInspector(new AudioListenerComponentInspector());
-        VWolf::AudioSourceComponent::SetComponentInspector(new AudioSourceComponentInspector());
     }
     Inspector::~Inspector() {
         
@@ -786,27 +818,46 @@ namespace VWolfPup {
         window->DockNode->TabBar->NextSelectedTabId = window->ID;
     }
 
+    using AllComponentInspectors = boost::mpl::list<
+                                    TransformComponentInspector,
+                                    ShapeRendererComponentInspector,
+                                    MeshFilterComponentInspector,
+                                    MeshRendererComponentInspector,
+                                    LightComponentInspector,
+                                    CameraComponentInspector,
+                                    RigidBodyComponentInspector,
+                                    MeshColliderComponentInspector,
+                                    SphereColliderComponentInspector,
+                                    BoxColliderComponentInspector,
+                                    AudioListenerComponentInspector,
+                                    AudioSourceComponentInspector
+                                    >;
+
     void Inspector::OnGui() {
         
+        VWolf::Ref<VWolf::GameObject> gameObject = Selection::GetActiveGameObject();
         ImGui::Begin(title.c_str());
-        if (this->gameObject) {
+        if (gameObject) {
+            if (strcmp(inputBuf, gameObject->GetName().c_str()) != 0)
+                strcpy(inputBuf, gameObject->GetName().c_str());
             if (ImGui::InputText("##Name", inputBuf, IM_ARRAYSIZE(inputBuf), ImGuiInputTextFlags_EnterReturnsTrue))
             {
-                // In case of enter
-                this->gameObject->SetName(inputBuf);
             }
             if (ImGui::GetID("##Name") == ImGui::GetActiveID()) {
                 inputIsActive = true;
             }
             else if (inputIsActive) {
                 inputIsActive = false;
-                if (this->gameObject->GetName() != inputBuf) {
-                    this->gameObject->SetName(inputBuf);
+                if (gameObject->GetName() != inputBuf) {
+                    gameObject->SetName(inputBuf);
                 }
             }
             ImGui::Separator();
             ImGui::PushItemWidth(-1);
-            this->gameObject->OnInspector();
+            for (VWolf::Component* component: gameObject->GetCurrentComponents()) {
+                using type = std::remove_pointer_t<decltype(component)>();
+                boost::mpl::for_each<AllComponentInspectors>(ComponentInspectorValidator(component));
+            }
             ImGui::Separator();
             if (ButtonCenteredOnLine("Add Component")) {
                 ImGui::OpenPopup("Component List");
@@ -820,6 +871,7 @@ namespace VWolfPup {
     }
 
     void Inspector::DrawComponentList() {
+        VWolf::Ref<VWolf::GameObject> gameObject = Selection::GetActiveGameObject();
         if (ImGui::BeginPopup("Component List", ImGuiPopupFlags_AnyPopupId))
         {
             if (ImGui::MenuItem("Light Component"))
@@ -978,6 +1030,8 @@ namespace VWolfPup {
                         ContainerView::GetMainView()
                         ->AddView(new ObjectExplorer<VWolf::Texture2D>([property, &material](VWolf::Ref<VWolf::Texture2D> texture){
                             material.SetTexture(property.GetName(), texture);
+                        }, []() {
+                            return VWolf::Texture2D::Load();
                         }));
                     }
                     ImGui::Columns(1);
@@ -1004,6 +1058,8 @@ namespace VWolfPup {
                         ContainerView::GetMainView()
                         ->AddView(new ObjectExplorer<VWolf::Cubemap>([property, &material](VWolf::Ref<VWolf::Cubemap> texture){
                             material.SetTexture(property.GetName(), texture);
+                        }, []() {
+                            return VWolf::Cubemap::Load();
                         }));
                     }
                     ImGui::Columns(1);
@@ -1019,19 +1075,14 @@ namespace VWolfPup {
     }
 
     void Inspector::DrawMaterial() {
+        VWolf::Ref<VWolf::GameObject> gameObject = Selection::GetActiveGameObject();
         // TODO: This is not a good way of getting the material
-        if (this->gameObject && (this->gameObject->HasComponent<VWolf::ShapeRendererComponent>())) {
-            auto& material = this->gameObject->GetComponent<VWolf::ShapeRendererComponent>().GetMaterial();
+        if (gameObject && (gameObject->HasComponent<VWolf::ShapeRendererComponent>())) {
+            auto& material = gameObject->GetComponent<VWolf::ShapeRendererComponent>().GetMaterial();
             DrawMaterial(material);
-        } else if (this->gameObject && (this->gameObject->HasComponent<VWolf::MeshRendererComponent>())) {
-            auto& material = this->gameObject->GetComponent<VWolf::MeshRendererComponent>().GetMaterial();
+        } else if (gameObject && (gameObject->HasComponent<VWolf::MeshRendererComponent>())) {
+            auto& material = gameObject->GetComponent<VWolf::MeshRendererComponent>().GetMaterial();
             DrawMaterial(material);
         }
-    }
-
-    void Inspector::SetGameObject(VWolf::Ref<VWolf::GameObject> gameObject) {
-        this->gameObject = gameObject;
-        if (gameObject)
-            strcpy(inputBuf, gameObject->GetName().c_str());
     }
 }

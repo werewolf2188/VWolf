@@ -29,7 +29,6 @@ namespace VWolf {
         MeshColliderComponent(MeshColliderComponent&& meshCollider);
         ~MeshColliderComponent();
     public:
-        virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         void CreateMeshCollider(Ref<Mesh> data, TransformComponent& component);
@@ -41,7 +40,6 @@ namespace VWolf {
         reactphysics3d::Collider* collider;
         Vector3 scale;
 
-        VWOLF_COMPONENT_INSPECTOR_DEFINE(MeshColliderComponent);
         BOOST_DESCRIBE_CLASS(MeshColliderComponent, (Component), (), (id), ())
         VWOLF_SERIALIZATION_FRIENDS(MeshColliderComponent)
     };

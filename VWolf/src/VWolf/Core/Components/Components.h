@@ -19,3 +19,20 @@
 #include "BoxColliderComponent.h"
 #include "AudioListenerComponent.h"
 #include "AudioSourceComponent.h"
+
+#include <boost/mpl/list.hpp>
+
+using AllComponents = boost::mpl::list<
+                        VWolf::TransformComponent,
+                        VWolf::ShapeRendererComponent,
+                        VWolf::MeshFilterComponent,
+                        VWolf::MeshRendererComponent,
+                        VWolf::LightComponent,
+                        VWolf::CameraComponent,
+                        VWolf::RigidBodyComponent,
+                        VWolf::MeshColliderComponent,
+                        VWolf::SphereColliderComponent,
+                        VWolf::BoxColliderComponent,
+                        VWolf::AudioListenerComponent,
+                        VWolf::AudioSourceComponent
+                    >;

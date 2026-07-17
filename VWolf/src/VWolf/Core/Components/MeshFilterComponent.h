@@ -21,7 +21,6 @@ namespace VWolf {
         MeshFilterComponent(MeshFilterComponent&& component);
         ~MeshFilterComponent();
     public:
-        virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         Ref<Mesh> GetMesh() { return mesh; }
@@ -35,7 +34,6 @@ namespace VWolf {
     private:
         Ref<Mesh> mesh;
         UUID meshId;
-        VWOLF_COMPONENT_INSPECTOR_DEFINE(MeshFilterComponent);
         BOOST_DESCRIBE_CLASS(MeshFilterComponent, (Component), (), (id), (meshId))
         
         VWOLF_SERIALIZATION_FRIENDS(MeshFilterComponent)

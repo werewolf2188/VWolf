@@ -184,7 +184,7 @@ namespace VWolf {
 
     Texture2D::Texture2D(UUID _id, const std::filesystem::path filePath, TextureOptions options): Texture(_id, options) {
         int channels, width, height;
-        auto img = stbi_loadf(filePath.string().c_str(), &width, &height, &channels, 0);
+        auto img = stbi_loadf(filePath.string().c_str(), &width, &height, &channels, 4);
         name = filePath.stem().string();
         m_width = width;
         m_height = height;

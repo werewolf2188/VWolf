@@ -15,21 +15,18 @@
 
 namespace VWolf {
 
-    BoxColliderComponent::BoxColliderComponent(): Component("BoxCollider") {}
+    BoxColliderComponent::BoxColliderComponent():
+    Component(ClassNameCleaner::Current().GetClassName<BoxColliderComponent>()) {}
 
     BoxColliderComponent::BoxColliderComponent(const BoxColliderComponent& sphereCollider):
-    Component("BoxCollider", sphereCollider.id) {
+    Component(ClassNameCleaner::Current().GetClassName<BoxColliderComponent>(), sphereCollider.id) {
     }
 
     BoxColliderComponent::BoxColliderComponent(BoxColliderComponent&& sphereCollider):
-    Component("BoxCollider", sphereCollider.id) {
+    Component(ClassNameCleaner::Current().GetClassName<BoxColliderComponent>(), sphereCollider.id) {
     }
 
     BoxColliderComponent::~BoxColliderComponent() {}
-
-    void BoxColliderComponent::OnInspector() {
-        BoxColliderComponent::componentInspector->OnInspector(this);
-    }
 
     Component* BoxColliderComponent::Copy(entt::entity& handle, entt::registry& registry) {
         BoxColliderComponent& component = registry.emplace<BoxColliderComponent>(handle, *this);
@@ -61,8 +58,6 @@ namespace VWolf {
             Physics::GetCommon().destroyBoxShape(boxShape);
         }
     }
-
-    VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(BoxColliderComponent);
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(BoxColliderComponent, "BoxColliderComponent")
 }

@@ -103,10 +103,14 @@ namespace VWolfPup {
 
     AssetMetaFile::AssetMetaFile(std::filesystem::path path): Object(VWolf::UUID::NewUUID()) {
         this->SetPath(path);
-        std::filesystem::file_time_type ftime = std::filesystem::last_write_time(path);
-        auto duration = ftime.time_since_epoch();
-        auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
-        lastModifiedTime = seconds;
+        if (std::filesystem::exists(path)) {
+            std::filesystem::file_time_type ftime = std::filesystem::last_write_time(path);
+            auto duration = ftime.time_since_epoch();
+            auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+            lastModifiedTime = seconds;
+        } else {
+            lastModifiedTime = 0;
+        }
     }
 
     AssetMetaFile::AssetMetaFile(const AssetMetaFile& asmf): Object(asmf.id) {
@@ -192,6 +196,10 @@ namespace VWolfPup {
         return *this;
     }
 
+    bool AssetMetaFile::operator==(const AssetMetaFile& other) const {
+        return this->metafile == other.metafile;
+    }
+
     bool AssetMetaFile::Create() {
         
         if (Exists()) return false;
@@ -206,6 +214,13 @@ namespace VWolfPup {
         }
         
         return false;
+    }
+
+    bool AssetMetaFile::Remove() {
+        if (!Exists()) return false;
+        
+        std::filesystem::remove(metafile);
+        return true;
     }
 
     bool AssetMetaFile::Save() const {

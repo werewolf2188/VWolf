@@ -25,7 +25,6 @@ namespace VWolf {
         AudioSourceComponent(AudioSourceComponent&& audioSource);
         ~AudioSourceComponent();
     public:
-        virtual void OnInspector() override;
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         bool& GetLoop() { return mLoop; }
@@ -51,7 +50,6 @@ namespace VWolf {
         Ref<AudioClip> audioClip;
 
         Vector3 listenerPosition, listenerDirection;
-        VWOLF_COMPONENT_INSPECTOR_DEFINE(AudioSourceComponent);
         VWOLF_SERIALIZATION_FRIENDS(AudioSourceComponent)
     };
 }

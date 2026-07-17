@@ -15,9 +15,17 @@
 struct ImGuiWindowClass;
 
 namespace VWolfPup {
+
+    class ToolbarPlayPauseEvent: public VWolf::Event {
+    public:
+        ToolbarPlayPauseEvent() = default;
+
+        EVENT_CUSTOM_CLASS("ToolbarPlayPauseEvent")
+    };
+
     class Toolbar: public View {
     public:
-        Toolbar(std::function<void(bool)> onPlayPressed);
+        Toolbar();
         ~Toolbar();
     public:
         void OnGui() override;
@@ -27,7 +35,6 @@ namespace VWolfPup {
         ImGuiWindowClass* window_class;
         bool wasPressed = false;
         bool isPlaying = false;
-        std::function<void(bool)> onPlayPressed;
     };
 }
 

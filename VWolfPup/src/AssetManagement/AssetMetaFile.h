@@ -33,11 +33,13 @@ namespace VWolfPup {
         uint32_t LoadPriority() const { return importer->LoadPriority(path); }
     public:
         bool Create();
+        bool Remove();
         bool Save() const;
         bool Import();
     public:
         AssetMetaFile& operator=(const AssetMetaFile& other);
         AssetMetaFile& operator=(AssetMetaFile&& other);
+        bool operator==(const AssetMetaFile& other) const;
     public:
         static std::string META_FILE_EXTENSION;
     public:

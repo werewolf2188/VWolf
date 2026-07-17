@@ -7,6 +7,7 @@
 
 #include "vwpch.h"
 #include "Mesh.h"
+#include "VWolf/Core/Debug/ShapeHelper.h"
 
 #include "OBJ_Loader.h"
 
@@ -184,5 +185,15 @@ namespace VWolf {
         }
         
         throw std::exception();
+    }
+
+    Ref<Mesh> Mesh::Empty() {
+        Ref<Mesh> refMesh = ObjectResourceManager::Get<Mesh>(VWOLF_GET_SHAPE_ID(ShapeHelper::Empty));
+        if (refMesh != nullptr) { return refMesh; }
+        
+        Mesh mesh = ShapeHelper::CreateEmpty();
+        refMesh = CreateRef<Mesh>(mesh);
+        ObjectResourceManager::AddObject(VWOLF_GET_SHAPE_ID(ShapeHelper::Empty), refMesh);
+        return refMesh;
     }
 }

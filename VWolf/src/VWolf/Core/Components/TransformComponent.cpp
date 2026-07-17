@@ -9,14 +9,15 @@
 #include "TransformComponent.h"
 
 namespace VWolf {
-    TransformComponent::TransformComponent(): Component("Transform") {
+    TransformComponent::TransformComponent():
+    Component(ClassNameCleaner::Current().GetClassName<TransformComponent>()) {
         position = Vector3(0, 0, 0);
         eulerAngles = Vector3(0, 0, 0);
         localScale = Vector3(1, 1, 1);
     }
 
     TransformComponent::TransformComponent(const TransformComponent& transform):
-    Component("Transform", transform.id) {
+    Component(ClassNameCleaner::Current().GetClassName<TransformComponent>(), transform.id) {
         this->position = transform.position;
         this->eulerAngles = transform.eulerAngles;
         this->localScale = transform.localScale;
@@ -24,7 +25,7 @@ namespace VWolf {
     }
 
     TransformComponent::TransformComponent(TransformComponent&& transform):
-    Component("Transform", transform.id) {
+    Component(ClassNameCleaner::Current().GetClassName<TransformComponent>(), transform.id) {
         this->position = transform.position;
         this->eulerAngles = transform.eulerAngles;
         this->localScale = transform.localScale;
@@ -54,16 +55,10 @@ namespace VWolf {
                                 localScale);
     }
 
-    void TransformComponent::OnInspector() {
-        TransformComponent::componentInspector->OnInspector(this);
-    }
-
     Component* TransformComponent::Copy(entt::entity& handle, entt::registry& registry) {
         TransformComponent& component = registry.emplace<TransformComponent>(handle, *this);
         return &component;
     }
-
-    VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(TransformComponent);
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(TransformComponent, "TransformComponent")
 }

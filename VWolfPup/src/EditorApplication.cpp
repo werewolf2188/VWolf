@@ -23,6 +23,8 @@
 #include "UI/ProjectStructure.h"
 #include "UI/Toolbar.h"
 
+#include "UI/Selection.h"
+
 #include "ProjectManagement/Project.h"
 
 #include "AssetManagement/AssetDatabase.h"
@@ -48,7 +50,6 @@ VWolf::Mesh CreateGridEx() {
 
 class RendererSandboxApplication: public VWolf::Application {
 public:
-    bool isPlaying = false;
     VWolf::Ref<VWolf::Camera> camera, skyBoxCamera;
     VWolf::Ref<VWolf::Texture2D> testTexture;
     VWolf::Ref<VWolf::Mesh> gridDataEx = VWolf::CreateRef<VWolf::Mesh>(CreateGridEx());
@@ -125,10 +126,7 @@ public:
         sceneSettings = new VWolfPup::SceneSettings(VWolfPup::Project::CurrentProject()->GetCurrentScene().get());
         containerView->AddView(sceneSettings);
 
-        sceneHierarchy = new VWolfPup::SceneHierarchy(VWolfPup::Project::CurrentProject()->GetCurrentScene().get(), [this](VWolf::Ref<VWolf::GameObject> gameObject) {
-            inspector->SetGameObject(gameObject);
-            sceneViewer->SetSelectedObject(gameObject);
-        });
+        sceneHierarchy = new VWolfPup::SceneHierarchy(VWolfPup::Project::CurrentProject()->GetCurrentScene().get());
         containerView->AddView(sceneHierarchy);
 
         saveBrowser = new VWolfPup::FileBrowser(VWolfPup::FileBrowserMode::Save, [this](std::filesystem::path path){
@@ -152,19 +150,7 @@ public:
         projectStructure = new VWolfPup::ProjectStructure();
         containerView->AddView(projectStructure);
 
-        toolbar = new VWolfPup::Toolbar([&](bool isPlaying){
-            this->isPlaying = isPlaying;
-            inspector->SetGameObject(nullptr);
-            sceneViewer->SetSelectedObject(nullptr);
-            sceneViewer->SetPlaying(isPlaying);
-            if (isPlaying)
-                testScene->StartingPreview();
-            else {
-                controller->OnUpdate();
-                skyBoxController->OnUpdate();
-                testScene->StopingPreview();
-            }                
-        });
+        toolbar = new VWolfPup::Toolbar();
         containerView->AddView(toolbar);
         std::string skyMaterialName = VWolfPup::Defaults::Get()->GetDefaultSkyBoxMaterialName();
         VWolf::Ref<VWolf::Material> skyMaterial = VWolf::MaterialLibrary::GetMaterial(skyMaterialName);
@@ -181,11 +167,12 @@ public:
         VWolf::Application::OnEvent(evt);
         VWolf::Dispatch<VWolf::WindowResizeEvent>(evt, VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowResize));
         VWolf::Dispatch<VWolf::WindowCloseEvent>(evt, VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowClose));
+        VWolf::Dispatch<VWolfPup::ToolbarPlayPauseEvent>(evt, VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnToolbarPlayPauseButtonPressed));
 
         sceneHierarchy->OnEvent(evt);
         projectStructure->OnEvent(evt);
 
-        if (openBrowser->IsOpen() || saveBrowser->IsOpen() || isPlaying) return;
+        if (openBrowser->IsOpen() || saveBrowser->IsOpen() || VWolf::Application::IsPlaying()) return;
         if (sceneViewer->IsHovering()) {
             controller->OnEvent(evt);
             skyBoxController->OnEvent(evt);
@@ -200,7 +187,7 @@ public:
     void OnUpdate() override {
         testScene->UpdateEditor();
 
-        if (openBrowser->IsOpen() || saveBrowser->IsOpen() || isPlaying) return;
+        if (openBrowser->IsOpen() || saveBrowser->IsOpen() || VWolf::Application::IsPlaying()) return;
 
         if (sceneViewer->IsHovering()) {
             controller->OnUpdate();
@@ -209,7 +196,7 @@ public:
     }
 
     void OnDraw() override {
-        if (isPlaying)
+        if (VWolf::Application::IsPlaying())
             testScene->DrawPreviewEditor();
         else {
             testScene->DrawEditor(camera);
@@ -225,6 +212,17 @@ public:
     bool OnWindowResize(VWolf::WindowResizeEvent& e) {
         if (e.GetWidth() != 0 && e.GetHeight() != 0)
             controller->SetViewportSize(e.GetWidth(), e.GetHeight());
+        return true;
+    }
+    
+    bool OnToolbarPlayPauseButtonPressed(VWolfPup::ToolbarPlayPauseEvent& e) {
+        if (VWolf::Application::IsPlaying())
+            testScene->StartingPreview();
+        else {
+            controller->OnUpdate();
+            skyBoxController->OnUpdate();
+            testScene->StopingPreview();
+        }   
         return true;
     }
 };

@@ -30,6 +30,7 @@ namespace VWolfPup {
 
         bool operator==(const Extension& other) const;
         bool operator!=(const Extension& other) const;
+        bool operator<(const Extension& other) const;
         
         friend bool operator==(const std::string extension, const Extension& other);
         friend bool operator==(const Extension& other, const std::string extension);

@@ -19,7 +19,7 @@ namespace VWolf {
 
 	OpenGLDriver* OpenGLDriver::currentDriver = nullptr;
 
-	void OpenGLDriver::Initialize(InitConfiguration config, WindowEventCallback& callback)
+	void OpenGLDriver::Initialize(InitConfiguration config, EventCallback& callback)
 	{
 		this->callback = &callback;
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_MAJOR_VERSION);

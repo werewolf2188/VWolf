@@ -11,23 +11,8 @@
 #include "Components.h"
 
 #include <boost/type_index.hpp>
-#include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
 
-using AllComponents = boost::mpl::list<
-                        VWolf::TransformComponent,
-                        VWolf::ShapeRendererComponent,
-                        VWolf::MeshFilterComponent,
-                        VWolf::MeshRendererComponent,
-                        VWolf::LightComponent,
-                        VWolf::CameraComponent,
-                        VWolf::RigidBodyComponent,
-                        VWolf::MeshColliderComponent,
-                        VWolf::SphereColliderComponent,
-                        VWolf::BoxColliderComponent,
-                        VWolf::AudioListenerComponent,
-                        VWolf::AudioSourceComponent
-                    >;
 
 const std::string componentKey = "Components";
 
@@ -132,12 +117,6 @@ namespace VWolf {
 
     TransformComponent& GameObject::GetTransform() {
         return GetComponent<TransformComponent>();
-    }
-
-    void GameObject::OnInspector() {
-        for (auto component: currentComponents) {
-            component->OnInspector();
-        }
     }
 
     void GameObject::AttachToScene(Scene* scene) {

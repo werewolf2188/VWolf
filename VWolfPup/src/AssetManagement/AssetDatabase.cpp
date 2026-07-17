@@ -8,6 +8,7 @@
 #include "AssetDatabase.h"
 
 #include <string>
+#include <algorithm>
 
 #include "VWolf.h"
 
@@ -16,10 +17,32 @@
 namespace VWolfPup {
     std::vector<AssetMetaFile> AssetDatabase::metafiles;
 
+    void SortMetafiles(std::vector<AssetMetaFile>& metafiles) {
+        std::sort(metafiles.begin(), metafiles.end(), [](const AssetMetaFile& fileA, const AssetMetaFile& fileB) {
+            return fileA.LoadPriority() < fileB.LoadPriority();
+        });
+    }
+
     void AssetDatabase::CreateMetaFile(std::filesystem::path entry) {
         AssetMetaFile mf(entry);
         
-        mf.Create();
+        if (mf.Create()) {
+            metafiles.push_back(mf);
+            // Sorting
+            SortMetafiles(metafiles);
+            mf.Import();
+        }
+    }
+
+    void AssetDatabase::RemoveMetaFile(std::filesystem::path path) {
+        AssetMetaFile mf(path);
+        
+        if (mf.Remove()) {
+            metafiles.erase(std::remove_if(metafiles.begin(), metafiles.end(), [mf](const AssetMetaFile& x) {
+                return mf == x;
+            }), metafiles.end());
+            SortMetafiles(metafiles);
+        }
     }
 
     void AssetDatabase::CreateMetaFilesForEditor() {
@@ -33,15 +56,18 @@ namespace VWolfPup {
 #endif
 
         for (const auto& entry : std::filesystem::recursive_directory_iterator(editorAssetsFolder)) {
-            CreateMetaFile(entry);
+            AssetMetaFile mf(entry);
+            mf.Create();
         }
         
         for (const auto& entry : std::filesystem::recursive_directory_iterator(editorShadersFolder)) {
-            CreateMetaFile(entry);
+            AssetMetaFile mf(entry);
+            mf.Create();
         }
         
         for (const auto& entry : std::filesystem::recursive_directory_iterator(Project::CurrentProject()->GetAssetsPath())) {
-            CreateMetaFile(entry);
+            AssetMetaFile mf(entry);
+            mf.Create();
         }
         
         for (const AssetMetaFile& currentAssetMetafile: metafiles) {
@@ -64,14 +90,12 @@ namespace VWolfPup {
                 metafiles.push_back(AssetMetaFile::Load(entry));
             }
         }
-        
-        std::sort(metafiles.begin(), metafiles.end(), [](const AssetMetaFile& fileA, const AssetMetaFile& fileB) {
-            return fileA.LoadPriority() < fileB.LoadPriority();
-        });
-        std::cout << "End" << std::endl;
+        // Sorting
+        SortMetafiles(metafiles);
+//        std::cout << "End" << std::endl;
         std::for_each(metafiles.begin(), metafiles.end(), [](AssetMetaFile& file) {
             file.Import();
         });
-        std::cout << "End" << std::endl;
+//        std::cout << "End" << std::endl;
     }
 }

@@ -15,7 +15,7 @@
 namespace VWolfPup {
     class SceneHierarchy: public View {
     public:
-        SceneHierarchy(VWolf::Scene *scene, std::function<void(VWolf::Ref<VWolf::GameObject>)> onTapped);
+        SceneHierarchy(VWolf::Scene *scene);
         ~SceneHierarchy();
     public:
         void SetScene(VWolf::Scene* scene) { this->scene = scene; }
@@ -29,7 +29,6 @@ namespace VWolfPup {
     private:
         bool showDialog = false, didSelection = false;
         VWolf::Scene *scene;
-        std::function<void(VWolf::Ref<VWolf::GameObject>)> onTapped;
         std::string selectedName;
         std::vector<VWolf::Ref<VWolf::Mesh>> meshes;
     };

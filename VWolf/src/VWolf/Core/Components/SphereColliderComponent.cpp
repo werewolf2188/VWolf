@@ -15,25 +15,22 @@
 
 namespace VWolf {
 
-    SphereColliderComponent::SphereColliderComponent(): Component("SphereCollider") {}
+    SphereColliderComponent::SphereColliderComponent():
+    Component(ClassNameCleaner::Current().GetClassName<SphereColliderComponent>()) {}
 
     SphereColliderComponent::SphereColliderComponent(const SphereColliderComponent& sphereCollider):
-    Component("SphereCollider", sphereCollider.id) {
+    Component(ClassNameCleaner::Current().GetClassName<SphereColliderComponent>(), sphereCollider.id) {
         this->mRadius = sphereCollider.mRadius;
     }
 
     SphereColliderComponent::SphereColliderComponent(SphereColliderComponent&& sphereCollider):
-    Component("SphereCollider", sphereCollider.id) {
+    Component(ClassNameCleaner::Current().GetClassName<SphereColliderComponent>(), sphereCollider.id) {
         this->mRadius = sphereCollider.mRadius;
 
         sphereCollider.mRadius = 0;
     }
 
     SphereColliderComponent::~SphereColliderComponent() {}
-
-    void SphereColliderComponent::OnInspector() {
-        SphereColliderComponent::componentInspector->OnInspector(this);
-    }
 
     Component* SphereColliderComponent::Copy(entt::entity& handle, entt::registry& registry) {
         SphereColliderComponent& component = registry.emplace<SphereColliderComponent>(handle, *this);
@@ -66,8 +63,6 @@ namespace VWolf {
             Physics::GetCommon().destroySphereShape(sphereShape);
         }
     }
-
-    VWOLF_COMPONENT_INSPECTOR_IMPLEMENTATION(SphereColliderComponent);
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(SphereColliderComponent, "SphereColliderComponent")
 }

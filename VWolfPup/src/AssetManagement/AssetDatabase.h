@@ -16,8 +16,8 @@ namespace VWolfPup {
         static void CreateMetaFilesForEditor();
     public:
         static void LoadMetaFilesForEditor();
-    private:
         static void CreateMetaFile(std::filesystem::path path);
+        static void RemoveMetaFile(std::filesystem::path path);    
     private:
         static std::vector<AssetMetaFile> metafiles;
     };
