@@ -16,10 +16,10 @@ namespace VWolf {
 
 	class DirectX12Graphics;
 
-	class DirectX12Driver : public Driver, public WindowEventCallback {
+	class DirectX12Driver : public Driver, public EventCallback {
 	public:
         virtual ~DirectX12Driver() override {};
-		virtual void Initialize(InitConfiguration config, WindowEventCallback& callback) override;
+		virtual void Initialize(InitConfiguration config, EventCallback& callback) override;
 		virtual void Shutdown() override;
 		virtual void OnUpdate() override;
 		virtual void OnEvent(Event& evt) override;
@@ -39,7 +39,7 @@ namespace VWolf {
 		UINT GetNumberOfFrames();
 	private:
 		//HINSTANCE__* handle;
-		WindowEventCallback* callback;
+        EventCallback* callback;
 		Ref<DX12Device> device;
 		Ref<DX12Command> commands;
 		Ref<DirectX12Graphics> graphics;
