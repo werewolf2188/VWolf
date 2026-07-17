@@ -27,7 +27,7 @@ namespace VWolf {
 
 	DirectX12Driver* DirectX12Driver::currentDriver = nullptr;
 
-	void DirectX12Driver::Initialize(InitConfiguration config, WindowEventCallback& callback)
+	void DirectX12Driver::Initialize(InitConfiguration config, EventCallback& callback)
 	{
 		//handle = GetModuleHandle(nullptr);
 		this->callback = &callback;

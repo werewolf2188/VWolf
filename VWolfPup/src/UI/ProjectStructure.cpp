@@ -179,7 +179,7 @@ namespace VWolfPup {
 
     std::filesystem::path GetPathForUntitled(std::filesystem::path directory, std::string extension, uint32_t number = 0) {
         std::string extension1 = extension != "" ? (extension.find('.') == std::string::npos ? "." + extension : extension ) : "";
-        std::string filename = directory / ((std::string("Untitled") + (number == 0 ? std::string() : std::to_string(number))) + extension1);
+        std::string filename = (directory / ((std::string("Untitled") + (number == 0 ? std::string() : std::to_string(number))) + extension1)).string();
         if (std::filesystem::exists(filename)) {
             return GetPathForUntitled(directory, extension, ++number);
         }
@@ -222,7 +222,7 @@ namespace VWolfPup {
             if (isHoveringDropZone && filesDropped.size() > 0) {
                 for (std::string& pathString : filesDropped) {
                     std::filesystem::path path(pathString);
-                    std::filesystem::path newFile = GetPathForUntitled(selectedEntry->GetDirectorySelectedPath(), path.extension());
+                    std::filesystem::path newFile = GetPathForUntitled(selectedEntry->GetDirectorySelectedPath(), path.extension().string());
                     std::filesystem::copy(path, newFile);
                 }
                 filesDropped.clear();
@@ -266,7 +266,7 @@ namespace VWolfPup {
                         showDialog = false;
                         std::filesystem::path newFile = GetPathForUntitled(selectedEntry->GetDirectorySelectedPath(), "vwolfshader");
                         VWolf::Ref<FileTemplate> fileTemplate = FileTemplate::Find(ShaderImporter::GetShaderExtension());
-                        VWolf::Shader shader(fileTemplate->GetPath(), newFile.stem());
+                        VWolf::Shader shader(fileTemplate->GetPath(), newFile.stem().string());
                         shader.Save(newFile);
                     }
                     ImGui::EndMenu();
