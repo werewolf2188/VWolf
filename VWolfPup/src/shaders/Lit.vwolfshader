@@ -2,6 +2,7 @@
 shader:
   name: BlinnPhong
   subShader:
+      priority: 200
       properties:
         - name: u_ambientColor
           type: Color

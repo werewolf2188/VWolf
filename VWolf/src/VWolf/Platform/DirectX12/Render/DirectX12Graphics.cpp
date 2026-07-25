@@ -180,6 +180,7 @@ namespace VWolf {
 		lights.clear();
 		spaces.clear();
 		shapes = 0;
+        ClearImpl();
 	}
 
 	void DirectX12Graphics::ClearResources(bool forceRelease) {

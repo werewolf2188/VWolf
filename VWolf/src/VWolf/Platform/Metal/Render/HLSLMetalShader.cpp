@@ -719,13 +719,13 @@ namespace VWolf {
         encoder->setVertexBuffer(*buffer, 0, kIRVertexBufferBindPoint);
     }
 
-    void HLSLMetalShader::SetTextures(Ref<MetalRenderTexture> shadowMap, Material& material)  {
+    void HLSLMetalShader::SetTextures(Ref<MetalRenderTexture> shadowMap, Ref<Material> material)  {
         for (auto textureInput : GetTextureInputs()) {
             if (textureInput.GetName() == "Shadow") {
                 encoder->useResource(reinterpret_cast<MTL::Texture*>(shadowMap->GetHandler()), MTL::ResourceUsageRead, MTL::RenderStageFragment);
                 hlMetalProgram->SetTexture(reinterpret_cast<MTL::Texture*>(shadowMap->GetHandler()), textureInput, currentIndex);
             } else {
-                Ref<Texture> texture = material.GetTexture(textureInput.GetName());
+                Ref<Texture> texture = material->GetTexture(textureInput.GetName());
                 if (texture != nullptr) {
                     encoder->useResource(reinterpret_cast<MTL::Texture*>(texture->GetHandler()), MTL::ResourceUsageRead, MTL::RenderStageFragment);
                     hlMetalProgram->SetTexture(reinterpret_cast<MTL::Texture*>(texture->GetHandler()), textureInput, currentIndex);

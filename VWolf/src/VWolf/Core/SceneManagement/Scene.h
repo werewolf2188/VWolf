@@ -35,9 +35,10 @@ namespace VWolf {
     public:
         Color& GetBackgroundColor() { return backgroundColor; }
         void SetBackgroundColor(Color backgroundColor) { this->backgroundColor = backgroundColor; }
-        void SetSkyboxMaterial(Material& material) { this->materialSkybox = &material; }
+        void SetSkyboxMaterial(Ref<Material> material) { this->materialSkybox = material; }
         Ref<Mesh> GetSkyboxMesh() { return skyboxEx; }
         Material& GetSkyboxMaterial() { return *this->materialSkybox; }
+        Ref<Material> GetSkyboxMaterialEx() { return this->materialSkybox; }
         void SetCamera(Ref<Camera> camera) { this->camera = camera; }
         Ref<Camera> GetCamera() { return this->camera; }
         Type GetType() { return type; }
@@ -49,7 +50,7 @@ namespace VWolf {
         Color backgroundColor;
         Type type = Type::Color;
         Ref<Mesh> skyboxEx;
-        Material* materialSkybox;
+        Ref<Material> materialSkybox;
         Ref<Camera> camera;
         
         BOOST_DESCRIBE_CLASS(SceneBackground, (), (), (), (backgroundColor, type))

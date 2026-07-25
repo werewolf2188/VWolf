@@ -18,6 +18,8 @@
 
 #include "VWolf/Core/Debug/ShapeHelper.h"
 
+#include "VWolf/Core/Render/GraphicsContext.h"
+
 namespace VWolf {
 
     static MTL::PrimitiveType GetTopology(Topology topology) {
@@ -42,71 +44,9 @@ namespace VWolf {
     }
 
     void MetalGraphics::DrawMeshImpl(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
-        MTL::RenderCommandEncoder* rtvEncoder = nullptr;
-
-        int shapes = constantBufferIndexPerShader.count(material.GetShaderName()) > 0 ? constantBufferIndexPerShader[material.GetShaderName()]: 0;
-        if (renderTexture) {
-            rtvEncoder = ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
-        }
-
-        Camera* cam = nullptr;
-
-        Matrix4x4 transform = Matrix4x4::TRS(Vector3(position),
-                                             Quaternion::Euler(rotation.GetX(), rotation.GetY(), rotation.GetZ()),
-                                             Vector3::One);
-
-        if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) return;; // It's a light
-
-        cam = camera != nullptr ? camera.get(): Camera::main;
-
-        CameraPass cameraPass = {
-            cam->GetViewMatrix(),
-            cam->GetViewMatrix().GetInverse(),
-            cam->GetProjection(),
-            cam->GetProjection().GetInverse(),
-            cam->GetViewProjection(),
-            cam->GetViewProjection().GetInverse(),
-            cam->GetPosition(),
-            0,
-            cam->GetDisplaySize(),
-            { 1 / cam->GetDisplaySize().GetX(), 1 / cam->GetDisplaySize().GetY() },
-            cam->GetNearZ(),
-            cam->GetFarZ(),
-            Time::GetTotalTime(),
-            Time::GetDeltaTime()
-        };
-
-        MetalShader* metalShader = (MetalShader*)Shader::GetShader(material.GetShaderName())->GetInternalShader().get();
-        mesh1->BuildVertexBuffer(metalShader->GetAttributes());
-        
-        if (itemsCount >= bufferGroups.size()) {
-            bufferGroups.push_back(CreateRef<MetalBufferGroup>(mesh1));
-            objectTransforms.push_back(transform);
-        } else {
-            bufferGroups[itemsCount]->SetData(mesh1);
-            objectTransforms[itemsCount] = transform;
-        }
-
-        void* material1 = material.GetDataPointer();
-        
-        metalShader->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
-        metalShader->Bind();
-        metalShader->SetObjectIndex(shapes);
-        metalShader->SetVertexBufferIndex(bufferGroups[itemsCount]->GetVertexBuffer());
-        metalShader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), shapes);
-        metalShader->SetData(&objectTransforms[itemsCount], Shader::ObjectBufferName, sizeof(Matrix4x4), shapes);
-        metalShader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
-        metalShader->SetTextures(shadowMap, material);
-        
-        metalShader->Draw(GetTopology(mesh1->GetSubMesh(0).GetTopology()), bufferGroups[itemsCount]->GetIndexBuffer());
-        free(material1);
-
-        itemsCount++;
-        constantBufferIndexPerShader[material.GetShaderName()] = ++shapes;
     }
 
     void MetalGraphics::RenderMeshImpl(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
-        items.push_back(CreateRef<RenderItem>(mesh1, material, transform, camera));
     }
 
     void MetalGraphics::ClearColorImpl(Color color) {
@@ -128,8 +68,7 @@ namespace VWolf {
     }
 
     void MetalGraphics::AddLightImpl(Light& light) {
-        lights.push_back(light);
-        spaces.push_back(light.GetLightSpaceMatrix());
+
     }
 
     void MetalGraphics::BeginFrameImpl() {
@@ -143,13 +82,14 @@ namespace VWolf {
 
         MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor()->colorAttachments()->object(0)->setTexture(MetalDriver::GetCurrent()->GetSurface()->GetCurrentDrawable()->texture());
 
-        lights.clear();
-        spaces.clear();
         constantBufferIndexPerShader.clear();
         itemsCount = 0;
         if (renderTexture) {
             ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
         }
+        
+        ClearColorImpl(GraphicsContext::GetBackgroundColor());
+        ClearImpl();
     }
 
     void MetalGraphics::EndFrameImpl() {
@@ -170,7 +110,6 @@ namespace VWolf {
     }
 
     void MetalGraphics::BeginSceneImpl() {
-        items.clear();
     }
 
     void MetalGraphics::EndSceneImpl() {
@@ -183,33 +122,39 @@ namespace VWolf {
 
     void MetalGraphics::DrawShadowMap() {
         MTL::RenderCommandEncoder* dsvEncoder = shadowMap->StartEncoder();
-
-        for (Light& light : lights) {
+        MetalShader* metalShader = (MetalShader*)Shader::GetShader("Shadow")->GetInternalShader().get();
+        
+        for (size_t index = 0; index < GraphicsContext::GetLights().size(); index++) {
             int shadowShapes = 0;
-            Matrix4x4 viewProjection = light.GetLightSpaceMatrix();//cam->GetViewProjection();
-            for (auto item: items) {
-                MetalShader* metalShader = (MetalShader*)Shader::GetShader("Shadow")->GetInternalShader().get();
-                if (item->mesh == nullptr || item->mesh->GetVertices().size() == 1) continue; // It's a light
-    
-                item->mesh->BuildVertexBuffer(metalShader->GetAttributes());
+            Matrix4x4& viewProjection = GraphicsContext::GetLightsSpaces()[index];
+            
+            for(Ref<GraphicsCommand> command: GraphicsContext::GetList().GetCommands()) {
+                Ref<DrawMeshCommand> drawMeshCommand = std::dynamic_pointer_cast<DrawMeshCommand>(command);
                 
-                if (shadowShapes >= shadowBufferGroups.size()) {
-                    shadowBufferGroups.push_back(CreateRef<MetalBufferGroup>(item->mesh));
-                    shadowObjectTransforms.push_back(item->transform);
-                } else {
-                    shadowBufferGroups[shadowShapes]->SetData(item->mesh);
-                    shadowObjectTransforms[shadowShapes] = item->transform;
-                }
+                // It's a light
+                if (drawMeshCommand->GetMesh() == nullptr || drawMeshCommand->GetMesh()->GetVertices().size() == 1) continue;
                 
-                metalShader->UseShader(dsvEncoder);
-                metalShader->Bind();
-                metalShader->SetObjectIndex(shadowShapes);
-                metalShader->SetVertexBufferIndex(shadowBufferGroups[shadowShapes]->GetVertexBuffer());
-                metalShader->SetData(&viewProjection, Shader::CameraBufferName, sizeof(Matrix4x4), shadowShapes);
-                metalShader->SetData(&shadowObjectTransforms[shadowShapes], Shader::ObjectBufferName, sizeof(Matrix4x4), shadowShapes);
+                if (drawMeshCommand->GetCastShadows()) {
+                    drawMeshCommand->GetMesh()->BuildVertexBuffer(metalShader->GetAttributes());
+                    
+                    if (shadowShapes >= shadowBufferGroups.size()) {
+                        shadowBufferGroups.push_back(CreateRef<MetalBufferGroup>(drawMeshCommand->GetMesh()));
+                        shadowObjectTransforms.push_back(drawMeshCommand->GetTransform());
+                    } else {
+                        shadowBufferGroups[shadowShapes]->SetData(drawMeshCommand->GetMesh());
+                        shadowObjectTransforms[shadowShapes] = drawMeshCommand->GetTransform();
+                    }
+                    
+                    metalShader->UseShader(dsvEncoder);
+                    metalShader->Bind();
+                    metalShader->SetObjectIndex(shadowShapes);
+                    metalShader->SetVertexBufferIndex(shadowBufferGroups[shadowShapes]->GetVertexBuffer());
+                    metalShader->SetData(&viewProjection, Shader::CameraBufferName, sizeof(Matrix4x4), shadowShapes);
+                    metalShader->SetData(&shadowObjectTransforms[shadowShapes], Shader::ObjectBufferName, sizeof(Matrix4x4), shadowShapes);
 
-                metalShader->Draw(GetTopology(item->mesh->GetSubMesh(0).GetTopology()), shadowBufferGroups[shadowShapes]->GetIndexBuffer());
-                shadowShapes++;
+                    metalShader->Draw(GetTopology(drawMeshCommand->GetMesh()->GetSubMesh(drawMeshCommand->GetSubmeshIndex()).GetTopology()), shadowBufferGroups[shadowShapes]->GetIndexBuffer());
+                    shadowShapes++;
+                }
             }
         }
 
@@ -223,24 +168,26 @@ namespace VWolf {
             rtvEncoder = ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
         }
 
-        if (this->lights.size() == 0) {
-            this->lights.push_back(Light());
+        // TODO: Do we really need this?
+        if (GraphicsContext::GetLights().size() == 0) {
+            GraphicsContext::GetLights().push_back(Light());
         }
-        if (this->spaces.size() == 0) {
-            this->spaces.push_back(Matrix4x4());
+        if (GraphicsContext::GetLightsSpaces().size() == 0) {
+            GraphicsContext::GetLightsSpaces().push_back(Matrix4x4());
         }
-        Light* lights = this->lights.data();
-        Matrix4x4* spacesPointer = spaces.data();
+        Light* lights = GraphicsContext::GetLights().data();
+        Matrix4x4* spacesPointer = GraphicsContext::GetLightsSpaces().data();
 
         Camera* cam = nullptr;
 
-        for (auto item: items) {
+        for(Ref<GraphicsCommand> command: GraphicsContext::GetList().GetCommands()) {
+            Ref<DrawMeshCommand> drawMeshCommand = std::dynamic_pointer_cast<DrawMeshCommand>(command);
     
-            int shapes = constantBufferIndexPerShader.count(item->material.GetShaderName()) > 0 ? constantBufferIndexPerShader[item->material.GetShaderName()]: 0;
+            int shapes = constantBufferIndexPerShader.count(drawMeshCommand->GetMaterial()->GetShaderName()) > 0 ? constantBufferIndexPerShader[drawMeshCommand->GetMaterial()->GetShaderName()]: 0;
 
-            if (item->mesh == nullptr || item->mesh->GetVertices().size() == 1) continue; // It's a light
+            if (drawMeshCommand->GetMesh() == nullptr || drawMeshCommand->GetMesh()->GetVertices().size() == 1) continue; // It's a light
 
-            cam = item->camera != nullptr ? item->camera.get(): Camera::main;
+            cam = drawMeshCommand->GetCamera() != nullptr ? drawMeshCommand->GetCamera().get(): Camera::main;
 
             CameraPass cameraPass = {
                 cam->GetViewMatrix(),
@@ -259,36 +206,35 @@ namespace VWolf {
                 Time::GetDeltaTime()
             };
             
-            MetalShader* metalShader = (MetalShader*)Shader::GetShader(item->material.GetShaderName())->GetInternalShader().get();
+            Ref<MetalShader> metalShader = std::dynamic_pointer_cast<MetalShader>(Shader::GetShader(drawMeshCommand->GetMaterial()->GetShaderName())->GetInternalShader());
 
-            item->mesh->BuildVertexBuffer(metalShader->GetAttributes());
+            drawMeshCommand->GetMesh()->BuildVertexBuffer(metalShader->GetAttributes());
             if (itemsCount >= bufferGroups.size()) {
-                bufferGroups.push_back(CreateRef<MetalBufferGroup>(item->mesh));
-                objectTransforms.push_back(item->transform);
+                bufferGroups.push_back(CreateRef<MetalBufferGroup>(drawMeshCommand->GetMesh()));
+                objectTransforms.push_back(drawMeshCommand->GetTransform());
             } else {
-                bufferGroups[itemsCount]->SetData(item->mesh);
-                objectTransforms[itemsCount] = item->transform;
+                bufferGroups[itemsCount]->SetData(drawMeshCommand->GetMesh());
+                objectTransforms[itemsCount] = drawMeshCommand->GetTransform();
             }
 
-            void* material1 = item->material.GetDataPointer();
+            void* material1 = drawMeshCommand->GetMaterial()->GetDataPointer();
            
             metalShader->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
             metalShader->Bind();
             metalShader->SetObjectIndex(shapes);
-            metalShader->SetVertexBufferIndex(bufferGroups[itemsCount]->GetVertexBuffer());
+            if (bufferGroups[itemsCount]->GetVertexBuffer() != nullptr)
+                metalShader->SetVertexBufferIndex(bufferGroups[itemsCount]->GetVertexBuffer());
             metalShader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), shapes);
             metalShader->SetData(&objectTransforms[itemsCount], Shader::ObjectBufferName, sizeof(Matrix4x4), shapes);
-            metalShader->SetData(material1, materialName.c_str(), item->material.GetSize(), shapes);
+            metalShader->SetData(material1, materialName.c_str(), drawMeshCommand->GetMaterial()->GetSize(), shapes);
             metalShader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
             metalShader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, shapes);
-            metalShader->SetTextures(shadowMap, item->material);
+            metalShader->SetTextures(shadowMap, drawMeshCommand->GetMaterial());
             
-            auto attributes = metalShader->GetAttributes();
-            
-            metalShader->Draw(GetTopology(item->mesh->GetSubMesh(0).GetTopology()), bufferGroups[itemsCount]->GetIndexBuffer());
+            metalShader->Draw(GetTopology(drawMeshCommand->GetMesh()->GetSubMesh(drawMeshCommand->GetSubmeshIndex()).GetTopology()), bufferGroups[itemsCount]->GetIndexBuffer());
             free(material1);
             itemsCount++;
-            constantBufferIndexPerShader[item->material.GetShaderName()] = ++shapes;
+            constantBufferIndexPerShader[drawMeshCommand->GetMaterial()->GetShaderName()] = ++shapes;
         }
     }
 

@@ -2,6 +2,7 @@
 shader:
   name: FlatColor
   subShader:
+      priority: 200
       stages:
         - stageType: Vertex
           functionName: VS

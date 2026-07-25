@@ -27,6 +27,7 @@
 #include "VWolf/Core/Components/GameObject.h"
 
 #include "VWolf/Core/Render/Graphics.h"
+#include "VWolf/Core/Render/RenderParams.h"
 #include "VWolf/Core/Render/Material.h"
 #include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Core/Render/Texture.h"

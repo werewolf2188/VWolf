@@ -15,7 +15,8 @@ namespace VWolf {
         std::vector<uint32_t> indices = mesh->GetTriangles();
         std::vector<float> vertices = mesh->GetNativeVector();
 
-        vertexBuffer = CreateRef<MetalVertexBuffer>(vertices.data(), sizeof(float) * vertices.size());
+        if (vertices.size() != 0)
+            vertexBuffer = CreateRef<MetalVertexBuffer>(vertices.data(), sizeof(float) * vertices.size());
         indexBuffer = CreateRef<MetalIndexBuffer>(indices.data(), indices.size(), MTL::IndexTypeUInt32);
     }
 
@@ -23,7 +24,8 @@ namespace VWolf {
         std::vector<uint32_t> indices = mesh->GetTriangles();
         std::vector<float> vertices = mesh->GetNativeVector();
 
-        vertexBuffer = CreateRef<MetalVertexBuffer>(vertices.data(), sizeof(float) * vertices.size());
+        if (vertices.size() != 0)
+            vertexBuffer = CreateRef<MetalVertexBuffer>(vertices.data(), sizeof(float) * vertices.size());
         indexBuffer = CreateRef<MetalIndexBuffer>(indices.data(), indices.size(), MTL::IndexTypeUInt32);
     }
 

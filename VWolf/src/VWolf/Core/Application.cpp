@@ -7,13 +7,35 @@
 #include "Input.h"
 
 #include "UI/UIManager.h"
-#include "Render/Graphics.h"
+#include "Render/GraphicsContext.h"
+#include "Render/InternalGraphics.h"
 
 #include "Time.h"
 
 #include "Log.h"
 
 namespace VWolf {
+
+    class Lifecycle {
+    public:
+        void BeginFrame() {
+            InternalGraphics::BeginFrame();
+            GraphicsContext::Reset();
+        }
+        
+        void BeginScene() {
+            InternalGraphics::BeginScene();
+        }
+        
+        void EndScene() {
+            InternalGraphics::EndScene();
+        }
+        
+        void EndFrame() {
+            InternalGraphics::EndFrame();
+        }
+    };
+
 	std::vector<std::string> CommandLineArguments::GetArguments()
 	{
 		return m_arguments;
@@ -36,6 +58,7 @@ namespace VWolf {
 
 	Application::Application(DriverType type, InitConfiguration config) : m_type(type), driver(Driver::GetDriver(type))
 	{
+        lifecycle = CreateScope<Lifecycle>();
         std::filesystem::path currentPath = CommandLineArguments::GetArguments()[0];
         currentPath = currentPath.remove_filename();
         if (std::filesystem::current_path() != currentPath)
@@ -72,15 +95,15 @@ namespace VWolf {
 			Time::Tick();
 			if (!m_minimized) {
 				OnUpdate();
-				Graphics::BeginFrame();
-                Graphics::BeginScene();
+                lifecycle->BeginFrame();
+                lifecycle->BeginScene();
 				OnDraw();
-                Graphics::EndScene();
+                lifecycle->EndScene();
 				UIManager::GetDefault()->NewFrame();
                 ImGui::NewFrame();
                 OnGUI();
 				UIManager::GetDefault()->Render();
-				Graphics::EndFrame();
+                lifecycle->EndFrame();
 			}			
 
 			driver->OnUpdate();

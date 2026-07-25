@@ -323,11 +323,13 @@ namespace VWolf {
         std::vector<Stage> GetStages() { return stages; }
         std::string GetCode() { return code; }
         std::vector<Property> GetProperties() { return properties; }
+        const uint32_t GetPriority() const { return priority; }
     private:
         std::vector<Property> properties;
         std::vector<Stage> stages;
         std::string code;
-        BOOST_DESCRIBE_CLASS(SubShader, (), (), (), (properties, stages, code))
+        uint32_t priority;
+        BOOST_DESCRIBE_CLASS(SubShader, (), (), (), (priority, properties, stages, code))
         VWOLF_SERIALIZATION_FRIENDS(SubShader)
     };
 

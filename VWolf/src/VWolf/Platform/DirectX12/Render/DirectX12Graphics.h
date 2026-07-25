@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VWolf/Core/Render/Graphics.h"
+#include "VWolf/Core/Render/InternalGraphics.h"
 
 #include "HLSLShader.h"
 #include "DirectX12Buffer.h"
@@ -8,7 +8,7 @@
 #include "DirectX12Texture.h"
 
 namespace VWolf {
-    class DirectX12Graphics : public Graphics {
+    class DirectX12Graphics : public InternalGraphics {
     public:
         DirectX12Graphics() = default;
         virtual ~DirectX12Graphics() override {};

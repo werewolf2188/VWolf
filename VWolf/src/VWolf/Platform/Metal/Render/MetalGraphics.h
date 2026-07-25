@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "VWolf/Core/Render/Graphics.h"
+#include "VWolf/Core/Render/InternalGraphics.h"
 
 #include "VWolf/Platform/Metal/Core/Core.h"
 
@@ -15,7 +15,7 @@
 #include "VWolf/Platform/Metal/Render/MetalTexture.h"
 
 namespace VWolf {
-    class MetalGraphics: public Graphics {
+    class MetalGraphics: public InternalGraphics {
     public:
         MetalGraphics() = default;
         virtual ~MetalGraphics() override {};
@@ -46,8 +46,7 @@ namespace VWolf {
 
         std::vector<Ref<MetalBufferGroup>> shadowBufferGroups;
         std::vector<Matrix4x4> shadowObjectTransforms;
-        // MARK: Per frame
-        std::vector<Ref<RenderItem>> items;
+        
         NS::AutoreleasePool* pool;
         MTL::CommandBuffer* commandBuffer;
         MTL::RenderCommandEncoder* encoder;
@@ -55,8 +54,5 @@ namespace VWolf {
         Ref<MetalRenderTexture> shadowMap;
         std::map<std::string, uint32_t> constantBufferIndexPerShader;
         int itemsCount = 0;
-        // TODO: Plan later
-        std::vector<Light> lights;
-        std::vector<Matrix4x4> spaces;
     };
 }

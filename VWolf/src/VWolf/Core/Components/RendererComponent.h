@@ -33,6 +33,7 @@ namespace VWolf {
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         Material& GetMaterial() { return *material; }
+        Ref<Material> GetMaterialEx() { return material; }
         std::string GetMaterialName() { return materialName; }
     public:
         void SetMaterial(Ref<Material> material);
@@ -57,6 +58,7 @@ namespace VWolf {
         virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         Material& GetMaterial() { return *material; }
+        Ref<Material> GetMaterialEx() { return material; }
         Ref<Mesh> GetMesh() { return mesh; };
     public:
         void SetMaterial(Ref<Material> material);

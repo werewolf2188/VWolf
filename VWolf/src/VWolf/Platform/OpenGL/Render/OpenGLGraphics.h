@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "VWolf/Core/Render/Graphics.h"
+#include "VWolf/Core/Render/InternalGraphics.h"
 
 #include "HLSLOpenGLShader.h"
 #include "OpenGLBuffer.h"
@@ -15,7 +15,7 @@
 #include "OpenGLTexture.h"
 
 namespace VWolf {
-    class OpenGLGraphics: public Graphics {
+    class OpenGLGraphics: public InternalGraphics {
     public:
         OpenGLGraphics() = default;
         virtual ~OpenGLGraphics() override {};
@@ -41,11 +41,8 @@ namespace VWolf {
         void BindToRenderTexture();
         void UnbindToRenderTexture();
     private:
-        std::vector<Ref<RenderItem>> items;
         bool useRenderTexture = false;
         Ref<OpenGLRenderTexture> shadowMap;
         Ref<OpenGLTexture2D> emptyShadowMap;
-        // TODO: Plan later
-        std::vector<Light> lights;
     };
 }

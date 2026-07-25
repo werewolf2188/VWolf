@@ -154,7 +154,7 @@ public:
         containerView->AddView(toolbar);
         std::string skyMaterialName = VWolfPup::Defaults::Get()->GetDefaultSkyBoxMaterialName();
         VWolf::Ref<VWolf::Material> skyMaterial = VWolf::MaterialLibrary::GetMaterial(skyMaterialName);
-        testScene->GetSceneBackground().SetSkyboxMaterial(*skyMaterial);
+        testScene->GetSceneBackground().SetSkyboxMaterial(skyMaterial);
         // TODO: This should come from the same camera.
         testScene->GetSceneBackground().SetCamera(skyBoxCamera);
 
@@ -200,7 +200,14 @@ public:
             testScene->DrawPreviewEditor();
         else {
             testScene->DrawEditor(camera);
-            VWolf::Graphics::RenderMesh(gridDataEx, VWolf::Matrix4x4(), *VWolf::MaterialLibrary::GetMaterial(VWolfPup::Defaults::Get()->GetDefaultGridMaterialName()));
+            VWolf::Graphics::DrawMesh(gridDataEx,
+                                      VWolf::Matrix4x4(),
+                                      VWolf::MaterialLibrary::GetMaterial(VWolfPup::Defaults::Get()->GetDefaultGridMaterialName()),
+                                      0,
+                                      0,
+                                      nullptr,
+                                      false,
+                                      false);
         }
     }
 

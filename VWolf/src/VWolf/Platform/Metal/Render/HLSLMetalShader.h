@@ -32,7 +32,7 @@ namespace VWolf {
         virtual void SetObjectIndex(uint32_t index)override;
         virtual void SetVertexBufferIndex(Ref<MetalVertexBuffer> buffer) override;
         virtual void UseShader(MTL::RenderCommandEncoder* encoder) override;
-        virtual void SetTextures(Ref<MetalRenderTexture> shadowMap, Material& material) override;
+        virtual void SetTextures(Ref<MetalRenderTexture> shadowMap, Ref<Material> material) override;
         virtual void Draw(MTL::PrimitiveType type, Ref<MetalIndexBuffer> buffer) override;
     private:
         void SetConfiguration() const;

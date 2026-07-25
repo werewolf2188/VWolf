@@ -19,6 +19,8 @@ namespace VWolf {
 		static bool m_initialized;
 	};
 
+    class Lifecycle;
+
 	class Application: public EventCallback {
 	public:
 		static Application* GetApplication() { return m_application; };
@@ -53,6 +55,7 @@ namespace VWolf {
 		static Application* m_application;
 		DriverType m_type;
 		Scope<Driver> driver;
+        Scope<Lifecycle> lifecycle;
 		bool m_running = false;
 		bool m_minimized = false;
 	};

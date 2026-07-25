@@ -34,7 +34,7 @@ namespace VWolf {
         virtual void SetObjectIndex(uint32_t index) = 0;
         virtual void SetVertexBufferIndex(Ref<MetalVertexBuffer> buffer) = 0;
         virtual void UseShader(MTL::RenderCommandEncoder* encoder) = 0;
-        virtual void SetTextures(Ref<MetalRenderTexture> shadowMap, Material& material) = 0;
+        virtual void SetTextures(Ref<MetalRenderTexture> shadowMap, Ref<Material> material) = 0;
         virtual void Draw(MTL::PrimitiveType type, Ref<MetalIndexBuffer> buffer) = 0;
     };
 }

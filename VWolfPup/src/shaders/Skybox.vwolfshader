@@ -6,6 +6,7 @@ shader:
       depthFunction: LEqual
       depthTest: false
   subShader:
+      priority: 100
       properties:
         - name: skybox
           type: Cubemap

@@ -12,6 +12,8 @@
 #include "Scene.h"
 
 #include "VWolf/Core/Render/Graphics.h"
+#include "VWolf/Core/Render/GraphicsContext.h"
+#include "VWolf/Core/Render/InternalGraphics.h"
 #include "VWolf/Core/Debug/ShapeHelper.h"
 #include "VWolf/Core/Physics/Physics.h"
 #include "VWolf/Core/Time.h"
@@ -396,8 +398,8 @@ namespace VWolf {
     }
 
     void Scene::DrawEditor(Ref<Camera> editorCamera) {
-        Graphics::ClearColor(sceneBackGround.GetBackgroundColor());
-        Graphics::Clear();
+        InternalGraphics::GetGraphicsImpl()->ClearColorImpl(sceneBackGround.GetBackgroundColor());
+        GraphicsContext::SetClearColor(sceneBackGround.GetBackgroundColor());
 
         if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
             // Immediate drawing so it does not belong to the queue
@@ -406,6 +408,15 @@ namespace VWolf {
                                VWolf::Vector4(),
                                sceneBackGround.GetSkyboxMaterial(),
                                sceneBackGround.GetCamera());
+            Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
+                               Vector3::Zero,
+                               Quaternion::Identity,
+                               sceneBackGround.GetSkyboxMaterialEx(),
+                               0,
+                               0,
+                               sceneBackGround.GetCamera(),
+                               false,
+                               false);
         }
 
         auto lightsAndTransformComponents = m_registry.view<LightComponent, TransformComponent>();
@@ -416,7 +427,9 @@ namespace VWolf {
                 .get<LightComponent, TransformComponent>(lightAndTransformEntity);
             light.GetLight().position = Vector4(transform.GetPosition().GetX(), transform.GetPosition().GetY(), transform.GetPosition().GetZ(), 1.0);
             light.GetLight().direction = Vector4(transform.GetEulerAngles().GetX(), transform.GetEulerAngles().GetY(), transform.GetEulerAngles().GetZ(), 0.0);
-            VWolf::Graphics::AddLight(light.GetLight());
+            
+            GraphicsContext::AddLight(light.GetLight(), transform.GetPosition(), transform.GetEulerAngles());
+            VWolf::InternalGraphics::AddLight(light.GetLight());
         }
 
         // TODO: We should be looking for any renderer, not only shape renderer
@@ -430,6 +443,11 @@ namespace VWolf {
             Graphics::RenderMesh(shapeRenderer.GetMesh(),
                                  transform.GetWorldMatrix(),
                                  shapeRenderer.GetMaterial());
+            Graphics::DrawMesh(shapeRenderer.GetMesh(),
+                               transform.GetWorldMatrix(),
+                               shapeRenderer.GetMaterialEx(),
+                               0,
+                               0);
         }
 
         auto meshFilterMeshRendererAndTransformComponents = m_registry
@@ -443,6 +461,11 @@ namespace VWolf {
             Graphics::RenderMesh(meshFilter.GetMesh(),
                                  transform.GetWorldMatrix(),
                                  meshRenderer.GetMaterial());
+            Graphics::DrawMesh(meshFilter.GetMesh(),
+                               transform.GetWorldMatrix(),
+                               meshRenderer.GetMaterialEx(),
+                               0,
+                               0);
         }
 
 
@@ -457,12 +480,17 @@ namespace VWolf {
             Graphics::RenderMesh(emptyMesh,
                                  transform.GetWorldMatrix(),
                                  *MaterialLibrary::Default());
+            Graphics::DrawMesh(emptyMesh,
+                               transform.GetWorldMatrix(),
+                               MaterialLibrary::Default(),
+                               0,
+                               0);
         }
     }
 
     void Scene::DrawPreviewEditor() {
-        Graphics::ClearColor(sceneBackGround.GetBackgroundColor());
-        Graphics::Clear();
+        InternalGraphics::GetGraphicsImpl()->ClearColorImpl(sceneBackGround.GetBackgroundColor());
+        GraphicsContext::SetClearColor(sceneBackGround.GetBackgroundColor());
 
         auto cameraAndTransformComponents = m_previewRegistry.view<CameraComponent, TransformComponent>();
         if (cameraAndTransformComponents.begin() == cameraAndTransformComponents.end()) return; // There is no camera
@@ -485,6 +513,15 @@ namespace VWolf {
                                VWolf::Vector4(),
                                sceneBackGround.GetSkyboxMaterial(),
                                sceneBackGround.GetCamera());
+            Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
+                               Vector3::Zero,
+                               Quaternion::Identity,
+                               sceneBackGround.GetSkyboxMaterialEx(),
+                               0,
+                               0,
+                               sceneBackGround.GetCamera(),
+                               false,
+                               false);
         }
 
         auto lightsAndTransformComponents = m_previewRegistry.view<LightComponent, TransformComponent>();
@@ -495,7 +532,9 @@ namespace VWolf {
                 .get<LightComponent, TransformComponent>(lightAndTransformEntity);
             light.GetLight().position = Vector4(transform.GetPosition().GetX(), transform.GetPosition().GetY(), transform.GetPosition().GetZ(), 1.0);
             light.GetLight().direction = Vector4(transform.GetEulerAngles().GetX(), transform.GetEulerAngles().GetY(), transform.GetEulerAngles().GetZ(), 0.0);
-            VWolf::Graphics::AddLight(light.GetLight());
+            
+            GraphicsContext::AddLight(light.GetLight(), transform.GetPosition(), transform.GetEulerAngles());
+            VWolf::InternalGraphics::AddLight(light.GetLight());
         }
 
         // TODO: We should be looking for any renderer, not only shape renderer
@@ -510,6 +549,12 @@ namespace VWolf {
                                  transform.GetWorldMatrix(),
                                  shapeRenderer.GetMaterial(),
                                  camera);
+            Graphics::DrawMesh(shapeRenderer.GetMesh(),
+                               transform.GetWorldMatrix(),
+                               shapeRenderer.GetMaterialEx(),
+                               0,
+                               0,
+                               camera);
         }
 
         auto meshFilterMeshRendererAndTransformComponents = m_previewRegistry
@@ -524,6 +569,12 @@ namespace VWolf {
                                  transform.GetWorldMatrix(),
                                  meshRenderer.GetMaterial(),
                                  camera);
+            Graphics::DrawMesh(meshFilter.GetMesh(),
+                               transform.GetWorldMatrix(),
+                               meshRenderer.GetMaterialEx(),
+                               0,
+                               0,
+                               camera);
         }
 
         auto transformComponents = m_previewRegistry.view<TransformComponent>();
@@ -538,6 +589,12 @@ namespace VWolf {
                                  transform.GetWorldMatrix(),
                                  *MaterialLibrary::Default(),
                                  camera);
+            Graphics::DrawMesh(emptyMesh,
+                               transform.GetWorldMatrix(),
+                               MaterialLibrary::Default(),
+                               0,
+                               0,
+                               camera);
         }
 
         // TODO: Debug renderer
@@ -546,6 +603,13 @@ namespace VWolf {
                            VWolf::Vector4(),
                            VWolf::Vector4(),
                            *MaterialLibrary::GetMaterial("RainbowColor"),
+                           camera);
+        Graphics::DrawMesh(testMesh,
+                           Vector3::Zero,
+                           Quaternion::Identity,
+                           MaterialLibrary::GetMaterial("RainbowColor"),
+                           0,
+                           0,
                            camera);
     }
 

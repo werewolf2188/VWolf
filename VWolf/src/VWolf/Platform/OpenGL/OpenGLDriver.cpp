@@ -44,7 +44,7 @@ namespace VWolf {
 		currentDriver = this;
 		UIManager::SetDefault(CreateRef<OpenGLUIManager>());
         Ref<OpenGLGraphics> graphics = CreateRef<OpenGLGraphics>();
-        Graphics::SetGraphicsImpl(graphics);
+        InternalGraphics::SetGraphicsImpl(graphics);
 		Time::SetTimeImplementation(CreateGenericTime());
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
