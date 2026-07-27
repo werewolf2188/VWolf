@@ -25,8 +25,6 @@ namespace VWolf {
     public:
         virtual ~InternalGraphics() = default;
     public:
-        // TODO: Not sure about this one
-        static void AddLight(Light& light);
         static void SetGraphicsImpl(Ref<InternalGraphics> graphics) { graphicsImpl = graphics; }
         static Ref<InternalGraphics> GetGraphicsImpl() { return graphicsImpl; }
         static void BeginFrame();
@@ -34,12 +32,7 @@ namespace VWolf {
         static void BeginScene();
         static void EndScene();
     public:
-        virtual void DrawMeshImpl(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera = nullptr) = 0;
-        virtual void RenderMeshImpl(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera = nullptr) = 0;
-        virtual void ClearColorImpl(Color color) = 0;
-        virtual void ClearImpl() = 0;
-        // TODO: Not sure about this one
-        virtual void AddLightImpl(Light& light) = 0;
+
         virtual void BeginFrameImpl() = 0;
         virtual void EndFrameImpl() = 0;
         virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) = 0;

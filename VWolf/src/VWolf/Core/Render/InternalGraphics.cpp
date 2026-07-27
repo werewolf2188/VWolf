@@ -12,12 +12,6 @@
 namespace VWolf {
     Ref<InternalGraphics> InternalGraphics::graphicsImpl = nullptr;
 
-    void InternalGraphics::AddLight(Light& light) {
-        if (graphicsImpl) {
-            graphicsImpl->AddLightImpl(light);
-        }
-    }
-
     void InternalGraphics::BeginFrame() {
         if (graphicsImpl) {
             graphicsImpl->BeginFrameImpl();

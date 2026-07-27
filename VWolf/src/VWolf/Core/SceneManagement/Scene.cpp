@@ -398,16 +398,10 @@ namespace VWolf {
     }
 
     void Scene::DrawEditor(Ref<Camera> editorCamera) {
-        InternalGraphics::GetGraphicsImpl()->ClearColorImpl(sceneBackGround.GetBackgroundColor());
         GraphicsContext::SetClearColor(sceneBackGround.GetBackgroundColor());
 
         if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
             // Immediate drawing so it does not belong to the queue
-            Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
-                               VWolf::Vector4(),
-                               VWolf::Vector4(),
-                               sceneBackGround.GetSkyboxMaterial(),
-                               sceneBackGround.GetCamera());
             Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
                                Vector3::Zero,
                                Quaternion::Identity,
@@ -425,11 +419,8 @@ namespace VWolf {
         {
             auto [light, transform] = lightsAndTransformComponents
                 .get<LightComponent, TransformComponent>(lightAndTransformEntity);
-            light.GetLight().position = Vector4(transform.GetPosition().GetX(), transform.GetPosition().GetY(), transform.GetPosition().GetZ(), 1.0);
-            light.GetLight().direction = Vector4(transform.GetEulerAngles().GetX(), transform.GetEulerAngles().GetY(), transform.GetEulerAngles().GetZ(), 0.0);
             
             GraphicsContext::AddLight(light.GetLight(), transform.GetPosition(), transform.GetEulerAngles());
-            VWolf::InternalGraphics::AddLight(light.GetLight());
         }
 
         // TODO: We should be looking for any renderer, not only shape renderer
@@ -440,9 +431,6 @@ namespace VWolf {
             auto [shapeRenderer, transform] = shapeRendererAndTransformComponents
                 .get<ShapeRendererComponent, TransformComponent>(shapeRendererAndTransformEntity);
             transform.Apply();
-            Graphics::RenderMesh(shapeRenderer.GetMesh(),
-                                 transform.GetWorldMatrix(),
-                                 shapeRenderer.GetMaterial());
             Graphics::DrawMesh(shapeRenderer.GetMesh(),
                                transform.GetWorldMatrix(),
                                shapeRenderer.GetMaterialEx(),
@@ -458,9 +446,6 @@ namespace VWolf {
             auto [meshRenderer, meshFilter, transform] = meshFilterMeshRendererAndTransformComponents
                 .get<MeshRendererComponent, MeshFilterComponent, TransformComponent>(meshFilterMeshRendererAndTransformEntity);
             transform.Apply();
-            Graphics::RenderMesh(meshFilter.GetMesh(),
-                                 transform.GetWorldMatrix(),
-                                 meshRenderer.GetMaterial());
             Graphics::DrawMesh(meshFilter.GetMesh(),
                                transform.GetWorldMatrix(),
                                meshRenderer.GetMaterialEx(),
@@ -477,9 +462,6 @@ namespace VWolf {
             auto transform = transformComponents
                 .get<TransformComponent>(transformEntity);
             transform.Apply();
-            Graphics::RenderMesh(emptyMesh,
-                                 transform.GetWorldMatrix(),
-                                 *MaterialLibrary::Default());
             Graphics::DrawMesh(emptyMesh,
                                transform.GetWorldMatrix(),
                                MaterialLibrary::Default(),
@@ -489,7 +471,6 @@ namespace VWolf {
     }
 
     void Scene::DrawPreviewEditor() {
-        InternalGraphics::GetGraphicsImpl()->ClearColorImpl(sceneBackGround.GetBackgroundColor());
         GraphicsContext::SetClearColor(sceneBackGround.GetBackgroundColor());
 
         auto cameraAndTransformComponents = m_previewRegistry.view<CameraComponent, TransformComponent>();
@@ -509,11 +490,6 @@ namespace VWolf {
                                                              (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetZ())
                                                          ));
             Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
-                               VWolf::Vector4(),
-                               VWolf::Vector4(),
-                               sceneBackGround.GetSkyboxMaterial(),
-                               sceneBackGround.GetCamera());
-            Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
                                Vector3::Zero,
                                Quaternion::Identity,
                                sceneBackGround.GetSkyboxMaterialEx(),
@@ -530,11 +506,8 @@ namespace VWolf {
         {
             auto [light, transform] = lightsAndTransformComponents
                 .get<LightComponent, TransformComponent>(lightAndTransformEntity);
-            light.GetLight().position = Vector4(transform.GetPosition().GetX(), transform.GetPosition().GetY(), transform.GetPosition().GetZ(), 1.0);
-            light.GetLight().direction = Vector4(transform.GetEulerAngles().GetX(), transform.GetEulerAngles().GetY(), transform.GetEulerAngles().GetZ(), 0.0);
             
             GraphicsContext::AddLight(light.GetLight(), transform.GetPosition(), transform.GetEulerAngles());
-            VWolf::InternalGraphics::AddLight(light.GetLight());
         }
 
         // TODO: We should be looking for any renderer, not only shape renderer
@@ -545,10 +518,6 @@ namespace VWolf {
             auto [shapeRenderer, transform] = shapeRendererAndTransformComponents
                 .get<ShapeRendererComponent, TransformComponent>(shapeRendererAndTransformEntity);
             transform.Apply();
-            Graphics::RenderMesh(shapeRenderer.GetMesh(),
-                                 transform.GetWorldMatrix(),
-                                 shapeRenderer.GetMaterial(),
-                                 camera);
             Graphics::DrawMesh(shapeRenderer.GetMesh(),
                                transform.GetWorldMatrix(),
                                shapeRenderer.GetMaterialEx(),
@@ -565,10 +534,6 @@ namespace VWolf {
             auto [meshRenderer, meshFilter, transform] = meshFilterMeshRendererAndTransformComponents
                 .get<MeshRendererComponent, MeshFilterComponent, TransformComponent>(meshFilterMeshRendererAndTransformEntity);
             transform.Apply();
-            Graphics::RenderMesh(meshFilter.GetMesh(),
-                                 transform.GetWorldMatrix(),
-                                 meshRenderer.GetMaterial(),
-                                 camera);
             Graphics::DrawMesh(meshFilter.GetMesh(),
                                transform.GetWorldMatrix(),
                                meshRenderer.GetMaterialEx(),
@@ -585,10 +550,6 @@ namespace VWolf {
             auto transform = transformComponents
                 .get<TransformComponent>(transformEntity);
             transform.Apply();
-            Graphics::RenderMesh(emptyMesh,
-                                 transform.GetWorldMatrix(),
-                                 *MaterialLibrary::Default(),
-                                 camera);
             Graphics::DrawMesh(emptyMesh,
                                transform.GetWorldMatrix(),
                                MaterialLibrary::Default(),
@@ -599,11 +560,6 @@ namespace VWolf {
 
         // TODO: Debug renderer
         if (testMesh->GetVertices().size() == 0) return;
-        Graphics::DrawMesh(testMesh,
-                           VWolf::Vector4(),
-                           VWolf::Vector4(),
-                           *MaterialLibrary::GetMaterial("RainbowColor"),
-                           camera);
         Graphics::DrawMesh(testMesh,
                            Vector3::Zero,
                            Quaternion::Identity,

@@ -59,17 +59,6 @@ namespace VWolf {
         UnbindToRenderTexture();
     }
 
-    void OpenGLGraphics::AddLightImpl(Light& light) {
-    }
-
-    // TODO: Better names. This is for immediate rendering
-    void OpenGLGraphics::DrawMeshImpl(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
-    }
-
-    // TODO: Better names. This is for lazy rendering
-    void OpenGLGraphics::RenderMeshImpl(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
-    }
-
     void OpenGLGraphics::BeginFrameImpl()
     {
 

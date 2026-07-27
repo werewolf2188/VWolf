@@ -5,6 +5,7 @@
 //  Created by Enrique Moises on 7/25/26.
 //
 
+#include "vwpch.h"
 #include "RenderParams.h"
 
 namespace VWolf {

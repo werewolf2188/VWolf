@@ -3,6 +3,7 @@
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "DirectX12Graphics.h"
 #include "VWolf/Core/Render/RenderItem.h"
+#include "VWolf/Core/Render/GraphicsContext.h"
 #include "VWolf/Core/Math/VMath.h"
 
 #include "VWolf/Platform/DirectX12/DirectX12Driver.h"
@@ -32,110 +33,6 @@ namespace VWolf {
 		shadowMap = CreateRef<DirectX12RenderTexture>(1024, 1024, true, TextureOptions()); // TODO: This fails for 1024x1024
 		emptyShadowMap = std::dynamic_pointer_cast<DirectX12Texture2D>(CreateRef<Texture2D>(UUID::NewUUID(), TextureDefault::White, 1024, 1024, TextureOptions())->GetInnerTexture());
 	}
-	// TODO: Working as intended, but not happy with the implementation
-	// TODO: Better names. This is for immediate rendering
-	void DirectX12Graphics::DrawMeshImpl(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera)
-	{
-        if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) return;; // It's a light
-        
-		Camera* cam = camera != nullptr ? camera.get() : Camera::main;
-
-		CameraPass cameraPass = {
-			cam->GetViewMatrix(),
-			cam->GetViewMatrix().GetInverse(),
-			cam->GetProjection(),
-			cam->GetProjection().GetInverse(),
-			cam->GetViewProjection(),
-			cam->GetViewProjection().GetInverse(),
-			cam->GetPosition(),
-			0,
-			cam->GetDisplaySize(),
-			{ 1 / cam->GetDisplaySize().GetX(), 1 / cam->GetDisplaySize().GetY() },
-			cam->GetNearZ(),
-			cam->GetFarZ(),
-			Time::GetTotalTime(),
-			Time::GetDeltaTime()
-		};
-
-		Matrix4x4 transform = Matrix4x4::TRS(
-			position, 
-			Quaternion::Euler(
-				rotation.GetX(), 
-				rotation.GetY(), 
-				rotation.GetZ()), 
-			Vector3::One); 
-
-		Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
-		mesh1->BuildVertexBuffer(shader->GetAttributes());
-
-		auto data = mesh1->GetNativeVector();
-		if (data.size() == 1) return; // It's a light
-		auto indices = mesh1->GetTriangles();
-		Ref<DirectX12VertexBuffer> vertices = CreateRef<DirectX12VertexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), data.data(), data.size() * sizeof(float), shader->GetAttributes());
-		Ref<DirectX12IndexBuffer> index = CreateRef<DirectX12IndexBuffer>(DirectX12Driver::GetCurrent()->GetDevice(), indices.data(), indices.size());
-		Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
-		group->SetVertexBuffer(vertices);
-		group->SetIndexBuffer(index);
-
-		groups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), group);
-
-		vertices->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
-		index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
-		void* material1 = material.GetDataPointer();
-		/*if (this->lights.size() == 0) {
-			this->lights.push_back(Light());
-		}*/
-		Light* lights = this->lights.data();
-
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->IASetPrimitiveTopology(GetTopology(mesh1->GetSubMesh(0).GetTopology()));
-		group->Bind(DirectX12Driver::GetCurrent()->GetCommands());
-		auto pso = ((HLSLShader*)shader.get())->GetPipeline();
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetPipelineState(pso.Get());
-		shader->Bind();
-
-		shader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), shapes);
-		shader->SetData(&transform, Shader::ObjectBufferName, sizeof(Matrix4x4), shapes);
-		shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
-		shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
-		std::vector<Matrix4x4> spaces;
-		for (int i = 0; i < this->lights.size(); i++) {
-			spaces.push_back(lights[i].GetLightSpaceMatrix());
-		}
-		Matrix4x4* spacesPointer = spaces.data();
-		shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, 0);
-		// Adding textures
-		for (auto textureInput : shader->GetTextureInputs()) {
-			if (textureInput.GetName() == "Shadow")
-			{
-				D3D12_GPU_DESCRIPTOR_HANDLE handle;
-				handle.ptr = (UINT64)emptyShadowMap->GetHandler();
-				DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootDescriptorTable(textureInput.GetIndex(), handle);
-			}
-			else
-			{
-				D3D12_GPU_DESCRIPTOR_HANDLE handle;
-				Ref<Texture> texture = material.GetTexture(textureInput.GetName());
-				textureGroups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), texture);
-				handle.ptr = (UINT64)texture->GetHandler();
-				DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootDescriptorTable(textureInput.GetIndex(), handle);
-			}
-		}
-		//
-		uint32_t count = indices.size();
-
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->DrawIndexedInstanced(
-			count,
-			1, 0, 0, 0);
-		free(material1);
-		shapes++;
-	}
-
-	// TODO: Working as intended, but not happy with the implementation
-	// TODO: Better names. This is for lazy rendering
-	void DirectX12Graphics::RenderMeshImpl(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera)
-	{
-		items.push_back(CreateRef<RenderItem>(mesh1, material, transform, camera));		
-	}
 
 	void DirectX12Graphics::ClearColorImpl(Color color)
 	{
@@ -151,12 +48,6 @@ namespace VWolf {
 	{
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
 			->ClearDepthStencilView(DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
-	}
-
-	void DirectX12Graphics::AddLightImpl(Light& light)
-	{
-		lights.push_back(light);
-		spaces.push_back(light.GetLightSpaceMatrix());
 	}
 
 	void DirectX12Graphics::BeginFrameImpl()
@@ -177,9 +68,6 @@ namespace VWolf {
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
 			->SetDescriptorHeaps(1, DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap()->GetHeap().GetAddressOf());
 
-		lights.clear();
-		spaces.clear();
-		shapes = 0;
         ClearImpl();
 	}
 
@@ -215,8 +103,6 @@ namespace VWolf {
 		DirectX12Driver::GetCurrent()->GetCommands()->EndFrame(DirectX12Driver::GetCurrent()->GetSurface());
 
 		ClearResources(false);
-
-		frame++;
 	}
 
 	void DirectX12Graphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture)
@@ -225,8 +111,7 @@ namespace VWolf {
 	}
 
 	void DirectX12Graphics::BeginSceneImpl()
-	{
-		items.clear();		
+	{	
 		if (renderTexture) {
 			((DirectX12RenderTexture*)renderTexture.get())->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET);
 			((DirectX12RenderTexture*)renderTexture.get())->Bind();
@@ -272,18 +157,18 @@ namespace VWolf {
 
 	void DirectX12Graphics::DrawShadowMap()
 	{
-		for (Light& light : lights) {
-			int shadowShapes = shapes;
-			Matrix4x4 viewProjection = light.GetLightSpaceMatrix();
+		Ref<PShader> shader = Shader::GetShader("Shadow")->GetInternalShader();
+		for (const Matrix4x4& viewProjection : GraphicsContext::GetLightsSpaces()) {
+			int shadowShapes = 0;
 
-			for (Ref<RenderItem> item : items) {
+			for (Ref<GraphicsCommand> command : GraphicsContext::GetList().GetCommands()) {
+				Ref<DrawMeshCommand> drawMeshCommand = std::dynamic_pointer_cast<DrawMeshCommand>(command);
+				if (!drawMeshCommand->GetCastShadows()) continue;
 
-				Ref<Mesh> mesh1 = item->mesh;
+				Ref<Mesh> mesh1 = drawMeshCommand->GetMesh();
                 if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) return;; // It's a light
-				auto& material = item->material;
-				Matrix4x4 transform = item->transform;				
-
-				Ref<PShader> shader = Shader::GetShader("Shadow")->GetInternalShader();
+				Ref<Material> material = drawMeshCommand->GetMaterial();
+				Matrix4x4 transform = drawMeshCommand->GetTransform();
 
 				mesh1->BuildVertexBuffer(shader->GetAttributes());
 
@@ -309,8 +194,8 @@ namespace VWolf {
 
 				shader->SetData(&viewProjection, Shader::CameraBufferName, sizeof(Matrix4x4), shadowShapes);
 				shader->SetData(&transform, Shader::ObjectBufferName, sizeof(Matrix4x4), shadowShapes);
-				void* material1 = material.GetDataPointer();
-				shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
+				void* material1 = material->GetDataPointer();
+				shader->SetData(material1, materialName.c_str(), material->GetSize(), shadowShapes);
 
 				uint32_t count = indices.size();
 
@@ -325,11 +210,13 @@ namespace VWolf {
 
 	void DirectX12Graphics::DrawQueue()
 	{
-		for (Ref<RenderItem> item : items) {
-			Ref<Mesh> mesh1 = item->mesh;
-			auto& material = item->material;
-			Ref<Camera> camera = item->camera;
-			Matrix4x4 transform = item->transform;
+		int shapes = 0;
+		for (Ref<GraphicsCommand> command : GraphicsContext::GetList().GetCommands()) {
+			Ref<DrawMeshCommand> drawMeshCommand = std::dynamic_pointer_cast<DrawMeshCommand>(command);
+			Ref<Mesh> mesh1 = drawMeshCommand->GetMesh();
+			Ref<Material> material = drawMeshCommand->GetMaterial();
+			Ref<Camera> camera = drawMeshCommand->GetCamera();
+			Matrix4x4 transform = drawMeshCommand->GetTransform();
 
 			if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) continue; // It's a light
 
@@ -352,7 +239,7 @@ namespace VWolf {
 				Time::GetDeltaTime()
 			};
 
-			Ref<PShader> shader = Shader::GetShader(material.GetShaderName().c_str())->GetInternalShader();
+			Ref<PShader> shader = Shader::GetShader(material->GetShaderName().c_str())->GetInternalShader();
 
 			mesh1->BuildVertexBuffer(shader->GetAttributes());
 			Ref<DirectX12BufferGroup> group = CreateRef<DirectX12BufferGroup>();
@@ -374,12 +261,12 @@ namespace VWolf {
 			}
 			index->CopyToDefaultBuffer(DirectX12Driver::GetCurrent()->GetCommands());
 
-			void* material1 = material.GetDataPointer();
-			if (this->lights.size() == 0) {
-				this->lights.push_back(Light());
+			void* material1 = material->GetDataPointer();
+			if (GraphicsContext::GetLights().size() == 0) {
+				GraphicsContext::GetLights().push_back(Light());
 			}
-			Light* lights = this->lights.data();
-			Matrix4x4* spacesPointer = spaces.data();
+			Light* lights = GraphicsContext::GetLights().data();
+			Matrix4x4* spacesPointer = GraphicsContext::GetLightsSpaces().data();
 
 			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->IASetPrimitiveTopology(GetTopology(mesh1->GetSubMesh(0).GetTopology()));
 			group->Bind(DirectX12Driver::GetCurrent()->GetCommands());
@@ -388,7 +275,7 @@ namespace VWolf {
 			shader->Bind();
 			shader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), shapes);
 			shader->SetData(&transform, Shader::ObjectBufferName, sizeof(Matrix4x4), shapes);
-			shader->SetData(material1, materialName.c_str(), material.GetSize(), shapes);
+			shader->SetData(material1, materialName.c_str(), material->GetSize(), shapes);
 			shader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);			
 			shader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, shapes);
 			// Adding textures
@@ -402,7 +289,7 @@ namespace VWolf {
 				else 
 				{
 					D3D12_GPU_DESCRIPTOR_HANDLE handle;
-					Ref<Texture> texture = material.GetTexture(textureInput.GetName());
+					Ref<Texture> texture = material->GetTexture(textureInput.GetName());
 					textureGroups.emplace_back(DirectX12Driver::GetCurrent()->GetCommands()->GetCurrentFence(), texture);
 					handle.ptr = (UINT64)texture->GetHandler();
 					DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetGraphicsRootDescriptorTable(textureInput.GetIndex(), handle);

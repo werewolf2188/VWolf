@@ -25,12 +25,9 @@ namespace VWolf {
         MTL::CommandBuffer* GetCommandBuffer() { return commandBuffer; }
         MTL::RenderCommandEncoder* GetRenderCommandEncoder() { return encoder; }
     protected:
-        virtual void DrawMeshImpl(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera = nullptr) override;
-        virtual void RenderMeshImpl(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera = nullptr) override;
-        virtual void ClearColorImpl(Color color) override;
-        virtual void ClearImpl() override;
-        // TODO: Not sure about this one
-        virtual void AddLightImpl(Light& light) override;
+        void ClearColorImpl(Color color);
+        void ClearImpl();
+
         virtual void BeginFrameImpl() override;
         virtual void EndFrameImpl() override;
         virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) override;

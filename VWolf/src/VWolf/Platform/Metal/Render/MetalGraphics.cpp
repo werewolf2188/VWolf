@@ -43,12 +43,6 @@ namespace VWolf {
         shadowMap = CreateRef<MetalRenderTexture>(2048, 2048, true);
     }
 
-    void MetalGraphics::DrawMeshImpl(Ref<Mesh> mesh1, Vector4 position, Vector4 rotation, Material& material, Ref<Camera> camera) {
-    }
-
-    void MetalGraphics::RenderMeshImpl(Ref<Mesh> mesh1, Matrix4x4 transform, Material& material, Ref<Camera> camera) {
-    }
-
     void MetalGraphics::ClearColorImpl(Color color) {
         MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor()->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(color.GetR(), color.GetG(), color.GetB(), color.GetA()));
         if (renderTexture) {
@@ -65,10 +59,6 @@ namespace VWolf {
             metalRenderTexture->GetRenderPassDescriptor()->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
         }
         shadowMap->GetRenderPassDescriptor()->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
-    }
-
-    void MetalGraphics::AddLightImpl(Light& light) {
-
     }
 
     void MetalGraphics::BeginFrameImpl() {
