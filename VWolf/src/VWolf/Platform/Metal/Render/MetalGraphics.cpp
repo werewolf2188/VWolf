@@ -62,24 +62,7 @@ namespace VWolf {
     }
 
     void MetalGraphics::BeginFrameImpl() {
-        pool = NS::AutoreleasePool::alloc()->init();
-        commandBuffer =  MetalDriver::GetCurrent()->GetCommand()->GetCommandQueue()->commandBuffer();
-        if (renderTexture) {
-            ((MetalRenderTexture*)renderTexture.get())->Prepare();
-        }
-        shadowMap->Prepare();
-        MetalDriver::GetCurrent()->GetSurface()->Begin();
-
-        MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor()->colorAttachments()->object(0)->setTexture(MetalDriver::GetCurrent()->GetSurface()->GetCurrentDrawable()->texture());
-
-        constantBufferIndexPerShader.clear();
-        itemsCount = 0;
-        if (renderTexture) {
-            ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
-        }
         
-        ClearColorImpl(GraphicsContext::GetBackgroundColor());
-        ClearImpl();
     }
 
     void MetalGraphics::EndFrameImpl() {
@@ -103,6 +86,25 @@ namespace VWolf {
     }
 
     void MetalGraphics::EndSceneImpl() {
+        pool = NS::AutoreleasePool::alloc()->init();
+        commandBuffer =  MetalDriver::GetCurrent()->GetCommand()->GetCommandQueue()->commandBuffer();
+        if (renderTexture) {
+            ((MetalRenderTexture*)renderTexture.get())->Prepare();
+        }
+        shadowMap->Prepare();
+        MetalDriver::GetCurrent()->GetSurface()->Begin();
+
+        MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor()->colorAttachments()->object(0)->setTexture(MetalDriver::GetCurrent()->GetSurface()->GetCurrentDrawable()->texture());
+
+        constantBufferIndexPerShader.clear();
+        itemsCount = 0;
+        if (renderTexture) {
+            ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
+        }
+        
+        ClearColorImpl(GraphicsContext::GetBackgroundColor());
+        ClearImpl();
+        
         encoder = commandBuffer->renderCommandEncoder(MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor());
         DrawShadowMap();
         DrawQueue();

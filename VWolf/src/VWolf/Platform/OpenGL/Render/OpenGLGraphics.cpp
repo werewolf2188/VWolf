@@ -70,10 +70,12 @@ namespace VWolf {
     }
 
     void OpenGLGraphics::BeginSceneImpl() {
-        useRenderTexture = true;
+
     }
 
     void OpenGLGraphics::EndSceneImpl() {
+        useRenderTexture = true;
+        
         ClearImpl();
         DrawShadowMap();
         DrawQueue();
