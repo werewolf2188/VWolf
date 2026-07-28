@@ -25,11 +25,9 @@ namespace VWolf {
         void ClearColorImpl(Color color);
         void ClearImpl();
 
-        virtual void BeginFrameImpl() override;
-        virtual void EndFrameImpl() override;
+        virtual void EndProcessingFrame() override;
         virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) override;
-        virtual void BeginSceneImpl() override;
-        virtual void EndSceneImpl() override;
+        virtual void BeginProcessingFrame() override;
     protected:
         virtual void DrawShadowMap() override;
         virtual void DrawQueue() override;

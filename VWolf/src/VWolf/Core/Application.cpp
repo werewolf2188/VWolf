@@ -18,21 +18,17 @@ namespace VWolf {
 
     class Lifecycle {
     public:
-        void BeginFrame() {
-            InternalGraphics::BeginFrame();
-            GraphicsContext::Reset();
+
+        void BeginProcessingFrame() {
+			if (InternalGraphics::Singleton() != nullptr)
+				InternalGraphics::Singleton()->BeginProcessingFrame();
         }
         
-        void BeginScene() {
-            InternalGraphics::BeginScene();
-        }
-        
-        void EndScene() {
-            InternalGraphics::EndScene();
-        }
-        
-        void EndFrame() {
-            InternalGraphics::EndFrame();
+        void EndProcessingFrame() {
+			if (InternalGraphics::Singleton() != nullptr)
+				InternalGraphics::Singleton()->EndProcessingFrame();
+
+			GraphicsContext::Reset();
         }
     };
 
@@ -83,6 +79,7 @@ namespace VWolf {
 	Application::~Application()
 	{
 		VWOLF_CORE_INFO("Shutting down core application");
+		UIManager::GetDefault()->Terminate();
 		driver->Shutdown();
 		// Log::ClearLogObjects(); // TODO: Take control of memory
 	}
@@ -93,25 +90,21 @@ namespace VWolf {
 		
 		while (m_running) {	
 			Time::Tick();
-			if (!m_minimized) {
-				OnUpdate();
-                lifecycle->BeginFrame();
-                lifecycle->BeginScene();
-				OnDraw();
-                lifecycle->EndScene();
-				UIManager::GetDefault()->NewFrame();
-                ImGui::NewFrame();
-                OnGUI();
-				UIManager::GetDefault()->Render();
-                lifecycle->EndFrame();
-			}			
-
 			driver->OnUpdate();
 #if VWOLF_USE_EVENT_QUEUE
 			EventQueue::defaultQueue->Dispatch();
 #endif
+			if (!m_minimized) {
+				OnUpdate();
+				OnDraw();
+                lifecycle->BeginProcessingFrame();
+				UIManager::GetDefault()->NewFrame();
+                ImGui::NewFrame();
+                OnGUI();
+				UIManager::GetDefault()->Render();
+                lifecycle->EndProcessingFrame();
+			}
 		}
-		UIManager::GetDefault()->Terminate();
 	}
 
 	Ref<Window>Application::GetWindow() {

@@ -59,21 +59,12 @@ namespace VWolf {
         UnbindToRenderTexture();
     }
 
-    void OpenGLGraphics::BeginFrameImpl()
+    void OpenGLGraphics::EndProcessingFrame()
     {
 
     }
 
-    void OpenGLGraphics::EndFrameImpl()
-    {
-
-    }
-
-    void OpenGLGraphics::BeginSceneImpl() {
-
-    }
-
-    void OpenGLGraphics::EndSceneImpl() {
+    void OpenGLGraphics::BeginProcessingFrame() {
         useRenderTexture = true;
         
         ClearImpl();

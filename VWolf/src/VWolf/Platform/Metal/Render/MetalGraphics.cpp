@@ -61,11 +61,7 @@ namespace VWolf {
         shadowMap->GetRenderPassDescriptor()->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
     }
 
-    void MetalGraphics::BeginFrameImpl() {
-        
-    }
-
-    void MetalGraphics::EndFrameImpl() {
+    void MetalGraphics::BeginProcessingFrame() {
         if (renderTexture) {
             ((MetalRenderTexture*)renderTexture.get())->Commit();
         }
@@ -82,10 +78,7 @@ namespace VWolf {
         
     }
 
-    void MetalGraphics::BeginSceneImpl() {
-    }
-
-    void MetalGraphics::EndSceneImpl() {
+    void MetalGraphics::EndProcessingFrame() {
         pool = NS::AutoreleasePool::alloc()->init();
         commandBuffer =  MetalDriver::GetCurrent()->GetCommand()->GetCommandQueue()->commandBuffer();
         if (renderTexture) {

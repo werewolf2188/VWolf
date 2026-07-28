@@ -25,19 +25,12 @@ namespace VWolf {
     public:
         virtual ~InternalGraphics() = default;
     public:
-        static void SetGraphicsImpl(Ref<InternalGraphics> graphics) { graphicsImpl = graphics; }
-        static Ref<InternalGraphics> GetGraphicsImpl() { return graphicsImpl; }
-        static void BeginFrame();
-        static void EndFrame();
-        static void BeginScene();
-        static void EndScene();
+        static void SetSingleton(Ref<InternalGraphics> graphics) { graphicsImpl = graphics; }
+        static Ref<InternalGraphics> Singleton() { return graphicsImpl; }
     public:
-
-        virtual void BeginFrameImpl() = 0;
-        virtual void EndFrameImpl() = 0;
         virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) = 0;
-        virtual void BeginSceneImpl() = 0;
-        virtual void EndSceneImpl() = 0;
+        virtual void BeginProcessingFrame() = 0;
+        virtual void EndProcessingFrame() = 0;
     protected:
         virtual void DrawShadowMap() = 0;
         virtual void DrawQueue() = 0;

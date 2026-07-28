@@ -50,27 +50,6 @@ namespace VWolf {
 			->ClearDepthStencilView(DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 	}
 
-	void DirectX12Graphics::BeginFrameImpl()
-	{		
-		// Reset command list and allocator
-		DirectX12Driver::GetCurrent()->GetCommands()->BeginFrame();
-
-		// Set the viewport and rect
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->RSSetViewports(1, &DirectX12Driver::GetCurrent()->GetSurface()->GetScreenViewport());
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->RSSetScissorRects(1, &DirectX12Driver::GetCurrent()->GetSurface()->GetScissorRect());
-
-		auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
-		rtv->TransitionResource(DirectX12Driver::GetCurrent()->GetCommands(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
-			->OMSetRenderTargets(1, &rtv->GetHandle().GetCPUAddress(), FALSE, &DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress());
-
-		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
-			->SetDescriptorHeaps(1, DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap()->GetHeap().GetAddressOf());
-
-        ClearImpl();
-	}
-
 	void DirectX12Graphics::ClearResources(bool forceRelease) {
 		auto NumCompletedCmdLists = DirectX12Driver::GetCurrent()->GetCommands()->GetCompletedFence();
 		// Release all objects whose cmd list number value < number of completed cmd lists
@@ -95,7 +74,7 @@ namespace VWolf {
 		}
 	}
 
-	void DirectX12Graphics::EndFrameImpl()
+	void DirectX12Graphics::EndProcessingFrame()
 	{
 		auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
 		rtv->TransitionResource(DirectX12Driver::GetCurrent()->GetCommands(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
@@ -110,17 +89,31 @@ namespace VWolf {
 		this->renderTexture = renderTexture->GetInnerTexture();
 	}
 
-	void DirectX12Graphics::BeginSceneImpl()
-	{	
+	void DirectX12Graphics::BeginProcessingFrame()
+	{
+		// Reset command list and allocator
+		DirectX12Driver::GetCurrent()->GetCommands()->BeginFrame();
+
+		// Set the viewport and rect
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->RSSetViewports(1, &DirectX12Driver::GetCurrent()->GetSurface()->GetScreenViewport());
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->RSSetScissorRects(1, &DirectX12Driver::GetCurrent()->GetSurface()->GetScissorRect());
+
+		auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
+		rtv->TransitionResource(DirectX12Driver::GetCurrent()->GetCommands(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
+			->OMSetRenderTargets(1, &rtv->GetHandle().GetCPUAddress(), FALSE, &DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress());
+
+		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
+			->SetDescriptorHeaps(1, DirectX12Driver::GetCurrent()->GetShaderResourceViewDescriptorHeap()->GetHeap().GetAddressOf());
+
+		ClearImpl();
+
 		if (renderTexture) {
 			((DirectX12RenderTexture*)renderTexture.get())->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET);
 			((DirectX12RenderTexture*)renderTexture.get())->Bind();
 		}
-		
-	}
 
-	void DirectX12Graphics::EndSceneImpl()
-	{
 		shadowMap->Transition(D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
@@ -146,7 +139,7 @@ namespace VWolf {
 		DrawQueue();
 		DrawPostProcess();
 
-		auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
+		rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
 
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
 			->OMSetRenderTargets(1, &rtv->GetHandle().GetCPUAddress(), FALSE, &DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress());

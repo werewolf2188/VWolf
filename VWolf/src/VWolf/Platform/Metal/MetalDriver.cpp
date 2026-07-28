@@ -39,7 +39,7 @@ namespace VWolf {
 
         graphics = CreateRef<MetalGraphics>();
         UIManager::SetDefault(CreateRef<MetalUIManager>());
-        InternalGraphics::SetGraphicsImpl(graphics);
+        InternalGraphics::SetSingleton(graphics);
         Time::SetTimeImplementation(CreateGenericTime());
         graphics->Initialize();
     }

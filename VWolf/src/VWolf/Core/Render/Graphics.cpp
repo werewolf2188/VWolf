@@ -9,8 +9,8 @@ namespace VWolf {
 /// Graphics
 
     void Graphics::SetRenderTexture(Ref<RenderTexture> renderTexture) {
-        if (InternalGraphics::GetGraphicsImpl())
-            InternalGraphics::GetGraphicsImpl()->SetRenderTextureImpl(renderTexture);
+        if (InternalGraphics::Singleton())
+            InternalGraphics::Singleton()->SetRenderTextureImpl(renderTexture);
     }
 
     void Graphics::DrawMesh(Ref<Mesh> mesh, Vector3 position, Quaternion rotation, Ref<Material> material, int layer, int submeshIndex, Ref<Camera> camera, bool castShadows, bool receiveShadows) {
