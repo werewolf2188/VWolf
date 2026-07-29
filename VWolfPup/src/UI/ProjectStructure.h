@@ -21,8 +21,6 @@ namespace VWolfPup {
         ProjectStructure();
         ~ProjectStructure();
     public:
-        void OnEvent(VWolf::Event& evt);
-    public:
         void OnGui() override;
         void SetInContainer() override;
     private:

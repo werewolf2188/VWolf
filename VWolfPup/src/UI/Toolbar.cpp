@@ -45,8 +45,8 @@ namespace VWolfPup {
             isPlaying = !isPlaying;
             VWolf::Application::SetPlaying(isPlaying);
             VWolfPup::Selection::SetContext(nullptr);
-            ToolbarPlayPauseEvent evt;
-            VWolf::Application::GetApplication()->OnEvent(evt);
+            VWolf::Ref<ToolbarPlayPauseEvent> evt = VWolf::CreateRef<ToolbarPlayPauseEvent>();
+            VWolf::EventQueue::DefaultQueue->Queue(evt);
             wasPressed = false;
         }
         if (shouldChangeColor) {

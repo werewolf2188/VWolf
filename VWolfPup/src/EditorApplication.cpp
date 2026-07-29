@@ -80,8 +80,15 @@ public:
         camera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
         VWolf::Camera::SetMainCamera(camera.get());
         skyBoxCamera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
-        controller = VWolf::CreateRef<VWolfPup::CameraController>(camera);
-        skyBoxController = VWolf::CreateRef<VWolfPup::CameraController>(skyBoxCamera);
+        
+        controller = VWolf::CreateRef<VWolfPup::CameraController>(camera, [this](){
+            if (openBrowser->IsOpen() || saveBrowser->IsOpen() || VWolf::Application::IsPlaying()) return false;
+            return sceneViewer->IsHovering();
+        });
+        skyBoxController = VWolf::CreateRef<VWolfPup::CameraController>(skyBoxCamera, [this](){
+            if (openBrowser->IsOpen() || saveBrowser->IsOpen() || VWolf::Application::IsPlaying()) return false;
+            return sceneViewer->IsHovering();
+        });
         skyBoxController->SetUseDistanceAndFocalForPositionCalculation(false);
 
         VWolfPup::Project::CurrentProject()->GetSettings().GetEditorCameraSettings().SetCameraControllerInformation(controller);
@@ -159,25 +166,13 @@ public:
         testScene->GetSceneBackground().SetCamera(skyBoxCamera);
 
         VWolf::Graphics::SetRenderTexture(sceneViewer->GetRenderTexture());
+        
+        VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::WindowCloseEvent>(VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowClose));
+        VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::WindowResizeEvent>(VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowResize));
+        VWolf::EventQueue::DefaultQueue->Subscribe<VWolfPup::ToolbarPlayPauseEvent>(VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnToolbarPlayPauseButtonPressed));
     }
 
     ~RendererSandboxApplication() {}
-
-    void OnEvent(VWolf::Event& evt) override {
-        VWolf::Application::OnEvent(evt);
-        VWolf::Dispatch<VWolf::WindowResizeEvent>(evt, VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowResize));
-        VWolf::Dispatch<VWolf::WindowCloseEvent>(evt, VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowClose));
-        VWolf::Dispatch<VWolfPup::ToolbarPlayPauseEvent>(evt, VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnToolbarPlayPauseButtonPressed));
-
-        sceneHierarchy->OnEvent(evt);
-        projectStructure->OnEvent(evt);
-
-        if (openBrowser->IsOpen() || saveBrowser->IsOpen() || VWolf::Application::IsPlaying()) return;
-        if (sceneViewer->IsHovering()) {
-            controller->OnEvent(evt);
-            skyBoxController->OnEvent(evt);
-        }
-    }
 
     bool OnWindowClose(VWolf::WindowCloseEvent& e) {
         this->containerView->SaveIniFile();

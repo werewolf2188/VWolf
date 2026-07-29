@@ -67,6 +67,7 @@ namespace VWolf {
     void OpenGLGraphics::BeginProcessingFrame() {
         useRenderTexture = true;
         
+        ClearColorImpl(GraphicsContext::GetBackgroundColor());
         ClearImpl();
         DrawShadowMap();
         DrawQueue();

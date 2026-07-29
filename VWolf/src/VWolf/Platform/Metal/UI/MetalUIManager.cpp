@@ -55,9 +55,6 @@ namespace VWolf {
         ImGui_ImplMetal_NewFrame(MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor());
         ImGui_ImplOSX_NewFrame(GetView(MetalDriver::GetCurrent()->GetWindow()));
     }
-    bool MetalUIManager::OnEvent(Event& evt) {
-        return true;
-    }
 }
 
 #endif

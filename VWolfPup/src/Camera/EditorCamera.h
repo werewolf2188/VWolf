@@ -7,6 +7,7 @@
 
 #pragma once
 #include <iostream>
+#include <functional>
 #include "VWolf.h"
 
 namespace VWolfPup {
@@ -15,9 +16,8 @@ namespace VWolfPup {
 // TODO: by editor
     class CameraController {
     public:
-        CameraController(VWolf::Ref<VWolf::Camera> camera);
+        CameraController(VWolf::Ref<VWolf::Camera> camera, std::function<bool()> shouldListenToEvent);
 
-        void OnEvent(VWolf::Event& evt);
         bool OnMouseScroll(VWolf::MouseScrolledEvent& e);
         void OnUpdate();
         VWolf::Vector2 GetMouseDelta();
@@ -62,5 +62,8 @@ namespace VWolfPup {
 
         // Input
         VWolf::Vector2 m_InitialMousePosition = { 0.0f, 0.0f };
+        
+        // Should listen to the event
+        std::function<bool()> shouldListenToEvent;
     };
 }

@@ -27,11 +27,10 @@ namespace VWolf {
 
 	DirectX12Driver* DirectX12Driver::currentDriver = nullptr;
 
-	void DirectX12Driver::Initialize(InitConfiguration config, EventCallback& callback)
+	void DirectX12Driver::Initialize(InitConfiguration config)
 	{
 		//handle = GetModuleHandle(nullptr);
-		this->callback = &callback;
-		window = CreateGenericWindow(DriverType::DirectX12, config, *this);
+		window = CreateGenericWindow(DriverType::DirectX12, config);
 		window->Initialize();		
 		currentDriver = this;
 
@@ -87,10 +86,6 @@ namespace VWolf {
 //		if (pixModule)
 //			FreeLibrary(pixModule);
 //#endif
-	}
-
-	void DirectX12Driver::OnEvent(Event& evt) {
-		callback->OnEvent(evt);
 	}
 
     void DirectX12Driver::Resize(unsigned int m_Width, unsigned int m_Height) {

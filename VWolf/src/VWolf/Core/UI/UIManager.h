@@ -13,7 +13,6 @@ namespace VWolf {
 		virtual void Render() = 0;
 #endif
 		virtual void NewFrame() = 0;
-		virtual bool OnEvent(Event& evt) = 0;
 	public:
 		static Ref<UIManager> GetDefault() { return defaultManager; }
 #ifdef VWOLF_CORE

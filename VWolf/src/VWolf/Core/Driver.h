@@ -7,7 +7,7 @@ namespace VWolf {
 	class Driver {
 	public:
         virtual ~Driver() {};
-		virtual void Initialize(InitConfiguration config, EventCallback& callback) = 0;
+		virtual void Initialize(InitConfiguration config) = 0;
 		virtual void Shutdown() = 0;
 		virtual void OnUpdate() = 0;
         virtual void Resize(unsigned int m_Width, unsigned int m_Height) = 0;

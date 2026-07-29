@@ -17,7 +17,6 @@ namespace VWolf {
 		virtual void Initialize() = 0;
 		virtual void OnUpdate() = 0;
 		virtual void* GetNativeWindow() = 0;
-        virtual EventCallback& GetCallback() = 0;
 		inline int GetWidth() { return width;  }
 		inline int GetHeight() { return height; }
         inline void SetWidth(int width) { this->width = width; }
@@ -30,5 +29,5 @@ namespace VWolf {
 		bool vsync = false;
 	};
 
-    Ref<Window> CreateGenericWindow(DriverType driverType, InitConfiguration config, EventCallback& callback, std::function<void()> initializer = [](){});
+    Ref<Window> CreateGenericWindow(DriverType driverType, InitConfiguration config, std::function<void()> initializer = [](){});
 }

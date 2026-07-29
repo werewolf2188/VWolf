@@ -21,12 +21,11 @@ namespace VWolf {
 
     class Lifecycle;
 
-	class Application: public EventCallback {
+	class Application {
 	public:
 		static Application* GetApplication() { return m_application; };
 	public:
 		virtual ~Application();
-		virtual void OnEvent(Event& evt) override;
 		virtual void OnUpdate() = 0;
         virtual void OnDraw() = 0;
 		virtual void OnGUI() = 0;

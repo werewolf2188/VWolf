@@ -19,9 +19,8 @@ namespace VWolf {
 
 	OpenGLDriver* OpenGLDriver::currentDriver = nullptr;
 
-	void OpenGLDriver::Initialize(InitConfiguration config, EventCallback& callback)
+	void OpenGLDriver::Initialize(InitConfiguration config)
 	{
-		this->callback = &callback;
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_MAJOR_VERSION);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_MINOR_VERSION);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, OPENGL_PROFILE);
@@ -30,7 +29,7 @@ namespace VWolf {
         const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         VWOLF_CORE_INFO("Resolution %dx%d", mode->width, mode->height);
 
-        window = CreateGenericWindow(DriverType::OpenGL, config, callback, [this, mode](){
+        window = CreateGenericWindow(DriverType::OpenGL, config, [this, mode](){
     #ifdef VWOLF_PLATFORM_MACOS
             int width;
             int height;
@@ -75,10 +74,6 @@ namespace VWolf {
 	void OpenGLDriver::OnUpdate() {
 		window->OnUpdate();
 		glfwSwapBuffers(GetGLFWWindow(window));
-	}
-
-	void OpenGLDriver::OnEvent(Event& evt) {
-		callback->OnEvent(evt);
 	}
 
     void OpenGLDriver::Resize(unsigned int m_Width, unsigned int m_Height) {

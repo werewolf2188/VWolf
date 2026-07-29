@@ -1,13 +1,11 @@
 #pragma once
-#define VWOLF_USE_EVENT_QUEUE 0
 
-#if VWOLF_USE_EVENT_QUEUE
 #include <map>
 #include <functional>
 #include <vector>
-#endif
-
 #include <string>
+
+#include "VWolf/Core/Base.h"
 
 namespace VWolf {
 	enum class EventType
@@ -48,28 +46,11 @@ virtual const char* GetName() const override { return name; }
 		//}
 	};
 
-    class EventCallback {
-    public:
-        virtual void OnEvent(Event& evt) = 0;
-    };
-
-	template<typename T, typename F>
-	bool Dispatch(Event& evt, const F& func)
-	{
-		if (evt.GetEventType() == T::GetStaticType())
-		{
-			evt.Handled |= func(static_cast<T&>(evt));
-			return true;
-		}
-		return false;
-	}
-
 	inline std::ostream& operator<<(std::ostream& os, const Event& e)
 	{
 		return os << e.ToString();
 	}
 
-#if VWOLF_USE_EVENT_QUEUE
 	// WIP
 	/*
 	* For now the dispatcher function will do since there's an issue with the window resize event
@@ -81,23 +62,22 @@ virtual const char* GetName() const override { return name; }
 
 	public:
 		void Dispatch();
-		void Queue(Event* evt);
-		void Subscribe(EventType type, std::function<bool(Event*)> function);
+		void Queue(Ref<Event> evt);
+		void Subscribe(EventType type, std::function<bool(Ref<Event>)> function);
 
 		template <typename T>
 		void Subscribe(std::function<bool(T&)> function) {
 			EventType type = T::GetStaticType();
-			auto functionWrapper = [function](Event* e) {
-				T* evt = static_cast<T*>(e);
+			auto functionWrapper = [function](Ref<Event> e) {
+                Ref<T> evt = std::dynamic_pointer_cast<T>(e);
 				return function(*evt);
-			};	
+			};
 			Subscribe(type, functionWrapper);
 		}
 	public:
-		static EventQueue* defaultQueue;
+		static Scope<EventQueue> DefaultQueue;
 	private:
-		std::vector<Event*> events;
-		std::map<EventType, std::vector<std::function<bool(Event*)>>> functions;
+		std::vector<Ref<Event>> events;
+		std::map<EventType, std::vector<std::function<bool(Ref<Event>)>>> functions;
 	};
-#endif
 }

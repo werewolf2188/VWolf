@@ -37,17 +37,18 @@ namespace VWolf {
 
     class WindowDragDropEvent: public Event {
     public:
-        WindowDragDropEvent(int pathCount, const char** paths): pathCount(pathCount), paths(paths) {}
+        WindowDragDropEvent(int pathCount, const char** paths): paths(paths, paths + pathCount) {
+            
+        }
         
-        int GetPathCount() { return pathCount; }
-        const char** GetPaths() { return paths; }
+        const std::vector<std::string>& GetPaths() { return paths; }
         
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "WindowDragDropEvent: path count - " << pathCount << ", paths - [";
-            for (int index = 0; index < pathCount; index++) {
-                if (index == pathCount - 1)
+            ss << "WindowDragDropEvent: path count - " << paths.size() << ", paths - [";
+            for (int index = 0; index < paths.size(); index++) {
+                if (index == paths.size() - 1)
                     ss << paths[index] << "]";
                 else
                     ss << paths[index] << ", ";
@@ -56,8 +57,7 @@ namespace VWolf {
         }
         EVENT_CLASS_TYPE(WindowDrapDrop)
     private:
-        int pathCount;
-        const char** paths;
+        std::vector<std::string> paths;
     };
 
 	class AppTickEvent : public Event

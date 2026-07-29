@@ -1,10 +1,8 @@
 #include "vwpch.h"
-
 #include "Event.h"
 
-#if VWOLF_USE_EVENT_QUEUE
 namespace VWolf {
-	EventQueue* EventQueue::defaultQueue = new EventQueue();
+	Scope<EventQueue> EventQueue::DefaultQueue = CreateScope<EventQueue>();
 
 	void EventQueue::Dispatch() {
 		for (auto evt : events) {
@@ -19,13 +17,12 @@ namespace VWolf {
 		events.clear();
 	}
 
-	void EventQueue::Queue(Event* evt) {
+	void EventQueue::Queue(Ref<Event> evt) {
 		events.push_back(evt);
 	}
 
-	void EventQueue::Subscribe(EventType type, std::function<bool(Event*)> function) {
+	void EventQueue::Subscribe(EventType type, std::function<bool(Ref<Event>)> function) {
 		auto& vector = functions[type];
 		vector.push_back(function);
 	}
 }
-#endif

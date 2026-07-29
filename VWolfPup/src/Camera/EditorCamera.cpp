@@ -8,19 +8,19 @@
 #include "EditorCamera.h"
 
 namespace VWolfPup {
-    CameraController::CameraController(VWolf::Ref<VWolf::Camera> camera): camera(camera) {
-        
-    }
-
-    void CameraController::OnEvent(VWolf::Event& evt) {
-        VWolf::Dispatch<VWolf::MouseScrolledEvent>(evt, VWOLF_BIND_EVENT_FN(OnMouseScroll));
+    CameraController::CameraController(VWolf::Ref<VWolf::Camera> camera, std::function<bool()> shouldListenToEvent):
+    camera(camera), shouldListenToEvent(shouldListenToEvent) {
+        VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::MouseScrolledEvent>(VWOLF_BIND_EVENT_FN(OnMouseScroll));
     }
 
     bool CameraController::OnMouseScroll(VWolf::MouseScrolledEvent& e) {
-        // Will Zoom
-        float delta = e.GetYOffset() * 0.1f;
-        MouseZoom(delta);
-        camera->UpdateView(CalculatePosition(), GetOrientation());
+        if (shouldListenToEvent()) {
+            // Will Zoom
+            float delta = e.GetYOffset() * 0.1f;
+            MouseZoom(delta);
+            camera->UpdateView(CalculatePosition(), GetOrientation());
+            return false;
+        }
         return false;
     }
 

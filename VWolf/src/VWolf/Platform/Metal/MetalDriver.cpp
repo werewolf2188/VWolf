@@ -23,9 +23,8 @@ namespace VWolf {
 
     extern void SetView(Ref<Window> window, NS::View* view);
 
-    void MetalDriver::Initialize(InitConfiguration config, EventCallback& callback) {
-        this->callback = &callback;
-        window = CreateGenericWindow(DriverType::Metal, config, callback);
+    void MetalDriver::Initialize(InitConfiguration config) {
+        window = CreateGenericWindow(DriverType::Metal, config);
         window->Initialize();
         currentDriver = this;
 
@@ -48,9 +47,6 @@ namespace VWolf {
     }
     void MetalDriver::OnUpdate() {
         window->OnUpdate();
-    }
-    void MetalDriver::OnEvent(Event& evt) {
-        callback->OnEvent(evt);
     }
     void MetalDriver::Resize(unsigned int m_Width, unsigned int m_Height) {
         surface->Resize(device, m_Width, m_Height);

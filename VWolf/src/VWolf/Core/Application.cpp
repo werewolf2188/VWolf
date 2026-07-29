@@ -66,13 +66,12 @@ namespace VWolf {
 		m_application = this;
 		VWOLF_CORE_INFO("Initializing core application");
 		VWOLF_CORE_DEBUG("Starting with driver: %s", DriverName(type));
-		driver->Initialize(config, *this);
+		driver->Initialize(config);
 
 		// Adding subscribers
-#if VWOLF_USE_EVENT_QUEUE
-		EventQueue::defaultQueue->Subscribe<WindowCloseEvent>(VWOLF_BIND_EVENT_FN(Application::OnWindowClose));
-		EventQueue::defaultQueue->Subscribe<WindowResizeEvent>(VWOLF_BIND_EVENT_FN(Application::OnWindowResize));
-#endif
+		EventQueue::DefaultQueue->Subscribe<WindowCloseEvent>(VWOLF_BIND_EVENT_FN(Application::OnWindowClose));
+		EventQueue::DefaultQueue->Subscribe<WindowResizeEvent>(VWOLF_BIND_EVENT_FN(Application::OnWindowResize));
+        
         UIManager::GetDefault()->Initialize();
 	}
 
@@ -88,15 +87,17 @@ namespace VWolf {
 		VWOLF_CORE_INFO("Running core application");
 		m_running = true;
 		
-		while (m_running) {	
+		while (m_running) {
+            // Poll events
 			Time::Tick();
 			driver->OnUpdate();
-#if VWOLF_USE_EVENT_QUEUE
-			EventQueue::defaultQueue->Dispatch();
-#endif
+			EventQueue::DefaultQueue->Dispatch();
+            
 			if (!m_minimized) {
+                // Update objects
 				OnUpdate();
 				OnDraw();
+                // Render
                 lifecycle->BeginProcessingFrame();
 				UIManager::GetDefault()->NewFrame();
                 ImGui::NewFrame();
@@ -114,15 +115,6 @@ namespace VWolf {
 	std::vector<std::string> Application::GetArguments()
 	{
 		return CommandLineArguments::GetArguments();
-	}
-
-	void Application::OnEvent(Event& evt) {		
-#if !VWOLF_USE_EVENT_QUEUE
-		Dispatch<WindowCloseEvent>(evt, VWOLF_BIND_EVENT_FN(Application::OnWindowClose));
-		Dispatch<WindowResizeEvent>(evt, VWOLF_BIND_EVENT_FN(Application::OnWindowResize));
-#endif
-		if (UIManager::GetDefault())
-			UIManager::GetDefault()->OnEvent(evt);
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e) {

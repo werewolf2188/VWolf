@@ -34,6 +34,7 @@ namespace VWolfPup {
     SceneHierarchy::SceneHierarchy(VWolf::Scene *scene):
     View("Scene Hierarchy"), scene(scene){
         meshes = VWolf::ObjectResourceManager::Filter<VWolf::Mesh>();
+        VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::MouseButtonReleasedEvent>(VWOLF_BIND_EVENT_FN(SceneHierarchy::OnMouseButtonReleasedEvent));
     }
 
     SceneHierarchy::~SceneHierarchy() {
@@ -116,10 +117,6 @@ namespace VWolfPup {
             }
         }
         ImGui::End();
-    }
-
-    void SceneHierarchy::OnEvent(VWolf::Event& evt) {
-        VWolf::Dispatch<VWolf::MouseButtonReleasedEvent>(evt, VWOLF_BIND_EVENT_FN(SceneHierarchy::OnMouseButtonReleasedEvent));
     }
 
     bool SceneHierarchy::OnMouseButtonReleasedEvent(VWolf::MouseButtonReleasedEvent& e) {

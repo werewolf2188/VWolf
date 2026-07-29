@@ -165,7 +165,9 @@ namespace VWolfPup {
             this->Rebuild();
         });
         projectTree->Build(proj->GetAssetsPath());
-//        VWOLF_CLIENT_INFO("Test");
+
+        VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::MouseButtonReleasedEvent>(VWOLF_BIND_EVENT_FN(ProjectStructure::OnMouseButtonReleasedEvent));
+        VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::WindowDragDropEvent>(VWOLF_BIND_EVENT_FN(ProjectStructure::OnWindowDragDropEvent));
     }
 
     ProjectStructure::~ProjectStructure() {
@@ -285,11 +287,6 @@ namespace VWolfPup {
         GetContainer()->GetRoot()->Install(this, ImGuiDir_Down);
     }
 
-    void ProjectStructure::OnEvent(VWolf::Event& evt) {
-        VWolf::Dispatch<VWolf::MouseButtonReleasedEvent>(evt, VWOLF_BIND_EVENT_FN(ProjectStructure::OnMouseButtonReleasedEvent));
-        VWolf::Dispatch<VWolf::WindowDragDropEvent>(evt, VWOLF_BIND_EVENT_FN(ProjectStructure::OnWindowDragDropEvent));
-    }
-
     bool ProjectStructure::OnMouseButtonReleasedEvent(VWolf::MouseButtonReleasedEvent& e) {
         if (e.GetMouseButton() == VWolf::MouseCode::Right) {
             showDialog = true;
@@ -304,7 +301,7 @@ namespace VWolfPup {
     bool ProjectStructure::OnWindowDragDropEvent(VWolf::WindowDragDropEvent& e) {
         
         filesDropped.clear();
-        for (int index = 0; index < e.GetPathCount(); index++)
+        for (int index = 0; index < e.GetPaths().size(); index++)
             filesDropped.push_back(e.GetPaths()[index]);
         return true;
     }

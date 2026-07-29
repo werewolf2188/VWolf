@@ -17,13 +17,12 @@
 namespace VWolf {
     class MetalGraphics;
 
-    class MetalDriver : public Driver, public EventCallback {
+    class MetalDriver : public Driver {
     public:
         virtual ~MetalDriver() override {};
-        virtual void Initialize(InitConfiguration config, EventCallback& callback) override;
+        virtual void Initialize(InitConfiguration config) override;
         virtual void Shutdown() override;
         virtual void OnUpdate() override;
-        virtual void OnEvent(Event& evt) override;
         virtual void Resize(unsigned int m_Width, unsigned int m_Height) override;
     public:
         Ref<MDevice> GetDevice() { return device; }
@@ -38,7 +37,6 @@ namespace VWolf {
         Ref<MDevice> device;
         Ref<MSurface> surface;
         Ref<MCommand> command;
-        EventCallback* callback;
         Ref<MetalGraphics> graphics;
         NS::AutoreleasePool* autoreleasePool;
     };
