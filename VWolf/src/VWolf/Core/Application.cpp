@@ -78,7 +78,6 @@ namespace VWolf {
 	Application::~Application()
 	{
 		VWOLF_CORE_INFO("Shutting down core application");
-		UIManager::GetDefault()->Terminate();
 		driver->Shutdown();
 		// Log::ClearLogObjects(); // TODO: Take control of memory
 	}
@@ -86,29 +85,101 @@ namespace VWolf {
 	void Application::Run() {
 		VWOLF_CORE_INFO("Running core application");
 		m_running = true;
-		
-		while (m_running) {
-            // Poll events
-			Time::Tick();
-			driver->OnUpdate();
-			EventQueue::DefaultQueue->Dispatch();
-            
-			if (!m_minimized) {
-                // Update objects
-				OnUpdate();
-				OnDraw();
-                // Render
-                lifecycle->BeginProcessingFrame();
-				UIManager::GetDefault()->NewFrame();
-                ImGui::NewFrame();
-                OnGUI();
-				UIManager::GetDefault()->Render();
-                lifecycle->EndProcessingFrame();
-			}
-		}
+
+        updateThread = std::thread(&Application::Update, this);
+        Render();
+        updateThread.join();
 	}
 
-	Ref<Window>Application::GetWindow() {
+    void Application::Quit() {
+        NotifyShutdown();
+    }
+
+    void Application::NotifyShutdown() {
+        m_running = false;
+        m_frameCV.notify_all();
+    }
+
+    void Application::Update() {
+        uint64_t updateFrame = 0;
+
+        while (m_running) {
+            {
+                std::unique_lock<std::mutex> lock(m_frameMutex);
+                m_frameCV.wait(lock, [this, updateFrame] {
+                    return m_eventsFrame > updateFrame || !m_running.load();
+                });
+
+                if (!m_running) {
+                    break;
+                }
+
+                updateFrame = m_eventsFrame;
+            }
+
+            // Consume events produced by the main thread, then build draw commands.
+            EventQueue::DefaultQueue->Dispatch([&](){ return !m_running.load(); });
+
+            if (!m_running) {
+                break;
+            }
+
+            if (!m_minimized) {
+                OnUpdate();
+                OnDraw();
+            }
+
+            {
+                std::lock_guard<std::mutex> lock(m_frameMutex);
+                m_commandsFrame = updateFrame;
+            }
+            m_frameCV.notify_one();
+        }
+
+        // Unblock the render thread if it is waiting for a final frame.
+        m_frameCV.notify_one();
+    }
+
+    void Application::Render() {
+        while (m_running) {
+            // Produce: poll window events into EventQueue.
+            Time::Tick();
+            driver->OnUpdate();
+
+            uint64_t renderFrame = 0;
+            {
+                std::lock_guard<std::mutex> lock(m_frameMutex);
+                renderFrame = ++m_eventsFrame;
+            }
+            m_frameCV.notify_one();
+
+            // Wait until the update thread has finished producing draw commands.
+            {
+                std::unique_lock<std::mutex> lock(m_frameMutex);
+                m_frameCV.wait(lock, [this, renderFrame] {
+                    return m_commandsFrame >= renderFrame || !m_running.load();
+                });
+
+                if (!m_running) {
+                    break;
+                }
+            }
+
+            if (!m_minimized) {
+                lifecycle->BeginProcessingFrame();
+                UIManager::GetDefault()->NewFrame();
+                ImGui::NewFrame();
+                OnGUI();
+                UIManager::GetDefault()->Render();
+                lifecycle->EndProcessingFrame();
+            }
+        }
+
+        UIManager::GetDefault()->Terminate();
+        NotifyShutdown();
+    }
+
+	Ref<Window> Application::GetWindow() {
 		return driver->GetWindow();
 	}
 
@@ -118,7 +189,7 @@ namespace VWolf {
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e) {
-		m_running = !m_running;
+		NotifyShutdown();
 		return true;
 	}
 

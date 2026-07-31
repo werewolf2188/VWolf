@@ -2,6 +2,7 @@
 
 #include <map>
 #include <functional>
+#include <mutex>
 #include <vector>
 #include <string>
 
@@ -61,7 +62,7 @@ virtual const char* GetName() const override { return name; }
 	class EventQueue {
 
 	public:
-		void Dispatch();
+		void Dispatch(std::function<bool()> shouldInterrupt);
 		void Queue(Ref<Event> evt);
 		void Subscribe(EventType type, std::function<bool(Ref<Event>)> function);
 
@@ -77,6 +78,7 @@ virtual const char* GetName() const override { return name; }
 	public:
 		static Scope<EventQueue> DefaultQueue;
 	private:
+		std::mutex mtx;
 		std::vector<Ref<Event>> events;
 		std::map<EventType, std::vector<std::function<bool(Ref<Event>)>>> functions;
 	};

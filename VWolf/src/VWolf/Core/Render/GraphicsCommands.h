@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include "VWolf/Core/Base.h"
 #include "VWolf/Core/Math/VMath.h"
 #include "Mesh.h"
@@ -61,10 +63,19 @@ namespace VWolf {
     public:
         GraphicsCommandList() = default;
     public:
-        void Add(Ref<GraphicsCommand> command) { commands.push_back(command); }
-        void ClearQueue() { commands.clear(); }
+        void Add(Ref<GraphicsCommand> command) {
+            std::scoped_lock lock(mtx);
+            commands.push_back(command);
+        }
+        
+        void ClearQueue() {
+            std::scoped_lock lock(mtx);
+            commands.clear();
+        }
+        
         const std::vector<Ref<GraphicsCommand>>& GetCommands() const { return commands; }
     private:
         std::vector<Ref<GraphicsCommand>> commands;
+        std::mutex mtx;
     };
 }

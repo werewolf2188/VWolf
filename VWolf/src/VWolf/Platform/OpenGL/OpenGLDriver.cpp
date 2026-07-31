@@ -74,16 +74,19 @@ namespace VWolf {
 	void OpenGLDriver::OnUpdate() {
 		window->OnUpdate();
 		glfwSwapBuffers(GetGLFWWindow(window));
-	}
-
-    void OpenGLDriver::Resize(unsigned int m_Width, unsigned int m_Height) {
+        if (m_resize) {
 #ifdef VWOLF_PLATFORM_MACOS
-        int width;
-        int height;
-        glfwGetFramebufferSize(GetGLFWWindow(window), &width, &height);
-        GLThrowIfFailed(glViewport(0, 0, width, height));
+        GLThrowIfFailed(glViewport(0, 0, window->GetFramebufferWidth(), window->GetFramebufferHeight()));
 #else
         GLThrowIfFailed(glViewport(0, 0, m_Width, m_Height));
 #endif
+            m_resize = false;
+        }
+	}
+
+    void OpenGLDriver::Resize(unsigned int m_Width, unsigned int m_Height) {
+        this->m_Width = m_Width;
+        this->m_Height = m_Height;
+        this->m_resize = true;
     }
 }

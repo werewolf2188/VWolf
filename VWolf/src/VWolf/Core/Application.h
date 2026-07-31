@@ -1,5 +1,10 @@
 #pragma once
 
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+
 #include "Base.h"
 
 #include "Window.h"
@@ -31,7 +36,7 @@ namespace VWolf {
 		virtual void OnGUI() = 0;
 	public:
 		void Run();
-        void Quit() { m_running = false; }
+        void Quit();
 		Ref<Window> GetWindow();
 		std::vector<std::string> GetArguments();
         DriverType GetDriverType() { return m_type; }
@@ -48,6 +53,9 @@ namespace VWolf {
 		bool OnWindowResize(WindowResizeEvent& e);
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
+        void Update();
+        void Render();
+        void NotifyShutdown();
     private:
         static bool _isPlaying;
 	private:
@@ -55,7 +63,17 @@ namespace VWolf {
 		DriverType m_type;
 		Scope<Driver> driver;
         Scope<Lifecycle> lifecycle;
-		bool m_running = false;
-		bool m_minimized = false;
+		std::atomic<bool> m_running = false;
+        std::atomic<bool> m_minimized = false;
+
+        // Producer-consumer frame barrier:
+        // main polls events (bumps m_eventsFrame) -> update produces commands
+        // (bumps m_commandsFrame) -> main renders that frame
+        std::mutex m_frameMutex;
+        std::condition_variable m_frameCV;
+        uint64_t m_eventsFrame = 0;
+        uint64_t m_commandsFrame = 0;
+
+        std::thread updateThread;
 	};
 }

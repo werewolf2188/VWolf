@@ -14,5 +14,7 @@ namespace VWolf {
 		static OpenGLDriver* GetCurrentDriver() { return currentDriver; }
 
 		static OpenGLDriver* currentDriver;
+        unsigned int m_Width, m_Height;
+        bool m_resize = false;
 	};
 }
