@@ -111,6 +111,7 @@ namespace VWolf {
 
 		if (renderTexture) {
 			((DirectX12RenderTexture*)renderTexture.get())->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET);
+			ClearColorImpl(GraphicsContext::GetBackgroundColor());
 			((DirectX12RenderTexture*)renderTexture.get())->Bind();
 		}
 

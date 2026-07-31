@@ -356,11 +356,19 @@ namespace VWolf {
     #endif
     public:
         GLFWwindow* GetGLFWWindow() { return m_window; }
-    public:
-        
+    private:
+        void SetMousePosition(double xPos, double yPos);
+        void SetMouseButtonState(int button, bool pressed);
+        void SetKeyState(int key, bool pressed);
+        void ClearInputState();
     private:
         std::function<void()> initializer;
         GLFWwindow *m_window;
+        std::mutex m_inputMutex;
+        float m_mouseX = 0.0f;
+        float m_mouseY = 0.0f;
+        bool m_mouseButtons[GLFW_MOUSE_BUTTON_LAST + 1] = {};
+        bool m_keys[GLFW_KEY_LAST + 1] = {};
     #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
         NS::Window* m_nativeWindow;
         NS::View* m_view;
@@ -445,13 +453,30 @@ namespace VWolf {
             GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
             data.SetWidth(width);
             data.SetHeight(height);
+            
+            int framebufferWidth;
+            int framebufferHeight;
+            glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+            data.SetFramebufferWidth(framebufferWidth);
+            data.SetFramebufferHeight(framebufferHeight);
 
             Ref<WindowResizeEvent> evt = CreateRef<WindowResizeEvent>(width, height);
             EventQueue::DefaultQueue->Queue(evt);
         });
 
+        glfwSetWindowFocusCallback(m_window, [](GLFWwindow* window, int focused)
+        {
+            if (!focused) {
+                GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+                data.ClearInputState();
+            }
+        });
+
         glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xPos, double yPos)
         {
+            GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+            data.SetMousePosition(xPos, yPos);
+
             Ref<MouseMovedEvent> evt = CreateRef<MouseMovedEvent>(xPos, yPos);
             EventQueue::DefaultQueue->Queue(evt);
         });
@@ -464,6 +489,9 @@ namespace VWolf {
 
         glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods)
         {
+            GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+            data.SetMouseButtonState(button, action != GLFW_RELEASE);
+
             switch (action) {
             case GLFW_PRESS:
             {
@@ -482,6 +510,11 @@ namespace VWolf {
 
         glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
         {
+            GenericWindow& data = *(GenericWindow*)glfwGetWindowUserPointer(window);
+            if (action != GLFW_REPEAT) {
+                data.SetKeyState(key, action == GLFW_PRESS);
+            }
+
             switch (action)
             {
             case GLFW_PRESS:
@@ -525,20 +558,69 @@ namespace VWolf {
         glfwPollEvents();
     }
 
+    void GenericWindow::SetMousePosition(double xPos, double yPos) {
+        // Not sure if clamping is the right way to go
+        xPos = std::clamp((int)xPos, 0, width);
+        yPos = std::clamp((int)yPos, 0, height);
+
+        std::scoped_lock lock(m_inputMutex);
+        m_mouseX = static_cast<float>(xPos);
+        m_mouseY = static_cast<float>(yPos);
+    }
+
+    void GenericWindow::SetMouseButtonState(int button, bool pressed) {
+        if (button < 0 || button > GLFW_MOUSE_BUTTON_LAST) {
+            return;
+        }
+
+        std::scoped_lock lock(m_inputMutex);
+        m_mouseButtons[button] = pressed;
+    }
+
+    void GenericWindow::SetKeyState(int key, bool pressed) {
+        if (key < 0 || key > GLFW_KEY_LAST) {
+            return;
+        }
+
+        std::scoped_lock lock(m_inputMutex);
+        m_keys[key] = pressed;
+    }
+
+    void GenericWindow::ClearInputState() {
+        std::scoped_lock lock(m_inputMutex);
+        m_mouseX = 0.0f;
+        m_mouseY = 0.0f;
+        for (int button = 0; button <= GLFW_MOUSE_BUTTON_LAST; ++button) {
+            m_mouseButtons[button] = false;
+        }
+        for (int key = 0; key <= GLFW_KEY_LAST; ++key) {
+            m_keys[key] = false;
+        }
+    }
+
     bool GenericWindow::IsMouseButtonPressed(MouseCode button) {
-        return glfwGetMouseButton(m_window, GetMouseFrom(button)) == GLFW_PRESS;
+        const int glfwButton = GetMouseFrom(button);
+        if (glfwButton < 0 || glfwButton > GLFW_MOUSE_BUTTON_LAST) {
+            return false;
+        }
+
+        std::scoped_lock lock(m_inputMutex);
+        return m_mouseButtons[glfwButton];
     }
 
     std::pair<float, float> GenericWindow::GetMousePosition() {
-        double xpos, ypos;
-        glfwGetCursorPos(m_window, &xpos, &ypos);
-        // Not sure if clamping is the right way to go
-        xpos = std::clamp((int)xpos, 0, width);
-        ypos = std::clamp((int)ypos, 0, height);
-        return std::make_pair<float, float>((float)xpos, (float)ypos);
+        std::scoped_lock lock(m_inputMutex);
+        return { m_mouseX, m_mouseY };
     }
+
     bool GenericWindow::IsKeyPressed(KeyCode key) {
-        return glfwGetKey(m_window, GetKeyFrom(key)) == GLFW_PRESS;
+        const int glfwKey = GetKeyFrom(key);
+        if (glfwKey < 0 || glfwKey > GLFW_KEY_LAST) {
+            return false;
+        }
+
+        std::scoped_lock lock(m_inputMutex);
+        return m_keys[glfwKey];
     }
 
     void* GenericWindow::GetNativeWindow() {
