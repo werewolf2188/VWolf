@@ -19,7 +19,7 @@ namespace VWolf {
 	class DirectX12Driver : public Driver {
 	public:
         virtual ~DirectX12Driver() override {};
-		virtual void Initialize(InitConfiguration config, EventCallback& callback) override;
+		virtual void Initialize(InitConfiguration config) override;
 		virtual void Shutdown() override;
 		virtual void OnUpdate() override;
         virtual void Resize(unsigned int m_Width, unsigned int m_Height) override;
