@@ -27,6 +27,8 @@ namespace YAML {
         for (auto gameObjectKeyValue: node[gameObjectsKey]) {
             VWolf::GameObject object = gameObjectKeyValue.as<VWolf::GameObject>();
             VWolf::Ref<VWolf::GameObject> gameObject = VWolf::CreateFromRef<VWolf::GameObject>(object);
+            gameObject->AttachToScene(rhs.weak_from_this());
+            convert<VWolf::GameObject>::decodeComponents(gameObjectKeyValue, *gameObject.get());
             rhs.AddExistingGameObject(gameObject);
         }
         return true;
@@ -57,6 +59,18 @@ namespace VWolf {
         return *this;
     }
 
+    void SceneBackground::Draw() {
+        Graphics::DrawMesh(GetSkyboxMesh(),
+                           Vector3::Zero,
+                           Quaternion::Identity,
+                           GetSkyboxMaterialEx(),
+                           0,
+                           0,
+                           GetCamera(),
+                           false,
+                           false);
+    }
+
     VWOLF_CREATE_CONVERT_GENERIC_ENUM_ENCODER(VWolf::SceneBackground::Type, Color, Skybox)
 
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::SceneBackground& v)
@@ -73,32 +87,11 @@ namespace VWolf {
 
     // --------------- SCENE ----------------------------
 
-    Scene* Scene::currentScene = nullptr;
-
     Scene::Scene(std::string name): Object(UUID::NewUUID()){
         this->name = name;
         emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
-        testMesh = CreateRef<Mesh>();
         world = Physics::GetCommon().createPhysicsWorld();
         world->setIsDebugRenderingEnabled(true);
-    }
-
-    Scene::Scene(std::filesystem::path path, UUID _id): Object(_id) {
-        YAML::Node data;
-        try
-        {
-            data = YAML::LoadFile(path.string());
-        }
-        catch (YAML::ParserException e)
-        {
-            VWOLF_CORE_ERROR("Failed to load .scene file '%s'\n     %s", path.string().c_str(), e.what());
-            throw;
-        }
-
-        if (!data[sceneKey])
-            throw;
-        
-        (*this) = data[sceneKey].as<Scene>();
     }
 
     Scene::Scene(const Scene& scene): Object(scene.id) {
@@ -106,29 +99,7 @@ namespace VWolf {
         this->sceneBackGround = scene.sceneBackGround;
         this->m_registry.swap(const_cast<Scene&>(scene).m_registry);
         this->gameObjects = scene.gameObjects;
-        for (auto gameObject: this->gameObjects) {
-            gameObject->AttachToScene(this);
-        }
         emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
-        testMesh = CreateRef<Mesh>();
-        world = Physics::GetCommon().createPhysicsWorld();
-        world->setIsDebugRenderingEnabled(true);
-    }
-
-    Scene::Scene(Scene&& scene): Object(scene.id) {
-        emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
-        testMesh = CreateRef<Mesh>();
-        this->name = scene.name;
-        this->sceneBackGround = scene.sceneBackGround;
-        this->m_registry = std::move(scene.m_registry);
-        this->gameObjects = scene.gameObjects;
-        for (auto gameObject: this->gameObjects) {
-            gameObject->AttachToScene(this);
-        }
-
-        scene.id = UUID::Empty;
-        scene.name = std::string();
-        scene.gameObjects.clear();
         world = Physics::GetCommon().createPhysicsWorld();
         world->setIsDebugRenderingEnabled(true);
     }
@@ -145,10 +116,9 @@ namespace VWolf {
         this->m_registry.swap(const_cast<Scene&>(scene).m_registry);
         this->gameObjects = scene.gameObjects;
         for (auto gameObject: this->gameObjects) {
-            gameObject->AttachToScene(this);
+            gameObject->AttachToScene(this->weak_from_this());
         }
         emptyMesh = CreateRef<Mesh>(ShapeHelper::CreateEmpty());
-        testMesh = CreateRef<Mesh>();
         world = Physics::GetCommon().createPhysicsWorld();
         world->setIsDebugRenderingEnabled(true);
         
@@ -166,7 +136,7 @@ namespace VWolf {
             name += st.str();
         }
 
-        Ref<GameObject> gameObject = CreateRef<GameObject>( name, m_registry.create(), this );
+        Ref<GameObject> gameObject = CreateRef<GameObject>( name, m_registry.create(), weak_from_this());
         gameObject->AddComponent<TransformComponent>();
         gameObjects.push_back(gameObject);
         return gameObject;
@@ -182,8 +152,29 @@ namespace VWolf {
         };
         auto res = std::find_if(gameObjects.begin(), gameObjects.end(), fun);
         if (res != gameObjects.end()) {
+            (*res)->ClearCurrentComponents();
             m_registry.destroy((*res)->GetHandle());
             gameObjects.erase(res);
+        }
+    }
+
+    template<typename Type, typename... Other, typename Func, typename... Exclude>
+    void CreateViewAndProcessComponents(entt::registry& registry, Func&& execute, entt::exclude_t<Exclude...> ex = entt::exclude_t{}) {
+        auto view = registry.view<Type, Other...>(ex);
+        for (auto entity : view)
+        {
+            auto tuple = view.template get<Type, Other...>(entity);
+            std::forward<Func>(execute)(tuple);
+        }
+    }
+
+    template<typename Type, typename... Other, typename Func, typename... Exclude>
+    void CreateViewWithViewAndProcessComponents(entt::registry& registry, Func&& execute, entt::exclude_t<Exclude...> ex = entt::exclude_t{}) {
+        auto view = registry.view<Type, Other...>(ex);
+        for (auto entity : view)
+        {
+            auto tuple = view.template get<Type, Other...>(entity);
+            std::forward<Func>(execute)(entity, tuple);
         }
     }
     
@@ -197,90 +188,33 @@ namespace VWolf {
 //                previewAccumulator -= Physics::GetTimeStep();
 //            }
 //            float factor = previewAccumulator / Physics::GetTimeStep();
-            testMesh->GetVertices().clear();
-            testMesh->GetColors().clear();
-            testMesh->GetNormals().clear();
-            testMesh->GetTangents().clear();
-            testMesh->GetUVs().clear();
-            testMesh->GetTriangles().clear();
-            testMesh->Reset();
             
-            reactphysics3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
-            auto& triangles = debugRenderer.getTriangles();
-            for (uint32_t index = 0; index < debugRenderer.getNbTriangles(); index++) {
-                auto triangle = triangles[index];
+            CreateViewWithViewAndProcessComponents<MeshFilterComponent, TransformComponent>(m_previewRegistry, [this](auto& entity, auto& tuple){
+                TransformComponent& transform = std::get<1>(tuple);
                 
-                testMesh->GetVertices().push_back(Vector3(triangle.point1.x, triangle.point1.y, triangle.point1.z));
-                testMesh->GetVertices().push_back(Vector3(triangle.point2.x, triangle.point2.y, triangle.point2.z));
-                testMesh->GetVertices().push_back(Vector3(triangle.point3.x, triangle.point3.y, triangle.point3.z));
-                
-                testMesh->GetColors().push_back(Color(1, 1, 1, 1));
-                testMesh->GetColors().push_back(Color(1, 1, 1, 1));
-                testMesh->GetColors().push_back(Color(1, 1, 1, 1));
-                
-                testMesh->GetNormals().push_back(Vector3(1, 1, 1));
-                testMesh->GetNormals().push_back(Vector3(1, 1, 1));
-                testMesh->GetNormals().push_back(Vector3(1, 1, 1));
-                
-                testMesh->GetTangents().push_back(Vector3(1, 1, 1));
-                testMesh->GetTangents().push_back(Vector3(1, 1, 1));
-                testMesh->GetTangents().push_back(Vector3(1, 1, 1));
-                
-                testMesh->GetUVs().push_back(Vector2(1, 1));
-                testMesh->GetUVs().push_back(Vector2(1, 1));
-                testMesh->GetUVs().push_back(Vector2(1, 1));
-                
-                testMesh->GetTriangles().push_back(index * 3);
-                testMesh->GetTriangles().push_back((index * 3) + 1);
-                testMesh->GetTriangles().push_back((index * 3) + 2);
-            }
-            auto meshColMeshFilterTrans = m_previewRegistry.view<MeshColliderComponent, MeshFilterComponent, TransformComponent>();
-            
-            for (auto meshColMeshFilterTransEnty : meshColMeshFilterTrans)
-            {
-                auto [meshCollider, meshFilter, transform] = meshColMeshFilterTrans
-                    .get<MeshColliderComponent, MeshFilterComponent, TransformComponent>(meshColMeshFilterTransEnty);
-                meshCollider.Update(transform);
-            }
-
-            auto sphereColMeshFilterTrans = m_previewRegistry.view<SphereColliderComponent, MeshFilterComponent, TransformComponent>();
-            
-            for (auto sphereColMeshFilterTransEnty : sphereColMeshFilterTrans)
-            {
-                auto [sphereCollider, meshFilter, transform] = sphereColMeshFilterTrans
-                    .get<SphereColliderComponent, MeshFilterComponent, TransformComponent>(sphereColMeshFilterTransEnty);
-                sphereCollider.Update(transform);
-            }
-
-            auto boxColMeshFilterTrans = m_previewRegistry.view<BoxColliderComponent, MeshFilterComponent, TransformComponent>();
-            
-            for (auto boxColMeshFilterTransEnty : boxColMeshFilterTrans)
-            {
-                auto [boxCollider, meshFilter, transform] = boxColMeshFilterTrans
-                    .get<BoxColliderComponent, MeshFilterComponent, TransformComponent>(boxColMeshFilterTransEnty);
-                boxCollider.Update(transform);
-            }
-
-            auto rigidBodyAndTransformComponents = m_previewRegistry.view<RigidBodyComponent, TransformComponent>();
-            
-            for (auto rigidBodyAndTransformEntity : rigidBodyAndTransformComponents)
-            {
-                auto [rigidBody, transform] = rigidBodyAndTransformComponents
-                    .get<RigidBodyComponent, TransformComponent>(rigidBodyAndTransformEntity);
-                rigidBody.Update(transform, 1);
-            }
-
-            auto audioListenerTrans = m_previewRegistry.view<AudioListenerComponent, TransformComponent>();
-
-            if (audioListenerTrans.size_hint() > 0) {
-                auto& listenerEntity = *audioListenerTrans.begin();
-                auto [audioListener, listenerTransform]  = audioListenerTrans.get<AudioListenerComponent, TransformComponent>(listenerEntity);
-                auto audioSourcesView = m_previewRegistry.view<AudioSourceComponent, TransformComponent>();
-                for (auto audioSourceEntity: audioSourcesView) {
-                    auto [audioSource, sourceTransform] = audioSourcesView.get<AudioSourceComponent, TransformComponent>(audioSourceEntity);
-                    audioSource.Update(listenerTransform, sourceTransform);
+                if (auto* meshCollider = m_previewRegistry.try_get<MeshColliderComponent>(entity)) {
+                    meshCollider->Update(transform);
                 }
-            }
+                if (auto* sphereCollider = m_previewRegistry.try_get<SphereColliderComponent>(entity)) {
+                    sphereCollider->Update(transform);
+                }
+                if (auto* boxCollider = m_previewRegistry.try_get<BoxColliderComponent>(entity)) {
+                    boxCollider->Update(transform);
+                }
+            });
+            
+            CreateViewAndProcessComponents<RigidBodyComponent, TransformComponent>(m_previewRegistry, [this](auto& tuple){
+                std::get<0>(tuple).Update(std::get<1>(tuple), 1);
+            });
+
+            CreateViewAndProcessComponents<AudioListenerComponent, TransformComponent>(m_previewRegistry, [this](auto& tupleListener) {
+                CreateViewAndProcessComponents<AudioSourceComponent, TransformComponent>(m_previewRegistry, [this, tupleListener](auto& tuple) {
+                    TransformComponent& listenerTransform = std::get<1>(tupleListener);
+                    AudioSourceComponent& source = std::get<0>(tuple);
+                    TransformComponent& sourceTransform = std::get<1>(tuple);
+                    source.Update(listenerTransform, sourceTransform);
+                });
+            });
         }
     }
 
@@ -288,191 +222,125 @@ namespace VWolf {
         isPreviewing = true;
         previewAccumulator = Time::GetDeltaTime();
 
-        reactphysics3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
-        debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
-
         for (auto gameObject: gameObjects) {
-            Ref<GameObject> previewGameObject = CreateRef<GameObject>(gameObject->GetName(), m_previewRegistry.create(), this);
-            previewGameObject->CopyComponents(gameObject.get());
+            Ref<GameObject> previewGameObject = CreateRef<GameObject>(gameObject->GetName(), m_previewRegistry.create(), weak_from_this());
+            previewGameObject->CopyComponents(gameObject);
             previewGameObjects.push_back(previewGameObject);
         }
 
-        auto rigidBodyAndTransformComponents = m_previewRegistry.view<RigidBodyComponent, TransformComponent>();
+        CreateViewAndProcessComponents<RigidBodyComponent, TransformComponent>(m_previewRegistry, [this](auto& tuple){
+            std::get<0>(tuple).CreateRigidBody(world, std::get<1>(tuple));
+        });
         
-        for (auto rigidBodyAndTransformEntity : rigidBodyAndTransformComponents)
-        {
-            auto [rigidBody, transform] = rigidBodyAndTransformComponents
-                .get<RigidBodyComponent, TransformComponent>(rigidBodyAndTransformEntity);
-            rigidBody.CreateRigidBody(world, transform);
-        }
-
-        auto meshColMeshFilterTrans = m_previewRegistry.view<MeshColliderComponent, MeshFilterComponent, TransformComponent>();
-        
-        for (auto meshColMeshFilterTransEnty : meshColMeshFilterTrans)
-        {
-            auto [meshCollider, meshFilter, transform] = meshColMeshFilterTrans
-                .get<MeshColliderComponent, MeshFilterComponent, TransformComponent>(meshColMeshFilterTransEnty);
-            meshCollider.CreateMeshCollider(meshFilter.GetMesh(), transform);
-        }
-
-        auto sphereColMeshFilterTrans = m_previewRegistry.view<SphereColliderComponent, MeshFilterComponent, TransformComponent>();
-        
-        for (auto sphereColMeshFilterTransEnty : sphereColMeshFilterTrans)
-        {
-            auto [sphereCollider, meshFilter, transform] = sphereColMeshFilterTrans
-                .get<SphereColliderComponent, MeshFilterComponent, TransformComponent>(sphereColMeshFilterTransEnty);
-            sphereCollider.CreateSphereCollider(meshFilter.GetMesh(), transform);
-        }
-
-        auto boxColMeshFilterTrans = m_previewRegistry.view<BoxColliderComponent, MeshFilterComponent, TransformComponent>();
-        
-        for (auto boxColMeshFilterTransEnty : boxColMeshFilterTrans)
-        {
-            auto [boxCollider, meshFilter, transform] = boxColMeshFilterTrans
-                .get<BoxColliderComponent, MeshFilterComponent, TransformComponent>(boxColMeshFilterTransEnty);
-            boxCollider.CreateBoxCollider(meshFilter.GetMesh(), transform);
-        }
-
-        auto audioListenerTrans = m_previewRegistry.view<AudioListenerComponent, TransformComponent>();
-
-        if (audioListenerTrans.size_hint() > 0) {
-            auto& listenerEntity = *audioListenerTrans.begin();
-            auto [audioListener, listenerTransform]  = audioListenerTrans.get<AudioListenerComponent, TransformComponent>(listenerEntity);
-            auto audioSourcesView = m_previewRegistry.view<AudioSourceComponent, TransformComponent>();
-            for (auto audioSourceEntity: audioSourcesView) {
-                auto [audioSource, sourceTransform] = audioSourcesView.get<AudioSourceComponent, TransformComponent>(audioSourceEntity);
-                audioSource.Prepare(listenerTransform, sourceTransform);
+        CreateViewWithViewAndProcessComponents<MeshFilterComponent, TransformComponent>(m_previewRegistry, [this](auto& entity, auto& tuple){
+            Ref<Mesh> mesh = std::get<0>(tuple).GetMesh();
+            TransformComponent& transform = std::get<1>(tuple);
+            
+            if (auto* meshCollider = m_previewRegistry.try_get<MeshColliderComponent>(entity)) {
+                meshCollider->CreateMeshCollider(mesh, transform);
             }
-        }
+            if (auto* sphereCollider = m_previewRegistry.try_get<SphereColliderComponent>(entity)) {
+                sphereCollider->CreateSphereCollider(mesh, transform);
+            }
+            if (auto* boxCollider = m_previewRegistry.try_get<BoxColliderComponent>(entity)) {
+                boxCollider->CreateBoxCollider(mesh, transform);
+            }
+        });
+        
+        CreateViewAndProcessComponents<AudioListenerComponent, TransformComponent>(m_previewRegistry, [this](auto& tupleListener) {
+            CreateViewAndProcessComponents<AudioSourceComponent, TransformComponent>(m_previewRegistry, [this, tupleListener](auto& tuple) {
+                TransformComponent& listenerTransform = std::get<1>(tupleListener);
+                AudioSourceComponent& source = std::get<0>(tuple);
+                TransformComponent& sourceTransform = std::get<1>(tuple);
+                source.Prepare(listenerTransform, sourceTransform);
+            });
+        });
     }
 
     void Scene::StopingPreview() {
         isPreviewing = false;
 
-        auto audioSourcesView = m_previewRegistry.view<AudioSourceComponent>();
-        for (auto audioSourceEntity: audioSourcesView) {
-            auto& audioSource = audioSourcesView.get<AudioSourceComponent>(audioSourceEntity);
-            audioSource.End();
-        }
-
-        auto meshColMeshFilterTrans = m_previewRegistry.view<MeshColliderComponent, MeshFilterComponent, TransformComponent>();
+        CreateViewAndProcessComponents<AudioSourceComponent>(m_previewRegistry, [this](auto& tuple) {
+            AudioSourceComponent& source = tuple;
+            source.End();
+        });
         
-        for (auto meshColMeshFilterTransEnty : meshColMeshFilterTrans)
-        {
-            auto [meshCollider, meshFilter, transform] = meshColMeshFilterTrans
-                .get<MeshColliderComponent, MeshFilterComponent, TransformComponent>(meshColMeshFilterTransEnty);
-            meshCollider.Destroy();
-        }
-
-        auto boxColMeshFilterTrans = m_previewRegistry.view<BoxColliderComponent, MeshFilterComponent, TransformComponent>();
+        CreateViewWithViewAndProcessComponents<MeshFilterComponent, TransformComponent>(m_previewRegistry, [this](auto& entity, auto& tuple){
+            if (auto* meshCollider = m_previewRegistry.try_get<MeshColliderComponent>(entity)) {
+                meshCollider->Destroy();
+            }
+            if (auto* sphereCollider = m_previewRegistry.try_get<SphereColliderComponent>(entity)) {
+                sphereCollider->Destroy();
+            }
+            if (auto* boxCollider = m_previewRegistry.try_get<BoxColliderComponent>(entity)) {
+                boxCollider->Destroy();
+            }
+        });
         
-        for (auto boxColMeshFilterTransEnty : boxColMeshFilterTrans)
-        {
-            auto [boxCollider, meshFilter, transform] = boxColMeshFilterTrans
-                .get<BoxColliderComponent, MeshFilterComponent, TransformComponent>(boxColMeshFilterTransEnty);
-            boxCollider.Destroy();
-        }
-
-        auto sphereColMeshFilterTrans = m_previewRegistry.view<SphereColliderComponent, MeshFilterComponent, TransformComponent>();
-
-        for (auto sphereColMeshFilterTransEnty : sphereColMeshFilterTrans)
-        {
-            auto [sphereCollider, meshFilter, transform] = sphereColMeshFilterTrans
-                .get<SphereColliderComponent, MeshFilterComponent, TransformComponent>(sphereColMeshFilterTransEnty);
-            sphereCollider.Destroy();
-        }
-
-        auto rigidBodyAndTransformComponents = m_previewRegistry.view<RigidBodyComponent, TransformComponent>();
-        
-        for (auto rigidBodyAndTransformEntity : rigidBodyAndTransformComponents)
-        {
-            auto [rigidBody, transform] = rigidBodyAndTransformComponents
-                .get<RigidBodyComponent, TransformComponent>(rigidBodyAndTransformEntity);
-            rigidBody.DestroyRigidBody(world);
-        }
+        CreateViewAndProcessComponents<RigidBodyComponent, TransformComponent>(m_previewRegistry, [this](auto& tuple){
+            std::get<0>(tuple).DestroyRigidBody(world);
+        });
 
         for (auto previewGameObject: previewGameObjects) {
+            // Drop observers before registry destroys component storage.
+            previewGameObject->ClearCurrentComponents();
             m_previewRegistry.destroy(previewGameObject->GetHandle());
         }
         previewGameObjects.clear();
     }
 
     void Scene::DrawEditor(Ref<Camera> editorCamera) {
+        Draw(editorCamera);
+    }
+
+    void Scene::Draw(Ref<Camera> camera) {
+        entt::registry& currentRegistry = isPreviewing ? m_previewRegistry : m_registry;
+        
         GraphicsContext::SetClearColor(sceneBackGround.GetBackgroundColor());
 
         if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
-            // Immediate drawing so it does not belong to the queue
-            Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
-                               Vector3::Zero,
-                               Quaternion::Identity,
-                               sceneBackGround.GetSkyboxMaterialEx(),
-                               0,
-                               0,
-                               sceneBackGround.GetCamera(),
-                               false,
-                               false);
+            sceneBackGround.Draw();
         }
-
-        auto lightsAndTransformComponents = m_registry.view<LightComponent, TransformComponent>();
         
-        for (auto lightAndTransformEntity : lightsAndTransformComponents)
-        {
-            auto [light, transform] = lightsAndTransformComponents
-                .get<LightComponent, TransformComponent>(lightAndTransformEntity);
+        CreateViewWithViewAndProcessComponents<TransformComponent>(currentRegistry, [this, camera, &currentRegistry](auto& entity, auto& tuple){
+            TransformComponent& transform = tuple;
+            transform.Apply();
+            if (auto* light = currentRegistry.try_get<LightComponent>(entity)) {
+                GraphicsContext::AddLight(light->GetLight(), transform.GetPosition(), transform.GetEulerAngles());
+            }
+            bool hasRenderer = false;
+            if (auto* shapeRenderer = currentRegistry.try_get<ShapeRendererComponent>(entity)) {
+                Graphics::DrawMesh(shapeRenderer->GetMesh(),
+                                   transform.GetWorldMatrix(),
+                                   shapeRenderer->GetMaterialEx(),
+                                   0,
+                                   0,
+                                   camera);
+                hasRenderer = true;
+            }
+            if (auto* meshRenderer = currentRegistry.try_get<MeshRendererComponent>(entity)) {
+                if (auto* meshFilter = currentRegistry.try_get<MeshFilterComponent>(entity)) {
+                    Graphics::DrawMesh(meshFilter->GetMesh(),
+                                       transform.GetWorldMatrix(),
+                                       meshRenderer->GetMaterialEx(),
+                                       0,
+                                       0,
+                                       camera);
+                    hasRenderer = true;
+                }
+            }
             
-            GraphicsContext::AddLight(light.GetLight(), transform.GetPosition(), transform.GetEulerAngles());
-        }
-
-        // TODO: We should be looking for any renderer, not only shape renderer
-        auto shapeRendererAndTransformComponents = m_registry.view<ShapeRendererComponent, TransformComponent>();
-        
-        for (auto shapeRendererAndTransformEntity : shapeRendererAndTransformComponents)
-        {
-            auto [shapeRenderer, transform] = shapeRendererAndTransformComponents
-                .get<ShapeRendererComponent, TransformComponent>(shapeRendererAndTransformEntity);
-            transform.Apply();
-            Graphics::DrawMesh(shapeRenderer.GetMesh(),
-                               transform.GetWorldMatrix(),
-                               shapeRenderer.GetMaterialEx(),
-                               0,
-                               0);
-        }
-
-        auto meshFilterMeshRendererAndTransformComponents = m_registry
-            .view<MeshRendererComponent, MeshFilterComponent, TransformComponent>();
-        
-        for (auto meshFilterMeshRendererAndTransformEntity : meshFilterMeshRendererAndTransformComponents)
-        {
-            auto [meshRenderer, meshFilter, transform] = meshFilterMeshRendererAndTransformComponents
-                .get<MeshRendererComponent, MeshFilterComponent, TransformComponent>(meshFilterMeshRendererAndTransformEntity);
-            transform.Apply();
-            Graphics::DrawMesh(meshFilter.GetMesh(),
-                               transform.GetWorldMatrix(),
-                               meshRenderer.GetMaterialEx(),
-                               0,
-                               0);
-        }
-
-
-        auto transformComponents = m_registry.view<TransformComponent>();
-        for (auto transformEntity : transformComponents)
-        {
-            // TODO: Should it be a renderer component? We just want to know if it has more than one component
-            if (m_registry.try_get<ShapeRendererComponent>(transformEntity)) continue;
-            auto transform = transformComponents
-                .get<TransformComponent>(transformEntity);
-            transform.Apply();
-            Graphics::DrawMesh(emptyMesh,
-                               transform.GetWorldMatrix(),
-                               MaterialLibrary::Default(),
-                               0,
-                               0);
-        }
+            if (!hasRenderer)
+                Graphics::DrawMesh(emptyMesh,
+                                   transform.GetWorldMatrix(),
+                                   MaterialLibrary::Default(),
+                                   0,
+                                   0,
+                                   camera);
+        });
     }
 
     void Scene::DrawPreviewEditor() {
-        GraphicsContext::SetClearColor(sceneBackGround.GetBackgroundColor());
-
         auto cameraAndTransformComponents = m_previewRegistry.view<CameraComponent, TransformComponent>();
         if (cameraAndTransformComponents.begin() == cameraAndTransformComponents.end()) return; // There is no camera
 
@@ -483,90 +351,14 @@ namespace VWolf {
         Ref<Camera> camera = cameraCom.GetCamera(cameraTransform);
 
         if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
-            // Immediate drawing so it does not belong to the queue
             sceneBackGround.GetCamera()->UpdateView(Vector3(), Quaternion::Euler(
                                                              (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetX()),
                                                              (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetY()),
                                                              (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetZ())
                                                          ));
-            Graphics::DrawMesh(sceneBackGround.GetSkyboxMesh(),
-                               Vector3::Zero,
-                               Quaternion::Identity,
-                               sceneBackGround.GetSkyboxMaterialEx(),
-                               0,
-                               0,
-                               sceneBackGround.GetCamera(),
-                               false,
-                               false);
         }
-
-        auto lightsAndTransformComponents = m_previewRegistry.view<LightComponent, TransformComponent>();
         
-        for (auto lightAndTransformEntity : lightsAndTransformComponents)
-        {
-            auto [light, transform] = lightsAndTransformComponents
-                .get<LightComponent, TransformComponent>(lightAndTransformEntity);
-            
-            GraphicsContext::AddLight(light.GetLight(), transform.GetPosition(), transform.GetEulerAngles());
-        }
-
-        // TODO: We should be looking for any renderer, not only shape renderer
-        auto shapeRendererAndTransformComponents = m_previewRegistry.view<ShapeRendererComponent, TransformComponent>();
-        
-        for (auto shapeRendererAndTransformEntity : shapeRendererAndTransformComponents)
-        {
-            auto [shapeRenderer, transform] = shapeRendererAndTransformComponents
-                .get<ShapeRendererComponent, TransformComponent>(shapeRendererAndTransformEntity);
-            transform.Apply();
-            Graphics::DrawMesh(shapeRenderer.GetMesh(),
-                               transform.GetWorldMatrix(),
-                               shapeRenderer.GetMaterialEx(),
-                               0,
-                               0,
-                               camera);
-        }
-
-        auto meshFilterMeshRendererAndTransformComponents = m_previewRegistry
-            .view<MeshRendererComponent, MeshFilterComponent, TransformComponent>();
-        
-        for (auto meshFilterMeshRendererAndTransformEntity : meshFilterMeshRendererAndTransformComponents)
-        {
-            auto [meshRenderer, meshFilter, transform] = meshFilterMeshRendererAndTransformComponents
-                .get<MeshRendererComponent, MeshFilterComponent, TransformComponent>(meshFilterMeshRendererAndTransformEntity);
-            transform.Apply();
-            Graphics::DrawMesh(meshFilter.GetMesh(),
-                               transform.GetWorldMatrix(),
-                               meshRenderer.GetMaterialEx(),
-                               0,
-                               0,
-                               camera);
-        }
-
-        auto transformComponents = m_previewRegistry.view<TransformComponent>();
-        for (auto transformEntity : transformComponents)
-        {
-            // TODO: Should it be a renderer component? We just want to know if it has more than one component
-            if (m_registry.try_get<ShapeRendererComponent>(transformEntity)) continue;
-            auto transform = transformComponents
-                .get<TransformComponent>(transformEntity);
-            transform.Apply();
-            Graphics::DrawMesh(emptyMesh,
-                               transform.GetWorldMatrix(),
-                               MaterialLibrary::Default(),
-                               0,
-                               0,
-                               camera);
-        }
-
-        // TODO: Debug renderer
-        if (testMesh->GetVertices().size() == 0) return;
-        Graphics::DrawMesh(testMesh,
-                           Vector3::Zero,
-                           Quaternion::Identity,
-                           MaterialLibrary::GetMaterial("RainbowColor"),
-                           0,
-                           0,
-                           camera);
+        Draw(camera);
     }
 
     void Scene::Save(std::filesystem::path path) {
@@ -577,9 +369,27 @@ namespace VWolf {
     }
 
     Ref<Scene> Scene::Load(std::filesystem::path path, UUID _id) {
-        Ref<Scene> sceneName = CreateRef<Scene>(path, _id);
-        ObjectResourceManager::AddObject(_id, sceneName);
-        return sceneName;
+        YAML::Node data;
+        try
+        {
+            data = YAML::LoadFile(path.string());
+        }
+        catch (YAML::ParserException e)
+        {
+            VWOLF_CORE_ERROR("Failed to load .scene file '%s'\n     %s", path.string().c_str(), e.what());
+            throw;
+        }
+
+        if (!data[sceneKey])
+            throw;
+        
+        const YAML::Node sceneNode = data[sceneKey];
+        Scene scene = sceneNode.as<Scene>();
+        scene.id = _id;
+        Ref<Scene> sceneRef = CreateRef<Scene>(scene);
+        YAML::DeserializeGameObjects(sceneNode, *sceneRef.get());
+        ObjectResourceManager::AddObject(_id, sceneRef);
+        return sceneRef;
     }
 
     YAML::Emitter& operator<<(YAML::Emitter& out, VWolf::Scene& v)

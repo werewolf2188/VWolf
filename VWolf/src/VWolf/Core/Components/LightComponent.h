@@ -18,7 +18,7 @@ namespace VWolf {
     class LightComponent: public Component {
     public:
         LightComponent();
-        LightComponent(LightComponent& light);
+        LightComponent(const LightComponent& light);
         LightComponent(LightComponent&& light);
         ~LightComponent();
     public:
@@ -26,7 +26,7 @@ namespace VWolf {
         Light& GetLight() { return light; }
         void SetLight(Light light) { this->light = light; }
 
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         LightComponent& operator=(const LightComponent& light);
     private:

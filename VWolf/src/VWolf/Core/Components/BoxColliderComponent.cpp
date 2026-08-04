@@ -28,18 +28,22 @@ namespace VWolf {
 
     BoxColliderComponent::~BoxColliderComponent() {}
 
-    Component* BoxColliderComponent::Copy(entt::entity& handle, entt::registry& registry) {
-        BoxColliderComponent& component = registry.emplace<BoxColliderComponent>(handle, *this);
-        return &component;
+    Ref<Component> BoxColliderComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        Ref<BoxColliderComponent> component = CopyComponent<BoxColliderComponent>(handle, registry);
+        return component;
     }
 
     void BoxColliderComponent::CreateBoxCollider(Ref<Mesh> data, TransformComponent& component) {
-        boxShape = Physics::GetCommon().createBoxShape({ component.GetLocalScale().GetX(), component.GetLocalScale().GetY(), component.GetLocalScale().GetZ() });
+        boxShape = Ref<reactphysics3d::BoxShape>(Physics::GetCommon().createBoxShape({ component.GetLocalScale().GetX(), component.GetLocalScale().GetY(), component.GetLocalScale().GetZ() }), [](reactphysics3d::BoxShape* shape){
+            Physics::GetCommon().destroyBoxShape(shape);
+        });
         scale = component.GetLocalScale();
         reactphysics3d::Transform transform = reactphysics3d::Transform::identity();
         reactphysics3d::RigidBody* rigidBody = GetGameObject()->GetRigidBody();
         if (rigidBody != nullptr) {
-            collider = rigidBody->addCollider(boxShape, transform);
+            collider = Ref<reactphysics3d::Collider>(rigidBody->addCollider(boxShape.get(), transform), [this](reactphysics3d::Collider* col) {
+                GetGameObject()->GetRigidBody()->removeCollider(col);
+            });
         }
     }
 
@@ -51,12 +55,8 @@ namespace VWolf {
     }
 
     void BoxColliderComponent::Destroy() {
-        if (collider != nullptr) {
-            GetGameObject()->GetRigidBody()->removeCollider(collider);
-        }
-        if (boxShape != nullptr) {
-            Physics::GetCommon().destroyBoxShape(boxShape);
-        }
+        collider = nullptr;
+        boxShape = nullptr;
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(BoxColliderComponent, "BoxColliderComponent")

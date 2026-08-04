@@ -152,11 +152,11 @@ namespace VWolfPup {
         ComponentInspector() {}
         ~ComponentInspector() {}
     public:
-        void Inspect(VWolf::Component* component) {
-            OnInspector((T*)component);
+        void Inspect(VWolf::Ref<VWolf::Component> component) {
+            OnInspector(std::dynamic_pointer_cast<T>(component));
         }
     protected:
-        virtual void OnInspector(T* component) {}
+        virtual void OnInspector(VWolf::Ref<T> component) {}
     public:
         static std::string GetComponentName() {
             return VWolf::ClassNameCleaner::Current().GetClassName<T>();
@@ -165,7 +165,7 @@ namespace VWolfPup {
 
     class ComponentInspectorValidator {
     public:
-        ComponentInspectorValidator(VWolf::Component* component): _component(component) {}
+        ComponentInspectorValidator(VWolf::Ref<VWolf::Component> component): _component(component) {}
     public:
         template <typename type>
         void operator()(type) const {
@@ -177,7 +177,7 @@ namespace VWolfPup {
             }
         }
     private:
-        VWolf::Component* _component;
+        VWolf::Ref<VWolf::Component> _component;
     };
 
     class TransformComponentInspector: public ComponentInspector<VWolf::TransformComponent> {
@@ -185,7 +185,7 @@ namespace VWolfPup {
         TransformComponentInspector() {}
         ~TransformComponentInspector() {}
     protected:
-        virtual void OnInspector(VWolf::TransformComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::TransformComponent> component) override {
             DrawComponent<VWolf::TransformComponent>(component->GetName(), *component, [](VWolf::TransformComponent& component) {
                 DrawVec3Control("Position", component.GetPosition());
                 DrawVec3Control("Rotation", component.GetEulerAngles());
@@ -199,7 +199,7 @@ namespace VWolfPup {
         LightComponentInspector() {}
         ~LightComponentInspector() {}
     protected:
-        virtual void OnInspector(VWolf::LightComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::LightComponent> component) override {
             auto remove = DrawComponent<VWolf::LightComponent>(component->GetName(), *component, [this](VWolf::LightComponent& component) {
                 
                 VWolf::Light::LightType currentType = component.GetLight().type;
@@ -331,7 +331,7 @@ namespace VWolfPup {
         MeshFilterComponentInspector() {}
         ~MeshFilterComponentInspector() {}
     protected:
-        virtual void OnInspector(VWolf::MeshFilterComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::MeshFilterComponent> component) override {
             auto remove = DrawComponent<VWolf::MeshFilterComponent>(component->GetName(), *component, [this](VWolf::MeshFilterComponent& component) {
                 ImGui::PushID("Mesh Filter");
 
@@ -377,7 +377,7 @@ namespace VWolfPup {
         MeshRendererComponentInspector() {}
         ~MeshRendererComponentInspector() {}
     protected:
-        virtual void OnInspector(VWolf::MeshRendererComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::MeshRendererComponent> component) override {
             auto remove = DrawComponent<VWolf::MeshRendererComponent>(component->GetName(), *component, [this](VWolf::MeshRendererComponent& component) {
                 ImGui::PushID("Mesh Filter");
 
@@ -434,7 +434,7 @@ namespace VWolfPup {
         }
         ~ShapeRendererComponentInspector() {}
     protected:
-        virtual void OnInspector(VWolf::ShapeRendererComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::ShapeRendererComponent> component) override {
             auto remove = DrawComponent<VWolf::ShapeRendererComponent>(component->GetName(), *component, [this](VWolf::ShapeRendererComponent& component) {
                 std::string currentName = component.GetMesh()->GetName();
 
@@ -492,7 +492,7 @@ namespace VWolfPup {
         CameraComponentInspector() {}
         ~CameraComponentInspector() {}
     protected:
-        virtual void OnInspector(VWolf::CameraComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::CameraComponent> component) override {
             auto remove = DrawComponent<VWolf::CameraComponent>(component->GetName(), *component, [this](VWolf::CameraComponent& component) {
                 ImGui::PushID("Camera");
 
@@ -586,7 +586,7 @@ namespace VWolfPup {
         RigidBodyComponentInspector() {}
         ~RigidBodyComponentInspector() {}
     protected:
-        virtual void OnInspector(VWolf::RigidBodyComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::RigidBodyComponent> component) override {
             auto remove = DrawComponent<VWolf::RigidBodyComponent>(component->GetName(), *component, [this](VWolf::RigidBodyComponent& component) {
                 ImGui::PushID("Camera");
 
@@ -678,7 +678,7 @@ namespace VWolfPup {
         MeshColliderComponentInspector() {}
         ~MeshColliderComponentInspector() {}
     protected:
-        virtual void OnInspector(VWolf::MeshColliderComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::MeshColliderComponent> component) override {
             auto remove = DrawComponent<VWolf::MeshColliderComponent>(component->GetName(), *component, [this](VWolf::MeshColliderComponent& component) {
                 
             });
@@ -692,7 +692,7 @@ namespace VWolfPup {
         SphereColliderComponentInspector() {}
         ~SphereColliderComponentInspector() {}
     public:
-        virtual void OnInspector(VWolf::SphereColliderComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::SphereColliderComponent> component) override {
             auto remove = DrawComponent<VWolf::SphereColliderComponent>(component->GetName(), *component, [this](VWolf::SphereColliderComponent& component) {
                 ImGui::PushID("Sphere Collider");
 
@@ -722,7 +722,7 @@ namespace VWolfPup {
         BoxColliderComponentInspector() {}
         ~BoxColliderComponentInspector() {}
     public:
-        virtual void OnInspector(VWolf::BoxColliderComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::BoxColliderComponent> component) override {
             auto remove = DrawComponent<VWolf::BoxColliderComponent>(component->GetName(), *component, [this](VWolf::BoxColliderComponent& component) {
                 
             });
@@ -736,7 +736,7 @@ namespace VWolfPup {
         AudioListenerComponentInspector() {}
         ~AudioListenerComponentInspector() {}
     protected:
-        virtual void OnInspector(VWolf::AudioListenerComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::AudioListenerComponent> component) override {
             auto remove = DrawComponent<VWolf::AudioListenerComponent>(component->GetName(), *component, [this](VWolf::AudioListenerComponent& component) {
                 
             });
@@ -750,7 +750,7 @@ namespace VWolfPup {
         AudioSourceComponentInspector() {}
         ~AudioSourceComponentInspector() {}
     protected:
-        virtual void OnInspector(VWolf::AudioSourceComponent* component) override {
+        virtual void OnInspector(VWolf::Ref<VWolf::AudioSourceComponent> component) override {
             auto remove = DrawComponent<VWolf::AudioSourceComponent>(component->GetName(), *component, [this](VWolf::AudioSourceComponent& component) {
                 ImGui::PushID("Audio Source");
 
@@ -854,9 +854,10 @@ namespace VWolfPup {
             }
             ImGui::Separator();
             ImGui::PushItemWidth(-1);
-            for (VWolf::Component* component: gameObject->GetCurrentComponents()) {
-                using type = std::remove_pointer_t<decltype(component)>();
-                boost::mpl::for_each<AllComponentInspectors>(ComponentInspectorValidator(component));
+            for (VWolf::Weak<VWolf::Component> weakComponent: gameObject->GetCurrentComponents()) {
+                if (auto component = weakComponent.lock()) {
+                    boost::mpl::for_each<AllComponentInspectors>(ComponentInspectorValidator(component));
+                }
             }
             ImGui::Separator();
             if (ButtonCenteredOnLine("Add Component")) {

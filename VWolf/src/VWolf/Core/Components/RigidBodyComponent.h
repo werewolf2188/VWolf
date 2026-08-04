@@ -27,7 +27,7 @@ namespace VWolf {
         RigidBodyComponent(RigidBodyComponent&& rigidBody);
         ~RigidBodyComponent();
     public:
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         void CreateRigidBody(reactphysics3d::PhysicsWorld* world, TransformComponent& component);
         void Update(TransformComponent& component, float factor);
@@ -50,8 +50,8 @@ namespace VWolf {
         void SetBodyType(uint32_t bodyType) { mBodyType = bodyType; }
         
     private:
-        reactphysics3d::RigidBody* rigidBody;
-        reactphysics3d::Transform* oldTransform;
+        Ref<reactphysics3d::RigidBody> rigidBody;
+        Ref<reactphysics3d::Transform> oldTransform;
 
         float mMass = 1;
         float mDrag = 0;

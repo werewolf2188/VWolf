@@ -21,14 +21,26 @@ namespace VWolf {
     public:
         Component(std::string name);
         Component(std::string name, UUID id);
-        ~Component();
+        virtual ~Component();
     public:
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) = 0;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) = 0;
+    protected:
+        template<typename T>
+        Ref<T> CopyComponent(entt::entity& handle, entt::registry& registry) {
+            T& component = registry.emplace<T>(handle, (T&)*this);
+            // Non-owning: entt owns the component storage.
+            return UnownedRef<T>(&component);
+        }
     public:
-        void SetGameObject(GameObject* gameObject);
-        GameObject* GetGameObject() { return gameObject; }
+        void SetGameObject(Weak<GameObject> gameObject);
+        Ref<GameObject> GetGameObject() {
+            if (Ref<GameObject> go = gameObject.lock()) {
+                return go;
+            }
+            return nullptr;
+        }
     private:
-        GameObject* gameObject;
+        Weak<GameObject> gameObject;
         
         BOOST_DESCRIBE_CLASS(Component, (Object), (), (id), ())
     };

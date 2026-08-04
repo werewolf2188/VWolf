@@ -30,11 +30,11 @@ namespace YAML {
 
 namespace VWolf {
 
-    class GameObject: public Object {
+    class GameObject: public Object, public Shareable<GameObject> {
     public:
         GameObject(): Object(UUID::NewUUID()) {};
         GameObject(std::string name);
-        GameObject(std::string name, entt::entity handle, Scene* scene);
+        GameObject(std::string name, entt::entity handle, Weak<Scene> scene);
         GameObject(const GameObject& gameObject);
         GameObject(GameObject&& gameObject);
         ~GameObject();
@@ -50,18 +50,18 @@ namespace VWolf {
         T& AddComponent(Args&&... args)
         {
             VWOLF_CLIENT_ASSERT(!HasComponent<T>(), "Entity already has component!");
-            T& component = scene->CurrentRegistry().emplace<T>(handle, std::forward<Args>(args)...);
-            component.SetGameObject(this);
-            currentComponents.push_back(&component);
+            T& component = GetScene()->CurrentRegistry().emplace<T>(handle, std::forward<Args>(args)...);
+            component.SetGameObject(this->weak_from_this());
+            SaveComponent(UnownedRef<T>(&component));
             return component;
         }
 
         template<typename T, typename... Args>
         T& AddOrReplaceComponent(Args&&... args)
         {
-            T& component = scene->CurrentRegistry().emplace_or_replace<T>(handle, std::forward<Args>(args)...);
+            T& component = GetScene()->CurrentRegistry().emplace_or_replace<T>(handle, std::forward<Args>(args)...);
             // TODO: Find and replace
-            currentComponents.emplace_back(&component);
+            SaveComponent(UnownedRef<T>(&component));
             return component;
         }
 
@@ -69,26 +69,26 @@ namespace VWolf {
         T& GetComponent()
         {
             VWOLF_CLIENT_ASSERT(HasComponent<T>(), "Entity does not have component!");
-            return scene->CurrentRegistry().get<T>(handle);
+            return GetScene()->CurrentRegistry().get<T>(handle);
         }
         
         template<typename T>
         T& GetComponent() const
         {
             VWOLF_CLIENT_ASSERT(HasComponent<T>(), "Entity does not have component!");
-            return scene->CurrentRegistry().get<T>(handle);
+            return GetScene()->CurrentRegistry().get<T>(handle);
         }
 
         template<typename T>
         bool HasComponent()
         {
-            return scene->CurrentRegistry().try_get<T>(handle);
+            return GetScene()->CurrentRegistry().try_get<T>(handle);
         }
         
         template<typename T>
         bool HasComponent() const
         {
-            return scene->CurrentRegistry().try_get<T>(handle);
+            return GetScene()->CurrentRegistry().try_get<T>(handle);
         }
 
         template<typename T>
@@ -96,31 +96,42 @@ namespace VWolf {
         {
             VWOLF_CLIENT_ASSERT(HasComponent<T>(), "Entity does not have component!");
             auto name = GetComponent<T>().GetName();
-            scene->CurrentRegistry().remove<T>(handle);
-            // Need to remove it from currentComponents
+            GetScene()->CurrentRegistry().remove<T>(handle);
             int i = 0;
             bool found = false;
             for(; i < currentComponents.size(); i++) {
-                if (currentComponents[i]->GetName() == name) {
-                    found = true;
-                    break;
+                if (auto component = currentComponents[i]) {
+                    if (component->GetName() == name) {
+                        found = true;
+                        break;
+                    }
                 }
             }
-            if (found)
+            if (found) {
                 currentComponents.erase(currentComponents.begin() + i);
+            }
         }
     public:
-        void AttachToScene(Scene* scene);
-        void CopyComponents(GameObject* otherGameObject);
+        void AttachToScene(Weak<Scene> scene);
+        void CopyComponents(Ref<GameObject> otherGameObject);
+        void ClearCurrentComponents();
     public:
         reactphysics3d::RigidBody* GetRigidBody() { return mRigidBody; }
         void SetRigidBody(reactphysics3d::RigidBody* rigidBody) { mRigidBody = rigidBody; }
-        std::vector<Component*>& GetCurrentComponents() { return currentComponents; }
+        const std::vector<Ref<Component>>& GetCurrentComponents() const { return currentComponents; }
+        Ref<Scene> GetScene() const {
+            if (Ref<Scene> sc = scene.lock()) {
+                return sc;
+            }
+            return nullptr;
+        }
+    private:
+        void SaveComponent(const Ref<Component>& component);
     private:
         entt::entity handle { entt::null };
-        Scene* scene;
+        Weak<Scene> scene;
 
-        std::vector<Component*> currentComponents;
+        std::vector<Ref<Component>> currentComponents;
 
         reactphysics3d::RigidBody* mRigidBody = nullptr;
         
@@ -135,11 +146,13 @@ namespace YAML {
     template<>
     struct convert<VWolf::GameObject> {
         static bool decode(const Node& node, VWolf::GameObject& rhs)
+        {            
+            return DeserializeFromBoostDescribe(node, rhs);
+        }
+        
+        static bool decodeComponents(const Node& node, VWolf::GameObject& rhs)
         {
-            bool boostDeserialization = DeserializeFromBoostDescribe(node, rhs);
-            bool componentsDeserialization = DeserializeComponents(node, rhs);
-            
-            return boostDeserialization && componentsDeserialization;
+            return DeserializeComponents(node, rhs);
         }
     };
 }

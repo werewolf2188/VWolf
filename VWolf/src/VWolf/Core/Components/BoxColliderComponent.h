@@ -27,14 +27,14 @@ namespace VWolf {
         BoxColliderComponent(BoxColliderComponent&& sphereCollider);
         ~BoxColliderComponent();
     public:
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         void CreateBoxCollider(Ref<Mesh> data, TransformComponent& component);
         void Update(TransformComponent& component);
         void Destroy();
     private:
-        reactphysics3d::BoxShape* boxShape;
-        reactphysics3d::Collider* collider;
+        Ref<reactphysics3d::BoxShape> boxShape;
+        Ref<reactphysics3d::Collider> collider;
         Vector3 scale;
 
         BOOST_DESCRIBE_CLASS(BoxColliderComponent, (Component), (), (id), ())

@@ -33,9 +33,9 @@ namespace VWolf {
     }
     MeshRendererComponent::~MeshRendererComponent() {}
 
-    Component* MeshRendererComponent::Copy(entt::entity& handle, entt::registry& registry) {
-        MeshRendererComponent& component = registry.emplace<MeshRendererComponent>(handle, *this);
-        return &component;
+    Ref<Component> MeshRendererComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        Ref<MeshRendererComponent> component = CopyComponent<MeshRendererComponent>(handle, registry);
+        return component;
     }
 
     void MeshRendererComponent::SetMaterial(Ref<Material> material) {
@@ -78,9 +78,9 @@ namespace VWolf {
     }
     ShapeRendererComponent::~ShapeRendererComponent() {}
 
-    Component* ShapeRendererComponent::Copy(entt::entity& handle, entt::registry& registry) {
-        ShapeRendererComponent& component = registry.emplace<ShapeRendererComponent>(handle, *this);
-        return &component;
+    Ref<Component> ShapeRendererComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        Ref<ShapeRendererComponent> component = CopyComponent<ShapeRendererComponent>(handle, registry);
+        return component;
     }
 
     ShapeRendererComponent& ShapeRendererComponent::operator=(const ShapeRendererComponent& t) {

@@ -29,15 +29,15 @@ namespace VWolf {
         MeshColliderComponent(MeshColliderComponent&& meshCollider);
         ~MeshColliderComponent();
     public:
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         void CreateMeshCollider(Ref<Mesh> data, TransformComponent& component);
         void Update(TransformComponent& component);
         void Destroy();
     private:
-        reactphysics3d::ConcaveMeshShape* concaveMeshShape;
-        reactphysics3d::TriangleMesh* triangleMesh;
-        reactphysics3d::Collider* collider;
+        Ref<reactphysics3d::ConcaveMeshShape> concaveMeshShape;
+        Ref<reactphysics3d::TriangleMesh> triangleMesh;
+        Ref<reactphysics3d::Collider> collider;
         Vector3 scale;
 
         BOOST_DESCRIBE_CLASS(MeshColliderComponent, (Component), (), (id), ())

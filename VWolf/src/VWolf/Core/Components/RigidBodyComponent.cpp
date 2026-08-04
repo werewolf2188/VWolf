@@ -46,17 +46,17 @@ namespace VWolf {
 
     }
 
-    Component* RigidBodyComponent::Copy(entt::entity& handle, entt::registry& registry) {
-        RigidBodyComponent& component = registry.emplace<RigidBodyComponent>(handle, *this);
-        return &component;
+    Ref<Component> RigidBodyComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        Ref<RigidBodyComponent> component = CopyComponent<RigidBodyComponent>(handle, registry);
+        return component;
     }
 
     void RigidBodyComponent::CreateRigidBody(reactphysics3d::PhysicsWorld* world, TransformComponent& component) {
         reactphysics3d::Vector3 position(component.GetPosition().GetX(), component.GetPosition().GetY(), component.GetPosition().GetZ());
         reactphysics3d::Quaternion orientation = reactphysics3d::Quaternion::fromEulerAngles({ ( Mathf::Deg2Rad * component.GetEulerAngles().GetX()), (Mathf::Deg2Rad * component.GetEulerAngles().GetY()), (Mathf::Deg2Rad * component.GetEulerAngles().GetZ()) });
-        oldTransform = new reactphysics3d::Transform(position, orientation);
-        rigidBody = world->createRigidBody(*oldTransform);
-        GetGameObject()->SetRigidBody(rigidBody);
+        oldTransform = CreateRef<reactphysics3d::Transform>(position, orientation);
+        rigidBody = UnownedRef<reactphysics3d::RigidBody>(world->createRigidBody(*oldTransform));
+        GetGameObject()->SetRigidBody(rigidBody.get());
         rigidBody->setMass(mMass);
         rigidBody->setLinearDamping(mDrag);
         rigidBody->setAngularDamping(mAngularDrag);
@@ -81,7 +81,7 @@ namespace VWolf {
     }
 
     void RigidBodyComponent::DestroyRigidBody(reactphysics3d::PhysicsWorld* world) {
-        world->destroyRigidBody(rigidBody);
+        world->destroyRigidBody(rigidBody.get());
         rigidBody = nullptr;
     }
 

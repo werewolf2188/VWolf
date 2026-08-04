@@ -25,7 +25,7 @@ namespace VWolf {
         AudioSourceComponent(AudioSourceComponent&& audioSource);
         ~AudioSourceComponent();
     public:
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         bool& GetLoop() { return mLoop; }
         void SetLoop(bool loop) { mLoop = loop; }
@@ -45,7 +45,7 @@ namespace VWolf {
         bool mLoop;
         BOOST_DESCRIBE_CLASS(AudioSourceComponent, (Component), (), (id), (audioClipId, mLoop))
 
-        ma_engine* engine = nullptr;
+        Ref<ma_engine> engine = nullptr;
         
         Ref<AudioClip> audioClip;
 

@@ -47,11 +47,15 @@ namespace VWolf {
         SceneBackground& operator=(const SceneBackground& t);
         SceneBackground& operator=(SceneBackground&& t);
     private:
+        void Draw();
+    private:
         Color backgroundColor;
         Type type = Type::Color;
         Ref<Mesh> skyboxEx;
         Ref<Material> materialSkybox;
         Ref<Camera> camera;
+        
+        friend class Scene;
         
         BOOST_DESCRIBE_CLASS(SceneBackground, (), (), (), (backgroundColor, type))
         VWOLF_SERIALIZATION_FRIENDS(SceneBackground)
@@ -59,13 +63,11 @@ namespace VWolf {
 
     BOOST_DESCRIBE_ENUM(SceneBackground::Type, Color, Skybox)
 
-    class Scene: public Object {
+    class Scene: public Object, public Shareable<Scene> {
     public:
         Scene(std::string name);
         Scene(): Object(UUID::NewUUID()) {};
-        Scene(std::filesystem::path path, UUID _id);
         Scene(const Scene& scene);
-        Scene(Scene&& scene);
         ~Scene();
     public:
         Ref<GameObject> CreateGameObject(std::string name);
@@ -87,19 +89,20 @@ namespace VWolf {
         Scene& operator=(const Scene& t);
     public:
         static Ref<Scene> Load(std::filesystem::path path, UUID _id);
-    public:
-        static Scene* currentScene;
+    private:
+        void Draw(Ref<Camera> camera);
     private:
         bool isPreviewing = false;
-        entt::registry m_registry, m_previewRegistry;
-
+        float previewAccumulator = 0.2f;
+        entt::registry m_registry;
+        entt::registry m_previewRegistry;
+        SceneBackground sceneBackGround;
+        
         std::vector<Ref<GameObject>> gameObjects, previewGameObjects;
 
-        SceneBackground sceneBackGround;
-        Ref<Mesh> emptyMesh, testMesh;
+        Ref<Mesh> emptyMesh;
         reactphysics3d::PhysicsWorld *world;
 
-        float previewAccumulator = 0.2f;
         friend class GameObject;
         
         BOOST_DESCRIBE_CLASS(Scene, (Object), (), (name), (sceneBackGround))
@@ -118,14 +121,7 @@ namespace YAML {
     {
         static bool decode(const Node& node, VWolf::Scene& rhs)
         {
-            VWolf::Scene::currentScene = &rhs;
-
-            VWolf::DeserializeFromBoostDescribe(node, rhs);
-            
-            DeserializeGameObjects(node, rhs);
-
-            VWolf::Scene::currentScene = nullptr;
-            return true;
+            return VWolf::DeserializeFromBoostDescribe(node, rhs);
         }
     };
 }

@@ -30,7 +30,7 @@ namespace VWolf {
         MeshRendererComponent(MeshRendererComponent&& component);
         ~MeshRendererComponent();
     public:
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         Material& GetMaterial() { return *material; }
         Ref<Material> GetMaterialEx() { return material; }
@@ -55,7 +55,7 @@ namespace VWolf {
         ShapeRendererComponent(ShapeRendererComponent&& component);
         ~ShapeRendererComponent();
     public:
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         Material& GetMaterial() { return *material; }
         Ref<Material> GetMaterialEx() { return material; }

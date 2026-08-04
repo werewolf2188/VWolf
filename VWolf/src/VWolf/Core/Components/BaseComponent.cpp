@@ -16,9 +16,11 @@ namespace VWolf {
     Component::Component(std::string name, UUID id): Object(id) {
         this->name = name;
     }
-    Component::~Component() {}
+    Component::~Component() {
+        gameObject.reset();
+    }
 
-    void Component::SetGameObject(GameObject* gameObject) {
+    void Component::SetGameObject(Weak<GameObject> gameObject) {
         this->gameObject = gameObject;
     }
 }

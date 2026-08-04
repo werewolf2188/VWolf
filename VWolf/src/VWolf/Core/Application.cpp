@@ -48,7 +48,7 @@ namespace VWolf {
 
 	bool CommandLineArguments::m_initialized = false;
 
-	Application* Application::m_application = nullptr;
+    Ref<Application> Application::m_application = nullptr;
 
     bool Application::_isPlaying = false;
 
@@ -63,7 +63,7 @@ namespace VWolf {
 		VWOLF_CORE_ASSERT(config.width > 0);
 		VWOLF_CORE_ASSERT(config.height > 0);
 
-		m_application = this;
+        m_application = UnownedRef<Application>(this);
 		VWOLF_CORE_INFO("Initializing core application");
 		VWOLF_CORE_DEBUG("Starting with driver: %s", DriverName(type));
 		driver->Initialize(config);

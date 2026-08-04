@@ -26,7 +26,7 @@ namespace VWolf {
         SphereColliderComponent(SphereColliderComponent&& sphereCollider);
         ~SphereColliderComponent();
     public:
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         void CreateSphereCollider(Ref<Mesh> data, TransformComponent& component);
         void Update(TransformComponent& component);
@@ -36,8 +36,8 @@ namespace VWolf {
         float& GetRadius() { return mRadius; }
         void SetRadius(float radius) { mRadius = radius; }
     private:
-        reactphysics3d::SphereShape* sphereShape;
-        reactphysics3d::Collider* collider;
+        Ref<reactphysics3d::SphereShape> sphereShape;
+        Ref<reactphysics3d::Collider> collider;
 
         float mRadius = 1;
 

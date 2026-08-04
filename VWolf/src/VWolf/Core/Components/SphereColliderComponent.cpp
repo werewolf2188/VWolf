@@ -32,18 +32,22 @@ namespace VWolf {
 
     SphereColliderComponent::~SphereColliderComponent() {}
 
-    Component* SphereColliderComponent::Copy(entt::entity& handle, entt::registry& registry) {
-        SphereColliderComponent& component = registry.emplace<SphereColliderComponent>(handle, *this);
-        return &component;
+    Ref<Component> SphereColliderComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        Ref<SphereColliderComponent> component = CopyComponent<SphereColliderComponent>(handle, registry);
+        return component;
     }
 
     void SphereColliderComponent::CreateSphereCollider(Ref<Mesh> data, TransformComponent& component) {
         mRadius = std::max(std::max(component.GetLocalScale().GetX(), component.GetLocalScale().GetY()), component.GetLocalScale().GetZ());
-        sphereShape = Physics::GetCommon().createSphereShape(mRadius);
+        sphereShape = Ref<reactphysics3d::SphereShape>(Physics::GetCommon().createSphereShape(mRadius), [](reactphysics3d::SphereShape* sphereShape) {
+            Physics::GetCommon().destroySphereShape(sphereShape);
+        });
         reactphysics3d::Transform transform = reactphysics3d::Transform::identity();
         reactphysics3d::RigidBody* rigidBody = GetGameObject()->GetRigidBody();
         if (rigidBody != nullptr) {
-            collider = rigidBody->addCollider(sphereShape, transform);
+            collider = Ref<reactphysics3d::Collider>(rigidBody->addCollider(sphereShape.get(), transform), [this](reactphysics3d::Collider* collider) {
+                GetGameObject()->GetRigidBody()->removeCollider(collider);
+            });
         }
     }
 
@@ -56,12 +60,8 @@ namespace VWolf {
     }
 
     void SphereColliderComponent::Destroy() {
-        if (collider != nullptr) {
-            GetGameObject()->GetRigidBody()->removeCollider(collider);
-        }
-        if (sphereShape != nullptr) {
-            Physics::GetCommon().destroySphereShape(sphereShape);
-        }
+        collider = nullptr;
+        sphereShape = nullptr;
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(SphereColliderComponent, "SphereColliderComponent")

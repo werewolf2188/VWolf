@@ -21,7 +21,7 @@ namespace VWolf {
         MeshFilterComponent(MeshFilterComponent&& component);
         ~MeshFilterComponent();
     public:
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         Ref<Mesh> GetMesh() { return mesh; }
     public:

@@ -49,7 +49,6 @@ namespace VWolf {
             if (ma_sound_is_playing(audioClip->sound))
                 CHECKMAERROR(ma_sound_stop(audioClip->sound));
         }
-        ma_engine_uninit(engine);
     }
 
     void AudioSourceComponent::Initialize() {
@@ -59,8 +58,10 @@ namespace VWolf {
         engineConfig = ma_engine_config_init();
         engineConfig.listenerCount = 1;
 
-        engine = (ma_engine*)malloc(sizeof(ma_engine));
-        CHECKMAERROR(ma_engine_init(&engineConfig, engine));
+        engine = Ref<ma_engine>((ma_engine*)malloc(sizeof(ma_engine)), [](ma_engine* engine) {
+            ma_engine_uninit(engine);
+        });
+        CHECKMAERROR(ma_engine_init(&engineConfig, engine.get()));
         
         if (audioClipId != UUID::Empty) {
             audioClip = ObjectResourceManager::Get<AudioClip>(audioClipId);
@@ -71,12 +72,12 @@ namespace VWolf {
         listenerPosition = listener.GetPosition();
         listenerDirection = listener.GetEulerAngles();
 
-        ma_engine_listener_set_position(engine, 1, listener.GetPosition().GetX(), listener.GetPosition().GetY(), listener.GetPosition().GetZ());
-        ma_engine_listener_set_direction(engine, 1, listener.GetEulerAngles().GetX(), listener.GetEulerAngles().GetY(), listener.GetEulerAngles().GetZ());
-        ma_engine_listener_set_world_up(engine, 1, 0, 1, 0);
+        ma_engine_listener_set_position(engine.get(), 1, listener.GetPosition().GetX(), listener.GetPosition().GetY(), listener.GetPosition().GetZ());
+        ma_engine_listener_set_direction(engine.get(), 1, listener.GetEulerAngles().GetX(), listener.GetEulerAngles().GetY(), listener.GetEulerAngles().GetZ());
+        ma_engine_listener_set_world_up(engine.get(), 1, 0, 1, 0);
 
         if (audioClip) {
-            audioClip->Initialize(engine);
+            audioClip->Initialize(engine.get());
             
             if (audioClip->sound == nullptr) return;
             
@@ -89,12 +90,12 @@ namespace VWolf {
 
     void AudioSourceComponent::Update(TransformComponent& listener, TransformComponent& sourceTransform) {
         if (listenerPosition != listener.GetPosition()) {
-            ma_engine_listener_set_position(engine, 1, listener.GetPosition().GetX(), listener.GetPosition().GetY(), listener.GetPosition().GetZ());
+            ma_engine_listener_set_position(engine.get(), 1, listener.GetPosition().GetX(), listener.GetPosition().GetY(), listener.GetPosition().GetZ());
             listenerPosition = listener.GetPosition();
         }
 
         if (listenerDirection != listener.GetEulerAngles()) {
-            ma_engine_listener_set_direction(engine, 1, listener.GetEulerAngles().GetX(), listener.GetEulerAngles().GetY(), listener.GetEulerAngles().GetZ());
+            ma_engine_listener_set_direction(engine.get(), 1, listener.GetEulerAngles().GetX(), listener.GetEulerAngles().GetY(), listener.GetEulerAngles().GetZ());
             listenerDirection = listener.GetEulerAngles();
         }
 
@@ -109,9 +110,9 @@ namespace VWolf {
             CHECKMAERROR(ma_sound_stop(audioClip->sound));
     }
 
-    Component* AudioSourceComponent::Copy(entt::entity& handle, entt::registry& registry) {
-        AudioSourceComponent& component = registry.emplace<AudioSourceComponent>(handle, *this);
-        return &component;
+    Ref<Component> AudioSourceComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        Ref<AudioSourceComponent> component = CopyComponent<AudioSourceComponent>(handle, registry);
+        return component;
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(AudioSourceComponent, "AudioSourceComponent")

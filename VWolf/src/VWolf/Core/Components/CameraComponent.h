@@ -23,7 +23,7 @@ namespace VWolf {
         CameraComponent(CameraComponent&& camera);
         ~CameraComponent();
     public:
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) override;
     public:
         float& GetViewportWidth() { return m_ViewportWidth; }
         void SetViewportWidth(float viewportWidth) { m_ViewportWidth = viewportWidth; }

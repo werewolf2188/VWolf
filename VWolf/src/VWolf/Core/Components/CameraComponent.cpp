@@ -68,9 +68,9 @@ namespace VWolf {
 
     CameraComponent::~CameraComponent() { }
 
-    Component* CameraComponent::Copy(entt::entity& handle, entt::registry& registry) {
-        CameraComponent& component = registry.emplace<CameraComponent>(handle, *this);
-        return &component;
+    Ref<Component> CameraComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        Ref<CameraComponent> component = CopyComponent<CameraComponent>(handle, registry);
+        return component;
     }
 
     Ref<Camera> CameraComponent::GetCamera(TransformComponent component) {

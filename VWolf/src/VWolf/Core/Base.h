@@ -99,6 +99,17 @@ namespace VWolf {
     {
         return std::make_shared<T>(std::forward<T>(t));
     }
+
+    template<typename T>
+    using Weak = std::weak_ptr<T>;
+
+    template<typename T>
+    using Shareable = std::enable_shared_from_this<T>;
+
+    template<typename T, typename ... Args>
+    Ref<T> UnownedRef(Args&& ... args) {
+        return Ref<T>(std::forward<Args>(args)..., [](T*){});
+    }
 }
 
 #include "Assert.h"

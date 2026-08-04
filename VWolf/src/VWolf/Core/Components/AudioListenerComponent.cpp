@@ -20,9 +20,9 @@ namespace VWolf {
 
     AudioListenerComponent::~AudioListenerComponent() {}
 
-    Component* AudioListenerComponent::Copy(entt::entity& handle, entt::registry& registry) {
-        AudioListenerComponent& component = registry.emplace<AudioListenerComponent>(handle, *this);
-        return &component;
+    Ref<Component> AudioListenerComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        Ref<AudioListenerComponent> component = CopyComponent<AudioListenerComponent>(handle, registry);
+        return component;
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(AudioListenerComponent, "AudioListenerComponent")

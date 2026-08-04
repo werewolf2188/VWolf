@@ -28,7 +28,7 @@ namespace VWolf {
 
 	class Application {
 	public:
-		static Application* GetApplication() { return m_application; };
+		static Ref<Application>& GetApplication() { return m_application; };
 	public:
 		virtual ~Application();
 		virtual void OnUpdate() = 0;
@@ -43,10 +43,7 @@ namespace VWolf {
     public:
         static bool IsPlaying() { return _isPlaying; }
         static void SetPlaying(bool isPlaying) { _isPlaying = isPlaying; }
-#ifdef VWOLF_CORE
-		// TODO: Should I keep this?
-		Driver* GetDriver() { return driver.get(); }
-#endif
+		Scope<Driver>& GetDriver() { return driver; }
 	protected: 
 		Application() = delete;
 		Application(DriverType type, InitConfiguration config);	
@@ -59,7 +56,7 @@ namespace VWolf {
     private:
         static bool _isPlaying;
 	private:
-		static Application* m_application;
+		static Ref<Application> m_application;
 		DriverType m_type;
 		Scope<Driver> driver;
         Scope<Lifecycle> lifecycle;

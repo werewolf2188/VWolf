@@ -59,9 +59,9 @@ namespace VWolf {
         Load();
     }
 
-    Component* MeshFilterComponent::Copy(entt::entity& handle, entt::registry& registry) {
-        MeshFilterComponent& component = registry.emplace<MeshFilterComponent>(handle, *this);
-        return &component;
+    Ref<Component> MeshFilterComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        Ref<MeshFilterComponent> component = CopyComponent<MeshFilterComponent>(handle, registry);
+        return component;
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(MeshFilterComponent, "MeshFilterComponent")

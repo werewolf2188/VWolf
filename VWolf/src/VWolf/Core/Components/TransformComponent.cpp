@@ -34,7 +34,6 @@ namespace VWolf {
         transform.position = Vector3(0, 0, 0);
         transform.eulerAngles = Vector3(0, 0, 0);
         transform.localScale = Vector3(1, 1, 1);
-        transform.SetGameObject(nullptr);
     }
 
     TransformComponent& TransformComponent::operator=(TransformComponent t) {
@@ -55,9 +54,9 @@ namespace VWolf {
                                 localScale);
     }
 
-    Component* TransformComponent::Copy(entt::entity& handle, entt::registry& registry) {
-        TransformComponent& component = registry.emplace<TransformComponent>(handle, *this);
-        return &component;
+    Ref<Component> TransformComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        Ref<TransformComponent> component = CopyComponent<TransformComponent>(handle, registry);
+        return component;
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(TransformComponent, "TransformComponent")

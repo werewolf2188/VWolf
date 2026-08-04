@@ -18,7 +18,7 @@ namespace VWolf {
         AudioListenerComponent(AudioListenerComponent&& audioListener);
         ~AudioListenerComponent();
     public:
-        virtual Component* Copy(entt::entity& handle, entt::registry& registry) override;
+        virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) override;
         BOOST_DESCRIBE_CLASS(AudioListenerComponent, (Component), (), (id), ())
         
         VWOLF_SERIALIZATION_FRIENDS(AudioListenerComponent)

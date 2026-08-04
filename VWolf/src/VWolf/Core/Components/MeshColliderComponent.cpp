@@ -25,9 +25,9 @@ namespace VWolf {
 
     MeshColliderComponent::~MeshColliderComponent() {}
 
-    Component* MeshColliderComponent::Copy(entt::entity& handle, entt::registry& registry) {
-        MeshColliderComponent& component = registry.emplace<MeshColliderComponent>(handle, *this);
-        return &component;
+    Ref<Component> MeshColliderComponent::Copy(entt::entity& handle, entt::registry& registry) {
+        Ref<MeshColliderComponent> component = CopyComponent<MeshColliderComponent>(handle, registry);
+        return component;
     }
 
     void MeshColliderComponent::CreateMeshCollider(Ref<Mesh> data, TransformComponent& component) {
@@ -54,19 +54,25 @@ namespace VWolf {
                                                   reactphysics3d::TriangleVertexArray::NormalDataType::NORMAL_FLOAT_TYPE,
                                                   reactphysics3d::TriangleVertexArray::IndexDataType::INDEX_INTEGER_TYPE);
 
-        triangleMesh = Physics::GetCommon().createTriangleMesh(array, messages);
+        triangleMesh = Ref<reactphysics3d::TriangleMesh>(Physics::GetCommon().createTriangleMesh(array, messages), [](reactphysics3d::TriangleMesh * triangleMesh) {
+            Physics::GetCommon().destroyTriangleMesh(triangleMesh);
+        });
         
         if (triangleMesh == nullptr) return;
 
         scale = component.GetLocalScale();
 
-        concaveMeshShape = Physics::GetCommon()
-            .createConcaveMeshShape(triangleMesh, { scale.GetX(), scale.GetY(), scale.GetZ() });
+        concaveMeshShape = Ref<reactphysics3d::ConcaveMeshShape>(Physics::GetCommon()
+                                 .createConcaveMeshShape(triangleMesh.get(), { scale.GetX(), scale.GetY(), scale.GetZ() }), [](reactphysics3d::ConcaveMeshShape * concaveMeshShape) {
+                                     Physics::GetCommon().destroyConcaveMeshShape(concaveMeshShape);
+                                 });
 
         reactphysics3d::Transform transform = reactphysics3d::Transform::identity();
         reactphysics3d::RigidBody* rigidBody = GetGameObject()->GetRigidBody();
         if (rigidBody != nullptr) {
-            collider = rigidBody->addCollider(concaveMeshShape, transform);
+            collider = Ref<reactphysics3d::Collider>(rigidBody->addCollider(concaveMeshShape.get(), transform), [this](reactphysics3d::Collider * collider) {
+                GetGameObject()->GetRigidBody()->removeCollider(collider);
+            });
         }
     }
 
@@ -78,14 +84,9 @@ namespace VWolf {
     }
 
     void MeshColliderComponent::Destroy() {
-        if (collider != nullptr) {
-            GetGameObject()->GetRigidBody()->removeCollider(collider);
-        }
-        if (concaveMeshShape != nullptr) {            
-            Physics::GetCommon().destroyConcaveMeshShape(concaveMeshShape);
-        }
-        if (triangleMesh != nullptr)
-            Physics::GetCommon().destroyTriangleMesh(triangleMesh);
+        collider = nullptr;
+        concaveMeshShape = nullptr;
+        triangleMesh = nullptr;
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(MeshColliderComponent, "MeshColliderComponent")

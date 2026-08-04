@@ -37,7 +37,6 @@ namespace YAML {
     };
 
     bool DeserializeComponents(const Node& node, VWolf::GameObject& rhs) {
-        rhs.AttachToScene(VWolf::Scene::currentScene);
         if (node[componentKey]) {
             for (auto& nodeComponent: node[componentKey]) {
                 boost::mpl::for_each<AllComponents>(ComponentDeserializer(nodeComponent, rhs));
@@ -88,11 +87,11 @@ namespace VWolf {
         return out;
     }
 
-    GameObject::GameObject(std::string name): Object(UUID::NewUUID()), scene(nullptr) {
+    GameObject::GameObject(std::string name): Object(UUID::NewUUID()) {
         this->name = name;
     }
 
-    GameObject::GameObject(std::string name, entt::entity handle, Scene* scene): Object(UUID::NewUUID()), handle(handle), scene(scene) {
+    GameObject::GameObject(std::string name, entt::entity handle, Weak<Scene> scene): Object(UUID::NewUUID()), handle(handle), scene(scene) {
         this->name = name;
     }
 
@@ -102,7 +101,7 @@ namespace VWolf {
 
     GameObject::GameObject(GameObject&& gameObject): Object(gameObject.id) {
         name = gameObject.name;
-        currentComponents = gameObject.currentComponents;
+        currentComponents = std::move(gameObject.currentComponents);
         handle = gameObject.handle;
         scene = gameObject.scene;
         
@@ -110,26 +109,37 @@ namespace VWolf {
         gameObject.name = "";
         gameObject.currentComponents.clear();
         gameObject.handle = entt::null;
-        gameObject.scene = nullptr;
     }
 
-    GameObject::~GameObject() { }
+    GameObject::~GameObject() {
+        ClearCurrentComponents();
+    }
 
     TransformComponent& GameObject::GetTransform() {
         return GetComponent<TransformComponent>();
     }
 
-    void GameObject::AttachToScene(Scene* scene) {
+    void GameObject::AttachToScene(Weak<Scene> scene) {
         if (this->handle == entt::null)
-            this->handle = scene->m_registry.create();
+            this->handle = scene.lock()->m_registry.create();
         this->scene = scene;
     }
 
-    void GameObject::CopyComponents(GameObject* otherGameObject) {
-        for(auto component: otherGameObject->currentComponents) {
-            Component* newComponent = component->Copy(handle, scene->m_previewRegistry);
-            newComponent->SetGameObject(otherGameObject);
-            currentComponents.push_back(newComponent);
+    void GameObject::SaveComponent(const Ref<Component>& component) {
+        currentComponents.push_back(component);
+    }
+
+    void GameObject::ClearCurrentComponents() {
+        currentComponents.clear();
+    }
+
+    void GameObject::CopyComponents(Ref<GameObject> otherGameObject) {
+        for (auto refComponent : otherGameObject->currentComponents) {
+            if (auto component = refComponent) {
+                Ref<Component> newComponent = component->Copy(handle, GetScene()->m_previewRegistry);
+                newComponent->SetGameObject(weak_from_this());
+                SaveComponent(newComponent);
+            }
         }
     }
 
