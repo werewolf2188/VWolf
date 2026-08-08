@@ -28,12 +28,16 @@ namespace VWolf {
 
 	class Application {
 	public:
-		static Ref<Application>& GetApplication() { return m_application; };
+		static Scope<Application>& GetApplication() { return m_application; };
+        static void SetApplication(Scope<Application> application) { m_application = std::move(application); }
 	public:
 		virtual ~Application();
 		virtual void OnUpdate() = 0;
         virtual void OnDraw() = 0;
 		virtual void OnGUI() = 0;
+    public:
+        virtual void Initialize();
+        virtual void Shutdown();
 	public:
 		void Run();
         void Quit();
@@ -56,7 +60,8 @@ namespace VWolf {
     private:
         static bool _isPlaying;
 	private:
-		static Ref<Application> m_application;
+		static Scope<Application> m_application;
+        InitConfiguration config;
 		DriverType m_type;
 		Scope<Driver> driver;
         Scope<Lifecycle> lifecycle;

@@ -6,11 +6,11 @@
 // https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-winmain
 // https://www.youtube.com/watch?v=Hqw0barvNVk&t=4s
 
-extern VWolf::Application* getApplication();
+extern VWolf::Scope<VWolf::Application> getApplication();
 
 #define VWOLF_MAIN_APP(App) \
-VWolf::Application* getApplication() {\
-	return new App(); \
+VWolf::Scope<VWolf::Application> getApplication() {\
+	return VWolf::CreateScope<App>(); \
 }
 
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
@@ -27,10 +27,13 @@ int main(int args, const char** argv) {
 
 	VWolf::CommandLineArguments::SetArguments(args, argv);
 
-	VWolf::Application* app = getApplication();	
+    VWolf::Application::SetApplication(getApplication());
 
-	app->Run();
+    VWolf::Application::GetApplication()->Initialize();
+    
+    VWolf::Application::GetApplication()->Run();
+    
+    VWolf::Application::GetApplication()->Shutdown();
 
-	delete app;
 	return 0;
 }

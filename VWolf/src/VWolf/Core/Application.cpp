@@ -48,11 +48,11 @@ namespace VWolf {
 
 	bool CommandLineArguments::m_initialized = false;
 
-    Ref<Application> Application::m_application = nullptr;
+    Scope<Application> Application::m_application = nullptr;
 
     bool Application::_isPlaying = false;
 
-	Application::Application(DriverType type, InitConfiguration config) : m_type(type), driver(Driver::GetDriver(type))
+	Application::Application(DriverType type, InitConfiguration config): m_type(type), config(config), driver(Driver::GetDriver(type))
 	{
         lifecycle = CreateScope<Lifecycle>();
         std::filesystem::path currentPath = CommandLineArguments::GetArguments()[0];
@@ -63,24 +63,26 @@ namespace VWolf {
 		VWOLF_CORE_ASSERT(config.width > 0);
 		VWOLF_CORE_ASSERT(config.height > 0);
 
-        m_application = UnownedRef<Application>(this);
-		VWOLF_CORE_INFO("Initializing core application");
 		VWOLF_CORE_DEBUG("Starting with driver: %s", DriverName(type));
-		driver->Initialize(config);
-
+		
 		// Adding subscribers
 		EventQueue::DefaultQueue->Subscribe<WindowCloseEvent>(VWOLF_BIND_EVENT_FN(Application::OnWindowClose));
 		EventQueue::DefaultQueue->Subscribe<WindowResizeEvent>(VWOLF_BIND_EVENT_FN(Application::OnWindowResize));
-        
-        UIManager::GetDefault()->Initialize();
 	}
 
-	Application::~Application()
-	{
-		VWOLF_CORE_INFO("Shutting down core application");
-		driver->Shutdown();
-		// Log::ClearLogObjects(); // TODO: Take control of memory
-	}
+	Application::~Application() { }
+
+    void Application::Initialize() {
+        VWOLF_CORE_INFO("Initializing core application");
+        driver->Initialize(config);
+        UIManager::GetDefault()->Initialize();
+    }
+
+    void Application::Shutdown() {
+        VWOLF_CORE_INFO("Shutting down core application");
+        driver->Shutdown();
+        // Log::ClearLogObjects(); // TODO: Take control of memory
+    }
 
 	void Application::Run() {
 		VWOLF_CORE_INFO("Running core application");

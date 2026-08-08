@@ -72,7 +72,11 @@ public:
     // Scene Management
     VWolf::Ref<VWolf::Scene> testScene;
 public:
-    RendererSandboxApplication(): Application(VWolfPup::LoadProject(), { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) {
+    RendererSandboxApplication(): Application(VWolfPup::LoadProject(), { (int)SCREENWIDTH, (int)SCREENHEIGHT, "VWolf Renderer Sandbox" } ) { }
+    
+    virtual void Initialize() override {
+        Application::Initialize();
+        
         VWolfPup::Defaults::Load();
         VWolfPup::AssetDatabase::LoadMetaFilesForEditor();
         VWolfPup::InitializeEditor();
