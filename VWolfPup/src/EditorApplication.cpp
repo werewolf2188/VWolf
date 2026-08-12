@@ -131,7 +131,7 @@ public:
         inspector = new VWolfPup::Inspector();
         containerView->AddView(inspector);
 
-        sceneViewer = new VWolfPup::SceneViewer(camera, VWolfPup::Project::CurrentProject()->GetType(), (uint32_t)SCREENWIDTH, (uint32_t)SCREENHEIGHT);
+        sceneViewer = new VWolfPup::SceneViewer(camera, VWolfPup::Project::CurrentProject()->GetType());
         containerView->AddView(sceneViewer);
 
         sceneSettings = new VWolfPup::SceneSettings(VWolfPup::Project::CurrentProject()->GetCurrentScene().get());
@@ -168,8 +168,6 @@ public:
         testScene->GetSceneBackground().SetSkyboxMaterial(skyMaterial);
         // TODO: This should come from the same camera.
         testScene->GetSceneBackground().SetCamera(skyBoxCamera);
-
-        VWolf::Graphics::SetRenderTexture(sceneViewer->GetRenderTexture());
         
         VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::WindowCloseEvent>(VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowClose));
         VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::WindowResizeEvent>(VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowResize));
@@ -195,6 +193,9 @@ public:
     }
 
     void OnDraw() override {
+        
+        // TODO: We don't need to separate functions. We need to be able to render in different cameras.
+        // TODO: Main camera should not be the editor camera. It should be the main active camera from the camera component.
         if (VWolf::Application::IsPlaying())
             testScene->DrawPreviewEditor();
         else {
@@ -204,7 +205,7 @@ public:
                                       VWolf::MaterialLibrary::GetMaterial(VWolfPup::Defaults::Get()->GetDefaultGridMaterialName()),
                                       0,
                                       0,
-                                      nullptr,
+                                      nullptr, // TODO: Pass the camera to tell that this command belongs to the editor camera.
                                       false,
                                       false);
         }

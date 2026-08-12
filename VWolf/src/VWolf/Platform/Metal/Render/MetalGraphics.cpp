@@ -39,14 +39,15 @@ namespace VWolf {
     }
 
     void MetalGraphics::Initialize() {
+        InternalGraphics::Initialize();
         emptyShadowMap = std::dynamic_pointer_cast<MetalTexture2D>(CreateRef<Texture2D>(UUID::NewUUID(), TextureDefault::White, 1024, 1024, TextureOptions())->GetInnerTexture());
         shadowMap = CreateRef<MetalRenderTexture>(2048, 2048, true);
     }
 
     void MetalGraphics::ClearColorImpl(Color color) {
         MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor()->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(color.GetR(), color.GetG(), color.GetB(), color.GetA()));
-        if (renderTexture) {
-            auto metalRenderTexture = (MetalRenderTexture*)renderTexture.get();
+        if (m_p_renderTexture) {
+            auto metalRenderTexture = (MetalRenderTexture*)m_p_renderTexture.get();
             metalRenderTexture->GetRenderPassDescriptor()->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(color.GetR(), color.GetG(), color.GetB(), color.GetA()));
         }
         shadowMap->GetRenderPassDescriptor()->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(color.GetR(), color.GetG(), color.GetB(), color.GetA()));
@@ -54,16 +55,16 @@ namespace VWolf {
 
     void MetalGraphics::ClearImpl() {
         MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor()->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
-        if (renderTexture) {
-            auto metalRenderTexture = (MetalRenderTexture*)renderTexture.get();
+        if (m_p_renderTexture) {
+            auto metalRenderTexture = (MetalRenderTexture*)m_p_renderTexture.get();
             metalRenderTexture->GetRenderPassDescriptor()->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
         }
         shadowMap->GetRenderPassDescriptor()->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
     }
 
     void MetalGraphics::EndProcessingFrame() {
-        if (renderTexture) {
-            ((MetalRenderTexture*)renderTexture.get())->Commit();
+        if (m_p_renderTexture) {
+            ((MetalRenderTexture*)m_p_renderTexture.get())->Commit();
         }
         encoder->endEncoding();
         commandBuffer->presentDrawable(MetalDriver::GetCurrent()->GetSurface()->GetCurrentDrawable());
@@ -71,18 +72,15 @@ namespace VWolf {
         
         pool->release();
         pool = nullptr;
-    }
-
-    void MetalGraphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture) {
-        this->renderTexture = renderTexture->GetInnerTexture();
         
+        InternalGraphics::EndProcessingFrame();
     }
 
     void MetalGraphics::BeginProcessingFrame() {
         pool = NS::AutoreleasePool::alloc()->init();
         commandBuffer =  MetalDriver::GetCurrent()->GetCommand()->GetCommandQueue()->commandBuffer();
-        if (renderTexture) {
-            ((MetalRenderTexture*)renderTexture.get())->Prepare();
+        if (m_p_renderTexture) {
+            ((MetalRenderTexture*)m_p_renderTexture.get())->Prepare();
         }
         shadowMap->Prepare();
         MetalDriver::GetCurrent()->GetSurface()->Begin();
@@ -91,8 +89,8 @@ namespace VWolf {
 
         constantBufferIndexPerShader.clear();
         itemsCount = 0;
-        if (renderTexture) {
-            ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
+        if (m_p_renderTexture) {
+            ((MetalRenderTexture*)m_p_renderTexture.get())->StartEncoder();
         }
         
         ClearColorImpl(GraphicsContext::GetBackgroundColor());
@@ -122,22 +120,18 @@ namespace VWolf {
                 if (drawMeshCommand->GetCastShadows()) {
                     drawMeshCommand->GetMesh()->BuildVertexBuffer(metalShader->GetAttributes());
                     
-                    if (shadowShapes >= shadowBufferGroups.size()) {
-                        shadowBufferGroups.push_back(CreateRef<MetalBufferGroup>(drawMeshCommand->GetMesh()));
-                        shadowObjectTransforms.push_back(drawMeshCommand->GetTransform());
-                    } else {
-                        shadowBufferGroups[shadowShapes]->SetData(drawMeshCommand->GetMesh());
-                        shadowObjectTransforms[shadowShapes] = drawMeshCommand->GetTransform();
-                    }
+                    if (bufferGroups.find(drawMeshCommand->GetMesh()->GetID()) == bufferGroups.end())
+                        bufferGroups[drawMeshCommand->GetMesh()->GetID()] = CreateRef<MetalBufferGroup>(drawMeshCommand->GetMesh());
+                    objectTransforms[drawMeshCommand->GetMesh()->GetID()] = drawMeshCommand->GetTransform();
                     
                     metalShader->UseShader(dsvEncoder);
                     metalShader->Bind();
                     metalShader->SetObjectIndex(shadowShapes);
-                    metalShader->SetVertexBufferIndex(shadowBufferGroups[shadowShapes]->GetVertexBuffer());
+                    metalShader->SetVertexBufferIndex(bufferGroups[drawMeshCommand->GetMesh()->GetID()]->GetVertexBuffer());
                     metalShader->SetData(&viewProjection, Shader::CameraBufferName, sizeof(Matrix4x4), shadowShapes);
-                    metalShader->SetData(&shadowObjectTransforms[shadowShapes], Shader::ObjectBufferName, sizeof(Matrix4x4), shadowShapes);
+                    metalShader->SetData(&objectTransforms[drawMeshCommand->GetMesh()->GetID()], Shader::ObjectBufferName, sizeof(Matrix4x4), shadowShapes);
 
-                    metalShader->Draw(GetTopology(drawMeshCommand->GetMesh()->GetSubMesh(drawMeshCommand->GetSubmeshIndex()).GetTopology()), shadowBufferGroups[shadowShapes]->GetIndexBuffer());
+                    metalShader->Draw(GetTopology(drawMeshCommand->GetMesh()->GetSubMesh(drawMeshCommand->GetSubmeshIndex()).GetTopology()), bufferGroups[drawMeshCommand->GetMesh()->GetID()]->GetIndexBuffer());
                     shadowShapes++;
                 }
             }
@@ -149,8 +143,8 @@ namespace VWolf {
     void MetalGraphics::DrawQueue() {
         
         MTL::RenderCommandEncoder* rtvEncoder = nullptr;
-        if (renderTexture) {
-            rtvEncoder = ((MetalRenderTexture*)renderTexture.get())->StartEncoder();
+        if (m_p_renderTexture) {
+            rtvEncoder = ((MetalRenderTexture*)m_p_renderTexture.get())->StartEncoder();
         }
 
         // TODO: Do we really need this?
@@ -194,29 +188,25 @@ namespace VWolf {
             Ref<MetalShader> metalShader = std::dynamic_pointer_cast<MetalShader>(Shader::GetShader(drawMeshCommand->GetMaterial()->GetShaderName())->GetInternalShader());
 
             drawMeshCommand->GetMesh()->BuildVertexBuffer(metalShader->GetAttributes());
-            if (itemsCount >= bufferGroups.size()) {
-                bufferGroups.push_back(CreateRef<MetalBufferGroup>(drawMeshCommand->GetMesh()));
-                objectTransforms.push_back(drawMeshCommand->GetTransform());
-            } else {
-                bufferGroups[itemsCount]->SetData(drawMeshCommand->GetMesh());
-                objectTransforms[itemsCount] = drawMeshCommand->GetTransform();
-            }
+            if (bufferGroups.find(drawMeshCommand->GetMesh()->GetID()) == bufferGroups.end())
+                bufferGroups[drawMeshCommand->GetMesh()->GetID()] = CreateRef<MetalBufferGroup>(drawMeshCommand->GetMesh());
+            objectTransforms[drawMeshCommand->GetMesh()->GetID()] = drawMeshCommand->GetTransform();
 
             void* material1 = drawMeshCommand->GetMaterial()->GetDataPointer();
            
             metalShader->UseShader((rtvEncoder != nullptr ? rtvEncoder : encoder));
             metalShader->Bind();
             metalShader->SetObjectIndex(shapes);
-            if (bufferGroups[itemsCount]->GetVertexBuffer() != nullptr)
-                metalShader->SetVertexBufferIndex(bufferGroups[itemsCount]->GetVertexBuffer());
+            if (bufferGroups[drawMeshCommand->GetMesh()->GetID()]->GetVertexBuffer() != nullptr)
+                metalShader->SetVertexBufferIndex(bufferGroups[drawMeshCommand->GetMesh()->GetID()]->GetVertexBuffer());
             metalShader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), shapes);
-            metalShader->SetData(&objectTransforms[itemsCount], Shader::ObjectBufferName, sizeof(Matrix4x4), shapes);
+            metalShader->SetData(&objectTransforms[drawMeshCommand->GetMesh()->GetID()], Shader::ObjectBufferName, sizeof(Matrix4x4), shapes);
             metalShader->SetData(material1, materialName.c_str(), drawMeshCommand->GetMaterial()->GetSize(), shapes);
             metalShader->SetData(lights, Light::LightName, sizeof(Light) * Light::LightsMax, shapes);
             metalShader->SetData(spacesPointer, Light::LightSpaceName, sizeof(Matrix4x4) * Light::LightsMax, shapes);
             metalShader->SetTextures(shadowMap, drawMeshCommand->GetMaterial());
             
-            metalShader->Draw(GetTopology(drawMeshCommand->GetMesh()->GetSubMesh(drawMeshCommand->GetSubmeshIndex()).GetTopology()), bufferGroups[itemsCount]->GetIndexBuffer());
+            metalShader->Draw(GetTopology(drawMeshCommand->GetMesh()->GetSubMesh(drawMeshCommand->GetSubmeshIndex()).GetTopology()), bufferGroups[drawMeshCommand->GetMesh()->GetID()]->GetIndexBuffer());
             free(material1);
             itemsCount++;
             constantBufferIndexPerShader[drawMeshCommand->GetMaterial()->GetShaderName()] = ++shapes;

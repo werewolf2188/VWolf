@@ -31,19 +31,20 @@ namespace VWolf {
         }
     }
     void OpenGLGraphics::Initialize() {
+        InternalGraphics::Initialize();
         shadowMap = CreateRef<OpenGLRenderTexture>(1024, 1024, true, TextureOptions());
         emptyShadowMap = std::dynamic_pointer_cast<OpenGLTexture2D>(CreateRef<Texture2D>(UUID::NewUUID(), TextureDefault::White, 1024, 1024, TextureOptions())->GetInnerTexture());
     }
 
     void OpenGLGraphics::BindToRenderTexture() {
-        if (renderTexture != nullptr && useRenderTexture) {
-            ((OpenGLRenderTexture*)renderTexture.get())->Bind();
+        if (m_p_renderTexture != nullptr && useRenderTexture) {
+            ((OpenGLRenderTexture*)m_p_renderTexture.get())->Bind();
         }
     }
 
     void OpenGLGraphics::UnbindToRenderTexture(){
-        if (renderTexture != nullptr && useRenderTexture) {
-            ((OpenGLRenderTexture*)renderTexture.get())->Unbind();
+        if (m_p_renderTexture != nullptr && useRenderTexture) {
+            ((OpenGLRenderTexture*)m_p_renderTexture.get())->Unbind();
         }
     }
 
@@ -61,7 +62,7 @@ namespace VWolf {
 
     void OpenGLGraphics::EndProcessingFrame()
     {
-
+        InternalGraphics::EndProcessingFrame();
     }
 
     void OpenGLGraphics::BeginProcessingFrame() {
@@ -73,11 +74,6 @@ namespace VWolf {
         DrawQueue();
         DrawPostProcess();
         useRenderTexture = false;
-    }
-
-    void OpenGLGraphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture)
-    {
-        this->renderTexture = renderTexture->GetInnerTexture();
     }
 
     void OpenGLGraphics::DrawShadowMap() {

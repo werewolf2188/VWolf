@@ -15,12 +15,13 @@
 #include "VWolf/Platform/Metal/Render/MetalTexture.h"
 
 namespace VWolf {
+
     class MetalGraphics: public InternalGraphics {
     public:
         MetalGraphics() = default;
         virtual ~MetalGraphics() override {};
     public:
-        void Initialize();
+        virtual void Initialize() override;
     public:
         MTL::CommandBuffer* GetCommandBuffer() { return commandBuffer; }
         MTL::RenderCommandEncoder* GetRenderCommandEncoder() { return encoder; }
@@ -29,18 +30,14 @@ namespace VWolf {
         void ClearImpl();
 
         virtual void EndProcessingFrame() override;
-        virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) override;
         virtual void BeginProcessingFrame() override;
     protected:
         virtual void DrawShadowMap() override;
         virtual void DrawQueue() override;
         virtual void DrawPostProcess() override;
     private:
-        std::vector<Ref<MetalBufferGroup>> bufferGroups;
-        std::vector<Matrix4x4> objectTransforms;
-
-        std::vector<Ref<MetalBufferGroup>> shadowBufferGroups;
-        std::vector<Matrix4x4> shadowObjectTransforms;
+        std::map<UUID, Ref<MetalBufferGroup>> bufferGroups;
+        std::map<UUID, Matrix4x4> objectTransforms;
         
         NS::AutoreleasePool* pool;
         MTL::CommandBuffer* commandBuffer;

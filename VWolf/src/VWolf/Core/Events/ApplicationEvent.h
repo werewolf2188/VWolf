@@ -1,6 +1,8 @@
 #pragma once
 #include "Event.h"
 
+#include "VWolf/Core/Render/Texture.h"
+
 #include <sstream>
 
 namespace VWolf {
@@ -81,9 +83,15 @@ namespace VWolf {
 	class AppRenderEvent : public Event
 	{
 	public:
-		AppRenderEvent() = default;
-
+        AppRenderEvent(long long frame, Ref<RenderTexture> render_texture):
+        m_frame(frame), m_render_texture(render_texture) {};
+    public:
+        const long long& GetRenderFrame() const { return m_frame; }
+        const Ref<RenderTexture> GetRenderTexture() const { return m_render_texture; }
 		EVENT_CLASS_TYPE(AppRender)
+    private:
+        long long m_frame;
+        Ref<RenderTexture> m_render_texture;
 		// EVENT_CLASS_CATEGORY(EventCategoryApplication)
 	};
 }

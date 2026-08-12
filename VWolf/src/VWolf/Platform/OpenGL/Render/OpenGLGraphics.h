@@ -20,13 +20,12 @@ namespace VWolf {
         OpenGLGraphics() = default;
         virtual ~OpenGLGraphics() override {};
     public:
-        void Initialize();
+        virtual void Initialize() override;
     protected:
         void ClearColorImpl(Color color);
         void ClearImpl();
 
         virtual void EndProcessingFrame() override;
-        virtual void SetRenderTextureImpl(Ref<RenderTexture> renderTexture) override;
         virtual void BeginProcessingFrame() override;
     protected:
         virtual void DrawShadowMap() override;

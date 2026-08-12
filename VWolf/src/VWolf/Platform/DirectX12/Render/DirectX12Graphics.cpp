@@ -30,6 +30,7 @@ namespace VWolf {
 	}
 
 	void DirectX12Graphics::Initialize() {
+        InternalGraphics::Initialize();
 		shadowMap = CreateRef<DirectX12RenderTexture>(1024, 1024, true, TextureOptions()); // TODO: This fails for 1024x1024
 		emptyShadowMap = std::dynamic_pointer_cast<DirectX12Texture2D>(CreateRef<Texture2D>(UUID::NewUUID(), TextureDefault::White, 1024, 1024, TextureOptions())->GetInnerTexture());
 	}
@@ -38,8 +39,8 @@ namespace VWolf {
 	{
 		auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->ClearRenderTargetView(rtv->GetHandle().GetCPUAddress(), &color.GetR(), 0, nullptr);
-		if (renderTexture) {
-			auto directX12Rtv = (DirectX12RenderTexture*)renderTexture.get();
+		if (m_p_renderTexture) {
+			auto directX12Rtv = (DirectX12RenderTexture*)m_p_renderTexture.get();
 			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->ClearRenderTargetView(directX12Rtv->GetTexture()->GetHandle().GetCPUAddress(), &color.GetR(), 0, nullptr);
 		}
 	}
@@ -82,11 +83,8 @@ namespace VWolf {
 		DirectX12Driver::GetCurrent()->GetCommands()->EndFrame(DirectX12Driver::GetCurrent()->GetSurface());
 
 		ClearResources(false);
-	}
-
-	void DirectX12Graphics::SetRenderTextureImpl(Ref<RenderTexture> renderTexture)
-	{
-		this->renderTexture = renderTexture->GetInnerTexture();
+        
+        InternalGraphics::EndProcessingFrame();
 	}
 
 	void DirectX12Graphics::BeginProcessingFrame()
@@ -109,10 +107,10 @@ namespace VWolf {
 
 		ClearImpl();
 
-		if (renderTexture) {
-			((DirectX12RenderTexture*)renderTexture.get())->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET);
+		if (m_p_renderTexture) {
+			((DirectX12RenderTexture*)m_p_renderTexture.get())->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET);
 			ClearColorImpl(GraphicsContext::GetBackgroundColor());
-			((DirectX12RenderTexture*)renderTexture.get())->Bind();
+			((DirectX12RenderTexture*)m_p_renderTexture.get())->Bind();
 		}
 
 		shadowMap->Transition(D3D12_RESOURCE_STATE_DEPTH_WRITE);
@@ -124,8 +122,8 @@ namespace VWolf {
 		DrawShadowMap();
 		shadowMap->Transition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-		if (renderTexture) {
-			((DirectX12RenderTexture*)renderTexture.get())->Bind();
+		if (m_p_renderTexture) {
+			((DirectX12RenderTexture*)m_p_renderTexture.get())->Bind();
 		}
 		else {
 			auto rtv = DirectX12Driver::GetCurrent()->GetSurface()->GetCurrentRenderTargetView();
@@ -144,8 +142,8 @@ namespace VWolf {
 
 		DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()
 			->OMSetRenderTargets(1, &rtv->GetHandle().GetCPUAddress(), FALSE, &DirectX12Driver::GetCurrent()->GetDepthStencilBuffer()->GetHandle().GetCPUAddress());
-		if (renderTexture) {
-			((DirectX12RenderTexture*)renderTexture.get())->Transition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		if (m_p_renderTexture) {
+			((DirectX12RenderTexture*)m_p_renderTexture.get())->Transition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		}
 	}
 

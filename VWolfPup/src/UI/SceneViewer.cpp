@@ -10,12 +10,24 @@
 #include <ImGuizmo/ImGuizmo.h>
 
 #include "Selection.h"
+//#include <iostream>
 
 namespace VWolfPup {
-    SceneViewer::SceneViewer(VWolf::Ref<VWolf::Camera> camera, VWolf::DriverType driverType, uint32_t width, uint32_t height):
-    camera(camera), renderTexture(VWolf::CreateRef<VWolf::RenderTexture>(width, height)), driverType(driverType), View("Scene") { }
+    SceneViewer::SceneViewer(VWolf::Ref<VWolf::Camera> camera, VWolf::DriverType driverType):
+    camera(camera), driverType(driverType), View("Scene") {
+        VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::AppRenderEvent>(VWOLF_BIND_EVENT_FN(SceneViewer::OnRenderEditor));
+    }
+
     SceneViewer::~SceneViewer() {
         
+    }
+
+    bool SceneViewer::OnRenderEditor(VWolf::AppRenderEvent& event) {
+//        long long currentFrame = VWolf::Time::GetTotalFrames();
+//        long long renderFrame = event.GetRenderFrame();
+//        std::cout << "Rendering frame " << renderFrame << std::endl;
+        renderTexture = event.GetRenderTexture();
+        return true;
     }
 
     void SceneViewer::SetInContainer() {
@@ -30,11 +42,13 @@ namespace VWolfPup {
                      (noMove ? ImGuiWindowFlags_NoMove: 0));
         isHovering = ImGui::IsWindowHovered();
         ImVec2 windowSize = ImGui::GetWindowSize();
-        renderTexture->Resize((uint32_t)windowSize.x, (uint32_t)windowSize.y);
-        if (driverType == VWolf::DriverType::OpenGL)
-            ImGui::Image(renderTexture->GetHandler(), windowSize, ImVec2(0, 1), ImVec2(1, 0));
-        else
-            ImGui::Image(renderTexture->GetHandler(), windowSize);
+        if (renderTexture != nullptr) {
+            renderTexture->Resize((uint32_t)windowSize.x, (uint32_t)windowSize.y);
+            if (driverType == VWolf::DriverType::OpenGL)
+                ImGui::Image(renderTexture->GetHandler(), windowSize, ImVec2(0, 1), ImVec2(1, 0));
+            else
+                ImGui::Image(renderTexture->GetHandler(), windowSize);
+        }
         ImGui::SetCursorPos(ImVec2(10, 30));
         
         if (!VWolf::Application::IsPlaying()) {
