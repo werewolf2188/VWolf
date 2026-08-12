@@ -166,7 +166,7 @@ namespace VWolf {
 
             if (drawMeshCommand->GetMesh() == nullptr || drawMeshCommand->GetMesh()->GetVertices().size() == 1) continue; // It's a light
 
-            cam = drawMeshCommand->GetCamera() != nullptr ? drawMeshCommand->GetCamera().get(): Camera::main;
+            cam = drawMeshCommand->GetCamera().get();
 
             CameraPass cameraPass = {
                 cam->GetViewMatrix(),

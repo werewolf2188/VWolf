@@ -63,9 +63,6 @@ namespace VWolf {
         void SetViewportSize(float width, float height) { m_ViewportWidth = width; m_ViewportHeight = height; UpdateProjection(); }
         void SetZoomLevel(float zoom) { m_zoom = zoom; UpdateProjection(); }
         void SetOrthographic(bool isOrthographic) { m_isOrthographic = isOrthographic; UpdateProjection(); }
-    public:
-        static Camera* main;
-        static void SetMainCamera(Camera* camera) { main = camera; }
     private:
         Matrix4x4 m_Projection = Matrix4x4::Identity;
         Matrix4x4 m_ViewMatrix;

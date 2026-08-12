@@ -134,7 +134,7 @@ namespace VWolf {
             
             if (mesh1 == nullptr || mesh1->GetVertices().size() == 1) continue; // It's a light
             
-            Camera* cam = camera != nullptr ? camera.get(): Camera::main;
+            Camera* cam = camera.get();
 
             CameraPass cameraPass = {
                 cam->GetViewMatrix(),

@@ -7,7 +7,6 @@
 #include "vwpch.h"
 #include "Camera.h"
 namespace VWolf {
-    Camera* Camera::main = nullptr;
 
     void Camera::UpdateView(Vector3 position, Quaternion orientation) {
         // TODO: Remove and use component system

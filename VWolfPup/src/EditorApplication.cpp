@@ -82,7 +82,6 @@ public:
         VWolfPup::InitializeEditor();
         
         camera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
-        VWolf::Camera::SetMainCamera(camera.get());
         skyBoxCamera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
         
         controller = VWolf::CreateRef<VWolfPup::CameraController>(camera, [this](){
@@ -205,7 +204,7 @@ public:
                                       VWolf::MaterialLibrary::GetMaterial(VWolfPup::Defaults::Get()->GetDefaultGridMaterialName()),
                                       0,
                                       0,
-                                      nullptr, // TODO: Pass the camera to tell that this command belongs to the editor camera.
+                                      camera,
                                       false,
                                       false);
         }
