@@ -13,8 +13,8 @@
 //#include <iostream>
 
 namespace VWolfPup {
-    SceneViewer::SceneViewer(VWolf::Ref<VWolf::Camera> camera, VWolf::DriverType driverType):
-    camera(camera), driverType(driverType), View("Scene") {
+    SceneViewer::SceneViewer(VWolf::Ref<VWolf::Camera> camera, VWolf::Ref<VWolf::TransformComponent> cameraTransform, VWolf::DriverType driverType):
+    camera(camera), cameraTransform(cameraTransform), driverType(driverType), View("Scene") {
         VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::AppRenderEvent>(VWOLF_BIND_EVENT_FN(SceneViewer::OnRenderEditor));
     }
 
@@ -75,7 +75,11 @@ namespace VWolfPup {
                 ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
                 
                 VWolf::Matrix4x4 projection = camera->GetProjection();
-                VWolf::Matrix4x4 view = camera->GetViewMatrix();
+                VWolf::Matrix4x4 view = camera->CalculateView(cameraTransform->GetPosition(), VWolf::Quaternion::Euler(
+                                                                                                                cameraTransform->GetEulerAngles().GetX(),
+                                                                                                                cameraTransform->GetEulerAngles().GetY(),
+                                                                                                                cameraTransform->GetEulerAngles().GetZ()
+                                                                                                                ));
                 VWolf::TransformComponent& tComponent = selectedObject->GetTransform();
                 tComponent.Apply();
                 VWolf::Matrix4x4& transform = tComponent.GetWorldMatrix();

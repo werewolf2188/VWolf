@@ -11,7 +11,7 @@
 #include "VWolf/Core/Color.h"
 #include "VWolf/Core/Math/VMath.h"
 #include "GraphicsCommands.h"
-#include "Light.h"
+#include "VWolf/Core/Components/Components.h"
 
 namespace VWolf {
     // This class will help to separate the logic to add the information that's not related to the commands but it needs to be sent to the GPU
@@ -20,15 +20,17 @@ namespace VWolf {
     class GraphicsContext {
     public:
         static void Reset();
-        static void AddLight(Light& light, Vector3 position, Vector3 eulerAngles);
+        static void AddLight(LightComponent& light);
     public:
         static GraphicsCommandList& GetList() { return list; }
         static Color GetBackgroundColor() { return backgroundColor; }
         static void SetClearColor(Color _backgroundColor) { backgroundColor = _backgroundColor; }
+        static std::vector<LightComponent>& GetLights_Ex() { return lights_ex; }
         static std::vector<Light>& GetLights() { return lights; }
         static std::vector<Matrix4x4>& GetLightsSpaces() { return lightSpaces; }
     private:
         static GraphicsCommandList list;
+        static std::vector<LightComponent> lights_ex;
         static std::vector<Light> lights;
         static std::vector<Matrix4x4> lightSpaces;
         static Color backgroundColor;

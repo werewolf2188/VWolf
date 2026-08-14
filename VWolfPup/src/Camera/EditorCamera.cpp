@@ -8,8 +8,8 @@
 #include "EditorCamera.h"
 
 namespace VWolfPup {
-    CameraController::CameraController(VWolf::Ref<VWolf::Camera> camera, std::function<bool()> shouldListenToEvent):
-    camera(camera), shouldListenToEvent(shouldListenToEvent) {
+    CameraController::CameraController(VWolf::Ref<VWolf::CameraComponent> camera, VWolf::Ref<VWolf::TransformComponent> transform, std::function<bool()> shouldListenToEvent):
+    transform(transform), camera(camera), shouldListenToEvent(shouldListenToEvent) {
         VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::MouseScrolledEvent>(VWOLF_BIND_EVENT_FN(OnMouseScroll));
     }
 
@@ -18,7 +18,8 @@ namespace VWolfPup {
             // Will Zoom
             float delta = e.GetYOffset() * 0.1f;
             MouseZoom(delta);
-            camera->UpdateView(CalculatePosition(), GetOrientation());
+            transform->SetPosition(CalculatePosition());
+            transform->SetEulerAngles(GetOrientation().EulerAngles());
             return false;
         }
         return false;
@@ -48,7 +49,8 @@ namespace VWolfPup {
                 MouseZoom(delta.GetY());
         }
 
-        camera->UpdateView(CalculatePosition(), GetOrientation());
+        transform->SetPosition(CalculatePosition());
+        transform->SetEulerAngles(GetOrientation().EulerAngles());
         
 //        VWOLF_CLIENT_DEBUG("Position (%.3f %.3f %.3f), Pitch (%.3f), Yaw (%.3f), Distance (%.3f)", m_Position.x, m_Position.y, m_Position.z, m_Pitch, m_Yaw, m_Distance);
     }
@@ -63,7 +65,7 @@ namespace VWolfPup {
     void CameraController::SetViewportSize(float width, float height) {
         m_ViewportWidth = width;
         m_ViewportHeight = height;
-        camera->SetViewportSize(width, height);
+        camera->GetCamera()->SetViewportSize(width, height);
     }
 
     float CameraController::GetPitch() const { return m_Pitch; }
@@ -74,7 +76,7 @@ namespace VWolfPup {
 
     void CameraController::SetDistance(float distance) {
         m_Distance = distance;
-        camera->SetZoomLevel(m_Distance);
+        camera->SetZoom(m_Distance);
     }
 
     void CameraController::MousePan(const VWolf::Vector2& delta)
@@ -82,6 +84,7 @@ namespace VWolfPup {
         auto [xSpeed, ySpeed] = PanSpeed();
         m_FocalPoint += -GetRightDirection() * delta.GetX() * xSpeed * m_Distance;
         m_FocalPoint += GetUpDirection() * delta.GetY() * ySpeed * m_Distance;
+        camera->SetFocalPoint(m_FocalPoint);
     }
 
     void CameraController::MouseRotate(const VWolf::Vector2& delta)
@@ -97,9 +100,10 @@ namespace VWolfPup {
         if (m_Distance < 1.0f)
         {
             m_FocalPoint += GetForwardDirection();
+            camera->SetFocalPoint(m_FocalPoint);
             m_Distance = 1.0f;
         }
-        camera->SetZoomLevel(m_Distance);
+        camera->SetZoom(m_Distance);
     }
 
     std::pair<float, float> CameraController::PanSpeed() const
@@ -129,8 +133,7 @@ namespace VWolfPup {
 
     VWolf::Vector3 CameraController::CalculatePosition() const
     {
-        return (useDistanceAndFocalPointForPositionCalculation ? m_FocalPoint: VWolf::Vector3(0.0f, 0.0f, 0.0f)) -
-        GetForwardDirection() * (useDistanceAndFocalPointForPositionCalculation ? m_Distance: 1.0f); //<--- For the skybox, the distance should not be changed
+        return GetForwardDirection();
     }
 
     VWolf::Vector3 CameraController::GetUpDirection() const

@@ -12,6 +12,7 @@
 
 #include "MetalShader.h"
 
+#include "VWolf/Core/Components/GameObject.h"
 #include "VWolf/Core/Render/RenderItem.h"
 #include "VWolf/Platform/Metal/MetalDriver.h"
 #include "VWolf/Platform/Metal/Render/MetalTexture.h"
@@ -166,16 +167,39 @@ namespace VWolf {
 
             if (drawMeshCommand->GetMesh() == nullptr || drawMeshCommand->GetMesh()->GetVertices().size() == 1) continue; // It's a light
 
-            cam = drawMeshCommand->GetCamera().get();
+            cam = drawMeshCommand->GetCamera()->GetCamera().get();
+
+            bool isSkybox = Shader::GetShader(drawMeshCommand->GetMaterial()->GetShaderName())->GetSubShader().GetPriority() < 200;
+            TransformComponent& cameraTransform = drawMeshCommand->GetCamera()->GetGameObject()->GetTransform();
+            
+            Vector3 focalPoint = !isSkybox ? cam->GetFocalPoint() : VWolf::Vector3(0.0f, 0.0f, 0.0f);
+            float zoom = !isSkybox ? cam->GetZoom() : 1.0f;
+            
+            Vector3 position = Vector3::Zero;
+            if ((drawMeshCommand->GetCamera()->GetGameObject()->GetFlags() & HideFlags::Editor) == HideFlags::Editor)
+                position = focalPoint - cameraTransform.GetPosition() * zoom;
+            else {
+                if (isSkybox)
+                    position = Vector3::Zero;
+                else
+                    position = cameraTransform.GetPosition();
+            }
+            
+            Matrix4x4 viewMatrix = cam->CalculateView(position,
+                                                      Quaternion::Euler(
+                                                                        cameraTransform.GetEulerAngles().GetX(),
+                                                                        cameraTransform.GetEulerAngles().GetY(),
+                                                                        cameraTransform.GetEulerAngles().GetZ()
+                                                                        ));
 
             CameraPass cameraPass = {
-                cam->GetViewMatrix(),
-                cam->GetViewMatrix().GetInverse(),
+                viewMatrix,
+                viewMatrix.GetInverse(),
                 cam->GetProjection(),
                 cam->GetProjection().GetInverse(),
-                cam->GetViewProjection(),
-                cam->GetViewProjection().GetInverse(),
-                cam->GetPosition(),
+                cam->GetViewProjection(viewMatrix),
+                cam->GetViewProjection(viewMatrix).GetInverse(),
+                cameraTransform.GetPosition(),
                 0,
                 cam->GetDisplaySize(),
                 { 1 / cam->GetDisplaySize().GetX(), 1 / cam->GetDisplaySize().GetY() },

@@ -51,7 +51,8 @@ namespace VWolfPup {
         if (ImGui::TreeNodeEx(scene->GetName().c_str(),
                               ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_OpenOnArrow)) {
             for(VWolf::Ref<VWolf::GameObject> gameObject: scene->GetGameObjects()){
-                DrawGameObject(gameObject, selectedName, didSelection);
+                if ((gameObject->GetFlags() & VWolf::HideFlags::HideInHierarchy) == VWolf::HideFlags::None)
+                    DrawGameObject(gameObject, selectedName, didSelection);
             }
             ImGui::TreePop();
         }

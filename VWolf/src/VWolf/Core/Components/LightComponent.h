@@ -22,7 +22,6 @@ namespace VWolf {
         LightComponent(LightComponent&& light);
         ~LightComponent();
     public:
-        Light& GetLight(TransformComponent component);
         Light& GetLight() { return light; }
         void SetLight(Light light) { this->light = light; }
 

@@ -11,6 +11,7 @@
 #include "VWolf/Core/Math/VMath.h"
 
 #include "VWolf/Core/Physics/Physics.h"
+#include "VWolf/Core/Application.h"
 #include "GameObject.h"
 
 namespace VWolf {
@@ -40,13 +41,15 @@ namespace VWolf {
     void SphereColliderComponent::CreateSphereCollider(Ref<Mesh> data, TransformComponent& component) {
         mRadius = std::max(std::max(component.GetLocalScale().GetX(), component.GetLocalScale().GetY()), component.GetLocalScale().GetZ());
         sphereShape = Ref<reactphysics3d::SphereShape>(Physics::GetCommon().createSphereShape(mRadius), [](reactphysics3d::SphereShape* sphereShape) {
-            Physics::GetCommon().destroySphereShape(sphereShape);
+            if(Application::GetApplication())
+                Physics::GetCommon().destroySphereShape(sphereShape);
         });
         reactphysics3d::Transform transform = reactphysics3d::Transform::identity();
         reactphysics3d::RigidBody* rigidBody = GetGameObject()->GetRigidBody();
         if (rigidBody != nullptr) {
             collider = Ref<reactphysics3d::Collider>(rigidBody->addCollider(sphereShape.get(), transform), [this](reactphysics3d::Collider* collider) {
-                GetGameObject()->GetRigidBody()->removeCollider(collider);
+                if (GetGameObject() != nullptr)
+                    GetGameObject()->GetRigidBody()->removeCollider(collider);
             });
         }
     }

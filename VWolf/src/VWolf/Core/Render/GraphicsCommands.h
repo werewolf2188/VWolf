@@ -12,7 +12,7 @@
 #include "VWolf/Core/Base.h"
 #include "VWolf/Core/Math/VMath.h"
 #include "Mesh.h"
-#include "Camera.h"
+#include "VWolf/Core/Components/CameraComponent.h"
 #include "Material.h"
 
 namespace VWolf {
@@ -40,18 +40,18 @@ namespace VWolf {
 
     class DrawMeshCommand: public MeshGraphicsCommand {
     public:
-        DrawMeshCommand(Ref<Mesh> mesh, Vector3 position, Quaternion rotation, Ref<Material> material, int layer, int submeshIndex, Ref<Camera> camera = nullptr, bool castShadows = true, bool receiveShadows = true);
-        DrawMeshCommand(Ref<Mesh> mesh, Matrix4x4 transform, Ref<Material> material, int layer, int submeshIndex, Ref<Camera> camera = nullptr, bool castShadows = true, bool receiveShadows = true);
+        DrawMeshCommand(Ref<Mesh> mesh, Vector3 position, Quaternion rotation, Ref<Material> material, int layer, int submeshIndex, Ref<CameraComponent> CameraComponent = nullptr, bool castShadows = true, bool receiveShadows = true);
+        DrawMeshCommand(Ref<Mesh> mesh, Matrix4x4 transform, Ref<Material> material, int layer, int submeshIndex, Ref<CameraComponent> camera = nullptr, bool castShadows = true, bool receiveShadows = true);
     public:
         Ref<Material> GetMaterial() { return material; }
-        Ref<Camera> GetCamera() { return camera; }
+        Ref<CameraComponent> GetCamera() { return camera; }
         int GetLayer() { return layer; }
         int GetSubmeshIndex() { return submeshIndex; }
         bool GetCastShadows() { return castShadows; }
         bool GetReceiveShadows() { return receiveShadows; }
     private:
         Ref<Material> material;
-        Ref<Camera> camera;
+        Ref<CameraComponent> camera;
         int layer;
         int submeshIndex;
         bool castShadows;

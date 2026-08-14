@@ -30,6 +30,24 @@ namespace YAML {
 
 namespace VWolf {
 
+    enum class HideFlags {
+        None = 0,
+        HideInHierarchy = 1 << 0,
+        HideInInspector = 1 << 1,
+        DontSaveInEditor = 1 << 2,
+        NotEditable = 1 << 3,
+        DontSaveInBuild = 1 << 4,
+        DontUnloadUnusedAsset = 1 << 5,
+        DontSave = 1 << 6,
+        Editor = 1 << 7,
+        HideAndDontSave = HideInHierarchy | DontSaveInBuild | DontSave
+    };
+
+    HideFlags operator&(HideFlags lhs, HideFlags rhs);
+    HideFlags operator|(HideFlags lhs, HideFlags rhs);
+    HideFlags& operator&=(HideFlags& lhs, HideFlags rhs);
+    HideFlags& operator|=(HideFlags& lhs, HideFlags rhs);
+
     class GameObject: public Object, public Shareable<GameObject> {
     public:
         GameObject(): Object(UUID::NewUUID()) {};
@@ -110,6 +128,9 @@ namespace VWolf {
             if (found) {
                 currentComponents.erase(currentComponents.begin() + i);
             }
+            if constexpr (std::is_same_v<T, CameraComponent>) {
+                GetScene()->FindNextCamera();
+            }
         }
     public:
         void AttachToScene(Weak<Scene> scene);
@@ -125,11 +146,15 @@ namespace VWolf {
             }
             return nullptr;
         }
+        
+        HideFlags GetFlags() { return flags; }
+        void SetFlags(HideFlags _flags) { flags = _flags; }
     private:
         void SaveComponent(const Ref<Component>& component);
     private:
         entt::entity handle { entt::null };
         Weak<Scene> scene;
+        HideFlags flags = HideFlags::None;
 
         std::vector<Ref<Component>> currentComponents;
 

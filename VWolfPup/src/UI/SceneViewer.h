@@ -13,7 +13,7 @@
 namespace VWolfPup {
     class SceneViewer: public View {
     public:
-        SceneViewer(VWolf::Ref<VWolf::Camera> camera, VWolf::DriverType driverType);
+        SceneViewer(VWolf::Ref<VWolf::Camera> camera, VWolf::Ref<VWolf::TransformComponent> cameraTransform, VWolf::DriverType driverType);
         ~SceneViewer();
     public:
         void OnGui() override;
@@ -27,6 +27,7 @@ namespace VWolfPup {
         VWolf::DriverType driverType;
         uint32_t operation = 7; // ImGuizmo::OPERATION::TRANSLATE
         VWolf::Ref<VWolf::Camera> camera;
+        VWolf::Ref<VWolf::TransformComponent> cameraTransform;
         bool isHovering = false;
     };
 }

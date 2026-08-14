@@ -48,6 +48,26 @@ namespace YAML {
 
 namespace VWolf {
     
+    HideFlags operator&(HideFlags lhs, HideFlags rhs) {
+        using T = std::underlying_type_t<HideFlags>;
+        return static_cast<HideFlags>(static_cast<T>(lhs) & static_cast<T>(rhs));
+    }
+
+    HideFlags operator|(HideFlags lhs, HideFlags rhs) {
+        using T = std::underlying_type_t<HideFlags>;
+        return static_cast<HideFlags>(static_cast<T>(lhs) | static_cast<T>(rhs));
+    }
+
+    HideFlags& operator&=(HideFlags& lhs, HideFlags rhs) {
+        lhs = lhs & rhs;
+        return lhs;
+    }
+
+    HideFlags& operator|=(HideFlags& lhs, HideFlags rhs) {
+        lhs = lhs | rhs;
+        return lhs;
+    }
+
     struct ComponentSerializer {
     public:
         ComponentSerializer(YAML::Emitter& out, VWolf::GameObject& v):

@@ -50,11 +50,9 @@ VWolf::Mesh CreateGridEx() {
 
 class RendererSandboxApplication: public VWolf::Application {
 public:
-    VWolf::Ref<VWolf::Camera> camera, skyBoxCamera;
-    VWolf::Ref<VWolf::Texture2D> testTexture;
     VWolf::Ref<VWolf::Mesh> gridDataEx = VWolf::CreateRef<VWolf::Mesh>(CreateGridEx());
 
-    VWolf::Ref<VWolfPup::CameraController> controller, skyBoxController;
+    VWolf::Ref<VWolfPup::CameraController> controller;
 
     // UI
     VWolfPup::ContainerView* containerView;
@@ -81,21 +79,20 @@ public:
         VWolfPup::AssetDatabase::LoadMetaFilesForEditor();
         VWolfPup::InitializeEditor();
         
-        camera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
-        skyBoxCamera = VWolf::CreateRef<VWolf::Camera>(45.0f, SCREENWIDTH / SCREENHEIGHT, 0.1f, 1000.0f);
+        VWolfPup::Project::CurrentProject()->GetCameraComponent()->SetFOV(45.0f);
+        VWolfPup::Project::CurrentProject()->GetCameraComponent()->SetAspectRatio(SCREENWIDTH / SCREENHEIGHT);
+        VWolfPup::Project::CurrentProject()->GetCameraComponent()->SetNearClip(0.1f);
+        VWolfPup::Project::CurrentProject()->GetCameraComponent()->SetFarClip(1000.0f);
         
-        controller = VWolf::CreateRef<VWolfPup::CameraController>(camera, [this](){
+        controller = VWolf::CreateRef<VWolfPup::CameraController>(
+                                                                  VWolfPup::Project::CurrentProject()->GetCameraComponent(),
+                                                                  VWolf::UnownedRef<VWolf::TransformComponent>(&VWolfPup::Project::CurrentProject()->GetEditorGameObject()->GetTransform()),
+                                                                  [this](){
             if (openBrowser->IsOpen() || saveBrowser->IsOpen() || VWolf::Application::IsPlaying()) return false;
             return sceneViewer->IsHovering();
         });
-        skyBoxController = VWolf::CreateRef<VWolfPup::CameraController>(skyBoxCamera, [this](){
-            if (openBrowser->IsOpen() || saveBrowser->IsOpen() || VWolf::Application::IsPlaying()) return false;
-            return sceneViewer->IsHovering();
-        });
-        skyBoxController->SetUseDistanceAndFocalForPositionCalculation(false);
 
         VWolfPup::Project::CurrentProject()->GetSettings().GetEditorCameraSettings().SetCameraControllerInformation(controller);
-        VWolfPup::Project::CurrentProject()->GetSettings().GetEditorCameraSettings().SetCameraControllerInformation(skyBoxController);
 
         // Scene
         testScene =  VWolfPup::Project::CurrentProject()->GetCurrentScene();
@@ -130,7 +127,8 @@ public:
         inspector = new VWolfPup::Inspector();
         containerView->AddView(inspector);
 
-        sceneViewer = new VWolfPup::SceneViewer(camera, VWolfPup::Project::CurrentProject()->GetType());
+        sceneViewer = new VWolfPup::SceneViewer(VWolfPup::Project::CurrentProject()->GetCameraComponent()->GetCamera(),
+                                                VWolf::UnownedRef<VWolf::TransformComponent>(&VWolfPup::Project::CurrentProject()->GetEditorGameObject()->GetTransform()), VWolfPup::Project::CurrentProject()->GetType());
         containerView->AddView(sceneViewer);
 
         sceneSettings = new VWolfPup::SceneSettings(VWolfPup::Project::CurrentProject()->GetCurrentScene().get());
@@ -165,8 +163,6 @@ public:
         std::string skyMaterialName = VWolfPup::Defaults::Get()->GetDefaultSkyBoxMaterialName();
         VWolf::Ref<VWolf::Material> skyMaterial = VWolf::MaterialLibrary::GetMaterial(skyMaterialName);
         testScene->GetSceneBackground().SetSkyboxMaterial(skyMaterial);
-        // TODO: This should come from the same camera.
-        testScene->GetSceneBackground().SetCamera(skyBoxCamera);
         
         VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::WindowCloseEvent>(VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowClose));
         VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::WindowResizeEvent>(VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowResize));
@@ -177,6 +173,8 @@ public:
 
     bool OnWindowClose(VWolf::WindowCloseEvent& e) {
         this->containerView->SaveIniFile();
+        if (VWolf::Application::IsPlaying())
+            testScene->StopingPreview();
         return true;
     }
 
@@ -187,7 +185,6 @@ public:
 
         if (sceneViewer->IsHovering()) {
             controller->OnUpdate();
-            skyBoxController->OnUpdate();
         }
     }
 
@@ -198,13 +195,13 @@ public:
         if (VWolf::Application::IsPlaying())
             testScene->DrawPreviewEditor();
         else {
-            testScene->DrawEditor(camera);
+            testScene->DrawEditor();
             VWolf::Graphics::DrawMesh(gridDataEx,
                                       VWolf::Matrix4x4(),
                                       VWolf::MaterialLibrary::GetMaterial(VWolfPup::Defaults::Get()->GetDefaultGridMaterialName()),
                                       0,
                                       0,
-                                      camera,
+                                      VWolfPup::Project::CurrentProject()->GetCameraComponent(),
                                       false,
                                       false);
         }
@@ -226,7 +223,6 @@ public:
             testScene->StartingPreview();
         else {
             controller->OnUpdate();
-            skyBoxController->OnUpdate();
             testScene->StopingPreview();
         }   
         return true;

@@ -40,15 +40,27 @@ namespace VWolf {
         void SetFarClip(float farClip) { m_FarClip = farClip; }
         float& GetZoom() { return m_zoom; }
         void SetZoom(float zoom) { m_zoom = zoom; }
+        
+        VWolf::Vector3& GetFocalPoint() { return m_FocalPoint; }
+        void SetFocalPoint(VWolf::Vector3 focalPoint) { m_FocalPoint = focalPoint; }
 
         bool& IsOrthographic() { return m_isOrthographic; }
         void SetOrthographic(bool isOrthographic) { m_isOrthographic = isOrthographic; }
     public:
-        Ref<Camera> GetCamera(TransformComponent component);
-        Ref<Camera> GetCamera() { return m_camera; }
+        virtual void SetGameObject(Weak<GameObject> gameObject) override;
+    public:
+        Ref<Camera> GetCamera();
+    public:
+        static Ref<CameraComponent> GetMainCamera() { return m_main; }
+        static void SetMainCamera(Ref<CameraComponent> main) {
+            m_main = main;
+        }
+    private:
+        static Ref<CameraComponent> m_main;
     private:
         Ref<Camera> m_camera;
 
+        VWolf::Vector3 m_FocalPoint = { 0.0f, 0.0f, 0.0f };
         float m_ViewportWidth;
         float m_ViewportHeight;
 

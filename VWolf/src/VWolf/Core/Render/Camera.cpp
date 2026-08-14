@@ -8,11 +8,10 @@
 #include "Camera.h"
 namespace VWolf {
 
-    void Camera::UpdateView(Vector3 position, Quaternion orientation) {
-        // TODO: Remove and use component system
-        m_position = position;
-        m_ViewMatrix = Matrix4x4::Identity.Translate(position) * orientation.ToMatrix4x4();
+    Matrix4x4 Camera::CalculateView(Vector3 position, Quaternion orientation) {
+        Matrix4x4 m_ViewMatrix = Matrix4x4::Identity.Translate(position) * orientation.ToMatrix4x4();
         m_ViewMatrix = m_ViewMatrix.GetInverse();
+        return m_ViewMatrix;
     }
 
     void Camera::UpdateProjection() {

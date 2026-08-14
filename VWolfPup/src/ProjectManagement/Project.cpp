@@ -250,9 +250,17 @@ namespace VWolfPup {
         fileWatcher->watch();
     }
 
+    void Project::CreateEditorObject() {
+        editorObject = currentScene->CreateGameObject("Editor Game Object");
+        editorObject->SetFlags(VWolf::HideFlags::Editor | VWolf::HideFlags::HideAndDontSave);
+        
+        cameraComponent = VWolf::UnownedRef<VWolf::CameraComponent>(&editorObject->AddComponent<VWolf::CameraComponent>());
+    }
+
     void Project::AddScene(std::filesystem::path path, VWolf::Ref<VWolf::Scene> scene) {
         if (scene->GetID() == settings.GetCurrentSceneID()) {
             currentScene = scene;
+            CreateEditorObject();
         }
         scenes[path] = scene;
     }

@@ -8,8 +8,11 @@
 #include "vwpch.h"
 #include "CameraComponent.h"
 #include "TransformComponent.h"
+#include "GameObject.h"
 
 namespace VWolf {
+
+    Ref<CameraComponent> CameraComponent::m_main = nullptr;
 
     CameraComponent::CameraComponent(): Component(ClassNameCleaner::Current().GetClassName<CameraComponent>()),
     m_camera(CreateRef<Camera>()),
@@ -27,6 +30,7 @@ namespace VWolf {
         this->m_FarClip = camera.m_FarClip;
         this->m_isOrthographic = camera.m_isOrthographic;
         this->m_zoom = camera.m_zoom;
+        this->m_FocalPoint = camera.m_FocalPoint;
 
         m_camera->SetFOV(m_FOV);
         m_camera->SetNearZ(m_NearClip);
@@ -35,6 +39,7 @@ namespace VWolf {
         m_camera->SetOrthographic(m_isOrthographic);
         m_camera->SetZoomLevel(m_zoom);
         m_camera->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+        m_camera->SetFocalPoint(m_FocalPoint);
     }
 
     CameraComponent::CameraComponent(CameraComponent&& camera):
@@ -47,6 +52,7 @@ namespace VWolf {
         this->m_FarClip = camera.m_FarClip;
         this->m_isOrthographic = camera.m_isOrthographic;
         this->m_zoom = camera.m_zoom;
+        this->m_FocalPoint = camera.m_FocalPoint;
 
         m_camera->SetFOV(m_FOV);
         m_camera->SetNearZ(m_NearClip);
@@ -55,6 +61,7 @@ namespace VWolf {
         m_camera->SetOrthographic(m_isOrthographic);
         m_camera->SetZoomLevel(m_zoom);
         m_camera->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+        m_camera->SetFocalPoint(m_FocalPoint);
 
         camera.m_ViewportWidth = 0;
         camera.m_ViewportHeight = 0;
@@ -64,6 +71,7 @@ namespace VWolf {
         camera.m_FarClip = 0;
         camera.m_isOrthographic = false;
         camera.m_zoom = 0;
+        camera.m_FocalPoint = Vector3::Zero;
     }
 
     CameraComponent::~CameraComponent() { }
@@ -73,21 +81,27 @@ namespace VWolf {
         return component;
     }
 
-    Ref<Camera> CameraComponent::GetCamera(TransformComponent component) {
-        m_camera->UpdateView(component.GetPosition(), 
-                             Quaternion::Euler(
-                                          (Mathf::Deg2Rad * component.GetEulerAngles().GetX()),
-                                          (Mathf::Deg2Rad * component.GetEulerAngles().GetY()),
-                                          (Mathf::Deg2Rad * component.GetEulerAngles().GetZ())
-                             ));
+    Ref<Camera> CameraComponent::GetCamera() {
         m_camera->SetFOV(m_FOV);
         m_camera->SetNearZ(m_NearClip);
         m_camera->SetFarZ(m_FarClip);
         m_camera->SetAspectRatio(m_AspectRatio);
         m_camera->SetOrthographic(m_isOrthographic);
         m_camera->SetZoomLevel(m_zoom);
+        m_camera->SetFocalPoint(m_FocalPoint);
+    
         m_camera->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
         return m_camera;
+    }
+
+    void CameraComponent::SetGameObject(Weak<GameObject> gameObject) {
+        Component::SetGameObject(gameObject);
+
+        if (Ref<GameObject> go = gameObject.lock()) {
+            if ((go->GetFlags() & HideFlags::Editor) == HideFlags::None) {
+                CameraComponent::SetMainCamera(UnownedRef<CameraComponent>(this));
+            }
+        }
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(CameraComponent, "CameraComponent")

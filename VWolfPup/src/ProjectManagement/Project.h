@@ -95,6 +95,9 @@ namespace VWolfPup {
         std::map<std::uintptr_t, std::function<void(const std::string& path, const efsw::Action event)>>& GetObservers() {
             return _observers;
         }
+        
+        VWolf::Ref<VWolf::CameraComponent> GetCameraComponent() { return cameraComponent; }
+        VWolf::Ref<VWolf::GameObject> GetEditorGameObject() { return editorObject; }
     public:
         void AddObserver(std::uintptr_t, std::function<void(const std::string& path, const efsw::Action event)>);
         void Save();
@@ -114,12 +117,16 @@ namespace VWolfPup {
         static VWolf::Ref<Project> CurrentProject();
         static Extension project_extension;
     private:
+        void CreateEditorObject();
+    private:
         Settings settings;
         std::filesystem::path projectPath;
         VWolf::Ref<efsw::FileWatcher> fileWatcher;
         VWolf::Ref<ProjectListener> listener;
         efsw::WatchID watchID;
         VWolf::Ref<VWolf::Scene> currentScene;
+        VWolf::Ref<VWolf::GameObject> editorObject;
+        VWolf::Ref<VWolf::CameraComponent> cameraComponent;
         std::map<std::uintptr_t, std::function<void(const std::string& path, const efsw::Action event)>> _observers;
 
         std::map<std::filesystem::path, VWolf::Ref<VWolf::Material>> materials;

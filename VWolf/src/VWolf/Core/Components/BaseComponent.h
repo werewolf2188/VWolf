@@ -32,7 +32,7 @@ namespace VWolf {
             return UnownedRef<T>(&component);
         }
     public:
-        void SetGameObject(Weak<GameObject> gameObject);
+        virtual void SetGameObject(Weak<GameObject> gameObject);
         Ref<GameObject> GetGameObject() {
             if (Ref<GameObject> go = gameObject.lock()) {
                 return go;

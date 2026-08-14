@@ -16,7 +16,7 @@ namespace VWolfPup {
 // TODO: by editor
     class CameraController {
     public:
-        CameraController(VWolf::Ref<VWolf::Camera> camera, std::function<bool()> shouldListenToEvent);
+        CameraController(VWolf::Ref<VWolf::CameraComponent> camera, VWolf::Ref<VWolf::TransformComponent> transform, std::function<bool()> shouldListenToEvent);
 
         bool OnMouseScroll(VWolf::MouseScrolledEvent& e);
         void OnUpdate();
@@ -26,7 +26,6 @@ namespace VWolfPup {
         float GetYaw() const;
         float GetDistance() const;
         void SetDistance(float distance);
-        void SetUseDistanceAndFocalForPositionCalculation(bool allow) { useDistanceAndFocalPointForPositionCalculation = allow; }
     public:
         inline void SetPitch(float pitch) { m_Pitch = pitch; }
         inline void SetYaw(float yaw) { m_Yaw = yaw; }
@@ -43,7 +42,8 @@ namespace VWolfPup {
         VWolf::Quaternion GetOrientation() const;
         VWolf::Vector3 CalculatePosition() const;
     private:
-        VWolf::Ref<VWolf::Camera> camera;
+        VWolf::Ref<VWolf::TransformComponent> transform;
+        VWolf::Ref<VWolf::CameraComponent> camera;
         // This is going to change into a transform, once we start implementing components
         // For position
         VWolf::Vector3 m_Position = { 0.0f, 0.0f, 0.0f };
@@ -56,9 +56,6 @@ namespace VWolfPup {
         // Window/Image size
         float m_ViewportWidth = 1280.0f;
         float m_ViewportHeight = 720.0f;
-
-        // Allow calculation
-        bool useDistanceAndFocalPointForPositionCalculation = true;
 
         // Input
         VWolf::Vector2 m_InitialMousePosition = { 0.0f, 0.0f };

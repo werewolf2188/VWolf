@@ -17,11 +17,11 @@ namespace VWolf {
         
     }
 
-    DrawMeshCommand::DrawMeshCommand(Ref<Mesh> mesh, Vector3 position, Quaternion rotation, Ref<Material> material, int layer, int submeshIndex, Ref<Camera> camera, bool castShadows, bool receiveShadows): MeshGraphicsCommand(mesh, position, rotation), material(material), layer(layer), submeshIndex(submeshIndex), camera(camera), castShadows(castShadows), receiveShadows(receiveShadows) {
+    DrawMeshCommand::DrawMeshCommand(Ref<Mesh> mesh, Vector3 position, Quaternion rotation, Ref<Material> material, int layer, int submeshIndex, Ref<CameraComponent> camera, bool castShadows, bool receiveShadows): MeshGraphicsCommand(mesh, position, rotation), material(material), layer(layer), submeshIndex(submeshIndex), camera(camera), castShadows(castShadows), receiveShadows(receiveShadows) {
 
     }
 
-    DrawMeshCommand::DrawMeshCommand(Ref<Mesh> mesh, Matrix4x4 transform, Ref<Material> material, int layer, int submeshIndex, Ref<Camera> camera, bool castShadows, bool receiveShadows): MeshGraphicsCommand(mesh, transform), material(material), layer(layer), submeshIndex(submeshIndex), camera(camera), castShadows(castShadows), receiveShadows(receiveShadows) {
+    DrawMeshCommand::DrawMeshCommand(Ref<Mesh> mesh, Matrix4x4 transform, Ref<Material> material, int layer, int submeshIndex, Ref<CameraComponent> camera, bool castShadows, bool receiveShadows): MeshGraphicsCommand(mesh, transform), material(material), layer(layer), submeshIndex(submeshIndex), camera(camera), castShadows(castShadows), receiveShadows(receiveShadows) {
 
     }
 }

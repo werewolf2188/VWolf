@@ -16,6 +16,8 @@
 
 #include "VWolf/Core/Utils/GenericSerialization.h"
 
+#include "VWolf/Core/Components/CameraComponent.h"
+
 namespace reactphysics3d {
     class PhysicsWorld;
 }
@@ -39,21 +41,18 @@ namespace VWolf {
         Ref<Mesh> GetSkyboxMesh() { return skyboxEx; }
         Material& GetSkyboxMaterial() { return *this->materialSkybox; }
         Ref<Material> GetSkyboxMaterialEx() { return this->materialSkybox; }
-        void SetCamera(Ref<Camera> camera) { this->camera = camera; }
-        Ref<Camera> GetCamera() { return this->camera; }
         Type GetType() { return type; }
         void SetType(Type type) { this->type = type; }
     public:
         SceneBackground& operator=(const SceneBackground& t);
         SceneBackground& operator=(SceneBackground&& t);
     private:
-        void Draw();
+        void Draw(Ref<CameraComponent> camera);
     private:
         Color backgroundColor;
         Type type = Type::Color;
         Ref<Mesh> skyboxEx;
         Ref<Material> materialSkybox;
-        Ref<Camera> camera;
         
         friend class Scene;
         
@@ -72,7 +71,7 @@ namespace VWolf {
     public:
         Ref<GameObject> CreateGameObject(std::string name);
         void UpdateEditor();
-        void DrawEditor(Ref<Camera> editorCamera);
+        void DrawEditor();
         void DrawPreviewEditor();
         void AddExistingGameObject(Ref<GameObject> gameObject);
         void RemoveGameObject(std::string name);
@@ -90,7 +89,8 @@ namespace VWolf {
     public:
         static Ref<Scene> Load(std::filesystem::path path, UUID _id);
     private:
-        void Draw(Ref<Camera> camera);
+        void Draw(Ref<CameraComponent> camera);
+        void FindNextCamera();
     private:
         bool isPreviewing = false;
         float previewAccumulator = 0.2f;

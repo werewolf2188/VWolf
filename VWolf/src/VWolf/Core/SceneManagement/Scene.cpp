@@ -59,14 +59,14 @@ namespace VWolf {
         return *this;
     }
 
-    void SceneBackground::Draw() {
+    void SceneBackground::Draw(Ref<CameraComponent> camera) {
         Graphics::DrawMesh(GetSkyboxMesh(),
                            Vector3::Zero,
                            Quaternion::Identity,
                            GetSkyboxMaterialEx(),
                            0,
                            0,
-                           GetCamera(),
+                           camera,
                            false,
                            false);
     }
@@ -223,6 +223,8 @@ namespace VWolf {
         previewAccumulator = Time::GetDeltaTime();
 
         for (auto gameObject: gameObjects) {
+            if ((gameObject->GetFlags() & HideFlags::Editor) == HideFlags::Editor) continue;
+            
             Ref<GameObject> previewGameObject = CreateRef<GameObject>(gameObject->GetName(), m_previewRegistry.create(), weak_from_this());
             previewGameObject->CopyComponents(gameObject);
             previewGameObjects.push_back(previewGameObject);
@@ -287,26 +289,39 @@ namespace VWolf {
             m_previewRegistry.destroy(previewGameObject->GetHandle());
         }
         previewGameObjects.clear();
+        FindNextCamera();
     }
 
-    void Scene::DrawEditor(Ref<Camera> editorCamera) {
-        Draw(editorCamera);
+    void Scene::DrawEditor() {
+        auto cameraAndTransformComponents = m_registry.view<CameraComponent, TransformComponent>();
+        if (cameraAndTransformComponents.begin() == cameraAndTransformComponents.end()) return; // There is no camera
+
+        entt::entity cameraAndTransformEntity;
+        for(auto entity : cameraAndTransformComponents) {
+            Ref<GameObject> gameObject = cameraAndTransformComponents.get<TransformComponent>(entity).GetGameObject();
+            if ((gameObject->GetFlags() & HideFlags::Editor) != HideFlags::Editor) continue;
+            cameraAndTransformEntity = entity;
+        }
+
+        auto [cameraCom, cameraTransform] = cameraAndTransformComponents.get<CameraComponent, TransformComponent>(cameraAndTransformEntity);
+
+        Draw(UnownedRef<CameraComponent>(&cameraCom));
     }
 
-    void Scene::Draw(Ref<Camera> camera) {
+    void Scene::Draw(Ref<CameraComponent> camera) {
         entt::registry& currentRegistry = isPreviewing ? m_previewRegistry : m_registry;
         
         GraphicsContext::SetClearColor(sceneBackGround.GetBackgroundColor());
 
         if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
-            sceneBackGround.Draw();
+            sceneBackGround.Draw(camera);
         }
         
         CreateViewWithViewAndProcessComponents<TransformComponent>(currentRegistry, [this, camera, &currentRegistry](auto& entity, auto& tuple){
             TransformComponent& transform = tuple;
             transform.Apply();
             if (auto* light = currentRegistry.try_get<LightComponent>(entity)) {
-                GraphicsContext::AddLight(light->GetLight(), transform.GetPosition(), transform.GetEulerAngles());
+                GraphicsContext::AddLight(*light);
             }
             bool hasRenderer = false;
             if (auto* shapeRenderer = currentRegistry.try_get<ShapeRendererComponent>(entity)) {
@@ -340,25 +355,30 @@ namespace VWolf {
         });
     }
 
+    void Scene::FindNextCamera() {
+        // TODO: Main camera for preview mode should be the copy of the main camera in editing mode
+        for(auto gameObject: (isPreviewing ? previewGameObjects : gameObjects)) {
+            if (gameObject->HasComponent<CameraComponent>() && (gameObject->GetFlags() & HideFlags::Editor) == HideFlags::None) {
+                CameraComponent::SetMainCamera(UnownedRef<CameraComponent>(&gameObject->GetComponent<CameraComponent>()));
+                break;
+            }
+        }
+    }
+
     void Scene::DrawPreviewEditor() {
         auto cameraAndTransformComponents = m_previewRegistry.view<CameraComponent, TransformComponent>();
         if (cameraAndTransformComponents.begin() == cameraAndTransformComponents.end()) return; // There is no camera
 
-        auto cameraAndTransformEntity = cameraAndTransformComponents.front();
+        entt::entity cameraAndTransformEntity;
+        for(auto entity : cameraAndTransformComponents) {
+            Ref<GameObject> gameObject = cameraAndTransformComponents.get<TransformComponent>(entity).GetGameObject();
+            if ((gameObject->GetFlags() & HideFlags::Editor) == HideFlags::Editor) continue;
+            cameraAndTransformEntity = entity;
+        }
 
         auto [cameraCom, cameraTransform] = cameraAndTransformComponents.get<CameraComponent, TransformComponent>(cameraAndTransformEntity);
-
-        Ref<Camera> camera = cameraCom.GetCamera(cameraTransform);
-
-        if (sceneBackGround.GetType() == SceneBackground::Type::Skybox) {
-            sceneBackGround.GetCamera()->UpdateView(Vector3(), Quaternion::Euler(
-                                                             (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetX()),
-                                                             (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetY()),
-                                                             (Mathf::Deg2Rad * cameraTransform.GetEulerAngles().GetZ())
-                                                         ));
-        }
         
-        Draw(camera);
+        Draw(UnownedRef<CameraComponent>(&cameraCom));
     }
 
     void Scene::Save(std::filesystem::path path) {
@@ -401,7 +421,8 @@ namespace VWolf {
         out << YAML::Key << gameObjectsKey;
         out << YAML::BeginSeq;
         for (auto gameObject: v.GetGameObjects()) {
-            out << *gameObject.get();
+            if ((gameObject->GetFlags() & HideFlags::DontSave) == HideFlags::None)
+                out << *gameObject.get();
         }
         out << YAML::EndSeq;
         out << YAML::EndMap;
@@ -419,7 +440,8 @@ namespace VWolf {
         out << YAML::Key << gameObjectsKey;
         out << YAML::BeginSeq;
         for (auto gameObject: v.GetGameObjects()) {
-            out << *gameObject.get();
+            if ((gameObject->GetFlags() & HideFlags::DontSave) == HideFlags::None)
+                out << *gameObject.get();
         }
         out << YAML::EndSeq;
         out << YAML::EndMap;

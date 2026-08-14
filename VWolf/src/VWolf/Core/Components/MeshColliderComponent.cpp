@@ -11,6 +11,7 @@
 #include "VWolf/Core/Math/VMath.h"
 
 #include "VWolf/Core/Physics/Physics.h"
+#include "VWolf/Core/Application.h"
 #include "GameObject.h"
 
 namespace VWolf {
@@ -55,7 +56,8 @@ namespace VWolf {
                                                   reactphysics3d::TriangleVertexArray::IndexDataType::INDEX_INTEGER_TYPE);
 
         triangleMesh = Ref<reactphysics3d::TriangleMesh>(Physics::GetCommon().createTriangleMesh(array, messages), [](reactphysics3d::TriangleMesh * triangleMesh) {
-            Physics::GetCommon().destroyTriangleMesh(triangleMesh);
+            if(Application::GetApplication())
+                Physics::GetCommon().destroyTriangleMesh(triangleMesh);
         });
         
         if (triangleMesh == nullptr) return;
@@ -64,14 +66,16 @@ namespace VWolf {
 
         concaveMeshShape = Ref<reactphysics3d::ConcaveMeshShape>(Physics::GetCommon()
                                  .createConcaveMeshShape(triangleMesh.get(), { scale.GetX(), scale.GetY(), scale.GetZ() }), [](reactphysics3d::ConcaveMeshShape * concaveMeshShape) {
-                                     Physics::GetCommon().destroyConcaveMeshShape(concaveMeshShape);
+                                     if(Application::GetApplication())
+                                         Physics::GetCommon().destroyConcaveMeshShape(concaveMeshShape);
                                  });
 
         reactphysics3d::Transform transform = reactphysics3d::Transform::identity();
         reactphysics3d::RigidBody* rigidBody = GetGameObject()->GetRigidBody();
         if (rigidBody != nullptr) {
             collider = Ref<reactphysics3d::Collider>(rigidBody->addCollider(concaveMeshShape.get(), transform), [this](reactphysics3d::Collider * collider) {
-                GetGameObject()->GetRigidBody()->removeCollider(collider);
+                if (GetGameObject() != nullptr)
+                    GetGameObject()->GetRigidBody()->removeCollider(collider);
             });
         }
     }

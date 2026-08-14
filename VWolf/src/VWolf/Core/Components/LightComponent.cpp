@@ -34,10 +34,6 @@ namespace VWolf {
         return *this;
     }
 
-    Light& LightComponent::GetLight(TransformComponent component) {
-        return light;
-    }
-
     Ref<Component> LightComponent::Copy(entt::entity& handle, entt::registry& registry) {
         Ref<LightComponent> component = CopyComponent<LightComponent>(handle, registry);
         return component;
