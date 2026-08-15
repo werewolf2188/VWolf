@@ -127,7 +127,7 @@ public:
         inspector = new VWolfPup::Inspector();
         containerView->AddView(inspector);
 
-        sceneViewer = new VWolfPup::SceneViewer(VWolfPup::Project::CurrentProject()->GetCameraComponent()->GetCamera(),
+        sceneViewer = new VWolfPup::SceneViewer(VWolfPup::Project::CurrentProject()->GetCameraComponent(),
                                                 VWolf::UnownedRef<VWolf::TransformComponent>(&VWolfPup::Project::CurrentProject()->GetEditorGameObject()->GetTransform()), VWolfPup::Project::CurrentProject()->GetType());
         containerView->AddView(sceneViewer);
 

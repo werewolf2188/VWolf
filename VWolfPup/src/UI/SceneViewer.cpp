@@ -13,7 +13,7 @@
 //#include <iostream>
 
 namespace VWolfPup {
-    SceneViewer::SceneViewer(VWolf::Ref<VWolf::Camera> camera, VWolf::Ref<VWolf::TransformComponent> cameraTransform, VWolf::DriverType driverType):
+    SceneViewer::SceneViewer(VWolf::Ref<VWolf::CameraComponent> camera, VWolf::Ref<VWolf::TransformComponent> cameraTransform, VWolf::DriverType driverType):
     camera(camera), cameraTransform(cameraTransform), driverType(driverType), View("Scene") {
         VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::AppRenderEvent>(VWOLF_BIND_EVENT_FN(SceneViewer::OnRenderEditor));
     }
@@ -74,8 +74,12 @@ namespace VWolfPup {
                 
                 ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
                 
-                VWolf::Matrix4x4 projection = camera->GetProjection();
-                VWolf::Matrix4x4 view = camera->CalculateView(cameraTransform->GetPosition(), VWolf::Quaternion::Euler(
+                VWolf::Matrix4x4 projection = camera->GetCamera()->GetProjection();
+
+                VWolf::Vector3 focalPoint = camera->GetFocalPoint();
+                float zoom = camera->GetZoom();
+                VWolf::Vector3 position = focalPoint - cameraTransform->GetPosition() * zoom;
+                VWolf::Matrix4x4 view = camera->GetCamera()->CalculateView(position, VWolf::Quaternion::Euler(
                                                                                                                 cameraTransform->GetEulerAngles().GetX(),
                                                                                                                 cameraTransform->GetEulerAngles().GetY(),
                                                                                                                 cameraTransform->GetEulerAngles().GetZ()
