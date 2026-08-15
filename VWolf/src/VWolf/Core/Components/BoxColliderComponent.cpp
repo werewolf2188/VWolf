@@ -11,7 +11,6 @@
 #include "VWolf/Core/Math/VMath.h"
 
 #include "VWolf/Core/Physics/Physics.h"
-#include "VWolf/Core/Application.h"
 #include "GameObject.h"
 
 namespace VWolf {
@@ -35,8 +34,8 @@ namespace VWolf {
     }
 
     void BoxColliderComponent::CreateBoxCollider(Ref<Mesh> data, TransformComponent& component) {
-        boxShape = Ref<reactphysics3d::BoxShape>(Physics::GetCommon().createBoxShape({ component.GetLocalScale().GetX(), component.GetLocalScale().GetY(), component.GetLocalScale().GetZ() }), [](reactphysics3d::BoxShape* shape){
-            if(Application::GetApplication())
+        boxShape = Ref<reactphysics3d::BoxShape>(Physics::GetCommon().createBoxShape({ component.GetLocalScale().GetX(), component.GetLocalScale().GetY(), component.GetLocalScale().GetZ() }), [this](reactphysics3d::BoxShape* shape){
+            if (GetGameObject() != nullptr)
                 Physics::GetCommon().destroyBoxShape(shape);
         });
         scale = component.GetLocalScale();

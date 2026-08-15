@@ -11,7 +11,6 @@
 #include "VWolf/Core/Math/VMath.h"
 
 #include "VWolf/Core/Physics/Physics.h"
-#include "VWolf/Core/Application.h"
 #include "GameObject.h"
 
 namespace VWolf {
@@ -55,8 +54,8 @@ namespace VWolf {
                                                   reactphysics3d::TriangleVertexArray::NormalDataType::NORMAL_FLOAT_TYPE,
                                                   reactphysics3d::TriangleVertexArray::IndexDataType::INDEX_INTEGER_TYPE);
 
-        triangleMesh = Ref<reactphysics3d::TriangleMesh>(Physics::GetCommon().createTriangleMesh(array, messages), [](reactphysics3d::TriangleMesh * triangleMesh) {
-            if(Application::GetApplication())
+        triangleMesh = Ref<reactphysics3d::TriangleMesh>(Physics::GetCommon().createTriangleMesh(array, messages), [this](reactphysics3d::TriangleMesh * triangleMesh) {
+            if (GetGameObject() != nullptr)
                 Physics::GetCommon().destroyTriangleMesh(triangleMesh);
         });
         
@@ -65,8 +64,8 @@ namespace VWolf {
         scale = component.GetLocalScale();
 
         concaveMeshShape = Ref<reactphysics3d::ConcaveMeshShape>(Physics::GetCommon()
-                                 .createConcaveMeshShape(triangleMesh.get(), { scale.GetX(), scale.GetY(), scale.GetZ() }), [](reactphysics3d::ConcaveMeshShape * concaveMeshShape) {
-                                     if(Application::GetApplication())
+                                 .createConcaveMeshShape(triangleMesh.get(), { scale.GetX(), scale.GetY(), scale.GetZ() }), [this](reactphysics3d::ConcaveMeshShape * concaveMeshShape) {
+                                    if (GetGameObject() != nullptr)
                                          Physics::GetCommon().destroyConcaveMeshShape(concaveMeshShape);
                                  });
 
