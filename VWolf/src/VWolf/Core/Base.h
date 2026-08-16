@@ -100,6 +100,12 @@ namespace VWolf {
         return std::make_shared<T>(std::forward<T>(t));
     }
 
+    template<typename T, typename U>
+    constexpr Ref<T> DynamicAs(Ref<U> u)
+    {
+        return std::dynamic_pointer_cast<T>(u);
+    }
+
     template<typename T>
     using Weak = std::weak_ptr<T>;
 

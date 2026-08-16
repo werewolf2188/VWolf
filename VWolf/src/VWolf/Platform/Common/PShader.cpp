@@ -2,7 +2,7 @@
 #include "VWolf/Core/Application.h"
 
 #include "VWolf/Core/Render/Shader.h"
-#include "VWolf/Platform/PShader.h"
+#include "PShader.h"
 
 #include "VWolf/Platform/OpenGL/Render/HLSLOpenGLShader.h"
 #ifdef VWOLF_PLATFORM_WINDOWS

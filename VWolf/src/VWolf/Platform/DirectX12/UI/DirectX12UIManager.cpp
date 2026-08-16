@@ -64,6 +64,7 @@ namespace VWolf {
 	{
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
+        UIManager::NewFrame();
 	}
 }
 #endif

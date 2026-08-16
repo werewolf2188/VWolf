@@ -11,6 +11,9 @@
 #include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Core/Render/Mesh.h"
 
+#include "VWolf/Core/Render/RHI/Types.h"
+#include "VWolf/Core/Render/RHI/Texture.h"
+
 #include "dxcapi.h"
 
 #ifdef VWOLF_PLATFORM_WINDOWS
@@ -159,6 +162,9 @@ namespace VWolf {
           DXGI_FORMAT_FORCE_UINT = 0xffffffff
         };
     
+        RHI::PixelFormat GetFormat(DXGI_FORMAT format);
+        RHI::TextureDimensionType GetTextureDimentionType(UINT dimensionType);
+    
         struct Attribute {
         public:
             Attribute() = default;
@@ -289,6 +295,7 @@ namespace VWolf {
         public:
             Shader();
             Shader(std::string name, VWolf::Stage& stageShader, std::string code, ArgumentType argumentType);
+            Shader(std::string name, std::string functionName, ShaderType shaderType, std::string code, ArgumentType argumentType);
             ~Shader();
         public:
             ShaderType GetType() { return type; }

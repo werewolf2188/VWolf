@@ -1,13 +1,13 @@
 #include "vwpch.h"
 
-#include "VWolf/Core/Driver.h"
+#include "VWolf/Core/Render/RHI/Driver.h"
 
 #include "VWolf/Platform/OpenGL/OpenGLDriver.h"
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "VWolf/Platform/DirectX12/DirectX12Driver.h"
 #endif
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
-#include "VWolf/Platform/Metal/MetalDriver.h"
+#include "VWolf/Platform/Metal/Render/RHI/MetalDriver.h"
 #endif
 
 static void GLFWVWolfErrorCallback(int error, const char* description)

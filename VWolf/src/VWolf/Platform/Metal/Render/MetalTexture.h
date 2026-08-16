@@ -7,9 +7,13 @@
 
 #pragma once
 
-#include "VWolf/Platform/PTexture.h"
+#include "VWolf/Platform/Common/PTexture.h"
 #include "VWolf/Core/Math/VMath.h"
 #include "VWolf/Platform/Metal/Core/Core.h"
+
+#include "VWolf/Platform/Metal/Render/RHI/MetalRenderPass.h"
+#include "VWolf/Platform/Metal/Render/RHI/MetalRenderCommandList.h"
+#include "VWolf/Platform/Metal/Render/RHI/MetalTexture.h"
 
 namespace VWolf {
     class MetalTexture2D : public PTexture2D {
@@ -17,9 +21,11 @@ namespace VWolf {
         MetalTexture2D(void * bytes, uint32_t width, uint32_t height, TextureOptions options = {});
         virtual ~MetalTexture2D();
         virtual void* GetHandler() override;
-        void Initialize(uint32_t width, uint32_t height, MTL::PixelFormat format, float bytes, TextureOptions options = {});
+        
+        Ref<RHI::MetalTexture> GetRHITexture() { return texture; }
     private:
-        MTL::Texture* texture = nullptr;
+        RHI::TextureSettings settings;
+        Ref<RHI::MetalTexture> texture;
         bool hasBeenUpload = false;
         size_t numBytes = 0, rowBytes = 0, numRows = 0;
     };
@@ -33,19 +39,27 @@ namespace VWolf {
         virtual void Resize(uint32_t width, uint32_t height) override;
     public:
         void Prepare();
-        MTL::RenderCommandEncoder* StartEncoder();
+        Ref<MTL::RenderCommandEncoder> StartEncoder();
         void Commit();
     public:
-        MTL::Texture* GetTexture() const { return texture; }
-        MTL::RenderPassDescriptor* GetRenderPassDescriptor() const { return renderPassDescriptor; }
+        const Ref<RHI::MetalRenderPass> GetRenderPass() const { return renderPass; }
+        const Ref<RHI::MetalRenderCommandList> GetCommandList() const { return commandList; }
+        Ref<RHI::MetalTexture> GetRHITexture() { return texture; }
+        Ref<RHI::MetalTexture> GetRHIDepthTexture() { return depthTexture; }
     private:
         void Initialize();
     private:
-        MTL::CommandBuffer* rtvCommandBuffer;
-        MTL::RenderCommandEncoder* rtvEncoder;
-        MTL::Texture* texture = nullptr;
-        MTL::Texture* depthTexture = nullptr;
-        MTL::RenderPassDescriptor* renderPassDescriptor;
+        RHI::TextureSettings settings;
+        RHI::TextureSettings depthSettings;
+        Ref<RHI::MetalTexture> texture;
+        Ref<RHI::MetalTexture> depthTexture;
+        
+        RHI::RenderPatternSettings patternSettings;
+        RHI::RenderPassSettings passSettings;
+        Ref<RHI::MetalRenderPattern> renderPattern;
+        Ref<RHI::MetalRenderPass> renderPass;
+        Ref<RHI::MetalRenderCommandList> commandList;
+        
         bool isDepthOnly = false;
         bool startedEncoding = false;
     };
@@ -55,10 +69,11 @@ namespace VWolf {
         MetalCubemap(std::array<void *, 6> bytes, uint32_t size, TextureOptions options = {});
         virtual ~MetalCubemap();
         virtual void* GetHandler() override;
-        void Initialize(uint32_t size, MTL::PixelFormat format, TextureOptions options = {});
-        void CopyData(size_t numBytes);
+        
+        Ref<RHI::MetalTexture> GetRHITexture() { return texture; }
     private:
-        MTL::Texture* texture = nullptr;
+        RHI::TextureSettings settings;
+        Ref<RHI::MetalTexture> texture;
         bool hasBeenUpload = false;
         uint32_t numberOfSides = 6;
     };

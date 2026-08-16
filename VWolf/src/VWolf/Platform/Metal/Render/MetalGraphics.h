@@ -11,8 +11,9 @@
 
 #include "VWolf/Platform/Metal/Core/Core.h"
 
-#include "VWolf/Platform/Metal/Render/MetalBufferGroup.h"
 #include "VWolf/Platform/Metal/Render/MetalTexture.h"
+
+#include "VWolf/Platform/Metal/Render/RHI/MetalRenderCommandList.h"
 
 namespace VWolf {
 
@@ -23,11 +24,9 @@ namespace VWolf {
     public:
         virtual void Initialize() override;
     public:
-        MTL::CommandBuffer* GetCommandBuffer() { return commandBuffer; }
-        MTL::RenderCommandEncoder* GetRenderCommandEncoder() { return encoder; }
+        Ref<RHI::MetalRenderCommandList> GetCommandList() { return commandList; }
     protected:
         void ClearColorImpl(Color color);
-        void ClearImpl();
 
         virtual void EndProcessingFrame() override;
         virtual void BeginProcessingFrame() override;
@@ -36,12 +35,12 @@ namespace VWolf {
         virtual void DrawQueue() override;
         virtual void DrawPostProcess() override;
     private:
-        std::map<UUID, Ref<MetalBufferGroup>> bufferGroups;
-        std::map<UUID, Matrix4x4> objectTransforms;
-        
         NS::AutoreleasePool* pool;
-        MTL::CommandBuffer* commandBuffer;
-        MTL::RenderCommandEncoder* encoder;
+        Ref<MTL::CaptureScope> captureScope;
+        
+        Ref<RHI::MetalRenderCommandList> commandList;
+        
+        std::map<UUID, Matrix4x4> objectTransforms;
         Ref<MetalTexture2D> emptyShadowMap;
         Ref<MetalRenderTexture> shadowMap;
         std::map<std::string, uint32_t> constantBufferIndexPerShader;

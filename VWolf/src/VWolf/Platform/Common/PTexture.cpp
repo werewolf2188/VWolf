@@ -6,7 +6,7 @@
 //
 
 #include "vwpch.h"
-#include "VWolf/Platform/PTexture.h"
+#include "PTexture.h"
 #include "VWolf/Core/Application.h"
 
 #include "VWolf/Platform/OpenGL/Render/OpenGLTexture.h"

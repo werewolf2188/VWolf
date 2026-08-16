@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Base.h"
-#include "Window.h"
+#include "VWolf/Core/Base.h"
+#include "VWolf/Core/Window.h"
 
 namespace VWolf {
 	class Driver {

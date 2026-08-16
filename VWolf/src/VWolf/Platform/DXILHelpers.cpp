@@ -42,6 +42,49 @@ if (FAILED(hr)) {\
 
 namespace VWolf {
     namespace DXIL {
+    
+    RHI::PixelFormat GetFormat(DXGI_FORMAT format) {
+        switch (format) {
+            case DXGI_FORMAT_R8G8B8A8_TYPELESS: return RHI::PixelFormat::RGBA8;
+            case DXGI_FORMAT_R8G8B8A8_UNORM: return RHI::PixelFormat::RGBA8Unorm;
+            case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: return RHI::PixelFormat::RGBA8Unorm_sRGB;
+            case DXGI_FORMAT_B8G8R8A8_TYPELESS : return RHI::PixelFormat::BGRA8Unorm;
+            case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : return RHI::PixelFormat::BGRA8Unorm_sRGB;
+            case DXGI_FORMAT_R32G32B32_FLOAT : return RHI::PixelFormat::RGBA32Float;
+            case DXGI_FORMAT_R32_FLOAT : return RHI::PixelFormat::R32Float;
+            case DXGI_FORMAT_R32_UINT : return RHI::PixelFormat::R32Uint;
+            case DXGI_FORMAT_R32_SINT : return RHI::PixelFormat::R32Sint;
+            case DXGI_FORMAT_R16_FLOAT : return RHI::PixelFormat::R16Float;
+            case DXGI_FORMAT_R16_UINT : return RHI::PixelFormat::R16Uint;
+            case DXGI_FORMAT_R16_SINT : return RHI::PixelFormat::R16Sint;
+            case DXGI_FORMAT_R16_UNORM : return RHI::PixelFormat::R16Unorm;
+            case DXGI_FORMAT_R16_SNORM : return RHI::PixelFormat::R16Snorm;
+            case DXGI_FORMAT_R8_UINT : return RHI::PixelFormat::R8Uint;
+            case DXGI_FORMAT_R8_SINT : return RHI::PixelFormat::R8Sint;
+            case DXGI_FORMAT_R8_UNORM : return RHI::PixelFormat::R8Unorm;
+            case DXGI_FORMAT_R8_SNORM : return RHI::PixelFormat::R8Snorm;
+            case DXGI_FORMAT_A8_UNORM : return RHI::PixelFormat::A8Unorm;
+            case DXGI_FORMAT_D32_FLOAT: return RHI::PixelFormat::Depth32Float;
+            case DXGI_FORMAT_D24_UNORM_S8_UINT: return RHI::PixelFormat::Depth32Float_Stencil8;
+            default: return RHI::PixelFormat::Unknown;
+        }
+
+        return RHI::PixelFormat::Unknown;
+    }
+
+    RHI::TextureDimensionType GetTextureDimentionType(UINT dimensionType) {
+        switch (dimensionType) {
+            case D3D_SRV_DIMENSION_TEXTURE1D: return RHI::TextureDimensionType::Tex1D;
+            case D3D_SRV_DIMENSION_TEXTURE1DARRAY: return RHI::TextureDimensionType::Tex1DArray;
+            case D3D_SRV_DIMENSION_TEXTURE2D: return RHI::TextureDimensionType::Tex2D;
+            case D3D_SRV_DIMENSION_TEXTURE2DARRAY: return RHI::TextureDimensionType::Tex2DArray;
+            case D3D_SRV_DIMENSION_TEXTURE2DMS: return RHI::TextureDimensionType::Tex2DMultisample;
+            case D3D_SRV_DIMENSION_TEXTURE3D: return RHI::TextureDimensionType::Tex3D;
+            case D3D_SRV_DIMENSION_TEXTURECUBE: return RHI::TextureDimensionType::Cube;
+            case D3D_SRV_DIMENSION_TEXTURECUBEARRAY: return RHI::TextureDimensionType::CubeArray;
+        }
+        return (RHI::TextureDimensionType)-1;
+    }
 
     // MARK: Global functions
         const char* ShaderTypeEquivalent(ShaderType type) {
@@ -425,6 +468,12 @@ namespace VWolf {
         type(stageShader.GetStageType()), sourceType(ShaderSourceType::Text), shader(code), mainFunction(stageShader.GetFunctionName()),
             name(ShaderName(name, stageShader.GetStageType())) {
             CompileHLSLWithDirectXShaderCompiler(argumentType);
+        }
+    
+        Shader::Shader(std::string name, std::string functionName, ShaderType shaderType, std::string code, ArgumentType argumentType) :
+        type(shaderType), sourceType(ShaderSourceType::Text), shader(code), mainFunction(functionName),
+        name(ShaderName(name, shaderType)) {
+            CompileHLSLWithDirectXShaderCompiler(argumentType);            
         }
     
         Shader::~Shader() {}

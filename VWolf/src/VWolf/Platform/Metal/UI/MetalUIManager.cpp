@@ -12,7 +12,7 @@
 #if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
 #include "MetalUIManager.h"
 
-#include "VWolf/Platform/Metal/MetalDriver.h"
+#include "VWolf/Platform/Metal/Render/RHI/MetalDriver.h"
 
 #define IMGUI_IMPL_METAL_CPP_EXTENSIONS
 #define IMGUI_IMPL_METAL_CPP
@@ -34,7 +34,7 @@ namespace VWolf {
         ImGui::CreateContext();
 
         ImGui_ImplOSX_Init(GetView(MetalDriver::GetCurrent()->GetWindow()));
-        ImGui_ImplMetal_Init(MetalDriver::GetCurrent()->GetDevice()->GetDevice());
+        ImGui_ImplMetal_Init(MetalDriver::GetCurrent()->GetDevice()->GetDevice().get());
     }
 
     void MetalUIManager::Terminate() {
@@ -47,13 +47,14 @@ namespace VWolf {
         ImDrawData* data = ImGui::GetDrawData();
         data->FramebufferScale = { 1, 1 };
         ImGui_ImplMetal_RenderDrawData(data,
-                                       MetalDriver::GetCurrent()->GetNativeGraphics()->GetCommandBuffer(),
-                                       MetalDriver::GetCurrent()->GetNativeGraphics()->GetRenderCommandEncoder());
+                                       MetalDriver::GetCurrent()->GetNativeGraphics()->GetCommandList()->GetCommandBuffer().get(),
+                                       MetalDriver::GetCurrent()->GetNativeGraphics()->GetCommandList()->GetEncoder().get());
     }
 
     void MetalUIManager::NewFrame() {
-        ImGui_ImplMetal_NewFrame(MetalDriver::GetCurrent()->GetSurface()->GetRenderPassDescriptor());
+        ImGui_ImplMetal_NewFrame(MetalDriver::GetCurrent()->GetMainRenderPass()->GetRenderPassDescriptor().get());
         ImGui_ImplOSX_NewFrame(GetView(MetalDriver::GetCurrent()->GetWindow()));
+        UIManager::NewFrame();
     }
 }
 

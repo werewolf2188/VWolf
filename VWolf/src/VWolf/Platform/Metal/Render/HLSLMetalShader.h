@@ -7,43 +7,41 @@
 
 #pragma once
 
-#include "VWolf/Platform/Metal/Render/MetalShader.h"
+#include "VWolf/Platform/Metal/Core/Core.h"
+#include "VWolf/Core/Render/Shader.h"
+#include "VWolf/Core/Render/Material.h"
+#include "VWolf/Platform/Common/PShader.h"
+#include "VWolf/Platform/Metal/Render/MetalTexture.h"
+#include "VWolf/Platform/Metal/Render/RHI/MetalBuffer.h"
+
+#include "VWolf/Platform/Metal/Render/RHI/MetalShader.h"
+#include "VWolf/Platform/Metal/Render/RHI/MetalProgram.h"
+#include "VWolf/Platform/Metal/Render/RHI/MetalRenderState.h"
 
 namespace VWolf {
-    class HLMetalProgram;
-//    std::map<std::string, MTL::Library*> CompileHLSLLibraries(std::initializer_list<ShaderSource> otherShaders);
-
-    class HLSLMetalShader: public MetalShader {
+    class HLSLMetalShader: public PShader {
     public:
         HLSLMetalShader(Shader& coreShader);
         virtual ~HLSLMetalShader();
     public:
-        virtual void Bind() const override;
-        virtual void Unbind() const override;
 
         virtual std::string GetName() const override;
-        virtual void SetData(const void* data, const char* name, uint32_t size, uint32_t offset = 0) override;
         virtual std::vector<Ref<ShaderInput>> GetMaterialInputs() const override;
         virtual size_t GetMaterialSize() const override;
         virtual std::vector<ShaderInput> GetTextureInputs() const override;
         virtual std::vector<AttributeDescriptor> GetAttributes() const override;
     public:
-        virtual MTL::RenderPipelineState* GetState() override;
-        virtual void SetObjectIndex(uint32_t index)override;
-        virtual void SetVertexBufferIndex(Ref<MetalVertexBuffer> buffer) override;
-        virtual void UseShader(MTL::RenderCommandEncoder* encoder) override;
-        virtual void SetTextures(Ref<MetalRenderTexture> shadowMap, Ref<Material> material) override;
-        virtual void Draw(MTL::PrimitiveType type, Ref<MetalIndexBuffer> buffer) override;
+        const Ref<RHI::MetalProgram> GetProgram() const { return program; }
+        const Ref<RHI::MetalRenderState> GetState() const { return state; }
     private:
-        void SetConfiguration() const;
-        void SetRasterization() const;
-        void SetBlend() const;
-        void SetDepthStencil() const;
-    private:
-        uint32_t currentIndex = 0;
-        Ref<HLMetalProgram> hlMetalProgram;
-        MTL::RenderCommandEncoder* encoder = nullptr;
-        bool loadFromNewShader = false;
         Settings settings;
+        
+        std::vector<Ref<RHI::MetalShader>> shaders;
+        Ref<RHI::MetalProgram> program;
+        Ref<RHI::MetalRenderState> state;
+        
+        void CompileShaders(Shader& coreShader);
+        void CompileProgram();
+        void BuildState(Shader& coreShader);
     };
 }

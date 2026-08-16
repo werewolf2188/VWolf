@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VWolf/Platform/PTexture.h"
+#include "VWolf/Platform/Common/PTexture.h"
 #include "VWolf/Core/Math/VMath.h"
 #ifdef VWOLF_PLATFORM_WINDOWS
 namespace VWolf {

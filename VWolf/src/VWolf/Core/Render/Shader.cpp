@@ -8,6 +8,8 @@
 #include "vwpch.h"
 #include "Shader.h"
 
+#include "RHI/RenderState.h"
+
 namespace YAML {
     VWOLF_CREATE_CONVERT_GENERIC_ENUM_DECODER(VWolf::ShaderType, Vertex, Pre_Tesselator, Post_Tesselator, Geometry, Fragment)
     VWOLF_CREATE_CONVERT_GENERIC_ENUM_DECODER(VWolf::FillMode, Wireframe, Solid);
@@ -205,5 +207,41 @@ namespace VWolf {
 
     void Shader::LoadShaderLibrary(std::filesystem::path path, UUID _id) {
         m_shader_dependencies.push_back(ShaderDependency(path, _id));
+    }
+}
+
+namespace VWolf::RHI {
+    RasterizerSettings RasterizerSettings::FromRasterization(const VWolf::Rasterization& rasterization) {
+        RasterizerCullMode cull = (RasterizerCullMode)(uint32_t)rasterization.GetCullMode();
+        RasterizerFillMode fill = (RasterizerFillMode)(uint32_t)rasterization.GetFillMode();
+        
+        return {
+            rasterization.GetCullEnabled(),
+            fill,
+            cull,
+            rasterization.GetCounterClockwise()
+        };
+    }
+
+    RenderTargetSettings RenderTargetSettings::FromBlend(const VWolf::Blend& blend) {
+        BlendEquation equation = (BlendEquation)(uint32_t)blend.GetEquation();
+        BlendFunction source = (BlendFunction)(uint32_t)blend.GetSourceFunction();
+        BlendFunction destination = (BlendFunction)(uint32_t)blend.GetDestinationFunction();
+        
+        return {
+            blend.GetEnabled(),
+            equation,
+            source,
+            destination
+        };
+    }
+
+    DepthSettings DepthSettings::FromDepthStencil(const VWolf::DepthStencil& ds) {
+        Compare compare = (Compare)(uint32_t)ds.GetDepthFunction();
+        
+        return {
+            ds.GetDepthTest(),
+            compare
+        };
     }
 }

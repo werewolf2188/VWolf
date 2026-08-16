@@ -6,7 +6,7 @@
 //
 
 #pragma once
-#include "VWolf/Platform/PTexture.h"
+#include "VWolf/Platform/Common/PTexture.h"
 #include "VWolf/Core/Math/VMath.h"
 
 namespace VWolf {

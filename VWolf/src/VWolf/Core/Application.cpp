@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 
-#include "Driver.h"
+#include "VWolf/Core/Render/RHI/Driver.h"
 #include "Application.h"
 #include "Input.h"
 
@@ -54,6 +54,7 @@ namespace VWolf {
 
 	Application::Application(DriverType type, InitConfiguration config): m_type(type), config(config), driver(Driver::GetDriver(type))
 	{
+        Time::SetTimeImplementation(CreateGenericTime());
         lifecycle = CreateScope<Lifecycle>();
         std::filesystem::path currentPath = CommandLineArguments::GetArguments()[0];
         currentPath = currentPath.remove_filename();
@@ -170,7 +171,6 @@ namespace VWolf {
             if (!m_minimized) {
                 lifecycle->BeginProcessingFrame();
                 UIManager::GetDefault()->NewFrame();
-                ImGui::NewFrame();
                 OnGUI();
                 UIManager::GetDefault()->Render();
                 lifecycle->EndProcessingFrame();

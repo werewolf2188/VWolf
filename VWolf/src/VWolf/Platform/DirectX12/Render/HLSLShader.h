@@ -1,7 +1,7 @@
 #pragma once
 
 #include "VWolf/Core/Render/Shader.h"
-#include "VWolf/Platform/PShader.h"
+#include "VWolf/Platform/Common/PShader.h"
 
 #ifdef VWOLF_PLATFORM_WINDOWS
 namespace VWolf {
