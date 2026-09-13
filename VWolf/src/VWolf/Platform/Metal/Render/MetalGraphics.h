@@ -15,6 +15,8 @@
 
 #include "VWolf/Platform/Metal/Render/RHI/MetalRenderCommandList.h"
 
+#include "VWolf/Core/Render/GraphicsContext.h"
+
 namespace VWolf {
 
     class MetalGraphics: public InternalGraphics {
@@ -43,7 +45,7 @@ namespace VWolf {
         std::map<UUID, Matrix4x4> objectTransforms;
         Ref<MetalTexture2D> emptyShadowMap;
         Ref<MetalRenderTexture> shadowMap;
-        std::map<std::string, uint32_t> constantBufferIndexPerShader;
-        int itemsCount = 0;
+        
+        Ref<CommandsContext> commandContext;
     };
 }

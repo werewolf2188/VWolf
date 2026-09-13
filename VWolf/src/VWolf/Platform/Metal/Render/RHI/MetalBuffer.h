@@ -23,10 +23,13 @@ namespace VWolf::RHI  {
         virtual void SetName(const std::string& name) override;
         
         Ref<MTL::Buffer> GetBuffer() { return buffer; }
+        long long GetCurrentFrameInUse() { return currentFrameInUse; }
+        void SetCurrentFrameInUse(long long frameNum) { currentFrameInUse = frameNum; }
     protected:
     private:        
         Ref<MTL::Buffer> buffer;
         
         Weak<MetalRenderContext> context;
+        long long currentFrameInUse = -1;
     };
 }

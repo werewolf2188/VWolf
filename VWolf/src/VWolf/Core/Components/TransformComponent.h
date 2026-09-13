@@ -25,12 +25,18 @@ namespace VWolf {
         // TODO: Pass this to quaternion
         Vector3& GetEulerAngles() { return eulerAngles; }
         void SetEulerAngles(Vector3 eulerAngles) { this->eulerAngles = eulerAngles; }
+        const Quaternion& GetOrientation() {
+            orientation = Quaternion::Euler(eulerAngles.GetX(), eulerAngles.GetY(), eulerAngles.GetZ());
+            return orientation;
+        }
         Vector3& GetLocalScale() { return localScale; }
         void SetLocalScale(Vector3 localScale) { this->localScale = localScale; }
 
-        Matrix4x4& GetWorldMatrix() {
-            return matrix;
-        }
+        Matrix4x4& GetWorldMatrix() { return matrix; }
+        
+        Vector3 Up() const;
+        Vector3 Right() const;
+        Vector3 Forward() const;
 
         void Apply();
     public:
@@ -41,6 +47,7 @@ namespace VWolf {
         Vector3 position;
         Vector3 eulerAngles;
         Vector3 localScale;
+        Quaternion orientation;
         Matrix4x4 matrix;
         
         BOOST_DESCRIBE_CLASS(TransformComponent, (Component), (), (id), (position, eulerAngles, localScale))

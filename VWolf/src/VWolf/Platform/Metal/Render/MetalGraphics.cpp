@@ -22,8 +22,6 @@
 
 #include "VWolf/Core/Debug/ShapeHelper.h"
 
-#include "VWolf/Core/Render/GraphicsContext.h"
-
 namespace VWolf {
     static RHI::RenderPrimitive GetTopologyEx(Topology topology) {
         switch (topology) {
@@ -42,7 +40,7 @@ namespace VWolf {
     void MetalGraphics::Initialize() {
         InternalGraphics::Initialize();
         emptyShadowMap = std::dynamic_pointer_cast<MetalTexture2D>(CreateRef<Texture2D>(UUID::NewUUID(), TextureDefault::White, 1024, 1024, TextureOptions())->GetInnerTexture());
-        shadowMap = CreateRef<MetalRenderTexture>(2048, 2048, true);
+        shadowMap = CreateRef<MetalRenderTexture>(1024, 1024, true);
         
         MTL::CaptureManager* captureManager = MTL::CaptureManager::sharedCaptureManager();
         captureScope = CreateMetalRef<MTL::CaptureScope>(
@@ -89,10 +87,9 @@ namespace VWolf {
         }
         shadowMap->Prepare();
         
-        constantBufferIndexPerShader.clear();
-        itemsCount = 0;
-        
         ClearColorImpl(GraphicsContext::GetBackgroundColor());
+        
+        commandContext = GraphicsContext::ProcessContext();
 
         DrawShadowMap();
         DrawQueue();
@@ -102,32 +99,47 @@ namespace VWolf {
 
     void MetalGraphics::DrawShadowMap() {
         Ref<RHI::MetalRenderCommandList> cmdList = shadowMap->GetCommandList();
-
-        HLSLMetalShader* metalShader = (HLSLMetalShader*)Shader::GetShader("Shadow")->GetInternalShader().get();
-        cmdList->SetRenderState(metalShader->GetState());
+        Ref<HLSLMetalShader> shader;
         
-        for (size_t index = 0; index < GraphicsContext::GetLights().size(); index++) {
+        shader = DynamicAs<HLSLMetalShader>(commandContext->shadowShader->GetInternalShader());
+        cmdList->SetRenderState(shader->GetState());
+        
+        for(auto [key, value]: commandContext->lightSpaceMatrix) {
+            UUID lightId = std::get<1>(key);
             
-            uint32_t commandIndex = 0;
+            Ref<RHI::Buffer> lightSpaceMatrix;
             
-            for(Ref<GraphicsCommand> command: GraphicsContext::GetList().GetCommands()) {
-                Ref<DrawMeshCommand> drawMeshCommand = std::dynamic_pointer_cast<DrawMeshCommand>(command);
+            std::string lightSpaceMatrixId = "shadow-camera-" + lightId.ToString();
+            
+            if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(lightSpaceMatrixId)) {
+                lightSpaceMatrix = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(lightSpaceMatrixId);
+            } else {
+                RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer(sizeof(Matrix4x4));
+                // TODO: This is what I'm saying it should added as part of the context
+                lightSpaceMatrix = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
+                lightSpaceMatrix->SetName(lightSpaceMatrixId);
+                MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(lightSpaceMatrix);
+            }
+            
+            RHI::SubResource resource(&value, {});
+            lightSpaceMatrix->SetData(resource);
+            
+            uint32_t objectIndex = 0;
+            for (const GraphicsCommandEntity& entity: commandContext->entities) {
+                if (!entity.castShadows) continue;
                 
-                // It's a light
-                if (drawMeshCommand->GetMesh() == nullptr || drawMeshCommand->GetMesh()->GetVertices().size() == 1) continue;
-                
-                if (drawMeshCommand->GetCastShadows()) {
-                    
-                    drawMeshCommand->GetMesh()->BuildVertexBuffer(metalShader->GetAttributes());
-                    
+                if (commandContext->EntityContainsLight(entity, lightId)) {
                     Ref<RHI::MetalBuffer> indexBuffer;
                     Ref<RHI::MetalBufferSet> vertexBufferSet;
                     
-                    if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey("vertexSet-" + drawMeshCommand->GetMesh()->GetID().ToString())) {
-                        vertexBufferSet = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBufferSet>("vertexSet-" + drawMeshCommand->GetMesh()->GetID().ToString());
+                    entity.mesh->BuildVertexBuffer(shader->GetAttributes());
+                    
+                    // Mesh
+                    if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey("vertexSet-" + entity.mesh->GetID().ToString())) {
+                        vertexBufferSet = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBufferSet>("vertexSet-" + entity.mesh->GetID().ToString());
                     } else {
                         std::vector<Ref<RHI::Buffer>> buffers;
-                        std::vector<float> vertices = drawMeshCommand->GetMesh()->GetNativeVector();
+                        std::vector<float> vertices = entity.mesh->GetNativeVector();
                         
                         if (vertices.size() != 0) {
                             RHI::BufferSettings vertexSettings = RHI::BufferSettings::ForVertextBuffer((uint32_t)vertices.size() * sizeof(float));
@@ -137,88 +149,48 @@ namespace VWolf {
                             buffers.push_back(vertexBuffer);
                         }
                         vertexBufferSet = DynamicAs<RHI::MetalBufferSet>(MetalDriver::GetCurrent()->GetRenderContext()->CreateBufferSet(buffers));
-                        vertexBufferSet->SetName("vertexSet-" + drawMeshCommand->GetMesh()->GetID().ToString());
+                        vertexBufferSet->SetName("vertexSet-" + entity.mesh->GetID().ToString());
                         MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(vertexBufferSet);
                     }
                     
-                    if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey("index-" + drawMeshCommand->GetMesh()->GetID().ToString())) {
-                        indexBuffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>("index-" + drawMeshCommand->GetMesh()->GetID().ToString());
+                    if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey("index-" + entity.mesh->GetID().ToString())) {
+                        indexBuffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>("index-" + entity.mesh->GetID().ToString());
                     } else {
-                        std::vector<uint32_t> triangles = drawMeshCommand->GetMesh()->GetTriangles();
+                        std::vector<uint32_t> triangles = entity.mesh->GetTriangles();
                         RHI::BufferSettings indexSettings = RHI::BufferSettings::ForIndexBuffer((uint32_t)triangles.size(), RHI::PixelFormat::R32Uint);
                         indexBuffer = DynamicAs<RHI::MetalBuffer>(MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(indexSettings));
                         RHI::SubResource resourceIndices(triangles.data(), {});
                         indexBuffer->SetData(resourceIndices);
-                        indexBuffer->SetName("index-" + drawMeshCommand->GetMesh()->GetID().ToString());
+                        indexBuffer->SetName("index-" + entity.mesh->GetID().ToString());
                         MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(indexBuffer);
                     }
                     
-                    objectTransforms[drawMeshCommand->GetMesh()->GetID()] = drawMeshCommand->GetTransform();
-                    /*
-                     Now that we pass the state to the command list, the next part would be
-                     1. Passing the program argument bindings // DONE
-                     2. Passing the vertex buffer // DONE
-                     3. Passsing the index buffer // DONE
-                     4. Drawing // DONE
-                     
-                     The way the shader is buildind the descriptor tables should not live inside the asset class.
-                     It should live somewhere else. The question is where.
-                     
-                     Edit Sept 9th 26: I understood how the descriptor tables work now. I need to improve the code on how to
-                     keep them alive.
-                     */
-                   
                     cmdList->SetVertexBuffers(vertexBufferSet);
                     cmdList->SetIndexBuffer(indexBuffer);
-                    // TODO: Temporary
-                    std::map<std::string, Ref<RHI::BindableProgramArgument>> arguments = metalShader->GetProgram()->GetSettings().GetProgramArguments();
+                    
+                    std::map<std::string, Ref<RHI::BindableProgramArgument>> arguments = shader->GetProgram()->GetSettings().GetProgramArguments();
                     std::unordered_map<Ref<RHI::BindableProgramArgument>, RHI::ProgramArgumentBindingValue, RHI::BindableProgramArgument::Hash> parameters;
+                    
                     for(const auto& [key, value]: arguments) {
                         
                         if (value->GetResourceType() == RHI::ResourceType::Buffer) {
                             Ref<RHI::ConstantBufferProgramArgument> constantArgument = DynamicAs<RHI::ConstantBufferProgramArgument>(value);
-                            std::stringstream ss;
-                            Ref<RHI::Buffer> buffer;
                             
                             if ((std::string("cbPer") + Shader::CameraBufferName) == key) {
+                                parameters[value] = lightSpaceMatrix->GetResourceView();
+                            } else  if ((std::string("cbPer") + Shader::ObjectBufferName) == key) {
+                                const Matrix4x4& objectMatrix = entity.transform;
+                                Ref<RHI::Buffer> buffer;
                                 
-                                ss << (std::string("shadow-cbPer") + Shader::CameraBufferName);
-                                ss << "-";
-                                ss << commandIndex;
-                                std::string finalKey = ss.str();
+                                std::string objectKey = std::string("shadow-cbPer") + Shader::ObjectBufferName + "-" + std::to_string(objectIndex);
                                 
-                                const Matrix4x4& viewProjection = GraphicsContext::GetLightsSpaces()[index];
-                                
-                                if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(finalKey)) {
-                                    buffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(finalKey);
+                                if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(objectKey)) {
+                                    buffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(objectKey);
                                 } else {
                                     RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer((uint32_t)constantArgument->GetSize());
                                     // TODO: This is what I'm saying it should added as part of the context
                                     buffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
-                                    buffer->SetName(finalKey);
-                                    MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(indexBuffer);
-                                }
-                                
-                                RHI::SubResource resource(&viewProjection, {});
-                                buffer->SetData(resource);
-                                parameters[value] = buffer->GetResourceView();
-                            }
-                            if ((std::string("cbPer") + Shader::ObjectBufferName) == key) {
-                                
-                                ss << (std::string("shadow-cbPer") + Shader::ObjectBufferName);
-                                ss << "-";
-                                ss << commandIndex;
-                                std::string finalKey = ss.str();
-                                
-                                const Matrix4x4& objectMatrix = objectTransforms[drawMeshCommand->GetMesh()->GetID()];
-                                
-                                if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(finalKey)) {
-                                    buffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(finalKey);
-                                } else {
-                                    RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer((uint32_t)constantArgument->GetSize());
-                                    // TODO: This is what I'm saying it should added as part of the context
-                                    buffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
-                                    buffer->SetName(finalKey);
+                                    buffer->SetName(objectKey);
                                     MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(indexBuffer);
                                 }
                                 
@@ -229,301 +201,286 @@ namespace VWolf {
                         }
                     }
                     
-                    RHI::ProgramArgumentBindings bindings(
-                                                          metalShader->GetProgram(), parameters);
+                    RHI::ProgramArgumentBindings bindings(shader->GetProgram(), parameters);
                     //
                     cmdList->SetProgramBindings(bindings);
-
+                    
                     cmdList->DrawIndexed(
-                                         GetTopologyEx(drawMeshCommand->GetMesh()->GetSubMesh(drawMeshCommand->GetSubmeshIndex()).GetTopology()),
+                                         GetTopologyEx(entity.mesh->GetSubMesh(entity.subMeshIndex).GetTopology()),
                                          indexBuffer->GetSettings().GetCount()
                                          );
-                    commandIndex++;
+                    objectIndex++;
                 }
             }
         }
-        
         shadowMap->Commit();
     }
 
     void MetalGraphics::DrawQueue() {
         
-        Ref<RHI::MetalRenderCommandList> cmdList = commandList;
-        if (m_p_renderTexture) {
-            cmdList = ((MetalRenderTexture*)m_p_renderTexture.get())->GetCommandList();
-        }
-
-        // TODO: Do we really need this?
-        if (GraphicsContext::GetLights().size() == 0) {
-            GraphicsContext::GetLights().push_back(Light());
-        }
-        if (GraphicsContext::GetLightsSpaces().size() == 0) {
-            GraphicsContext::GetLightsSpaces().push_back(Matrix4x4());
-        }
-        Light* lights = GraphicsContext::GetLights().data();
-        Matrix4x4* spacesPointer = GraphicsContext::GetLightsSpaces().data();
-
-        Camera* cam = nullptr;
-
+        Ref<RHI::MetalRenderCommandList> cmdList = m_p_renderTexture ? ((MetalRenderTexture*)m_p_renderTexture.get())->GetCommandList() : commandList;
         uint32_t commandIndex = 0;
-        for(Ref<GraphicsCommand> command: GraphicsContext::GetList().GetCommands()) {
-            Ref<DrawMeshCommand> drawMeshCommand = std::dynamic_pointer_cast<DrawMeshCommand>(command);
-    
-            int shapes = constantBufferIndexPerShader.count(drawMeshCommand->GetMaterial()->GetShaderName()) > 0 ? constantBufferIndexPerShader[drawMeshCommand->GetMaterial()->GetShaderName()]: 0;
-
-            if (drawMeshCommand->GetMesh() == nullptr || drawMeshCommand->GetMesh()->GetVertices().size() == 1) continue; // It's a light
+        
+        for(Ref<CameraComponent> cameraComponent: commandContext->cameras) {
+            const CameraPass& cameraPass = commandContext->gpuCamera[cameraComponent->GetID()];
+            const CameraPass& skyBoxCameraPass = commandContext->gpuSkyboxCamera[cameraComponent->GetID()];
             
-            cam = drawMeshCommand->GetCamera()->GetCamera().get();
-
-            bool isSkybox = Shader::GetShader(drawMeshCommand->GetMaterial()->GetShaderName())->GetSubShader().GetPriority() < 200;
-            TransformComponent& cameraTransform = drawMeshCommand->GetCamera()->GetGameObject()->GetTransform();
+            Ref<RHI::Buffer> cameraBuffer;
+            std::string cameraKey = "queue-camera-" + cameraComponent->GetID().ToString();
             
-            Vector3 focalPoint = !isSkybox ? cam->GetFocalPoint() : VWolf::Vector3(0.0f, 0.0f, 0.0f);
-            float zoom = !isSkybox ? cam->GetZoom() : 1.0f;
-            
-            Vector3 position = Vector3::Zero;
-            if ((drawMeshCommand->GetCamera()->GetGameObject()->GetFlags() & HideFlags::Editor) == HideFlags::Editor)
-                position = focalPoint - cameraTransform.GetPosition() * zoom;
-            else {
-                if (isSkybox)
-                    position = Vector3::Zero;
-                else
-                    position = cameraTransform.GetPosition();
-            }
-            
-            Matrix4x4 viewMatrix = cam->CalculateView(position,
-                                                      Quaternion::Euler(
-                                                                        cameraTransform.GetEulerAngles().GetX(),
-                                                                        cameraTransform.GetEulerAngles().GetY(),
-                                                                        cameraTransform.GetEulerAngles().GetZ()
-                                                                        ));
-
-            CameraPass cameraPass = {
-                viewMatrix,
-                viewMatrix.GetInverse(),
-                cam->GetProjection(),
-                cam->GetProjection().GetInverse(),
-                cam->GetViewProjection(viewMatrix),
-                cam->GetViewProjection(viewMatrix).GetInverse(),
-                cameraTransform.GetPosition(),
-                0,
-                cam->GetDisplaySize(),
-                { 1 / cam->GetDisplaySize().GetX(), 1 / cam->GetDisplaySize().GetY() },
-                cam->GetNearZ(),
-                cam->GetFarZ(),
-                Time::GetTotalTime(),
-                Time::GetDeltaTime()
-            };
-            
-            Ref<HLSLMetalShader> metalShader = std::dynamic_pointer_cast<HLSLMetalShader>(Shader::GetShader(drawMeshCommand->GetMaterial()->GetShaderName())->GetInternalShader());
-
-            drawMeshCommand->GetMesh()->BuildVertexBuffer(metalShader->GetAttributes());
-            
-            Ref<RHI::MetalBuffer> indexBuffer;
-            Ref<RHI::MetalBufferSet> vertexBufferSet;
-            
-            if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey("vertexSet-" + drawMeshCommand->GetMesh()->GetID().ToString())) {
-                vertexBufferSet = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBufferSet>("vertexSet-" + drawMeshCommand->GetMesh()->GetID().ToString());
+            if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(cameraKey)) {
+                cameraBuffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(cameraKey);
             } else {
-                std::vector<Ref<RHI::Buffer>> buffers;
-                std::vector<float> vertices = drawMeshCommand->GetMesh()->GetNativeVector();
-                
-                if (vertices.size() != 0) {
-                    RHI::BufferSettings vertexSettings = RHI::BufferSettings::ForVertextBuffer((uint32_t)vertices.size() * sizeof(float));
-                    Ref<RHI::Buffer> vertexBuffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(vertexSettings);
-                    RHI::SubResource resourceVertices(vertices.data(), {});
-                    vertexBuffer->SetData(resourceVertices);
-                    buffers.push_back(vertexBuffer);
-                }
-                vertexBufferSet = DynamicAs<RHI::MetalBufferSet>(MetalDriver::GetCurrent()->GetRenderContext()->CreateBufferSet(buffers));
-                vertexBufferSet->SetName("vertexSet-" + drawMeshCommand->GetMesh()->GetID().ToString());
-                MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(vertexBufferSet);
+                RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer(sizeof(CameraPass));
+                // TODO: This is what I'm saying it should added as part of the context
+                cameraBuffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
+                cameraBuffer->SetName(cameraKey);
+                MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(cameraBuffer);
             }
+            RHI::SubResource resource(&cameraPass, {});
+            cameraBuffer->SetData(resource);
             
-            if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey("index-" + drawMeshCommand->GetMesh()->GetID().ToString())) {
-                indexBuffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>("index-" + drawMeshCommand->GetMesh()->GetID().ToString());
+            Ref<RHI::Buffer> skyboxCameraBuffer;
+            std::string skyboxCameraKey = "queue-skybox-camera-" + cameraComponent->GetID().ToString();
+            
+            if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(skyboxCameraKey)) {
+                skyboxCameraBuffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(skyboxCameraKey);
             } else {
-                std::vector<uint32_t> triangles = drawMeshCommand->GetMesh()->GetTriangles();
-                RHI::BufferSettings indexSettings = RHI::BufferSettings::ForIndexBuffer((uint32_t)triangles.size(), RHI::PixelFormat::R32Uint);
-                indexBuffer = DynamicAs<RHI::MetalBuffer>(MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(indexSettings));
-                RHI::SubResource resourceIndices(triangles.data(), {});
-                indexBuffer->SetData(resourceIndices);
-                indexBuffer->SetName("index-" + drawMeshCommand->GetMesh()->GetID().ToString());
-                MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(indexBuffer);
+                RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer(sizeof(CameraPass));
+                // TODO: This is what I'm saying it should added as part of the context
+                skyboxCameraBuffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
+                skyboxCameraBuffer->SetName(skyboxCameraKey);
+                MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(skyboxCameraBuffer);
             }
+            RHI::SubResource skyboxResource(&skyBoxCameraPass, {});
+            skyboxCameraBuffer->SetData(skyboxResource);
             
-            objectTransforms[drawMeshCommand->GetMesh()->GetID()] = drawMeshCommand->GetTransform();
-
-            void* material1 = drawMeshCommand->GetMaterial()->GetDataPointer();
-           
-            cmdList->SetRenderState(metalShader->GetState());
-            /*
-             Now that we pass the state to the command list, the next part would be
-             1. Passing the program argument bindings // DONE
-             2. Passing the vertex buffer // DONE
-             3. Passsing the index buffer // DONE
-             4. Drawing // DONE
-             
-             The way the shader is buildind the descriptor tables should not live inside the asset class.
-             It should live somewhere else. The question is where.
-             
-             Edit Sept 9th 26: I understood how the descriptor tables work now. I need to improve the code on how to
-             keep them alive.
-             */
-
-            if (vertexBufferSet->GetBuffers().size() > 0) {
-                cmdList->SetVertexBuffers(vertexBufferSet);
-            }
-            cmdList->SetIndexBuffer(indexBuffer);
+            std::vector<Ref<Shader>> sorted_elements(commandContext->shaders.begin(), commandContext->shaders.end());
             
-            // TODO: Temporary
-            std::map<std::string, Ref<RHI::BindableProgramArgument>> arguments = metalShader->GetProgram()->GetSettings().GetProgramArguments();
-            std::unordered_map<Ref<RHI::BindableProgramArgument>, RHI::ProgramArgumentBindingValue, RHI::BindableProgramArgument::Hash> parameters;
-            for(const auto& [key, value]: arguments) {
+            std::sort(sorted_elements.begin(), sorted_elements.end(), [](Ref<Shader> shaderA, Ref<Shader> shaderB) {
+                return shaderA->GetSubShader().GetPriority() < shaderB->GetSubShader().GetPriority();
+            });
+            
+            for(const Ref<Shader>& shaderAsset: sorted_elements) {
+                Ref<HLSLMetalShader> metalShader = DynamicAs<HLSLMetalShader>(shaderAsset->GetInternalShader());
+                cmdList->SetRenderState(metalShader->GetState());
                 
-                if (value->GetResourceType() == RHI::ResourceType::Buffer) {
-                    Ref<RHI::ConstantBufferProgramArgument> constantArgument = DynamicAs<RHI::ConstantBufferProgramArgument>(value);
-                    std::stringstream ss;
-                    Ref<RHI::Buffer> buffer;
+                bool isSkybox = shaderAsset->GetSubShader().GetPriority() < 200;
+                
+                std::set<UUID> materialsIds = commandContext->shaderMaterials[shaderAsset->GetID()];
+                
+                for (UUID materialId: materialsIds) {
                     
-                    if ((std::string("cbPer") + Shader::CameraBufferName) == key) {
+                    Ref<Material> material = *std::find_if(commandContext->materials.begin(), commandContext->materials.end(), [materialId](Ref<Material> material) {
+                        return material->GetID() == materialId;
+                    });
+                    
+                    Ref<RHI::Buffer> materialBuffer;
+                    
+                    if (material->GetSize() > 0) {
+                        const UniqueVoidPtr& material1 = commandContext->materialData[materialId];
+                        std::string materialKey = "queue-material-" + material->GetName();
                         
-                        ss << (std::string("queue-cbPer") + Shader::CameraBufferName);
-                        ss << "-";
-                        ss << commandIndex;
-                        std::string finalKey = ss.str();
-                        
-                        if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(finalKey)) {
-                            buffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(finalKey);
+                        if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(materialKey)) {
+                            materialBuffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(materialKey);
                         } else {
-                            RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer((uint32_t)constantArgument->GetSize());
+                            RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer((uint32_t)material->GetSize());
                             // TODO: This is what I'm saying it should added as part of the context
-                            buffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
-                            buffer->SetName(finalKey);
-                            MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(buffer);
+                            materialBuffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
+                            materialBuffer->SetName(materialKey);
+                            MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(materialBuffer);
+                        }
+                        RHI::SubResource resource(material1.get(), {});
+                        materialBuffer->SetData(resource);
+                    }
+                    
+                    auto objectRange = commandContext->materialObjects.equal_range(materialId);
+                    for (auto objectIt = objectRange.first; objectIt != objectRange.second; ++objectIt) {
+                        UUID objectId = objectIt->second;
+                        
+                        std::vector<Light> lights(Light::LightsMax);
+                        std::vector<Matrix4x4> lightSpaces(Light::LightsMax);
+                        
+                        auto lightsRange = commandContext->objectLights.equal_range(objectId);
+                        
+                        int lightIndex = -1;
+                        for (auto lightIt = lightsRange.first; lightIt != lightsRange.second; ++lightIt) {
+                            
+                            lightIndex++;
+                            
+                            UUID lightId = lightIt->second;
+                            auto it = std::find_if(commandContext->lights.begin(), commandContext->lights.end(), [lightId](const Ref<LightComponent> lightComponent) {
+                                return lightComponent->GetID() == lightId;
+                            });
+                            
+                            if (it == commandContext->lights.end()) continue;
+                            
+                            std::tuple<UUID, UUID> lightSpaceKey = std::make_tuple(cameraComponent->GetID(), lightId);
+                            lightSpaces[lightIndex] = commandContext->lightSpaceMatrix[lightSpaceKey];
+                            
+                            Ref<LightComponent> lightComponent = *it;
+                            
+                            lights[lightIndex] = lightComponent->GetLight();
                         }
                         
-                        RHI::SubResource resource(&cameraPass, {});
-                        buffer->SetData(resource);
-                        parameters[value] = buffer->GetResourceView();
-                    }
-                    if ((std::string("cbPer") + Shader::ObjectBufferName) == key) {
+                        GraphicsCommandEntity entity = *std::find_if(commandContext->entities.begin(), commandContext->entities.end(), [objectId](const GraphicsCommandEntity& entity) {
+                            return entity.id == objectId;
+                        });
+                        entity.mesh->BuildVertexBuffer(metalShader->GetAttributes());
                         
-                        ss << (std::string("queue-cbPer") + Shader::ObjectBufferName);
-                        ss << "-";
-                        ss << commandIndex;
-                        std::string finalKey = ss.str();
+                        Ref<RHI::MetalBuffer> indexBuffer;
+                        Ref<RHI::MetalBufferSet> vertexBufferSet;
                         
-                        const Matrix4x4& objectMatrix = objectTransforms[drawMeshCommand->GetMesh()->GetID()];
-                        
-                        if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(finalKey)) {
-                            buffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(finalKey);
+                        if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey("vertexSet-" + entity.mesh->GetID().ToString())) {
+                            vertexBufferSet = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBufferSet>("vertexSet-" + entity.mesh->GetID().ToString());
                         } else {
-                            RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer((uint32_t)constantArgument->GetSize());
-                            // TODO: This is what I'm saying it should added as part of the context
-                            buffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
-                            buffer->SetName(finalKey);
-                            MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(buffer);
+                            std::vector<Ref<RHI::Buffer>> buffers;
+                            std::vector<float> vertices = entity.mesh->GetNativeVector();
+                            
+                            if (vertices.size() != 0) {
+                                RHI::BufferSettings vertexSettings = RHI::BufferSettings::ForVertextBuffer((uint32_t)vertices.size() * sizeof(float));
+                                Ref<RHI::Buffer> vertexBuffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(vertexSettings);
+                                RHI::SubResource resourceVertices(vertices.data(), {});
+                                vertexBuffer->SetData(resourceVertices);
+                                buffers.push_back(vertexBuffer);
+                            }
+                            vertexBufferSet = DynamicAs<RHI::MetalBufferSet>(MetalDriver::GetCurrent()->GetRenderContext()->CreateBufferSet(buffers));
+                            vertexBufferSet->SetName("vertexSet-" + entity.mesh->GetID().ToString());
+                            MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(vertexBufferSet);
                         }
-                        RHI::SubResource resource(&objectMatrix, {});
-                        buffer->SetData(resource);
-                        parameters[value] = buffer->GetResourceView();
-                    }
-                    if ((std::string("cbPer") + materialName) == key) {
                         
-                        ss << (std::string("queue-cbPer") + materialName);
-                        ss << "-";
-                        ss << commandIndex;
-                        std::string finalKey = ss.str();
-                        
-                        if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(finalKey)) {
-                            buffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(finalKey);
+                        if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey("index-" + entity.mesh->GetID().ToString())) {
+                            indexBuffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>("index-" + entity.mesh->GetID().ToString());
                         } else {
-                            RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer((uint32_t)constantArgument->GetSize());
-                            // TODO: This is what I'm saying it should added as part of the context
-                            buffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
-                            buffer->SetName(finalKey);
-                            MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(buffer);
+                            std::vector<uint32_t> triangles = entity.mesh->GetTriangles();
+                            RHI::BufferSettings indexSettings = RHI::BufferSettings::ForIndexBuffer((uint32_t)triangles.size(), RHI::PixelFormat::R32Uint);
+                            indexBuffer = DynamicAs<RHI::MetalBuffer>(MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(indexSettings));
+                            RHI::SubResource resourceIndices(triangles.data(), {});
+                            indexBuffer->SetData(resourceIndices);
+                            indexBuffer->SetName("index-" + entity.mesh->GetID().ToString());
+                            MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(indexBuffer);
                         }
                         
-                        RHI::SubResource resource(material1, {});
-                        buffer->SetData(resource);
-                        parameters[value] = buffer->GetResourceView();
+                        if (vertexBufferSet->GetBuffers().size() > 0)
+                            cmdList->SetVertexBuffers(vertexBufferSet);
+                        cmdList->SetIndexBuffer(indexBuffer);
+                        
+                        std::map<std::string, Ref<RHI::BindableProgramArgument>> arguments = metalShader->GetProgram()->GetSettings().GetProgramArguments();
+                        std::unordered_map<Ref<RHI::BindableProgramArgument>, RHI::ProgramArgumentBindingValue, RHI::BindableProgramArgument::Hash> parameters;
+                        
+                        for(const auto& [key, value]: arguments) {
+                            
+                            if (value->GetResourceType() == RHI::ResourceType::Buffer) {
+                                Ref<RHI::ConstantBufferProgramArgument> constantArgument = DynamicAs<RHI::ConstantBufferProgramArgument>(value);
+                                
+                                if ((std::string("cbPer") + Shader::CameraBufferName) == key) {
+                                    parameters[value] = isSkybox ? skyboxCameraBuffer->GetResourceView() : cameraBuffer->GetResourceView();
+                                }
+                                if ((std::string("cbPer") + materialName) == key && materialBuffer != nullptr) {
+                                    parameters[value] = materialBuffer->GetResourceView();
+                                }
+                                if ((std::string("cbPer") + Shader::ObjectBufferName) == key) {
+                                    Ref<RHI::Buffer> objectBuffer;
+                                    std::string objectKey = "queue-object-" + std::to_string(commandIndex);
+                                    
+                                    if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(objectKey)) {
+                                        objectBuffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(objectKey);
+                                    } else {
+                                        RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer((uint32_t)constantArgument->GetSize());
+                                        // TODO: This is what I'm saying it should added as part of the context
+                                        objectBuffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
+                                        objectBuffer->SetName(objectKey);
+                                        MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(objectBuffer);
+                                    }
+                                    Matrix4x4 object = entity.transform;
+                                    RHI::SubResource resource(&object, {});
+                                    objectBuffer->SetData(resource);
+                                    parameters[value] = objectBuffer->GetResourceView();
+                                }
+                                if ((std::string("cbPer") + Light::LightName) == key) {
+                                    Ref<RHI::Buffer> lightsBuffer;
+                                    std::string ligthsKey = "queue-lights";
+                                    
+                                    if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(ligthsKey)) {
+                                        lightsBuffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(ligthsKey);
+                                    } else {
+                                        RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer((uint32_t)constantArgument->GetSize());
+                                        // TODO: This is what I'm saying it should added as part of the context
+                                        lightsBuffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
+                                        lightsBuffer->SetName(ligthsKey);
+                                        MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(lightsBuffer);
+                                    }
+                                    RHI::SubResource resource(lights.data(), {});
+                                    lightsBuffer->SetData(resource);
+                                    parameters[value] = lightsBuffer->GetResourceView();
+                                }
+                                if ((std::string("cbPer") + Light::LightSpaceName) == key) {
+                                    Ref<RHI::Buffer> lightsSpacesBuffer;
+                                    std::string lightsSpacesKey = "queue-lights-spaces";
+                                    
+                                    if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(lightsSpacesKey)) {
+                                        lightsSpacesBuffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(lightsSpacesKey);
+                                    } else {
+                                        RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer((uint32_t)constantArgument->GetSize());
+                                        // TODO: This is what I'm saying it should added as part of the context
+                                        lightsSpacesBuffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
+                                        lightsSpacesBuffer->SetName(lightsSpacesKey);
+                                        MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(lightsSpacesBuffer);
+                                    }
+                                    
+                                    RHI::SubResource resource(lightSpaces.data(), {});
+                                    lightsSpacesBuffer->SetData(resource);
+                                    parameters[value] = lightsSpacesBuffer->GetResourceView();
+                                }
+                                
+                            } else if (value->GetResourceType() == RHI::ResourceType::Texture) {
+                                Ref<RHI::TextureProgramArgument> texArgument = DynamicAs<RHI::TextureProgramArgument>(value);
+                                Ref<RHI::Texture> rhiTexture;
+                                if (value->GetName() == "Shadow") {
+                                    rhiTexture = shadowMap->GetRHIDepthTexture();
+                                } else {
+                                    if (texArgument->GetTextureDimensionType() == RHI::TextureDimensionType::Cube) {
+                                        Ref<Cubemap> assetCubemap = DynamicAs<Cubemap>(material->GetTexture(value->GetName()));
+                                        Ref<MetalCubemap> metalCubemap = DynamicAs<MetalCubemap>(assetCubemap->GetInnerTexture());
+                                        rhiTexture = metalCubemap->GetRHITexture();
+                                    }
+                                    if (texArgument->GetTextureDimensionType() == RHI::TextureDimensionType::Tex2D) {
+                                        Ref<Texture2D> assetTexture = DynamicAs<Texture2D>(material->GetTexture(value->GetName()));
+                                        Ref<MetalTexture2D> metalTexture2D = DynamicAs<MetalTexture2D>(assetTexture->GetInnerTexture());
+                                        rhiTexture = metalTexture2D->GetRHITexture();
+                                    }
+                                }
+                                parameters[value] = rhiTexture->GetTextureView({});
+                            }
+                        }
+                        
+                        /*
+                         Now that we pass the state to the command list, the next part would be
+                         1. Passing the program argument bindings // DONE
+                         2. Passing the vertex buffer // DONE
+                         3. Passsing the index buffer // DONE
+                         4. Drawing // DONE
+                         
+                         The way the shader is buildind the descriptor tables should not live inside the asset class.
+                         It should live somewhere else. The question is where.
+                         
+                         Edit Sept 9th 26: I understood how the descriptor tables work now. I need to improve the code on how to
+                         keep them alive.
+                         */
+                        
+                        RHI::ProgramArgumentBindings bindings(
+                                                              metalShader->GetProgram(), parameters);
+                        //
+                        cmdList->SetProgramBindings(bindings);
+                        
+                        cmdList->DrawIndexed(
+                                             GetTopologyEx(entity.mesh->GetSubMesh(entity.subMeshIndex).GetTopology()),
+                                             indexBuffer->GetSettings().GetCount()
+                                             );
+                        commandIndex++;
                     }
-                    if ((std::string("cbPer") + Light::LightName) == key) {
-                        
-                        ss << (std::string("queue-cbPer") + Light::LightName);
-                        ss << "-";
-                        ss << commandIndex;
-                        std::string finalKey = ss.str();
-                        
-                        if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(finalKey)) {
-                            buffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(finalKey);
-                        } else {
-                            RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer((uint32_t)constantArgument->GetSize());
-                            // TODO: This is what I'm saying it should added as part of the context
-                            buffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
-                            buffer->SetName(finalKey);
-                            MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(buffer);
-                        }
-                        RHI::SubResource resource(lights, {});
-                        buffer->SetData(resource);
-                        parameters[value] = buffer->GetResourceView();
-                    }
-                    if ((std::string("cbPer") + Light::LightSpaceName) == key) {
-                        
-                        ss << (std::string("queue-cbPer") + Light::LightSpaceName);
-                        ss << "-";
-                        ss << commandIndex;
-                        std::string finalKey = ss.str();
-                        
-                        if (MetalDriver::GetCurrent()->GetObjectRegistry()->HasKey(finalKey)) {
-                            buffer = MetalDriver::GetCurrent()->GetObjectRegistry()->Get<RHI::MetalBuffer>(finalKey);
-                        } else {
-                            RHI::BufferSettings settings = RHI::BufferSettings::ForConstantBuffer((uint32_t)constantArgument->GetSize());
-                            // TODO: This is what I'm saying it should added as part of the context
-                            buffer = MetalDriver::GetCurrent()->GetRenderContext()->CreateBuffer(settings);
-                            buffer->SetName(finalKey);
-                            MetalDriver::GetCurrent()->GetObjectRegistry()->AddObject(buffer);
-                        }
-                        RHI::SubResource resource(spacesPointer, {});
-                        buffer->SetData(resource);
-                        parameters[value] = buffer->GetResourceView();
-                    }
-                } else if (value->GetResourceType() == RHI::ResourceType::Texture) {
-                    Ref<RHI::TextureProgramArgument> texArgument = DynamicAs<RHI::TextureProgramArgument>(value);
-                    Ref<RHI::Texture> rhiTexture;
-                    if (value->GetName() == "Shadow") {
-                        rhiTexture = shadowMap->GetRHIDepthTexture();
-                    } else {
-                        if (texArgument->GetTextureDimensionType() == RHI::TextureDimensionType::Cube) {
-                            Ref<Cubemap> assetCubemap = DynamicAs<Cubemap>(drawMeshCommand->GetMaterial()->GetTexture(value->GetName()));
-                            Ref<MetalCubemap> metalCubemap = DynamicAs<MetalCubemap>(assetCubemap->GetInnerTexture());
-                            rhiTexture = metalCubemap->GetRHITexture();
-                        }
-                        if (texArgument->GetTextureDimensionType() == RHI::TextureDimensionType::Tex2D) {
-                            Ref<Texture2D> assetTexture = DynamicAs<Texture2D>(drawMeshCommand->GetMaterial()->GetTexture(value->GetName()));
-                            Ref<MetalTexture2D> metalTexture2D = DynamicAs<MetalTexture2D>(assetTexture->GetInnerTexture());
-                            rhiTexture = metalTexture2D->GetRHITexture();
-                        }
-                    }
-                    parameters[value] = rhiTexture->GetTextureView({});
                 }
             }
-            
-            RHI::ProgramArgumentBindings bindings(
-                                                  metalShader->GetProgram(), parameters);
-            //
-            cmdList->SetProgramBindings(bindings);
-            
-            cmdList->DrawIndexed(
-                                 GetTopologyEx(drawMeshCommand->GetMesh()->GetSubMesh(drawMeshCommand->GetSubmeshIndex()).GetTopology()),
-                                 indexBuffer->GetSettings().GetCount()
-                                 );
-            commandIndex++;
-            free(material1);
-            itemsCount++;
-            constantBufferIndexPerShader[drawMeshCommand->GetMaterial()->GetShaderName()] = ++shapes;
         }
     }
 

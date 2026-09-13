@@ -21,11 +21,13 @@
 namespace VWolf {
 
     struct Matrix4x4;
+    struct Vector3;
 
     struct Quaternion {
     public:
         Quaternion();
         Quaternion(float w, float x, float y, float z);
+        Quaternion(Vector3 vector);
         Quaternion(const Quaternion&);
         Quaternion(Quaternion&);
         Quaternion(Quaternion&&);

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "VWolf/Core/Math/Vector3.h"
+#include "VWolf/Core/Math/Vector4.h"
 
 namespace reactphysics3d {
     class AABB;
@@ -20,19 +21,21 @@ namespace VWolf {
         Bounds(const std::vector<Vector3>& vector);
         Bounds(const Vector3& minX, const Vector3& max);
     public:
-        Vector3 GetCenter();
-        Vector3 GetExtents();
-        Vector3 GetMin();
-        Vector3 GetMax();
-        Vector3 GetSize();
+        Vector3 GetCenter() const;
+        Vector3 GetExtents() const;
+        Vector3 GetMin() const;
+        Vector3 GetMax() const;
+        Vector3 GetSize() const;
     public:
         bool Contains(Vector3 point);
+        bool HasVolume() const;
         void Encapsulate(Vector3 point);
         void Encapsulate(const Bounds& bounds);
         void Expand(float amount);
         void Expand(Vector3 amount);
         bool Intersects(const Bounds& bounds);
         void SetMinMax(Vector3 min, Vector3 max);
+        std::vector<Vector4> GetBoundsCornersWorldSpace() const;
         std::string ToString();
     private:
         void Initialize(const Vector3& minX, const Vector3& max);

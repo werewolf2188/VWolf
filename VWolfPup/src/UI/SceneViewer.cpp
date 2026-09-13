@@ -79,11 +79,7 @@ namespace VWolfPup {
                 VWolf::Vector3 focalPoint = camera->GetFocalPoint();
                 float zoom = camera->GetZoom();
                 VWolf::Vector3 position = focalPoint - cameraTransform->GetPosition() * zoom;
-                VWolf::Matrix4x4 view = camera->GetCamera()->CalculateView(position, VWolf::Quaternion::Euler(
-                                                                                                                cameraTransform->GetEulerAngles().GetX(),
-                                                                                                                cameraTransform->GetEulerAngles().GetY(),
-                                                                                                                cameraTransform->GetEulerAngles().GetZ()
-                                                                                                                ));
+                VWolf::Matrix4x4 view = camera->GetCamera()->CalculateView(position, cameraTransform->GetOrientation());
                 VWolf::TransformComponent& tComponent = selectedObject->GetTransform();
                 tComponent.Apply();
                 VWolf::Matrix4x4& transform = tComponent.GetWorldMatrix();

@@ -20,6 +20,14 @@ namespace VWolf {
         gameObject.reset();
     }
 
+    Component& Component::operator=(const Component& light) {
+        this->gameObject = light.gameObject;
+        this->name = light.name;
+        this->id = light.id;
+        
+        return *this;
+    }
+
     void Component::SetGameObject(Weak<GameObject> gameObject) {
         this->gameObject = gameObject;
     }

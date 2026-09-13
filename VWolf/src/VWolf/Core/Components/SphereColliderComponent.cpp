@@ -19,7 +19,7 @@ namespace VWolf {
     Component(ClassNameCleaner::Current().GetClassName<SphereColliderComponent>()) {}
 
     SphereColliderComponent::SphereColliderComponent(const SphereColliderComponent& sphereCollider):
-    Component(ClassNameCleaner::Current().GetClassName<SphereColliderComponent>(), sphereCollider.id) {
+    Component(sphereCollider) {
         this->mRadius = sphereCollider.mRadius;
     }
 

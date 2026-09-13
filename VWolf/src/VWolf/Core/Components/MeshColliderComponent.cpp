@@ -18,7 +18,7 @@ namespace VWolf {
     Component(ClassNameCleaner::Current().GetClassName<MeshColliderComponent>()) {}
 
     MeshColliderComponent::MeshColliderComponent(const MeshColliderComponent& meshCollider):
-    Component(ClassNameCleaner::Current().GetClassName<MeshColliderComponent>(), meshCollider.id) {}
+    Component(meshCollider) {}
 
     MeshColliderComponent::MeshColliderComponent(MeshColliderComponent&& meshCollider):
     Component(ClassNameCleaner::Current().GetClassName<MeshColliderComponent>(), meshCollider.id) {}

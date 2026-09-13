@@ -8,6 +8,7 @@
 #include "vwpch.h"
 #include "Quaternion.h"
 #include "Matrix4x4.h"
+#include "Vector3.h"
 
 #include <glm/gtx/euler_angles.hpp>
 
@@ -19,6 +20,8 @@ namespace VWolf {
     Quaternion::Quaternion(): quat(glm::quat(0, 0, 0, 0)) {}
 
     Quaternion::Quaternion(float w, float x, float y, float z): quat(glm::quat(w, x, y, z)) {}
+
+    Quaternion::Quaternion(Vector3 vector): quat(glm::quat(vector.GetInternalVector())) {}
 
     Quaternion::Quaternion(glm::quat initializer): quat(std::move(initializer)) { }
 

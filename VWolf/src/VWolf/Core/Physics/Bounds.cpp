@@ -47,27 +47,27 @@ namespace VWolf {
         aabb = CreateRef<reactphysics3d::AABB>(min1, max1);
     }
 
-    Vector3 Bounds::GetCenter() {
+    Vector3 Bounds::GetCenter() const {
         reactphysics3d::Vector3 vector = aabb->getCenter();
         return Vector3(vector.x, vector.y, vector.z);
     }
 
-    Vector3 Bounds::GetExtents() {
+    Vector3 Bounds::GetExtents() const {
         reactphysics3d::Vector3 vector = aabb->getExtent();
         return Vector3(vector.x, vector.y, vector.z);
     }
 
-    Vector3 Bounds::GetMin() {
+    Vector3 Bounds::GetMin() const {
         reactphysics3d::Vector3 vector = aabb->getMin();
         return Vector3(vector.x, vector.y, vector.z);
     }
 
-    Vector3 Bounds::GetMax() {
+    Vector3 Bounds::GetMax() const {
         reactphysics3d::Vector3 vector = aabb->getMax();
         return Vector3(vector.x, vector.y, vector.z);
     }
 
-    Vector3 Bounds::GetSize() {
+    Vector3 Bounds::GetSize() const {
         reactphysics3d::Vector3 vector = (aabb->getExtent() * 2);
         return Vector3(vector.x, vector.y, vector.z);
     }
@@ -105,6 +105,30 @@ namespace VWolf {
         reactphysics3d::Vector3 max1(max.GetX(), max.GetY(), max.GetZ());
         aabb->setMax(max1);
         aabb->setMin(min1);
+    }
+
+    bool Bounds::HasVolume() const {
+        Vector3 size = GetSize();
+        return size.GetX() > 0.0f || size.GetY() > 0.0f || size.GetZ() > 0.0f;
+    }
+
+    std::vector<Vector4> Bounds::GetBoundsCornersWorldSpace() const {
+        Vector3 min = GetMin();
+        Vector3 max = GetMax();
+        std::vector<Vector4> corners;
+        for (unsigned int x = 0; x < 2; ++x) {
+            for (unsigned int y = 0; y < 2; ++y) {
+                for (unsigned int z = 0; z < 2; ++z) {
+                    corners.push_back(Vector4(
+                        x ? max.GetX() : min.GetX(),
+                        y ? max.GetY() : min.GetY(),
+                        z ? max.GetZ() : min.GetZ(),
+                        1.0f
+                    ));
+                }
+            }
+        }
+        return corners;
     }
 
     std::string Bounds::ToString() {

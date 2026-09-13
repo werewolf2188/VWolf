@@ -12,6 +12,10 @@
 #include <boost/describe.hpp>
 
 namespace VWolf {
+
+    template<typename T>
+    struct Hash;
+
     class Object {
     protected:
         Object(UUID id);
@@ -65,5 +69,25 @@ namespace VWolf {
         }
     private:
         static std::map<UUID, Ref<Object>> m_objects;
+    };
+
+    template<typename T>
+    struct RefHash {
+        std::size_t operator()(const Ref<T> arg) const {
+            static_assert(std::is_base_of_v<Object, T>, "T must inherit from Object!");
+            
+            std::hash<std::string> hasher;
+            return hasher(arg->GetID().ToString());
+        }
+    };
+
+    template<typename T>
+    struct Hash {
+        std::size_t operator()(const T& arg) const {
+            static_assert(std::is_base_of_v<Object, T>, "T must inherit from Object!");
+            
+            std::hash<std::string> hasher;
+            return hasher(arg.GetID().ToString());
+        }
     };
 }

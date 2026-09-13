@@ -2,7 +2,7 @@
 shader:
   name: Grid
   subShader:
-      priority: 200
+      priority: 250
       stages:
         - stageType: Vertex
           functionName: VS

@@ -17,7 +17,7 @@ namespace VWolf {
     }
 
     TransformComponent::TransformComponent(const TransformComponent& transform):
-    Component(ClassNameCleaner::Current().GetClassName<TransformComponent>(), transform.id) {
+    Component(transform) {
         this->position = transform.position;
         this->eulerAngles = transform.eulerAngles;
         this->localScale = transform.localScale;
@@ -37,6 +37,7 @@ namespace VWolf {
     }
 
     TransformComponent& TransformComponent::operator=(TransformComponent t) {
+        Component::operator=(t);
         this->position = t.position;
         this->eulerAngles = t.eulerAngles;
         this->localScale = t.localScale;
@@ -57,6 +58,24 @@ namespace VWolf {
     Ref<Component> TransformComponent::Copy(entt::entity& handle, entt::registry& registry) {
         Ref<TransformComponent> component = CopyComponent<TransformComponent>(handle, registry);
         return component;
+    }
+
+    Vector3 TransformComponent::Up() const {
+        Quaternion q(eulerAngles);
+        
+        return q.GetOrientation({ 0, 1, 0 });
+    }
+
+    Vector3 TransformComponent::Right() const {
+        Quaternion q(eulerAngles);
+        
+        return q.GetOrientation({ 1, 0, 0 });
+    }
+
+    Vector3 TransformComponent::Forward() const {
+        Quaternion q(eulerAngles);
+        
+        return q.GetOrientation({ 0, 0, 1 });
     }
 
     VWOLF_CREATE_CONVERT_GENERIC_CLASS_ENCODER_WITH_NAME(TransformComponent, "TransformComponent")

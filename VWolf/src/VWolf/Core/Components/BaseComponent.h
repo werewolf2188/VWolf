@@ -21,7 +21,12 @@ namespace VWolf {
     public:
         Component(std::string name);
         Component(std::string name, UUID id);
+        Component(const Component& component): Object(component), gameObject(component.gameObject) {
+            name = component.name;
+        }
         virtual ~Component();
+        
+        Component& operator=(const Component& light);
     public:
         virtual Ref<Component> Copy(entt::entity& handle, entt::registry& registry) = 0;
     protected:
@@ -39,9 +44,9 @@ namespace VWolf {
             }
             return nullptr;
         }
-    private:
+    protected:
         Weak<GameObject> gameObject;
-        
+    private:
         BOOST_DESCRIBE_CLASS(Component, (Object), (), (id), ())
     };
 }

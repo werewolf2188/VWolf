@@ -90,6 +90,7 @@ namespace VWolf {
         friend Vector4 operator-(const Vector4& lhs, const Vector4& rhs);
         friend Vector4 operator*(const Vector4& lhs, float rhs);
         friend Vector4 operator*(float lhs, const Vector4& rhs);
+        friend Vector4 operator*(const Matrix4x4& lhs, const Vector4& rhs);
         friend Vector4 operator/(const Vector4& lhs, float rhs);
         friend Vector4 operator/(float lhs, const Vector4& rhs);
 

@@ -30,7 +30,9 @@ namespace VWolf {
     }
 
     size_t Object::HashCode() {
-        return boost::typeindex::type_id_with_cvr<decltype(this)>().hash_code();
+        Hash<Object> h;
+        
+        return h(*this);
     }
 
     bool Object::operator==(Object& object) {

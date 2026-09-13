@@ -10,6 +10,8 @@
 #include "Vector3.h"
 #include "Vector2.h"
 
+#include "Matrix4x4.h"
+
 #include "VWolf/Core/Color.h"
 
 #include <glm/gtx/perpendicular.hpp>
@@ -134,6 +136,13 @@ namespace VWolf {
     Vector4 operator*(float lhs, const Vector4& rhs) {
         glm::vec4 vec = lhs * rhs._vector4;
         return Vector4(vec.x, vec.y, vec.z, vec.w);
+    }
+
+    Vector4 operator*(const Matrix4x4& lhs, const Vector4& rhs) {
+        glm::mat4 mat4 = lhs.GetInternalMatrix();
+        glm::vec4 vec4 = rhs.GetInternalVector();
+        glm::vec4 vector = mat4 * vec4;
+        return Vector4(vector.x, vector.y, vector.z, vector.w);
     }
 
     Vector4 Vector4::operator/(float rhs) {

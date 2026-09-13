@@ -19,7 +19,7 @@ namespace VWolf {
     }
 
     RigidBodyComponent::RigidBodyComponent(const RigidBodyComponent& rigidBody):
-    Component(ClassNameCleaner::Current().GetClassName<RigidBodyComponent>(), rigidBody.id) {
+    Component(rigidBody) {
         this->mMass = rigidBody.mMass;
         this->mDrag = rigidBody.mDrag;
         this->mAngularDrag = rigidBody.mAngularDrag;

@@ -21,7 +21,7 @@ namespace VWolf {
     m_isOrthographic(m_camera->IsOrtographic()), m_zoom(m_camera->GetZoom()) { }
 
     CameraComponent::CameraComponent(const CameraComponent& camera):
-    Component(ClassNameCleaner::Current().GetClassName<CameraComponent>(), camera.id), m_camera(CreateRef<Camera>()) {
+    Component(camera), m_camera(CreateRef<Camera>()) {
         this->m_ViewportWidth = camera.m_ViewportWidth;
         this->m_ViewportHeight = camera.m_ViewportHeight;
         this->m_FOV = camera.m_FOV;

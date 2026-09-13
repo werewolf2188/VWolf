@@ -21,7 +21,7 @@ namespace VWolf {
     // The UI commands as well.
     class GraphicsCommand {
     public:
-        virtual void Test() = 0;
+        virtual ~GraphicsCommand() {};
     private:
     };
 
@@ -29,8 +29,9 @@ namespace VWolf {
     public:
         MeshGraphicsCommand(Ref<Mesh> mesh, Vector3 position, Quaternion rotation);
         MeshGraphicsCommand(Ref<Mesh> mesh, Matrix4x4 transform);
-    public:
-        virtual void Test() override {}
+        
+        ~MeshGraphicsCommand() {}
+
         Ref<Mesh> GetMesh() { return mesh; }
         Matrix4x4& GetTransform() { return transform; }
     protected:

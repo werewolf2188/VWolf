@@ -47,7 +47,7 @@ namespace VWolf::RHI  {
         // TODO: Refactor
         void CreateDescriptorTableEntries(uint32_t objectIndex);
         void SetDescriptorTable(uint32_t index, ShaderType type);
-        void SetData(Ref<MTL::Buffer> buffer, const std::string& name, uint32_t index, uint32_t size);
+        void SetData(Ref<RHI::MetalBuffer>& buffer, const Ref<BindableProgramArgument>& argument, uint32_t index, uint32_t size);
         void SetTexture(Ref<MTL::Texture> texture, const std::string& name, uint32_t index);
         //
         

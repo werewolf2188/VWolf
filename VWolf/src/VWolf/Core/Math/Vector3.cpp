@@ -148,6 +148,13 @@ namespace VWolf {
         glm::vec3 vec = lhs * rhs._vector3;
         return Vector3(vec.x, vec.y, vec.z);
     }
+    
+    Vector3 operator*(const Matrix4x4& lhs, const Vector3& rhs) {
+        glm::mat4 mat4 = lhs.GetInternalMatrix();
+        glm::vec3 vec3 = rhs.GetInternalVector();
+        glm::vec3 vector = glm::vec3(mat4 * glm::vec4(vec3, 1.0f));
+        return Vector3(vector.x, vector.y, vector.z);
+    }
 
     Vector3 Vector3::operator/(float rhs) {
         glm::vec3 vec = this->_vector3 / rhs;

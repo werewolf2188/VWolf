@@ -22,7 +22,7 @@ namespace VWolf {
     }
 
     MeshFilterComponent::MeshFilterComponent(const MeshFilterComponent& component):
-    Component(ClassNameCleaner::Current().GetClassName<MeshFilterComponent>(), component.id), meshId(component.meshId) {
+    Component(component), meshId(component.meshId) {
         Load();
         this->SetGameObject(const_cast<MeshFilterComponent&>(component).GetGameObject());
     }

@@ -1,6 +1,9 @@
 ---
 shader:
   name: Shadow
+  settings:
+    rasterization:
+      cullMode: Front
   subShader:
       priority: 200
       stages:

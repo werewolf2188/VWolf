@@ -22,7 +22,7 @@ namespace VWolf {
     RendererComponent(ClassNameCleaner::Current().GetClassName<MeshRendererComponent>()), material(&material), materialId(material.GetID()) {}
 
     MeshRendererComponent::MeshRendererComponent(const MeshRendererComponent& component):
-    RendererComponent(ClassNameCleaner::Current().GetClassName<MeshRendererComponent>(), component.id), materialId(component.materialId) {
+    RendererComponent(component), materialId(component.materialId) {
         this->material = ObjectResourceManager::Get<Material>(component.materialId);
         this->SetGameObject(const_cast<MeshRendererComponent&>(component).GetGameObject());
     }
@@ -63,7 +63,7 @@ namespace VWolf {
     material(&material), materialId(material.GetID())  {}
 
     ShapeRendererComponent::ShapeRendererComponent(const ShapeRendererComponent& component):
-    RendererComponent(ClassNameCleaner::Current().GetClassName<ShapeRendererComponent>(), component.id),
+    RendererComponent(component),
     meshId(component.meshId), materialId(component.materialId) {
         this->material = ObjectResourceManager::Get<Material>(component.materialId);
         this->mesh = CreateRef<Mesh>(ShapeHelper::Create(meshId));

@@ -11,6 +11,9 @@
 #include "MetalRenderCommandList.h"
 #include "MetalRenderPass.h"
 #include "MetalDriver.h"
+
+#include "VWolf/Core/Time.h"
+
 #include "VWolf/Platform/Metal/Core/SmartPointers.h"
 
 #define IR_RUNTIME_METALCPP
@@ -89,7 +92,7 @@ namespace VWolf::RHI  {
             if (key->GetResourceType() == ResourceType::Buffer) {
                 const ResourceView& view = std::get<ResourceView>(value);
                 Ref<MetalBuffer> buffer = DynamicAs<MetalBuffer>(view.GetResource());
-                SetData(buffer->GetBuffer(), key->GetName(), GetCurrentIndexPerState(), buffer->GetSettings().GetSize());
+                SetData(buffer, key, GetCurrentIndexPerState(), buffer->GetSettings().GetSize());
             } else if (key->GetResourceType() == ResourceType::Texture) {
                 const TextureView& view = std::get<TextureView>(value);
                 Ref<MetalTexture> texture = DynamicAs<MetalTexture>(view.GetTexture().lock());
@@ -239,16 +242,16 @@ namespace VWolf::RHI  {
         }
     }
 
-    void MetalRenderCommandList::SetData(Ref<MTL::Buffer> passArgument, const std::string& name, uint32_t index, uint32_t size) {
+    void MetalRenderCommandList::SetData(Ref<RHI::MetalBuffer>& passArgument, const Ref<BindableProgramArgument>& argument, uint32_t index, uint32_t size) {
         if (size == 0) return;
         
         Ref<MetalProgram> program = DynamicAs<MetalProgram>(current_state->GetSettings().GetProgram());
         
         for(auto& [key, topLevelArgument]: program->GetTopLevelArguments()) {
-            if (topLevelArgument.count(name) == 0) continue;
+            if (topLevelArgument.count(argument->GetName()) == 0) continue;
             
             auto argumentBufferPtr = static_cast<uint8_t*>(program->pDescriptorTables[(ShaderType)(uint32_t)key][index]->contents());
-            const Ref<RHI::Argument>& resource = topLevelArgument.at(name);
+            const Ref<RHI::Argument>& resource = topLevelArgument.at(argument->GetName());
             uint64_t _offset = resource->GetOffset();
             auto entry = reinterpret_cast<IRDescriptorTableEntry*>(argumentBufferPtr + _offset);
             // TODO: variableBuffers is no longer necessary. Context should be aware of its objects that has created.
@@ -277,10 +280,13 @@ namespace VWolf::RHI  {
 //                    encoder->useResource(passArgument.get(), MTL::ResourceUsageRead, MTL::RenderStageFragment);
 //                }
 //            }
-            encoder->useResource(passArgument.get(), MTL::ResourceUsageRead, MTL::RenderStageVertex);
-            encoder->useResource(passArgument.get(), MTL::ResourceUsageRead, MTL::RenderStageFragment);
+            if (passArgument->GetCurrentFrameInUse() < VWolf::Time::GetTotalFrames()) {
+                encoder->useResource(passArgument->GetBuffer().get(), MTL::ResourceUsageRead, MTL::RenderStageVertex);
+                encoder->useResource(passArgument->GetBuffer().get(), MTL::ResourceUsageRead, MTL::RenderStageFragment);
+                passArgument->SetCurrentFrameInUse(VWolf::Time::GetTotalFrames());
+            }
             
-            uint64_t gpuAddress = passArgument->gpuAddress();
+            uint64_t gpuAddress = passArgument->GetBuffer()->gpuAddress();
             
             IRDescriptorTableSetBuffer(entry, gpuAddress, 0);
         }

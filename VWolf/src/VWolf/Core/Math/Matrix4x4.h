@@ -50,9 +50,9 @@ namespace VWolf {
         Vector3 GetLossyScale() const;
         Quaternion GetRotation() const;
         Matrix4x4 GetTranspose() const;
+        Vector3 GetPosition() const;
     public:
         Vector4 GetColumn(int index);
-        Vector3 GetPosition();
         Vector4 GetRow(int index);
         Vector3 MultiplyPoint(Vector3 point);
         Vector3 MultiplyVector(Vector3 vector);

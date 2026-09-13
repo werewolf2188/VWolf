@@ -13,7 +13,7 @@ namespace VWolf {
     Component(ClassNameCleaner::Current().GetClassName<AudioListenerComponent>()) {}
 
     AudioListenerComponent::AudioListenerComponent(const AudioListenerComponent& audioListener):
-    Component(ClassNameCleaner::Current().GetClassName<AudioListenerComponent>(), audioListener.id) {}
+    Component(audioListener) {}
 
     AudioListenerComponent::AudioListenerComponent(AudioListenerComponent&& audioListener):
     Component(ClassNameCleaner::Current().GetClassName<AudioListenerComponent>(), audioListener.id) {}

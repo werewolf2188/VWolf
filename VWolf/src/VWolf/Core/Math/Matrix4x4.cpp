@@ -151,7 +151,7 @@ namespace VWolf {
         return this->operator[](index);
     }
 
-    Vector3 Matrix4x4::GetPosition() {
+    Vector3 Matrix4x4::GetPosition() const {
         DECOMPOSE
 
         return Vector3(translation.x, translation.y, translation.z);

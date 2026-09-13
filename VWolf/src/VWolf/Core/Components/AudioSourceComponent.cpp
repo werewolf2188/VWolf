@@ -19,7 +19,7 @@ namespace VWolf {
     }
 
     AudioSourceComponent::AudioSourceComponent(const AudioSourceComponent& audioSource):
-    Component(ClassNameCleaner::Current().GetClassName<AudioSourceComponent>(), audioSource.id) {
+    Component(audioSource) {
         this->audioClipId = audioSource.audioClipId;
         this->mLoop = audioSource.mLoop;
         Initialize();

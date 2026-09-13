@@ -19,7 +19,7 @@ namespace VWolf {
     Component(ClassNameCleaner::Current().GetClassName<BoxColliderComponent>()) {}
 
     BoxColliderComponent::BoxColliderComponent(const BoxColliderComponent& sphereCollider):
-    Component(ClassNameCleaner::Current().GetClassName<BoxColliderComponent>(), sphereCollider.id) {
+    Component(sphereCollider) {
     }
 
     BoxColliderComponent::BoxColliderComponent(BoxColliderComponent&& sphereCollider):

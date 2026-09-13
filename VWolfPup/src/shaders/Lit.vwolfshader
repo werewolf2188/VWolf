@@ -99,11 +99,13 @@ shader:
             float3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
             projCoords.x = projCoords.x * 0.5 + 0.5;
             projCoords.y = projCoords.y * (-0.5) + 0.5;
-            float closestDepth = Shadow.Sample(gsamPointWrap, projCoords.xy).r;//texture(u_shadow, projCoords.xy).r;
+            if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0)
+                return 0.0;
+            float closestDepth = Shadow.Sample(gsamPointWrap, projCoords.xy).r;
             float currentDepth = (projCoords.z * 0.5 + 0.5);
-            float bias = 0.005;
+            float bias = 0.0005;
             float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
-            if ((projCoords.z * 0.5 + 0.5) > 1.0)
+            if (currentDepth > 1.0)
                 shadow = 0.0;
         
             return shadow;
@@ -189,7 +191,7 @@ shader:
         
             // Diffuse
             float3 s = float3(0, 0, 0);
-            s = normalize(lightInfo.u_direction.xyz);
+            s = normalize(-lightInfo.u_direction.xyz);
             float sDotN = max(dot(s, n), 0.0);
             float3 diffuse = (lightInfo.u_color * u_diffuseColor * sDotN).xyz;
         
