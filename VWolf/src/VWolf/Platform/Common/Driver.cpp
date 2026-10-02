@@ -2,7 +2,7 @@
 
 #include "VWolf/Core/Render/RHI/Driver.h"
 
-#include "VWolf/Platform/OpenGL/OpenGLDriver.h"
+#include "VWolf/Platform/OpenGL/Render/RHI/OpenGLDriver.h"
 #ifdef VWOLF_PLATFORM_WINDOWS
 #include "VWolf/Platform/DirectX12/DirectX12Driver.h"
 #endif

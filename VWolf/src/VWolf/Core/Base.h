@@ -5,6 +5,10 @@
 #include <memory>
 #include <stdexcept>
 
+/// THIS IS FOR OPEN GL
+#define OPENGL_MAJOR_VERSION 4
+#define OPENGL_MINOR_VERSION 1
+#define OPENGL_VERSION 400
 
 namespace VWolf {
 

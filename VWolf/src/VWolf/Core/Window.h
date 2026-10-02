@@ -11,12 +11,18 @@
 
 namespace VWolf {
 
+    class Monitor {
+    public:
+        virtual uint32_t GetVideoModeWidth() = 0;
+        virtual uint32_t GetVideoModeHeight() = 0;
+    };
+
 	class Window {
 	public:
 		virtual ~Window() {};
-		virtual void Initialize() = 0;
 		virtual void OnUpdate() = 0;
 		virtual void* GetNativeWindow() = 0;
+        virtual Ref<Monitor> GetMonitor() = 0;
 		inline int GetWidth() { return width;  }
 		inline int GetHeight() { return height; }
         inline void SetWidth(int width) { this->width = width; }
@@ -35,5 +41,5 @@ namespace VWolf {
 		bool vsync = false;
 	};
 
-    Ref<Window> CreateGenericWindow(DriverType driverType, InitConfiguration config, std::function<void()> initializer = [](){});
+    Ref<Window> CreateGenericWindow(DriverType driverType, InitConfiguration config);
 }

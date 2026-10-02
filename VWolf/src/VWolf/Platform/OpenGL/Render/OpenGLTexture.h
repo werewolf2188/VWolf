@@ -9,14 +9,15 @@
 #include "VWolf/Platform/Common/PTexture.h"
 #include "VWolf/Core/Math/VMath.h"
 
-namespace VWolf {
-    class OpenGLBindableTexture {
-    public:
-        virtual void Bind(uint32_t base) = 0;
-        virtual void Unbind(uint32_t base) = 0;
-    };
 
-    class OpenGLTexture2D: public PTexture2D, public OpenGLBindableTexture {
+#include "VWolf/Platform/OpenGL/Core/Bindable.h"
+#include "VWolf/Platform/OpenGL/Render/RHI/OpenGLRenderPass.h"
+#include "VWolf/Platform/OpenGL/Render/RHI/OpenGLRenderCommandList.h"
+#include "VWolf/Platform/OpenGL/Render/RHI/OpenGLTexture.h"
+
+namespace VWolf {
+
+    class OpenGLTexture2D: public PTexture2D, public BaseBindable {
     public:
         OpenGLTexture2D(void * bytes, uint32_t width, uint32_t height, TextureOptions options = {});
         virtual ~OpenGLTexture2D();
@@ -24,10 +25,10 @@ namespace VWolf {
     public:
         virtual void Bind(uint32_t base) override;
         virtual void Unbind(uint32_t base) override;
+        
+        Ref<RHI::OpenGLTexture> GetRHITexture() { return internalTexture; }
     private:
-        GLuint m_textureID;
-        GLuint m_sampleID;
-        GLenum m_internalDataFormat, m_dataFormat;
+        Ref<RHI::OpenGLTexture> internalTexture;
     };
 
     class OpenGLRenderTexture: public PRenderTexture {
@@ -38,7 +39,10 @@ namespace VWolf {
         virtual void* GetHandler() override;
 
         virtual void Resize(uint32_t width, uint32_t height) override;
-    public:
+        
+        void Prepare();
+        void Commit();
+
         void ColorTextureBind(uint32_t base);
         void ColorTextureUnbind(uint32_t base);
         void DepthTextureBind(uint32_t base);
@@ -46,17 +50,28 @@ namespace VWolf {
         void Bind();
         void Unbind();
         void* GetDepthHandler();
-
+        
         void Invalidate();
+        
+        Ref<RHI::OpenGLTexture> GetRHITexture() { return colorTexture; }
+        Ref<RHI::OpenGLTexture> GetRHIDepthTexture() { return depthTexture; }
+        
+        const Ref<RHI::OpenGLRenderCommandList> GetCommandList();
     private:
-        GLuint m_colorTextureID = 0;
-        GLuint m_depthTextureID = 0;
-        GLuint m_frameBufferID = 0;
+        
+        Ref<RHI::OpenGLTexture> colorTexture;
+        Ref<RHI::OpenGLTexture> depthTexture;
+        
+        RHI::RenderPatternSettings patternSettings;
+        RHI::RenderPassSettings passSettings;
+        Ref<RHI::OpenGLRenderPattern> renderPattern;
+        Ref<RHI::OpenGLRenderPass> renderPass;
+        Ref<RHI::OpenGLRenderCommandList> commandList;
+
         bool isDepthOnly = false;
-//        GLenum m_internalDataFormat, m_dataFormat;
     };
 
-    class OpenGLCubemap: public PCubemap, public OpenGLBindableTexture {
+    class OpenGLCubemap: public PCubemap, public BaseBindable {
     public:        
         OpenGLCubemap(std::array<void *, 6> bytes, uint32_t size, TextureOptions options);
         virtual ~OpenGLCubemap();
@@ -64,8 +79,9 @@ namespace VWolf {
     public:
         virtual void Bind(uint32_t base) override;
         virtual void Unbind(uint32_t base) override;
+        
+        Ref<RHI::OpenGLTexture> GetRHITexture() { return internalTexture; }
     private:
-        GLuint m_textureID;
-        GLenum m_internalDataFormat, m_dataFormat;
+        Ref<RHI::OpenGLTexture> internalTexture;
     };
 }

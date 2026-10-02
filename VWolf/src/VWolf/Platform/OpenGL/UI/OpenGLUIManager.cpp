@@ -1,7 +1,7 @@
 #include "vwpch.h"
 #include "OpenGLUIManager.h"
 
-#include "VWolf/Platform/OpenGL/OpenGLDriver.h"
+#include "VWolf/Platform/OpenGL/Render/RHI/OpenGLDriver.h"
 
 #include <imgui.h>
 #include "VWolf/Platform/ImGUI/backends/imgui_impl_glfw.h"

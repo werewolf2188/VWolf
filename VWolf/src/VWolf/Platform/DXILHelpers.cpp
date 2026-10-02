@@ -197,6 +197,16 @@ namespace VWolf {
                 return AttributeFormat::Float32;
             return AttributeFormat::Unknown;
         }
+    
+        RHI::PixelFormat Attribute::GetComponentType() {
+            if (elementType == D3D_REGISTER_COMPONENT_UINT32)
+                return RHI::PixelFormat::R8Uint;
+            else if (elementType == D3D_REGISTER_COMPONENT_SINT32)
+                return RHI::PixelFormat::R8Sint;
+            else if (elementType == D3D_REGISTER_COMPONENT_FLOAT32)
+                return RHI::PixelFormat::RGBA32Float;
+            return RHI::PixelFormat::Unknown;
+        }
 
     // MARK: Constant Buffer variable
     

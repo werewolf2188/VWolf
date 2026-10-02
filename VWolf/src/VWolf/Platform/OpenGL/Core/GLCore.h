@@ -1,9 +1,5 @@
 #pragma once
 
-#define OPENGL_MAJOR_VERSION 4
-#define OPENGL_MINOR_VERSION 1
-#define OPENGL_VERSION 400
-
 #include "VWolf/Core/Base.h"
 
 static bool CheckForGLErrors(const char* file, const char* code, int line) {

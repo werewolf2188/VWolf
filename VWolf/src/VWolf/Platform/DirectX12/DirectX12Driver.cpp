@@ -30,8 +30,7 @@ namespace VWolf {
 	void DirectX12Driver::Initialize(InitConfiguration config)
 	{
 		//handle = GetModuleHandle(nullptr);
-		window = CreateGenericWindow(DriverType::DirectX12, config);
-		window->Initialize();		
+		window = CreateGenericWindow(DriverType::DirectX12, config);	
 		currentDriver = this;
 
 //#if defined(USE_PIX)

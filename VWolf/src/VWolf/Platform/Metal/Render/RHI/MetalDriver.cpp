@@ -23,7 +23,7 @@ namespace VWolf {
 
     extern void SetView(Ref<Window> window, NS::View* view);
 
-    RHI::RenderPatternSettings TransformFromContextSettings(RHI::RenderContextSettings settings) {
+    static RHI::RenderPatternSettings TransformFromContextSettings(RHI::RenderContextSettings settings) {
         return RHI::RenderPatternSettings({
                                               RHI::RenderPassColorAttachment(settings.GetColorFormat(),
                                                                              RHI::RenderPassAttachment::LoadAction::Clear)
@@ -37,7 +37,6 @@ namespace VWolf {
 
     void MetalDriver::Initialize(InitConfiguration config) {
         window = CreateGenericWindow(DriverType::Metal, config);
-        window->Initialize();
         currentDriver = UnownedRef<MetalDriver>(this);
 
         registry = CreateRef<RHI::ObjectRegistry>();

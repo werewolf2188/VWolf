@@ -12,8 +12,8 @@ namespace VWolf {
         HLSLShader(Shader& coreShader);
 		virtual ~HLSLShader();
 
-		virtual void Bind() const override;
-		virtual void Unbind() const override;
+		void Bind() const;
+		void Unbind() const;
 
 		virtual std::string GetName() const override;
 		virtual void SetData(const void* data, const char* name, uint32_t size, uint32_t offset = 0) override;

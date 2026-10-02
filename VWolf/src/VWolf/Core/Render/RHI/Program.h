@@ -229,6 +229,7 @@ namespace VWolf::RHI {
 
     class ProgramArgumentBindings {
     public:
+        ProgramArgumentBindings() = default;
         ProgramArgumentBindings(Ref<Program> program,
                                 const std::unordered_map<Ref<BindableProgramArgument>, ProgramArgumentBindingValue, BindableProgramArgument::Hash>& parameters):
         program(program), parameters(parameters) {}

@@ -334,12 +334,27 @@ namespace VWolf {
         return m;
     }
 
+    class GenericMonitor: public Monitor {
+    public:
+        
+        GenericMonitor() {
+            monitor = UnownedRef<GLFWmonitor>(glfwGetPrimaryMonitor());
+            mode = UnownedRef<const GLFWvidmode>(glfwGetVideoMode(monitor.get()));
+        }
+        
+        virtual uint32_t GetVideoModeWidth() override { return mode->width; }
+        virtual uint32_t GetVideoModeHeight() override { return mode->height; }
+    private:
+        Ref<GLFWmonitor> monitor;
+        Ref<const GLFWvidmode> mode;
+    };
+
     class GenericWindow: public Window, public MouseHandler, public KeyHandler {
     public:
-        GenericWindow(DriverType driverType, InitConfiguration config, std::function<void()> initializer = [](){});
+        GenericWindow(DriverType driverType, InitConfiguration config);
         virtual ~GenericWindow() override;
-        virtual void Initialize() override;
         virtual void OnUpdate() override;
+        virtual Ref<Monitor> GetMonitor() override;
         virtual bool IsMouseButtonPressed(MouseCode button) override;
         virtual std::pair<float, float> GetMousePosition() override;
         virtual bool IsKeyPressed(KeyCode key) override;
@@ -362,7 +377,8 @@ namespace VWolf {
         void SetKeyState(int key, bool pressed);
         void ClearInputState();
     private:
-        std::function<void()> initializer;
+        DriverType driverType;
+        Ref<GenericMonitor> monitor;
         GLFWwindow *m_window;
         std::mutex m_inputMutex;
         float m_mouseX = 0.0f;
@@ -377,8 +393,8 @@ namespace VWolf {
     #endif
     };
 
-    Ref<Window> CreateGenericWindow(DriverType driverType, InitConfiguration config, std::function<void()> initializer) {
-        return CreateRef<GenericWindow>(driverType, config, initializer);
+    Ref<Window> CreateGenericWindow(DriverType driverType, InitConfiguration config) {
+        return CreateRef<GenericWindow>(driverType, config);
     }
 
     GLFWwindow* GetGLFWWindow(Ref<Window> window) {
@@ -396,12 +412,17 @@ namespace VWolf {
 
 #endif
 
-    GenericWindow::GenericWindow(DriverType driverType, InitConfiguration config, std::function<void()> initializer): Window(), initializer(initializer) {
+    GenericWindow::GenericWindow(DriverType driverType, InitConfiguration config): Window(), driverType(driverType) {
         this->width = config.width;
         this->height = config.height;
 
         if (driverType != DriverType::OpenGL)
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        else {
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_MAJOR_VERSION);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_MINOR_VERSION);
+            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        }
         
         std::string appTitle = config.title;
         // TODO: For now, leave it to see the current driver type
@@ -414,8 +435,11 @@ namespace VWolf {
             EventQueue::DefaultQueue->Queue(evt);
             glfwTerminate();
         }
-        const GLFWvidmode& mode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
-        int w = mode.width, h = mode.height;
+        
+        glfwGetFramebufferSize(m_window, &framebufferWidth, &framebufferHeight);
+        monitor = CreateRef<GenericMonitor>();
+        
+        int w = monitor->GetVideoModeWidth(), h = monitor->GetVideoModeHeight();
         glfwSetWindowPos(m_window, (w / 2) - (width / 2), (h / 2) - (height / 2));
         if (config.maximize)
             glfwMaximizeWindow(m_window);
@@ -437,6 +461,13 @@ namespace VWolf {
 
     GenericWindow::~GenericWindow() {
         glfwDestroyWindow(m_window);
+        if (driverType == DriverType::OpenGL) {
+            glfwTerminate();
+        }
+    }
+
+    Ref<Monitor> GenericWindow::GetMonitor() {
+        return monitor;
     }
 
     void GenericWindow::InitializeEventHandler(GLFWwindow* m_window) {
@@ -550,12 +581,11 @@ namespace VWolf {
         });
     }
 
-    void GenericWindow::Initialize() {
-        initializer();
-    }
-
     void GenericWindow::OnUpdate() {
         glfwPollEvents();
+        if (driverType == DriverType::OpenGL) {
+            glfwSwapBuffers(m_window);
+        }
     }
 
     void GenericWindow::SetMousePosition(double xPos, double yPos) {
@@ -624,10 +654,6 @@ namespace VWolf {
     }
 
     void* GenericWindow::GetNativeWindow() {
-#if defined(VWOLF_PLATFORM_MACOS) || defined(VWOLF_PLATFORM_IOS)
         return m_nativeWindow;
-#elif defined(VWOLF_PLATFORM_WINDOWS)
-        return m_nativeWindow;
-#endif
     }
 }

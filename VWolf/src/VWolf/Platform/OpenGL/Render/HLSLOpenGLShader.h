@@ -10,35 +10,43 @@
 #include "VWolf/Core/Render/Shader.h"
 #include "VWolf/Platform/Common/PShader.h"
 
-struct GLFWwindow;
+#include "VWolf/Platform/OpenGL/Core/Bindable.h"
+
+#include "VWolf/Platform/OpenGL/Render/RHI/OpenGLDriver.h"
+#include "VWolf/Platform/OpenGL/Render/RHI/OpenGLShader.h"
+#include "VWolf/Platform/OpenGL/Render/RHI/OpenGLProgram.h"
+#include "VWolf/Platform/OpenGL/Render/RHI/OpenGLRenderState.h"
 
 namespace VWolf {
 
-    class HLOGLProgram;
-
-    class HLSLOpenGLShader : public PShader {
+    class HLSLOpenGLShader: public PShader, public Bindable {
     public:
         // TODO: Compute shader is the only one that is different.
         HLSLOpenGLShader(Shader& coreShader);
         virtual ~HLSLOpenGLShader();
 
-        virtual void Bind() const override;
-        virtual void Unbind() const override;
+        virtual void Bind() override;
+        virtual void Unbind() override;
+        
         virtual std::vector<Ref<ShaderInput>> GetMaterialInputs() const override;
         virtual size_t GetMaterialSize() const override;
         virtual std::vector<ShaderInput> GetTextureInputs() const override;
         virtual std::vector<AttributeDescriptor> GetAttributes() const override;
 
         virtual std::string GetName() const override;
-        virtual void SetData(const void* data, const char* name, uint32_t size, uint32_t offset = 0) override;
+        
+        const std::vector<Ref<RHI::OpenGLShader>> GetShaders () { return shaders; }
+        const Ref<RHI::OpenGLProgram> GetProgram() { return program; }
+        const Ref<RHI::OpenGLRenderState> GetState() { return state; }
     private:
-        void SetConfiguration() const;
-        void SetRasterization() const;
-        GLuint GetBlendFunction(BlendFunction function) const;
-        void SetBlend() const;
-        void SetDepthStencil() const;
+        void CompileShaders(Shader& coreShader);
+        void CompileProgram();
+        void CompileRenderState(Shader& coreShader);
     private:
-        Ref<HLOGLProgram> m_program;
+        std::vector<Ref<RHI::OpenGLShader>> shaders;
+        Ref<RHI::OpenGLProgram> program;
+        Ref<RHI::OpenGLRenderState> state;
+
         bool loadFromNewShader = false;
         Settings settings;
     };

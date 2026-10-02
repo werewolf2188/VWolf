@@ -17,8 +17,6 @@ namespace VWolf {
         
         virtual ~PShader() = default;
 
-        virtual void Bind() const {};
-        virtual void Unbind() const {};
         virtual std::vector<Ref<ShaderInput>> GetMaterialInputs() const = 0;
         virtual size_t GetMaterialSize() const = 0;
         virtual std::vector<ShaderInput> GetTextureInputs() const = 0;

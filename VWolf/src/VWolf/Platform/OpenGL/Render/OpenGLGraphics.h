@@ -8,10 +8,10 @@
 #pragma once
 
 #include "VWolf/Core/Render/InternalGraphics.h"
+#include "VWolf/Core/Render/GraphicsContext.h"
 
 #include "HLSLOpenGLShader.h"
 #include "OpenGLBuffer.h"
-#include "OpenGLVertexArray.h"
 #include "OpenGLTexture.h"
 
 namespace VWolf {
@@ -38,5 +38,9 @@ namespace VWolf {
         bool useRenderTexture = false;
         Ref<OpenGLRenderTexture> shadowMap;
         Ref<OpenGLTexture2D> emptyShadowMap;
+        
+        Ref<CommandsContext> commandContext;
+        
+        Ref<RHI::OpenGLRenderCommandList> commandList;
     };
 }

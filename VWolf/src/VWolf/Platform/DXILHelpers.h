@@ -178,6 +178,8 @@ namespace VWolf {
             DXGI_FORMAT GetFormat() { return format; }
 			UINT GetNumberOfElements() { return numberOfElements; }
 			BYTE GetElementType() { return elementType; }
+            RHI::PixelFormat GetComponentType();
+            
         public:
             size_t GetSize();
             AttributeFormat GetAttributeFormat();

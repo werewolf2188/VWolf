@@ -55,7 +55,7 @@ namespace VWolf::RHI {
         const Weak<Context> GetContext() const { return context; }
         const ShaderSettings& GetSettings() const { return settings; }
         const ShaderType& GetType() const { return type; }
-    private:
+    protected:
         Weak<Context> context;
         ShaderType type;
         ShaderSettings settings;
