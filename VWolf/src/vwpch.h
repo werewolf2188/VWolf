@@ -22,6 +22,8 @@
 #include <sstream>
 #include <array>
 #include <vector>
+#include <optional>
+#include <variant>
 #include <deque>
 #include <unordered_map>
 #include <unordered_set>

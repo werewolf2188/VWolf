@@ -105,7 +105,7 @@ namespace VWolf::RHI {
                                                                                 settings.GetEntryFunction().GetFuncionName(),
                                                                                 (VWolf::ShaderType)(uint32_t)type,
                                                                                 settings.GetCode(),
-                                                                                DXIL::Shader::ArgumentType::DirextX));
+                                                                                DXIL::Shader::ArgumentType::DirectX));
 #endif
     }
 

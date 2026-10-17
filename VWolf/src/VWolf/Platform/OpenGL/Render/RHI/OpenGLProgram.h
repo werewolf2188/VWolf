@@ -127,6 +127,7 @@ namespace VWolf::RHI {
         // TODO: This will change
 //        void SetData(const void* data, const char* name, uint32_t size, uint32_t offset);
         void ReplaceProgramBinding(const Ref<BindableProgramArgument> argument, const ProgramArgumentBindingValue& value);
+        void ReplaceTextureBinding(const Ref<BindableProgramArgument> argument, const GLuint binding);
         // TODO: This will be better
 //        void BindBuffer(Ref<BindableProgramArgument> argument, ProgramArgumentBindingValue& value);
         

@@ -266,7 +266,7 @@ namespace VWolf {
     }
 
     void OpenGLGraphics::DrawQueue() {
-        std::cout << "Drawing queue in frame: " << Time::GetTotalFrames() << std::endl;
+        //std::cout << "Drawing queue in frame: " << Time::GetTotalFrames() << std::endl;
         
         
         Ref<RHI::OpenGLRenderCommandList> cmdList =((OpenGLRenderTexture*)m_p_renderTexture.get())->GetCommandList();

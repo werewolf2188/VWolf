@@ -37,7 +37,7 @@ namespace VWolf::RHI {
 
     void OpenGLRenderCommandList::SetRenderState(Ref<RenderState> renderState) {
         current_state = renderState;
-        DynamicAs<OpenGLProgram>(current_state->GetSettings().GetProgram())->Bind();
+        DynamicAs<OpenGLRenderState>(current_state)->Bind();
     }
 
     bool OpenGLRenderCommandList::SetVertexBuffers(Ref<BufferSet> vertex_buffers) {
@@ -55,7 +55,7 @@ namespace VWolf::RHI {
     }
 
     void OpenGLRenderCommandList::Commit() {
-        DynamicAs<OpenGLProgram>(current_state->GetSettings().GetProgram())->Unbind();
+        DynamicAs<OpenGLRenderState>(current_state)->Unbind();
     }
 
     void OpenGLRenderCommandList::Draw(RenderPrimitive primitive, uint32_t vertex_count, uint32_t start_vertex,
@@ -68,33 +68,26 @@ namespace VWolf::RHI {
         std::string name = next_vertex_buffers->GetName();
         boost::algorithm::replace_all(name, "vertexSet", "vertexArray");
         Ref<OpenGLVertexArray> vertexArray;
-        if (OpenGLDriver::GetCurrentDriver()->GetObjectRegistry()->HasKey(name)) {
+        /*if (OpenGLDriver::GetCurrentDriver()->GetObjectRegistry()->HasKey(name)) {
             vertexArray = OpenGLDriver::GetCurrentDriver()->GetObjectRegistry()->Get<RHI::OpenGLVertexArray>(name);
-        } else {
-            DynamicAs<OpenGLBufferSet>(next_vertex_buffers)->ApplySubResource();
+        } else {*/
             vertexArray = DynamicAs<OpenGLProgram>(current_state->GetSettings().GetProgram())->CreateVertexArray(
                                                                                                                  DynamicAs<OpenGLBufferSet>(next_vertex_buffers),
                                                                                                                  DynamicAs<OpenGLBuffer>(next_index_buffer));
-            vertexArray->Bind();
-            
-            DynamicAs<OpenGLBuffer>(next_index_buffer)->ApplySubResource();
-            vertexArray->Unbind();
             vertexArray->SetName(name);
             OpenGLDriver::GetCurrentDriver()->GetObjectRegistry()->AddObject(vertexArray);
-        }
+        //}
         
         // 2. Bind the programs arguments
         uint32_t textureIndex = 0;
         for(const auto& [key, value]: bindings.GetParameters()) {
             if (key->GetResourceType() == ResourceType::Buffer) {
-                DynamicAs<OpenGLProgram>(current_state->GetSettings().GetProgram())->ReplaceProgramBinding(key, value);
-                const ResourceView& view = std::get<ResourceView>(value);
-                Ref<OpenGLBuffer> buffer = DynamicAs<OpenGLBuffer>(view.GetResource());
-                buffer->Bind();
+                DynamicAs<OpenGLProgram>(current_state->GetSettings().GetProgram())->ReplaceProgramBinding(key, value);                
             } else if (key->GetResourceType() == ResourceType::Texture) {
                 const TextureView& view = std::get<TextureView>(value);
                 Ref<OpenGLTexture> texture = DynamicAs<OpenGLTexture>(view.GetTexture().lock());
                 texture->Bind(textureIndex);
+                DynamicAs<OpenGLProgram>(current_state->GetSettings().GetProgram())->ReplaceTextureBinding(key, textureIndex);
                 textureIndex++;
             }
         }
@@ -109,12 +102,7 @@ namespace VWolf::RHI {
         
         textureIndex = 0;
         for(const auto& [key, value]: bindings.GetParameters()) {
-            if (key->GetResourceType() == ResourceType::Buffer) {
-                DynamicAs<OpenGLProgram>(current_state->GetSettings().GetProgram())->ReplaceProgramBinding(key, value);
-                const ResourceView& view = std::get<ResourceView>(value);
-                Ref<OpenGLBuffer> buffer = DynamicAs<OpenGLBuffer>(view.GetResource());
-                buffer->Unbind();
-            } else if (key->GetResourceType() == ResourceType::Texture) {
+            if (key->GetResourceType() == ResourceType::Texture) {
                 const TextureView& view = std::get<TextureView>(value);
                 Ref<OpenGLTexture> texture = DynamicAs<OpenGLTexture>(view.GetTexture().lock());
                 texture->Unbind(textureIndex);
@@ -124,7 +112,7 @@ namespace VWolf::RHI {
         
         // 5. Unbind
         vertexArray->GetVertexSet()->Unbind();
-        vertexArray->GetIndexBuffer()->Unbind();
         vertexArray->Unbind();
+        vertexArray->GetIndexBuffer()->Unbind();
     }
 }

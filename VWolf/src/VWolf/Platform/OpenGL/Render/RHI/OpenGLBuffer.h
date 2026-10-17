@@ -28,12 +28,12 @@ namespace VWolf::RHI {
         virtual void Unbind() override;
         
         const GLuint GetBufferId() { return bufferId; }
-        
-        void ApplySubResource();
+
+		void AttachIndexBufferToVertexArray() { isIndexBufferAttachedToVertexArray = true; }
     private:
         GLuint GetType();
         
         GLuint bufferId = 0;
-        SubResource subResource;
+		bool isIndexBufferAttachedToVertexArray = false;
     };
 }

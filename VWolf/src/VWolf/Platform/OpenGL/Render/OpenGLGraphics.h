@@ -11,7 +11,6 @@
 #include "VWolf/Core/Render/GraphicsContext.h"
 
 #include "HLSLOpenGLShader.h"
-#include "OpenGLBuffer.h"
 #include "OpenGLTexture.h"
 
 namespace VWolf {

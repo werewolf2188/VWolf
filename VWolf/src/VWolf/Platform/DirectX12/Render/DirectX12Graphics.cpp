@@ -150,7 +150,7 @@ namespace VWolf {
 
 	void DirectX12Graphics::DrawShadowMap()
 	{
-		Ref<PShader> shader = Shader::GetShader("Shadow")->GetInternalShader();
+		Ref<HLSLShader> shader = DynamicAs<HLSLShader>(Shader::GetShader("Shadow")->GetInternalShader());
 		for (const Matrix4x4& viewProjection : GraphicsContext::GetLightsSpaces()) {
 			int shadowShapes = 0;
 
@@ -286,7 +286,7 @@ namespace VWolf {
 			group->Bind(DirectX12Driver::GetCurrent()->GetCommands());
 			auto pso = ((HLSLShader*)shader.get())->GetPipeline();
 			DirectX12Driver::GetCurrent()->GetCommands()->GetCommandList()->SetPipelineState(pso.Get());
-			shader->Bind();
+			((HLSLShader*)shader.get())->Bind();
 			shader->SetData(&cameraPass, Shader::CameraBufferName, sizeof(CameraPass), shapes);
 			shader->SetData(&transform, Shader::ObjectBufferName, sizeof(Matrix4x4), shapes);
 			shader->SetData(material1, materialName.c_str(), material->GetSize(), shapes);

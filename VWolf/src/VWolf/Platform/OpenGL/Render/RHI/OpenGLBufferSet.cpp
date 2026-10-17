@@ -29,10 +29,4 @@ namespace VWolf::RHI {
         
         DynamicAs<OpenGLBuffer>(buffers[0])->Unbind();
     }
-
-    void OpenGLBufferSet::ApplySubResource() {
-        if (buffers.size() <= 0) return;
-        
-        DynamicAs<OpenGLBuffer>(buffers[0])->ApplySubResource();
-    }
 }

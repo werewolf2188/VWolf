@@ -146,6 +146,8 @@ namespace VWolf::RHI {
         // Binding the UB
         GLThrowIfFailed(glUniformBlockBinding(programId, index, index + totalBindings));
 
+        GLThrowIfFailed(glGetActiveUniformBlockiv(programId, index, GL_UNIFORM_BLOCK_BINDING, &binding));
+
         RetrieveUniforms(programId);
     }
 
@@ -179,17 +181,17 @@ namespace VWolf::RHI {
         const ResourceView resourceView = std::get<ResourceView>(value);
         Ref<OpenGLBuffer> buffer = DynamicAs<OpenGLBuffer>(resourceView.GetResource());
         
-        if (Time::GetTotalFrames() > 1) {
+        /*if (Time::GetTotalFrames() > 1) {
             std::cout << "Buffer id: " << buffer->GetBufferId() << std::endl;
-        }
+        }*/
         
         GLThrowIfFailed(glBindBufferBase(GL_UNIFORM_BUFFER, binding, buffer->GetBufferId()));
-        buffer->ApplySubResource();
     }
 
     OpenGLVertexArray::OpenGLVertexArray(std::map<std::string, DXIL::Attribute> attributes, Ref<OpenGLBufferSet> vertexSet, Ref<OpenGLBuffer> indexBuffer):
     attributes(attributes), vertexSet(vertexSet), indexBuffer(indexBuffer) {
         GLThrowIfFailed(glGenVertexArrays(1, &vertexArrayId));
+		indexBuffer->AttachIndexBufferToVertexArray();
         Build();
     }
 
@@ -408,5 +410,33 @@ namespace VWolf::RHI {
 
     Ref<OpenGLVertexArray> OpenGLProgram::CreateVertexArray(Ref<OpenGLBufferSet> vertexSet, Ref<OpenGLBuffer> indexBuffer) {
         return CreateRef<OpenGLVertexArray>(dxilAttributes, vertexSet, indexBuffer);
+    }
+
+    void OpenGLProgram::ReplaceTextureBinding(const Ref<BindableProgramArgument> argument, const GLuint binding) {
+        
+		Ref<OpenGLUniform> textureUniform = nullptr;
+
+        for (auto uBuffer : this->GetUniformBuffers()) {
+            for (auto uniform : uBuffer.second->GetUniforms()) {
+                if (!uniform.second->IsTexture()) continue;
+                
+                if (uniform.first == argument->GetName()) {
+                    textureUniform = uniform.second;
+                    break;
+                }
+            }
+        }
+
+        for (auto uniform : GetDefaultUniforms()) {
+            if (!uniform.second->IsTexture()) continue;
+            if (uniform.first == argument->GetName()) {
+                textureUniform = uniform.second;
+                break;
+            }
+        }
+
+		if (textureUniform == nullptr) return;
+
+		GLThrowIfFailed(glUniform1i(textureUniform->GetIndex(), binding));
     }
 }

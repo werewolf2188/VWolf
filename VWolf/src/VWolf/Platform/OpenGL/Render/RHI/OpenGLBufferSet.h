@@ -23,8 +23,6 @@ namespace VWolf::RHI {
         
         virtual void Bind() override;
         virtual void Unbind() override;
-        
-        void ApplySubResource();
     protected:
     private:
         

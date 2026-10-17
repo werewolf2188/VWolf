@@ -22,30 +22,10 @@ namespace VWolf::RHI {
     }
 
     void OpenGLBuffer::SetData(const SubResource& subResource) {
-        this->subResource = subResource;
-    }
-
-    void OpenGLBuffer::ApplySubResource() {
         Bind();
-        
-        void* ptr = glMapBufferRange(
-                                     GetType(),
-                                     0,
-                                     settings.GetSize(),
-                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-                                     );
-        GLThrowIfFailedNoAction("glMapBufferRange");
-        
-        if (ptr) {
-            // Copy data from your CPU array (newVertexData) directly into GPU memory
-            memcpy(ptr, subResource.GetBytes(), settings.GetSize());
-            
-            // UNMAP the buffer immediately after copying.
-            // This releases the pointer and tells the GPU the data is ready.
-            glUnmapBuffer(GetType());
-            GLThrowIfFailedNoAction("glUnmapBuffer");
-        }
-        
+
+        GLThrowIfFailed(glBufferSubData(GetType(), 0, settings.GetSize(), subResource.GetBytes()));
+
         Unbind();
     }
 
@@ -66,7 +46,7 @@ namespace VWolf::RHI {
             case BufferType::Vertex:
                 return GL_ARRAY_BUFFER;
             case BufferType::Index:
-                return GL_ELEMENT_ARRAY_BUFFER;
+                return isIndexBufferAttachedToVertexArray ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER ;
             case BufferType::Constant:
                 return GL_UNIFORM_BUFFER;
         }

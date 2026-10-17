@@ -7,6 +7,7 @@
 
 #include "vwpch.h"
 #include "OpenGLRenderState.h"
+#include "OpenGLProgram.h"
 
 namespace VWolf::RHI {
     OpenGLRenderState::OpenGLRenderState(Weak<RenderContext> context, const RenderStateSettings& settings):
@@ -16,6 +17,15 @@ namespace VWolf::RHI {
 
     OpenGLRenderState::~OpenGLRenderState() {
         
+    }
+
+    void OpenGLRenderState::Bind() {
+        DynamicAs<OpenGLProgram>(GetSettings().GetProgram())->Bind();
+        SetConfiguration();
+    }
+
+    void OpenGLRenderState::Unbind() {
+        DynamicAs<OpenGLProgram>(GetSettings().GetProgram())->Unbind();
     }
 
     void OpenGLRenderState::SetConfiguration() const {
