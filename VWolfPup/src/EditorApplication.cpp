@@ -167,6 +167,9 @@ public:
         VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::WindowCloseEvent>(VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowClose));
         VWolf::EventQueue::DefaultQueue->Subscribe<VWolf::WindowResizeEvent>(VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnWindowResize));
         VWolf::EventQueue::DefaultQueue->Subscribe<VWolfPup::ToolbarPlayPauseEvent>(VWOLF_BIND_EVENT_FN(RendererSandboxApplication::OnToolbarPlayPauseButtonPressed));
+        
+        // This is making the controller to reset before using in the first frame.
+        controller->OnUpdate();
     }
 
     ~RendererSandboxApplication() {}
