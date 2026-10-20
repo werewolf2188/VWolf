@@ -8,6 +8,7 @@
 #include "vwpch.h"
 #include "OpenGLRenderCommandList.h"
 #include "OpenGLTexture.h"
+#include "OpenGLSampler.h"
 
 namespace VWolf::RHI {
     namespace {
@@ -79,7 +80,7 @@ namespace VWolf::RHI {
         //}
         
         // 2. Bind the programs arguments
-        uint32_t textureIndex = 0;
+        uint32_t textureIndex = 0, samplerIndex = 0;
         for(const auto& [key, value]: bindings.GetParameters()) {
             if (key->GetResourceType() == ResourceType::Buffer) {
                 DynamicAs<OpenGLProgram>(current_state->GetSettings().GetProgram())->ReplaceProgramBinding(key, value);                
@@ -89,6 +90,12 @@ namespace VWolf::RHI {
                 texture->Bind(textureIndex);
                 DynamicAs<OpenGLProgram>(current_state->GetSettings().GetProgram())->ReplaceTextureBinding(key, textureIndex);
                 textureIndex++;
+            } else if (key->GetResourceType() == ResourceType::Sampler) {
+                const ResourceView& view = std::get<ResourceView>(value);
+                Ref<OpenGLSampler> sampler = DynamicAs<OpenGLSampler>(view.GetResource());
+                sampler->Bind(samplerIndex);
+                DynamicAs<OpenGLProgram>(current_state->GetSettings().GetProgram())->ReplaceTextureBinding(key, textureIndex);
+                samplerIndex++;
             }
         }
         
@@ -101,12 +108,19 @@ namespace VWolf::RHI {
         GLThrowIfFailed(glDrawElements(GetTopology(primitive), index_count, GL_UNSIGNED_INT, nullptr));
         
         textureIndex = 0;
+        samplerIndex = 0;
         for(const auto& [key, value]: bindings.GetParameters()) {
             if (key->GetResourceType() == ResourceType::Texture) {
                 const TextureView& view = std::get<TextureView>(value);
                 Ref<OpenGLTexture> texture = DynamicAs<OpenGLTexture>(view.GetTexture().lock());
                 texture->Unbind(textureIndex);
                 textureIndex++;
+            } else if (key->GetResourceType() == ResourceType::Sampler) {
+                const ResourceView& view = std::get<ResourceView>(value);
+                Ref<OpenGLSampler> sampler = DynamicAs<OpenGLSampler>(view.GetResource());
+                sampler->Unbind(samplerIndex);
+                DynamicAs<OpenGLProgram>(current_state->GetSettings().GetProgram())->ReplaceTextureBinding(key, textureIndex);
+                samplerIndex++;
             }
         }
         

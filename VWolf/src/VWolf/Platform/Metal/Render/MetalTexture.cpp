@@ -13,12 +13,23 @@
 #include "VWolf/Platform/Metal/Render/RHI/MetalDriver.h"
 
 namespace VWolf {
+
+    static RHI::SamplerSettings CreateFrom(const TextureOptions& options) {
+        RHI::SamplerFilter filter = RHI::SamplerFilter::FromTextureOptions(options);
+        RHI::SamplerAddress address = RHI::SamplerAddress::FromTextureOptions(options);
+        RHI::SamplerLOD lod;
+        
+        return { filter, address, lod };
+    }
+
     MetalTexture2D::MetalTexture2D(void * bytes, uint32_t width, uint32_t height, TextureOptions options):
     PTexture2D(bytes, width, height, options) {
         settings = RHI::TextureSettings::ForImage(RHI::PixelFormat::RGBA32Float, width, height);
         texture = DynamicAs<RHI::MetalTexture>(MetalDriver::GetCurrent()->GetRenderContext()->CreateTexture(settings));
         RHI::SubResource subResource(bytes, {});
         texture->SetData(subResource);
+        samplerSettings = CreateFrom(options);
+        sampler = DynamicAs<RHI::MetalSampler>(MetalDriver::GetCurrent()->GetRenderContext()->CreateSampler(samplerSettings));
     }
 
     MetalTexture2D::~MetalTexture2D() {
@@ -77,6 +88,9 @@ namespace VWolf {
         renderPass->GetRenderPassDescriptor()->colorAttachments()->object(0)->setTexture(texture->GetTexture().get());
         renderPass->GetRenderPassDescriptor()->depthAttachment()->setTexture(depthTexture->GetTexture().get());
         renderPass->GetRenderPassDescriptor()->stencilAttachment()->setTexture(depthTexture->GetTexture().get());
+        
+        sampler = DynamicAs<RHI::MetalSampler>(MetalDriver::GetCurrent()->GetRenderContext()->CreateSampler(samplerSettings));
+        depthSampler = DynamicAs<RHI::MetalSampler>(MetalDriver::GetCurrent()->GetRenderContext()->CreateSampler(depthSamplerSettings));
     }
 
     void MetalRenderTexture::Prepare() {
@@ -99,6 +113,8 @@ namespace VWolf {
             RHI::SubResource subResource(bytes[i], { static_cast<uint32_t>(i), 0, 0 });
             texture->SetData(subResource);
         }
+        samplerSettings = CreateFrom(options);
+        sampler = DynamicAs<RHI::MetalSampler>(MetalDriver::GetCurrent()->GetRenderContext()->CreateSampler(samplerSettings));
     }
 
     MetalCubemap::~MetalCubemap() {

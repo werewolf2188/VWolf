@@ -14,6 +14,7 @@
 #include "VWolf/Platform/Metal/Render/RHI/MetalRenderPass.h"
 #include "VWolf/Platform/Metal/Render/RHI/MetalRenderCommandList.h"
 #include "VWolf/Platform/Metal/Render/RHI/MetalTexture.h"
+#include "VWolf/Platform/Metal/Render/RHI/MetalSampler.h"
 
 namespace VWolf {
     class MetalTexture2D : public PTexture2D {
@@ -23,9 +24,12 @@ namespace VWolf {
         virtual void* GetHandler() override;
         
         Ref<RHI::MetalTexture> GetRHITexture() { return texture; }
+        Ref<RHI::MetalSampler> GetRHISampler() { return sampler; }
     private:
         RHI::TextureSettings settings;
+        RHI::SamplerSettings samplerSettings;
         Ref<RHI::MetalTexture> texture;
+        Ref<RHI::MetalSampler> sampler;
         bool hasBeenUpload = false;
         size_t numBytes = 0, rowBytes = 0, numRows = 0;
     };
@@ -45,14 +49,20 @@ namespace VWolf {
         const Ref<RHI::MetalRenderPass> GetRenderPass() const { return renderPass; }
         const Ref<RHI::MetalRenderCommandList> GetCommandList() const { return commandList; }
         Ref<RHI::MetalTexture> GetRHITexture() { return texture; }
+        Ref<RHI::MetalSampler> GetRHISampler() { return sampler; }
         Ref<RHI::MetalTexture> GetRHIDepthTexture() { return depthTexture; }
+        Ref<RHI::MetalSampler> GetRHIDepthSampler() { return depthSampler; }
     private:
         void Initialize();
     private:
         RHI::TextureSettings settings;
+        RHI::SamplerSettings samplerSettings;
         RHI::TextureSettings depthSettings;
+        RHI::SamplerSettings depthSamplerSettings;
         Ref<RHI::MetalTexture> texture;
+        Ref<RHI::MetalSampler> sampler;
         Ref<RHI::MetalTexture> depthTexture;
+        Ref<RHI::MetalSampler> depthSampler;
         
         RHI::RenderPatternSettings patternSettings;
         RHI::RenderPassSettings passSettings;
@@ -71,9 +81,12 @@ namespace VWolf {
         virtual void* GetHandler() override;
         
         Ref<RHI::MetalTexture> GetRHITexture() { return texture; }
+        Ref<RHI::MetalSampler> GetRHISampler() { return sampler; }
     private:
         RHI::TextureSettings settings;
+        RHI::SamplerSettings samplerSettings;
         Ref<RHI::MetalTexture> texture;
+        Ref<RHI::MetalSampler> sampler;
         bool hasBeenUpload = false;
         uint32_t numberOfSides = 6;
     };

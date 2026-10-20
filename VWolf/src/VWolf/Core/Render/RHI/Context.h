@@ -30,6 +30,8 @@ namespace VWolf::RHI  {
     class ShaderSettings;
     class Program;
     class ProgramSettings;
+    class Sampler;
+    class SamplerSettings;
 
     class Context: public Object {
     public:
@@ -39,6 +41,7 @@ namespace VWolf::RHI  {
         virtual Ref<Texture> CreateTexture(const TextureSettings& settings) = 0;
         virtual Ref<Shader> CreateShader(ShaderType type, const ShaderSettings& settings) = 0;
         virtual Ref<Program> CreateProgram(const ProgramSettings& settings) = 0;
+        virtual Ref<Sampler> CreateSampler(const SamplerSettings& settings) = 0;
     protected:
     private:
     };

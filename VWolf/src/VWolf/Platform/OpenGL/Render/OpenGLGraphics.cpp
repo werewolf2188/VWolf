@@ -416,6 +416,9 @@ namespace VWolf {
                         std::map<std::string, Ref<RHI::BindableProgramArgument>> arguments = metalShader->GetProgram()->GetSettings().GetProgramArguments();
                         std::unordered_map<Ref<RHI::BindableProgramArgument>, RHI::ProgramArgumentBindingValue, RHI::BindableProgramArgument::Hash> parameters;
                         
+                        Ref<RHI::Sampler> rhiSampler;
+                        Ref<RHI::BindableProgramArgument> rhiSamplerKey;
+                        
                         for(const auto& [key, value]: arguments) {
                             if (value->GetResourceType() == RHI::ResourceType::Buffer) {
                                 Ref<RHI::ConstantBufferProgramArgument> constantArgument = DynamicAs<RHI::ConstantBufferProgramArgument>(value);
@@ -490,16 +493,23 @@ namespace VWolf {
                                         Ref<Cubemap> assetCubemap = DynamicAs<Cubemap>(material->GetTexture(value->GetName()));
                                         Ref<OpenGLCubemap> cubemap = DynamicAs<OpenGLCubemap>(assetCubemap->GetInnerTexture());
                                         rhiTexture = cubemap->GetRHITexture();
+                                        rhiSampler = cubemap->GetRHISampler();
                                     }
                                     if (texArgument->GetTextureDimensionType() == RHI::TextureDimensionType::Tex2D) {
                                         Ref<Texture2D> assetTexture = DynamicAs<Texture2D>(material->GetTexture(value->GetName()));
                                         Ref<OpenGLTexture2D> texture2D = DynamicAs<OpenGLTexture2D>(assetTexture->GetInnerTexture());
                                         rhiTexture = texture2D->GetRHITexture();
+                                        rhiSampler = texture2D->GetRHISampler();
                                     }
                                 }
                                 parameters[value] = rhiTexture->GetTextureView({});
+                            } else if (value->GetResourceType() == RHI::ResourceType::Sampler) {
+                                rhiSamplerKey = value;
                             }
                         }
+                        
+                        if (rhiSamplerKey != nullptr && rhiSampler != nullptr)
+                            parameters[rhiSamplerKey] = rhiSampler->GetResourceView();
                         
                         /*
                          Now that we pass the state to the command list, the next part would be

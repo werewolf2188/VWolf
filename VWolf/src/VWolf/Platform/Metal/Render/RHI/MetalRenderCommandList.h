@@ -49,6 +49,7 @@ namespace VWolf::RHI  {
         void SetDescriptorTable(uint32_t index, ShaderType type);
         void SetData(Ref<RHI::MetalBuffer>& buffer, const Ref<BindableProgramArgument>& argument, uint32_t index, uint32_t size);
         void SetTexture(Ref<MTL::Texture> texture, const std::string& name, uint32_t index);
+        void SetSampler(Ref<MTL::SamplerState> sampler, const std::string& name, uint32_t index);
         //
         
         Ref<MTL::CommandBuffer> commandBuffer;

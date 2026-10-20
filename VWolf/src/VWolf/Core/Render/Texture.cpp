@@ -13,6 +13,8 @@
 
 #include "stb_image/stb_image.h"
 
+#include "RHI/Sampler.h"
+
 namespace VWolf {
     VWOLF_CREATE_CONVERT_GENERIC_ENUM_ENCODER(TextureWrapMode, None, Repeat, Clamp, Mirror, MirrorOnce);
     VWOLF_CREATE_CONVERT_GENERIC_ENUM_ENCODER(TextureFilterMode, Point, Bilinear, Trilinear);
@@ -270,5 +272,42 @@ namespace VWolf {
         Ref<Cubemap> tex = CreateRef<Cubemap>(_id, path, options);
         ObjectResourceManager::AddObject(_id, tex);
         return tex;
+    }
+
+    RHI::SamplerFilter RHI::SamplerFilter::FromTextureOptions(const VWolf::TextureOptions& options) {
+        RHI::SamplerMinMag min_mag;
+        
+        switch (options.GetFilterMode()) {
+                
+            case TextureFilterMode::Point:
+                min_mag = RHI::SamplerMinMag::Nearest;
+                break;
+            case TextureFilterMode::Bilinear:
+                min_mag = RHI::SamplerMinMag::Linear;
+                break;
+            case TextureFilterMode::Trilinear:
+                min_mag = RHI::SamplerMinMag::Linear;
+                break;
+        }
+        
+        return { min_mag };
+    }
+
+    RHI::SamplerMode GetSamplerModeFrom(const TextureWrapMode& mode) {
+        switch (mode) {
+            case TextureWrapMode::None: return RHI::SamplerMode::ClampToEdge;
+            case TextureWrapMode::Repeat: return RHI::SamplerMode::Repeat;
+            case TextureWrapMode::Clamp: return RHI::SamplerMode::ClampToEdge;
+            case TextureWrapMode::Mirror: return RHI::SamplerMode::RepeatMirror;
+            case TextureWrapMode::MirrorOnce: return RHI::SamplerMode::RepeatMirror;
+        }
+    }
+
+    RHI::SamplerAddress RHI::SamplerAddress::FromTextureOptions(const VWolf::TextureOptions& options) {
+        RHI::SamplerMode s = GetSamplerModeFrom(options.GetWrapModeU());
+        RHI::SamplerMode t = GetSamplerModeFrom(options.GetWrapModeV());
+        RHI::SamplerMode r = GetSamplerModeFrom(options.GetWrapModeW());
+        
+        return { s, t, r };
     }
 }

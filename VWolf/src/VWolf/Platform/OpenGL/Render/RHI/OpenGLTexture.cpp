@@ -26,8 +26,6 @@ namespace VWolf::RHI {
         
         GLThrowIfFailed(glGenerateMipmap(GetTextureType()));
         Unbind();
-        
-        InitializeSampler();
     }
 
     void OpenGLTexture::InitializeTexture() {
@@ -127,8 +125,6 @@ namespace VWolf::RHI {
 
     OpenGLTexture::~OpenGLTexture() {
         GLThrowIfFailed(glDeleteTextures(1, &m_textureID));
-        // TODO: Move everything related to sampler into it's own class
-        GLThrowIfFailed(glDeleteSamplers(1, &m_samplerID));
     }
 
     const GLuint OpenGLTexture::GetTextureType() const {
@@ -164,8 +160,6 @@ namespace VWolf::RHI {
         // TODO: What is this for?
         GLThrowIfFailed(glActiveTexture(GL_TEXTURE0 + base));
         Bind();
-        // TODO: Move everything related to sampler into it's own class
-        GLThrowIfFailed(glBindSampler(base, m_samplerID));
     }
 
     void OpenGLTexture::Unbind(uint32_t base) {
@@ -265,15 +259,6 @@ namespace VWolf::RHI {
                                                 GetDataTypeFrom(settings.GetFormat()),
                                                 subResource.GetBytes()));
         }
-    }
-
-    void OpenGLTexture::InitializeSampler() {
-        GLThrowIfFailed(glGenSamplers(1, &m_samplerID));
-        GLThrowIfFailed(glSamplerParameteri(m_samplerID, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-        GLThrowIfFailed(glSamplerParameteri(m_samplerID, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-
-        GLThrowIfFailed(glSamplerParameteri(m_samplerID, GL_TEXTURE_WRAP_S, GL_REPEAT));
-        GLThrowIfFailed(glSamplerParameteri(m_samplerID, GL_TEXTURE_WRAP_T, GL_REPEAT));
     }
 
     TextureView OpenGLTexture::GetTextureView(const SubResourceIndex& index) {

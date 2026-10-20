@@ -28,6 +28,7 @@ namespace VWolf::RHI {
         virtual Ref<Texture> CreateTexture(const TextureSettings& settings) override;
         virtual Ref<Shader> CreateShader(ShaderType type, const ShaderSettings& settings) override;
         virtual Ref<Program> CreateProgram(const ProgramSettings& settings) override;
+        virtual Ref<Sampler> CreateSampler(const SamplerSettings& settings) override;
         
         Ref<OpenGLDevice> GetDevice() { return device; }
     protected:

@@ -21,6 +21,7 @@
 #include "MetalShader.h"
 #include "MetalProgram.h"
 #include "MetalRenderState.h"
+#include "MetalSampler.h"
 
 namespace VWolf::RHI  {
     MetalRenderContext::MetalRenderContext(const RenderContextSettings& settings, Ref<MetalDevice> device):
@@ -58,6 +59,10 @@ namespace VWolf::RHI  {
 
     Ref<Program> MetalRenderContext::CreateProgram(const ProgramSettings& settings) {
         return CreateRef<MetalProgram>(weak_from_this(), settings);
+    }
+
+    Ref<Sampler> MetalRenderContext::CreateSampler(const SamplerSettings& settings) {
+        return CreateRef<MetalSampler>(weak_from_this(), settings);
     }
 }
 #endif

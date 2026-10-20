@@ -14,6 +14,7 @@
 #include "VWolf/Platform/OpenGL/Render/RHI/OpenGLRenderPass.h"
 #include "VWolf/Platform/OpenGL/Render/RHI/OpenGLRenderCommandList.h"
 #include "VWolf/Platform/OpenGL/Render/RHI/OpenGLTexture.h"
+#include "VWolf/Platform/OpenGL/Render/RHI/OpenGLSampler.h"
 
 namespace VWolf {
 
@@ -27,8 +28,10 @@ namespace VWolf {
         virtual void Unbind(uint32_t base) override;
         
         Ref<RHI::OpenGLTexture> GetRHITexture() { return internalTexture; }
+        Ref<RHI::OpenGLSampler> GetRHISampler() { return internalSampler; }
     private:
         Ref<RHI::OpenGLTexture> internalTexture;
+        Ref<RHI::OpenGLSampler> internalSampler;
     };
 
     class OpenGLRenderTexture: public PRenderTexture {
@@ -54,13 +57,17 @@ namespace VWolf {
         void Invalidate();
         
         Ref<RHI::OpenGLTexture> GetRHITexture() { return colorTexture; }
+        Ref<RHI::OpenGLSampler> GetRHISampler() { return internalColorSampler; }
         Ref<RHI::OpenGLTexture> GetRHIDepthTexture() { return depthTexture; }
+        Ref<RHI::OpenGLSampler> GetRHIDepthSampler() { return internalDepthSampler; }
         
         const Ref<RHI::OpenGLRenderCommandList> GetCommandList();
     private:
         
         Ref<RHI::OpenGLTexture> colorTexture;
+        Ref<RHI::OpenGLSampler> internalColorSampler;
         Ref<RHI::OpenGLTexture> depthTexture;
+        Ref<RHI::OpenGLSampler> internalDepthSampler;
         
         RHI::RenderPatternSettings patternSettings;
         RHI::RenderPassSettings passSettings;
@@ -81,7 +88,9 @@ namespace VWolf {
         virtual void Unbind(uint32_t base) override;
         
         Ref<RHI::OpenGLTexture> GetRHITexture() { return internalTexture; }
+        Ref<RHI::OpenGLSampler> GetRHISampler() { return internalSampler; }
     private:
         Ref<RHI::OpenGLTexture> internalTexture;
+        Ref<RHI::OpenGLSampler> internalSampler;
     };
 }

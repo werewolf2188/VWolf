@@ -6,6 +6,8 @@
 //
 
 #pragma once
+
+#include "Types.h"
 #include "Object.h"
 
 namespace VWolf::RHI {
@@ -96,17 +98,6 @@ namespace VWolf::RHI {
     private:
         bool isIndependent = false;
         std::array<RenderTargetSettings, 8> renderTargets {};
-    };
-
-    enum class Compare {
-        Never,
-        Less,
-        Equal,
-        LEqual,
-        Greater,
-        NotEqual,
-        GEqual,
-        Always
     };
 
     class DepthSettings {

@@ -33,17 +33,12 @@ namespace VWolf::RHI {
         virtual void Unbind(uint32_t base) override;
         
         const GLuint GetTextureID() const { return m_textureID; }
-        // TODO: Move everything related to sampler into it's own class
-        const GLuint GetSamplerID() const { return m_samplerID; }
     private:
         const GLuint GetTextureType() const;
         void InitializeTexture();
-        // TODO: Move everything related to sampler into it's own class
-        void InitializeSampler();
     private:
         Weak<OpenGLRenderContext> context;
         GLuint m_textureID;
-        // TODO: Move everything related to sampler into it's own class
-        GLuint m_samplerID;
+       
     };
 }

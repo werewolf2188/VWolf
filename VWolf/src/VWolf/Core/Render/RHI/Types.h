@@ -38,4 +38,15 @@ namespace VWolf::RHI  {
         Depth32Float,
         Depth32Float_Stencil8
     };
+
+    enum class Compare {
+        Never,
+        Less,
+        Equal,
+        LEqual,
+        Greater,
+        NotEqual,
+        GEqual,
+        Always
+    };
 }

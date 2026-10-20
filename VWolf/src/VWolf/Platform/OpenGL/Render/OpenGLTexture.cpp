@@ -14,6 +14,15 @@
 #include "VWolf/Platform/OpenGL/Render/RHI/OpenGLDriver.h"
 
 namespace VWolf {
+
+    static RHI::SamplerSettings CreateFrom(const TextureOptions& options) {
+        RHI::SamplerFilter filter = RHI::SamplerFilter::FromTextureOptions(options);
+        RHI::SamplerAddress address = RHI::SamplerAddress::FromTextureOptions(options);
+        RHI::SamplerLOD lod;
+        
+        return { filter, address, lod };
+    }
+
     OpenGLTexture2D::OpenGLTexture2D(void * bytes, uint32_t width, uint32_t height, TextureOptions options): PTexture2D(bytes, width, height, options) {
         RHI::TextureSettings settings = RHI::TextureSettings::ForImage(RHI::PixelFormat::RGBA32Float, width, height);
         internalTexture = DynamicAs<RHI::OpenGLTexture>(OpenGLDriver::GetCurrentDriver()->GetRenderContext()->CreateTexture(settings));
@@ -21,6 +30,9 @@ namespace VWolf {
         internalTexture->Bind();
         internalTexture->SetData(subResource);
         internalTexture->Unbind();
+        
+        RHI::SamplerSettings samplerSettings = CreateFrom(options);
+        internalSampler = DynamicAs<RHI::OpenGLSampler>(OpenGLDriver::GetCurrentDriver()->GetRenderContext()->CreateSampler(samplerSettings));
     }
 
     OpenGLTexture2D::~OpenGLTexture2D() {
@@ -71,10 +83,14 @@ namespace VWolf {
         // Color attachment
         RHI::TextureSettings colorSettings = RHI::TextureSettings::ForFrameBuffer(colorFormat, m_width, m_height);
         colorTexture = DynamicAs<RHI::OpenGLTexture>(OpenGLDriver::GetCurrentDriver()->GetRenderContext()->CreateTexture(colorSettings));
+        RHI::SamplerSettings colorSamplerSettings = CreateFrom(m_options);
+        internalColorSampler = DynamicAs<RHI::OpenGLSampler>(OpenGLDriver::GetCurrentDriver()->GetRenderContext()->CreateSampler(colorSamplerSettings));
         
         // Depth Attachment
         RHI::TextureSettings depthSettingsSettings = RHI::TextureSettings::ForDepthStencil(depthormat, m_width, m_height);
         depthTexture = DynamicAs<RHI::OpenGLTexture>(OpenGLDriver::GetCurrentDriver()->GetRenderContext()->CreateTexture(depthSettingsSettings));
+        RHI::SamplerSettings depthSamplerSettings = CreateFrom(m_options);
+        internalDepthSampler = DynamicAs<RHI::OpenGLSampler>(OpenGLDriver::GetCurrentDriver()->GetRenderContext()->CreateSampler(depthSamplerSettings));
         
         passSettings = RHI::RenderPassSettings({ colorTexture->GetTextureView({}), depthTexture->GetTextureView({})}, m_width, m_height);
         renderPass = DynamicAs<RHI::OpenGLRenderPass>(renderPattern->CreateRenderPass(passSettings));
@@ -148,6 +164,9 @@ namespace VWolf {
             internalTexture->SetData(subResource);
         }
         internalTexture->Unbind();
+        
+        RHI::SamplerSettings samplerSettings = CreateFrom(options);
+        internalSampler = DynamicAs<RHI::OpenGLSampler>(OpenGLDriver::GetCurrentDriver()->GetRenderContext()->CreateSampler(samplerSettings));
         
         // TODO: What to do with this?
         GLThrowIfFailed(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));

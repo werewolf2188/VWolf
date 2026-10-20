@@ -15,6 +15,7 @@
 #include "OpenGLRenderState.h"
 #include "OpenGLBuffer.h"
 #include "OpenGLBufferSet.h"
+#include "OpenGLSampler.h"
 
 #include "OpenGLDevice.h"
 
@@ -55,5 +56,9 @@ namespace VWolf::RHI {
 
     Ref<Program> OpenGLRenderContext::CreateProgram(const ProgramSettings& settings) {
         return CreateRef<OpenGLProgram>(weak_from_this(), settings);
+    }
+
+    Ref<Sampler> OpenGLRenderContext::CreateSampler(const SamplerSettings& settings) {
+        return CreateRef<OpenGLSampler>(weak_from_this(), settings);
     }
 }

@@ -11,6 +11,7 @@
 #include "MetalRenderCommandList.h"
 #include "MetalRenderPass.h"
 #include "MetalDriver.h"
+#include "MetalSampler.h"
 
 #include "VWolf/Core/Time.h"
 
@@ -98,6 +99,10 @@ namespace VWolf::RHI  {
                 Ref<MetalTexture> texture = DynamicAs<MetalTexture>(view.GetTexture().lock());
                 encoder->useResource(texture->GetTexture().get(), MTL::ResourceUsageRead, MTL::RenderStageFragment);
                 SetTexture(texture->GetTexture(), key->GetName(), GetCurrentIndexPerState());
+            } else if (key->GetResourceType() == ResourceType::Sampler) {
+                const ResourceView& view = std::get<ResourceView>(value);
+                Ref<MetalSampler> sampler = DynamicAs<MetalSampler>(view.GetResource());
+                SetSampler(sampler->GetSamplerState(), key->GetName(), GetCurrentIndexPerState());
             }
         }
     }
@@ -192,35 +197,35 @@ namespace VWolf::RHI  {
                 if (size == 0) continue;
                 
                 MTL::Buffer* pDescriptorTable = MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newBuffer(size, MTL::ResourceStorageModeShared);
-                auto argumentBufferPtr = static_cast<uint8_t*>(pDescriptorTable->contents());
-                
-                std::map<std::string, Ref<RHI::BindableProgramArgument>> programArguments;
-                std::copy_if(program->GetSettings().GetProgramArguments().begin(), program->GetSettings().GetProgramArguments().end(),
-                                 std::inserter(programArguments, programArguments.end()),
-                                 [](const auto& pair) {
-                                     return pair.second->GetResourceType() == RHI::ResourceType::Sampler;
-                                 });
-                
-                for(auto [skey, svalue]: programArguments) {
-                    if (value.count(skey) == 0) continue;
-                    
-                    const Ref<RHI::Argument>& resource = value.at(svalue->GetName());
-                    uint64_t _offset = resource->GetOffset();
-                    auto entry = reinterpret_cast<IRDescriptorTableEntry*>(argumentBufferPtr + _offset);
-                    
-                    MTL::SamplerDescriptor* descriptor = MTL::SamplerDescriptor::alloc()->init();
-                    descriptor->setMipFilter(MTL::SamplerMipFilter::SamplerMipFilterLinear);
-                    descriptor->setRAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
-                    descriptor->setTAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
-                    descriptor->setSAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
-                    descriptor->setMaxAnisotropy(1);
-                    descriptor->setCompareFunction(MTL::CompareFunction::CompareFunctionNever);
-                    descriptor->setLodMinClamp(0);
-                    descriptor->setLodMaxClamp(std::numeric_limits<float>::max());
-                    descriptor->setSupportArgumentBuffers(true);
-                    IRDescriptorTableSetSampler(entry, MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newSamplerState(descriptor), 0);
-                    descriptor->release();
-                }
+//                auto argumentBufferPtr = static_cast<uint8_t*>(pDescriptorTable->contents());
+//                
+//                std::map<std::string, Ref<RHI::BindableProgramArgument>> programArguments;
+//                std::copy_if(program->GetSettings().GetProgramArguments().begin(), program->GetSettings().GetProgramArguments().end(),
+//                                 std::inserter(programArguments, programArguments.end()),
+//                                 [](const auto& pair) {
+//                                     return pair.second->GetResourceType() == RHI::ResourceType::Sampler;
+//                                 });
+//                
+//                for(auto [skey, svalue]: programArguments) {
+//                    if (value.count(skey) == 0) continue;
+//                    
+//                    const Ref<RHI::Argument>& resource = value.at(svalue->GetName());
+//                    uint64_t _offset = resource->GetOffset();
+//                    auto entry = reinterpret_cast<IRDescriptorTableEntry*>(argumentBufferPtr + _offset);
+//                    
+//                    MTL::SamplerDescriptor* descriptor = MTL::SamplerDescriptor::alloc()->init();
+//                    descriptor->setMipFilter(MTL::SamplerMipFilter::SamplerMipFilterLinear);
+//                    descriptor->setRAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
+//                    descriptor->setTAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
+//                    descriptor->setSAddressMode(MTL::SamplerAddressMode::SamplerAddressModeRepeat);
+//                    descriptor->setMaxAnisotropy(1);
+//                    descriptor->setCompareFunction(MTL::CompareFunction::CompareFunctionNever);
+//                    descriptor->setLodMinClamp(0);
+//                    descriptor->setLodMaxClamp(std::numeric_limits<float>::max());
+//                    descriptor->setSupportArgumentBuffers(true);
+//                    IRDescriptorTableSetSampler(entry, MetalDriver::GetCurrent()->GetDevice()->GetDevice()->newSamplerState(descriptor), 0);
+//                    descriptor->release();
+//                }
                 program->pDescriptorTables[shaderType].push_back(pDescriptorTable);
             }
         }
@@ -304,6 +309,21 @@ namespace VWolf::RHI  {
             auto entry = reinterpret_cast<IRDescriptorTableEntry*>(argumentBufferPtr + _offset);
 
             IRDescriptorTableSetTexture(entry, texture.get(), 0, 0);
+        }
+    }
+
+    void MetalRenderCommandList::SetSampler(Ref<MTL::SamplerState> sampler, const std::string& name, uint32_t index) {
+        Ref<MetalProgram> program = DynamicAs<MetalProgram>(current_state->GetSettings().GetProgram());
+        
+        for(auto& [key, topLevelArgument]: program->GetTopLevelArguments()) {
+            if (topLevelArgument.count(name) == 0) continue;
+            
+            auto argumentBufferPtr = static_cast<uint8_t*>(program->pDescriptorTables[(ShaderType)(uint32_t)key][index]->contents());
+            const Ref<RHI::Argument>& resource = topLevelArgument.at(name);
+            uint64_t _offset = resource->GetOffset();
+            auto entry = reinterpret_cast<IRDescriptorTableEntry*>(argumentBufferPtr + _offset);
+            
+            IRDescriptorTableSetSampler(entry, sampler.get(), 0);
         }
     }
     //
