@@ -188,7 +188,14 @@ namespace VWolfPup {
         virtual void OnInspector(VWolf::Ref<VWolf::TransformComponent> component) override {
             DrawComponent<VWolf::TransformComponent>(component->GetName(), *component, [](VWolf::TransformComponent& component) {
                 DrawVec3Control("Position", component.GetPosition());
-                DrawVec3Control("Rotation", component.GetEulerAngles());
+                VWolf::Vector3 rotation = component.GetQuaternion().EulerAngles().Degrees();
+                VWolf::Vector3 previousRotation = rotation;
+                DrawVec3Control("Rotation", rotation);
+                if (rotation != previousRotation) {
+                    component.SetQuaternion(VWolf::Quaternion::Euler(VWolf::Mathf::Deg2Rad * rotation.GetX(),
+                                                                     VWolf::Mathf::Deg2Rad * rotation.GetY(),
+                                                                     VWolf::Mathf::Deg2Rad * rotation.GetZ()));
+                }
                 DrawVec3Control("Scale", component.GetLocalScale(), 1.0);
             });
         }

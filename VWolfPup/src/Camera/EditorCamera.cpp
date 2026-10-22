@@ -19,7 +19,7 @@ namespace VWolfPup {
             float delta = e.GetYOffset() * 0.1f;
             MouseZoom(delta);
             transform->SetPosition(CalculatePosition());
-            transform->SetEulerAngles(GetOrientation().EulerAngles());
+            transform->SetQuaternion(GetOrientation());
             return false;
         }
         return false;
@@ -50,7 +50,7 @@ namespace VWolfPup {
         }
 
         transform->SetPosition(CalculatePosition());
-        transform->SetEulerAngles(GetOrientation().EulerAngles());
+        transform->SetQuaternion(GetOrientation());
         
 //        VWOLF_CLIENT_DEBUG("Position (%.3f %.3f %.3f), Pitch (%.3f), Yaw (%.3f), Distance (%.3f)", m_Position.x, m_Position.y, m_Position.z, m_Pitch, m_Yaw, m_Distance);
     }

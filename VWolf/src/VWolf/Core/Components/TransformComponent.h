@@ -22,13 +22,8 @@ namespace VWolf {
     public:
         Vector3& GetPosition() { return position; }
         void SetPosition(Vector3 position) { this->position = position; }
-        // TODO: Pass this to quaternion
-        Vector3& GetEulerAngles() { return eulerAngles; }
-        void SetEulerAngles(Vector3 eulerAngles) { this->eulerAngles = eulerAngles; }
-        const Quaternion& GetOrientation() {
-            orientation = Quaternion::Euler(eulerAngles.GetX(), eulerAngles.GetY(), eulerAngles.GetZ());
-            return orientation;
-        }
+        const Quaternion& GetQuaternion() const { return orientation; }
+        void SetQuaternion(Quaternion quaternion);
         Vector3& GetLocalScale() { return localScale; }
         void SetLocalScale(Vector3 localScale) { this->localScale = localScale; }
 
@@ -44,6 +39,7 @@ namespace VWolf {
     public:
         TransformComponent& operator=(TransformComponent t);
     private:
+        void RestoreQuaternionFromEulerAngles();
         Vector3 position;
         Vector3 eulerAngles;
         Vector3 localScale;
@@ -57,5 +53,13 @@ namespace VWolf {
 }
 
 namespace YAML {
-    VWOLF_CREATE_CONVERT_GENERIC_CLASS_DECODER(VWolf::TransformComponent)
+    template<>
+    struct convert<VWolf::TransformComponent> {
+        static bool decode(const Node& node, VWolf::TransformComponent& rhs)
+        {
+            bool decoded = VWolf::DeserializeFromBoostDescribe(node, rhs);
+            rhs.RestoreQuaternionFromEulerAngles();
+            return decoded;
+        }
+    };
 }

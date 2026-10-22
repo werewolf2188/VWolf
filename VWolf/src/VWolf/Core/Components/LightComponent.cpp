@@ -44,12 +44,7 @@ namespace VWolf {
     Light& LightComponent::GetLight_Ex() {
         TransformComponent& transform = GetGameObject()->GetTransform();
         light.position = transform.GetPosition();
-        // TODO: This should come from the transform
-        Vector3 direction = transform.GetEulerAngles();
-        Quaternion orientation(direction * Mathf::Deg2Rad);
-        
-        
-        light.direction = orientation.GetOrientation({ 0.0f, 0.0f, 1.0f }).Normalized();
+        light.direction = transform.Forward().Normalized();
         
         return light;
     }

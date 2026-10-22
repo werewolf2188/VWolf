@@ -224,7 +224,7 @@ namespace VWolf {
         
         Light& light = lightCo.GetLight();
         light.position = Vector4(transform.GetPosition().GetX(), transform.GetPosition().GetY(), transform.GetPosition().GetZ(), 1.0);
-        light.direction = (Vector4)transform.GetEulerAngles();
+        light.direction = (Vector4)transform.GetQuaternion().EulerAngles().Degrees();
         lights.push_back(light);
         lightSpaces.push_back(light.GetLightSpaceMatrix());
     }
@@ -323,7 +323,7 @@ namespace VWolf {
             Vector3 focalPoint = camera->GetFocalPoint();
             float zoom = camera->GetZoom();
             Vector3 position;
-            Quaternion orientation = cameraTransform.GetOrientation();
+            Quaternion orientation = cameraTransform.GetQuaternion();
             
             if ((cameraComponent->GetGameObject()->GetFlags() & HideFlags::Editor) == HideFlags::Editor) {
                 position = focalPoint - cameraTransform.GetPosition() * zoom;

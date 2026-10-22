@@ -53,7 +53,8 @@ namespace VWolf {
 
     void RigidBodyComponent::CreateRigidBody(reactphysics3d::PhysicsWorld* world, TransformComponent& component) {
         reactphysics3d::Vector3 position(component.GetPosition().GetX(), component.GetPosition().GetY(), component.GetPosition().GetZ());
-        reactphysics3d::Quaternion orientation = reactphysics3d::Quaternion::fromEulerAngles({ ( Mathf::Deg2Rad * component.GetEulerAngles().GetX()), (Mathf::Deg2Rad * component.GetEulerAngles().GetY()), (Mathf::Deg2Rad * component.GetEulerAngles().GetZ()) });
+        Quaternion rotation = component.GetQuaternion();
+        reactphysics3d::Quaternion orientation(rotation.GetX(), rotation.GetY(), rotation.GetZ(), rotation.GetW());
         oldTransform = CreateRef<reactphysics3d::Transform>(position, orientation);
         rigidBody = UnownedRef<reactphysics3d::RigidBody>(world->createRigidBody(*oldTransform));
         GetGameObject()->SetRigidBody(rigidBody.get());
@@ -67,17 +68,11 @@ namespace VWolf {
 
     void RigidBodyComponent::Update(TransformComponent& component, float factor) {
         const reactphysics3d::Transform& transform = rigidBody->getTransform();
-//        const reactphysics3d::Transform transform = reactphysics3d::Transform::interpolateTransforms(*oldTransform, newTransform, factor);
         const reactphysics3d::Vector3& position = transform.getPosition();
         const reactphysics3d::Quaternion& quaternion = transform.getOrientation();
         Quaternion quat(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
-        Vector3 euler = quat.EulerAngles().Degrees();
-//        Quat quat(transform.getOrientation().x, transform.getOrientation().y, transform.getOrientation().z, transform.getOrientation().w);
         component.SetPosition({ position.x, position.y, position.z });
-//        component.SetEulerAngles(eulerAngles(quat));
-        component.SetEulerAngles(euler);
-//        oldTransform->setPosition(transform.getPosition());
-//        oldTransform->setOrientation(transform.getOrientation());
+        component.SetQuaternion(quat);
     }
 
     void RigidBodyComponent::DestroyRigidBody(reactphysics3d::PhysicsWorld* world) {

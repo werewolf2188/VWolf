@@ -572,12 +572,7 @@ namespace VWolf {
 //                    position = cameraTransform.GetPosition();
 //            }
 //            
-//            Matrix4x4 viewMatrix = cam->CalculateView(position,
-//                                                      Quaternion::Euler(
-//                                                                        cameraTransform.GetEulerAngles().GetX(),
-//                                                                        cameraTransform.GetEulerAngles().GetY(),
-//                                                                        cameraTransform.GetEulerAngles().GetZ()
-//                                                                        ));
+//            Matrix4x4 viewMatrix = cam->CalculateView(position, cameraTransform.GetQuaternion());
 //
 //            CameraPass cameraPass = {
 //                viewMatrix,

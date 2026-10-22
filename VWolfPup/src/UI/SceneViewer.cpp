@@ -79,7 +79,7 @@ namespace VWolfPup {
                 VWolf::Vector3 focalPoint = camera->GetFocalPoint();
                 float zoom = camera->GetZoom();
                 VWolf::Vector3 position = focalPoint - cameraTransform->GetPosition() * zoom;
-                VWolf::Matrix4x4 view = camera->GetCamera()->CalculateView(position, cameraTransform->GetOrientation());
+                VWolf::Matrix4x4 view = camera->GetCamera()->CalculateView(position, cameraTransform->GetQuaternion());
                 VWolf::TransformComponent& tComponent = selectedObject->GetTransform();
                 tComponent.Apply();
                 VWolf::Matrix4x4& transform = tComponent.GetWorldMatrix();
@@ -100,8 +100,11 @@ namespace VWolfPup {
 
                     if (((ImGuizmo::OPERATION)operation) == ImGuizmo::OPERATION::TRANSLATE)
                         selectedObject->GetTransform().SetPosition(translation);
-                    if (((ImGuizmo::OPERATION)operation) == ImGuizmo::OPERATION::ROTATE)
-                        selectedObject->GetTransform().SetEulerAngles(selectedObject->GetTransform().GetEulerAngles() + rotation);
+                    if (((ImGuizmo::OPERATION)operation) == ImGuizmo::OPERATION::ROTATE) {
+                        VWolf::Vector3 delta = rotation * VWolf::Mathf::Deg2Rad;
+                        VWolf::Vector3 euler = selectedObject->GetTransform().GetQuaternion().EulerAngles() + delta;
+                        selectedObject->GetTransform().SetQuaternion(VWolf::Quaternion::Euler(euler.GetX(), euler.GetY(), euler.GetZ()));
+                    }
                     if (((ImGuizmo::OPERATION)operation) == ImGuizmo::OPERATION::SCALE)
                         selectedObject->GetTransform().SetLocalScale(scale);
                 }

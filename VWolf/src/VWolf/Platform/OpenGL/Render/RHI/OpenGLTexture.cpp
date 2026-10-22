@@ -17,11 +17,12 @@ namespace VWolf::RHI {
         InitializeTexture();
         
         // TODO: This should come from the setting or the sampler
-        GLThrowIfFailed(glTexParameteri(GetTextureType(), GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-        GLThrowIfFailed(glTexParameteri(GetTextureType(), GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+        GLThrowIfFailed(glTexParameteri(GetTextureType(), GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        GLThrowIfFailed(glTexParameteri(GetTextureType(), GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-        GLThrowIfFailed(glTexParameteri(GetTextureType(), GL_TEXTURE_WRAP_S, GL_REPEAT));
-        GLThrowIfFailed(glTexParameteri(GetTextureType(), GL_TEXTURE_WRAP_T, GL_REPEAT));
+        GLThrowIfFailed(glTexParameteri(GetTextureType(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+        GLThrowIfFailed(glTexParameteri(GetTextureType(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+        GLThrowIfFailed(glTexParameteri(GetTextureType(), GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
         //
         
         GLThrowIfFailed(glGenerateMipmap(GetTextureType()));

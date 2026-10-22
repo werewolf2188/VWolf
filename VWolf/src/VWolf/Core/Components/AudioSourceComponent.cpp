@@ -70,10 +70,10 @@ namespace VWolf {
 
     void AudioSourceComponent::Prepare(TransformComponent& listener, TransformComponent& sourceTransform) {
         listenerPosition = listener.GetPosition();
-        listenerDirection = listener.GetEulerAngles();
+        listenerDirection = listener.GetQuaternion().EulerAngles().Degrees();
 
         ma_engine_listener_set_position(engine.get(), 1, listener.GetPosition().GetX(), listener.GetPosition().GetY(), listener.GetPosition().GetZ());
-        ma_engine_listener_set_direction(engine.get(), 1, listener.GetEulerAngles().GetX(), listener.GetEulerAngles().GetY(), listener.GetEulerAngles().GetZ());
+        ma_engine_listener_set_direction(engine.get(), 1, listenerDirection.GetX(), listenerDirection.GetY(), listenerDirection.GetZ());
         ma_engine_listener_set_world_up(engine.get(), 1, 0, 1, 0);
 
         if (audioClip) {
@@ -81,8 +81,9 @@ namespace VWolf {
             
             if (audioClip->sound == nullptr) return;
             
+            Vector3 sourceDirection = sourceTransform.GetQuaternion().EulerAngles().Degrees();
             ma_sound_set_position(audioClip->sound, sourceTransform.GetPosition().GetX(), sourceTransform.GetPosition().GetY(), sourceTransform.GetPosition().GetZ());
-            ma_sound_set_direction(audioClip->sound, sourceTransform.GetEulerAngles().GetX(), sourceTransform.GetEulerAngles().GetY(), sourceTransform.GetEulerAngles().GetZ());
+            ma_sound_set_direction(audioClip->sound, sourceDirection.GetX(), sourceDirection.GetY(), sourceDirection.GetZ());
             ma_sound_set_looping(audioClip->sound, mLoop);
             CHECKMAERROR(ma_sound_start(audioClip->sound));
         }
@@ -94,14 +95,16 @@ namespace VWolf {
             listenerPosition = listener.GetPosition();
         }
 
-        if (listenerDirection != listener.GetEulerAngles()) {
-            ma_engine_listener_set_direction(engine.get(), 1, listener.GetEulerAngles().GetX(), listener.GetEulerAngles().GetY(), listener.GetEulerAngles().GetZ());
-            listenerDirection = listener.GetEulerAngles();
+        Vector3 currentListenerDirection = listener.GetQuaternion().EulerAngles().Degrees();
+        if (listenerDirection != currentListenerDirection) {
+            ma_engine_listener_set_direction(engine.get(), 1, currentListenerDirection.GetX(), currentListenerDirection.GetY(), currentListenerDirection.GetZ());
+            listenerDirection = currentListenerDirection;
         }
 
         if (audioClip && audioClip->sound) {
+            Vector3 sourceDirection = sourceTransform.GetQuaternion().EulerAngles().Degrees();
             ma_sound_set_position(audioClip->sound, sourceTransform.GetPosition().GetX(), sourceTransform.GetPosition().GetY(), sourceTransform.GetPosition().GetZ());
-            ma_sound_set_direction(audioClip->sound, sourceTransform.GetEulerAngles().GetX(), sourceTransform.GetEulerAngles().GetY(), sourceTransform.GetEulerAngles().GetZ());
+            ma_sound_set_direction(audioClip->sound, sourceDirection.GetX(), sourceDirection.GetY(), sourceDirection.GetZ());
         }
     }
 
