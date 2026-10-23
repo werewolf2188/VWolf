@@ -5,6 +5,7 @@
 //  Created by Enrique Moises on 10/21/26.
 //
 
+#include "vwpch.h"
 #include "OpenGLSampler.h"
 
 namespace VWolf::RHI {
